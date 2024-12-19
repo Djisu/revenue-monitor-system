@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+      "target": "es2020",
+      "module": "esnext",
+      "outDir": "./dist", // Outputs compiled files to the dist folder
+      "resolveJsonModule": true,
+      "allowSyntheticDefaultImports": true,
+      "strict": true,
+      "esModuleInterop": true,
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "types": ["node", "express", "multer", "vitest"],
+      "typeRoots": ["node_modules/@types", "src/@types"]
+  },
+  "include": ["src/**/*.ts", "src/types.d.ts", "tests/**/*.ts", "*.spec.ts"],
+  "exclude": [
+      "node_modules",
+      "dist"
+  ]
+}
