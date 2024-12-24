@@ -73,7 +73,7 @@ const propertyUseSlice = createSlice({
             .addCase(fetchPropertyUseById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPropertyUseById.fulfilled, (state, action) => {
+            .addCase(fetchPropertyUseById.fulfilled, (state) => {
                 state.loading = false;
                 // Optionally handle the fetched property use data
                 state.error = null;

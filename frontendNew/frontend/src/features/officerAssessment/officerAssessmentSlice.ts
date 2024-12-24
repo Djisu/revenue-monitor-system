@@ -106,7 +106,7 @@ const officerAssessmentSlice = createSlice({
             .addCase(fetchOfficerAssessmentById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchOfficerAssessmentById.fulfilled, (state, action) => {
+            .addCase(fetchOfficerAssessmentById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched single OfficerAssessment record as needed
                 state.error = null;

@@ -102,7 +102,7 @@ const busMobiSlice = createSlice({
             .addCase(fetchBusMobiById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchBusMobiById.fulfilled, (state, action) => {
+            .addCase(fetchBusMobiById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched single BusMobi as needed
                 state.error = null;

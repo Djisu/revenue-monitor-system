@@ -98,7 +98,7 @@ const budgetAssessSlice = createSlice({
             .addCase(fetchBudgetAssessRecordById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchBudgetAssessRecordById.fulfilled, (state, action) => {
+            .addCase(fetchBudgetAssessRecordById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched single record as needed
                 state.error = null;

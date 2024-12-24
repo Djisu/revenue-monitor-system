@@ -74,7 +74,7 @@ const propertyOfficerSlice = createSlice({
             .addCase(fetchPropertyOfficerById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPropertyOfficerById.fulfilled, (state, action) => {
+            .addCase(fetchPropertyOfficerById.fulfilled, (state) => {
                 state.loading = false;
                 // Optionally handle the fetched officer data
                 state.error = null;

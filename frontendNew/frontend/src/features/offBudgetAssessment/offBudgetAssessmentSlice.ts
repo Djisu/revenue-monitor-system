@@ -111,7 +111,7 @@ const offBudgetAssessmentSlice = createSlice({
             .addCase(fetchOffBudgetAssessmentByOfficer.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchOffBudgetAssessmentByOfficer.fulfilled, (state, action) => {
+            .addCase(fetchOffBudgetAssessmentByOfficer.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched single OffBudgetAssessment record as needed
                 state.error = null;

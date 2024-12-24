@@ -90,7 +90,7 @@ const gradeRateSlice = createSlice({
             .addCase(fetchGradeRateById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchGradeRateById.fulfilled, (state, action) => {
+            .addCase(fetchGradeRateById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched single GradeRate record as needed
                 state.error = null;

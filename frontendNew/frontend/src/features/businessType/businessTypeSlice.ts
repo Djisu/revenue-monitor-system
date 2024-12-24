@@ -87,7 +87,7 @@ const businessTypeSlice = createSlice({
             .addCase(fetchBusinessTypeById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchBusinessTypeById.fulfilled, (state, action) => {
+            .addCase(fetchBusinessTypeById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched single Business Type as needed
                 state.error = null;

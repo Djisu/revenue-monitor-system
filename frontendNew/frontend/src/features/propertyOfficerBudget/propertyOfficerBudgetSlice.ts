@@ -103,7 +103,7 @@ const propertyOfficerBudgetSlice = createSlice({
             .addCase(fetchPropertyOfficerBudgetById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPropertyOfficerBudgetById.fulfilled, (state, action) => {
+            .addCase(fetchPropertyOfficerBudgetById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched property officer budget data if needed
                 state.error = null;

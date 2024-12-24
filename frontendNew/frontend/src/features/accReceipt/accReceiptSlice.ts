@@ -87,7 +87,7 @@ const accReceiptSlice = createSlice({
             .addCase(fetchAccReceiptById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchAccReceiptById.fulfilled, (state, action) => {
+            .addCase(fetchAccReceiptById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched single receipt as needed
                 state.error = null;

@@ -73,7 +73,7 @@ const propertyCollectorElectoralAreaSlice = createSlice({
             .addCase(fetchPropertyCollectorElectoralAreaById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPropertyCollectorElectoralAreaById.fulfilled, (state, action) => {
+            .addCase(fetchPropertyCollectorElectoralAreaById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched property collector electoral area data if needed
                 state.error = null;

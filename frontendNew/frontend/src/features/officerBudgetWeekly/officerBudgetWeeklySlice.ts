@@ -190,7 +190,7 @@ const officerBudgetWeeklySlice = createSlice({
             .addCase(fetchOfficerBudgetWeeklyById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchOfficerBudgetWeeklyById.fulfilled, (state, action) => {
+            .addCase(fetchOfficerBudgetWeeklyById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched single Officer Budget Weekly record as needed
                 state.error = null;

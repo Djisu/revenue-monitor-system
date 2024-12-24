@@ -80,7 +80,7 @@ const transSavingsSlice = createSlice({
             .addCase(fetchTransSavingsById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchTransSavingsById.fulfilled, (state, action) => {
+            .addCase(fetchTransSavingsById.fulfilled, (state) => {
                 state.loading = false;
                 // Optionally handle the fetched transaction savings data
                 state.error = null;

@@ -94,7 +94,7 @@ const busPaymentsSlice = createSlice({
             .addCase(fetchBusPaymentById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchBusPaymentById.fulfilled, (state, action) => {
+            .addCase(fetchBusPaymentById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched single BusPayments record as needed
                 state.error = null;

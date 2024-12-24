@@ -78,7 +78,7 @@ const paymentReportSlice = createSlice({
             .addCase(fetchPaymentReportById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPaymentReportById.fulfilled, (state, action) => {
+            .addCase(fetchPaymentReportById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched payment report data if needed
                 state.error = null;

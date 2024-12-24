@@ -76,7 +76,7 @@ const operatorSlice = createSlice({
             .addCase(fetchOperatorById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchOperatorById.fulfilled, (state, action) => {
+            .addCase(fetchOperatorById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched operator data if needed
                 state.error = null;

@@ -75,7 +75,7 @@ const propertyBalanceSlice = createSlice({
             .addCase(fetchPropertyBalanceById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPropertyBalanceById.fulfilled, (state, action) => {
+            .addCase(fetchPropertyBalanceById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched property balance data if needed
                 state.error = null;

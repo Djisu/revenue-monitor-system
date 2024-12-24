@@ -91,7 +91,7 @@ const propertyOfficerAssessmentSlice = createSlice({
             .addCase(fetchPropertyOfficerAssessmentById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPropertyOfficerAssessmentById.fulfilled, (state, action) => {
+            .addCase(fetchPropertyOfficerAssessmentById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched property officer assessment data if needed
                 state.error = null;

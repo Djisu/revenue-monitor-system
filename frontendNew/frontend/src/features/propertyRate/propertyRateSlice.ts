@@ -75,7 +75,7 @@ const propertyRateSlice = createSlice({
             .addCase(fetchPropertyRateById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPropertyRateById.fulfilled, (state, action) => {
+            .addCase(fetchPropertyRateById.fulfilled, (state) => {
                 state.loading = false;
                 // Optionally handle the fetched rate data
                 state.error = null;

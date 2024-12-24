@@ -76,7 +76,7 @@ const operatorPermissionSlice = createSlice({
             .addCase(fetchOperatorPermissionById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchOperatorPermissionById.fulfilled, (state, action) => {
+            .addCase(fetchOperatorPermissionById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched operator permission data if needed
                 state.error = null;

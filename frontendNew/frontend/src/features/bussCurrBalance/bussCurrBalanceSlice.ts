@@ -93,7 +93,7 @@ const bussCurrBalanceSlice = createSlice({
             .addCase(fetchBussCurrBalanceById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchBussCurrBalanceById.fulfilled, (state, action) => {
+            .addCase(fetchBussCurrBalanceById.fulfilled, (state) => {
                 state.loading = false;
                 // Handle the fetched single BussCurrBalance record as needed
                 state.error = null;
