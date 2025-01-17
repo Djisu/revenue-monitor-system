@@ -154,3 +154,90 @@ router.delete('/:Business_Type', async (req: Request, res: Response) => {
 });
 
 export default router;
+
+
+
+
+
+
+
+
+
+// app.get('/api/business-types', async (req, res) => {
+//     try {
+//         const result = await db.query("set dateformat dmy select distinct buss_type from tb_business order by buss_type asc");
+//         res.status(200).json(result.recordset.map((row: any) => row.buss_type));
+//     } catch (error) {
+//         res.status(500).send({ success: false, message: error.message });
+//     }
+// });
+
+// app.post('/api/produce-report', async (req, res) => {
+//     const { businessType, reportType, isActual } = req.body;
+
+//     try {
+//         let deleteQuery;
+//         let insertQuery;
+//         let reportFileName;
+
+//         if (isActual) {
+//             deleteQuery = "set dateformat dmy delete from tmp_business";
+//             if (businessType) {
+//                 insertQuery = `set dateformat dmy insert into tmp_business select * from tb_business where buss_type=convert(varchar(50),'${businessType}') and current_rate>0 order by tot_grade asc`;
+//             } else {
+//                 insertQuery = `set dateformat dmy insert into tmp_business select * from tb_business where current_rate>0 order by tot_grade asc`;
+//             }
+
+//             switch (reportType) {
+//                 case 'sorted-by-category':
+//                     reportFileName = "ACTUAL BUSINESS TYPES REPORT GRADE.rpt";
+//                     break;
+//                 case 'electoral-area':
+//                     reportFileName = "ACTUAL BUSINESS TYPES REPORT ELECTORAL AREA.rpt";
+//                     break;
+//                 case 'current-rates':
+//                     reportFileName = "ACTUAL BUSINESS TYPES REPORT CURRENTRATE.rpt";
+//                     break;
+//                 default:
+//                     return res.status(400).send({ success: false, message: "Invalid report type" });
+//             }
+//         } else {
+//             deleteQuery = "set dateformat dmy delete from rept_business";
+//             if (businessType) {
+//                 insertQuery = `set dateformat dmy insert into rept_business select * from tb_business where buss_type like '%${businessType}%' and current_rate>0 order by buss_type`;
+//             } else {
+//                 insertQuery = `set dateformat dmy insert into rept_business select * from tb_business where current_rate>0 order by buss_type`;
+//             }
+
+//             switch (reportType) {
+//                 case 'sorted-by-category':
+//                     reportFileName = "business types report.rpt";
+//                     break;
+//                 case 'electoral-area':
+//                     reportFileName = "BUSINESS TYPES REPORT ELECTORAL AREA.rpt";
+//                     break;
+//                 case 'current-rates':
+//                     reportFileName = "BUSINESS TYPES REPORT CURRENTRATE.rpt";
+//                     break;
+//                 default:
+//                     return res.status(400).send({ success: false, message: "Invalid report type" });
+//             }
+//         }
+
+//         // Delete from the relevant temporary table
+//         await db.query(deleteQuery);
+
+//         // Insert into the relevant temporary table
+//         await db.query(insertQuery);
+
+//         // Check the temporary table
+//         const tmpResult = await db.query(`set dateformat dmy select * from tmp_business`);
+//         if (tmpResult.recordset.length > 0) {
+//             res.status(200).send({ success: true, message: "Processing completed", reportFileName });
+//         } else {
+//             res.status(404).send({ success: false, message: "No records found" });
+//         }
+//     } catch (error) {
+//         res.status(500).send({ success: false, message: error.message });
+//     }
+// });

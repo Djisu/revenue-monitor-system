@@ -220,4 +220,86 @@ router.delete('/:house_no', async (req: Request, res: Response) => {
     }
 });
 
-export default router;
+
+
+
+
+
+
+
+
+
+// import express from 'express';
+// import sql from 'mssql';
+
+// const app = express();
+// app.use(express.json());
+
+// const config = {
+//     user: 'sa',
+//     password: 'Timbuk2tu',
+//     server: '(local)',
+//     database: 'Saltpond',
+//     options: {
+//         encrypt: false,
+//         trustServerCertificate: true,
+//     }
+// };
+
+// app.get('/api/officers', async (req, res) => {
+//     try {
+//         await sql.connect(config);
+//         const result = await sql.query`SELECT officer_no, officer_name FROM tb_officer`;
+//         res.json(result.recordset);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Add similar endpoints for properties, property-types, property-uses, property-classes, electoral-areas, and property-details
+
+// app.post('/api/edit-property', async (req, res) => {
+//     const { house_no, owner, tenant, propertyuse, propertytype, propertyclass, electroral_area, landmark, street_name, lattitude, longitude, code, elevation, rate, propertyuserate, propertytyperate, propertyclassrate, assessmentby } = req.body;
+
+//     try {
+//         await sql.connect(config);
+//         const updateProperty = await sql.query`
+//             UPDATE tb_Property 
+//             SET owner = ${owner}, 
+//                 tenant = ${tenant}, 
+//                 propertyuse = ${propertyuse}, 
+//                 propertytype = ${propertytype}, 
+//                 propertyclass = ${propertyclass}, 
+//                 electroral_area = ${electroral_area}, 
+//                 landmark = ${landmark}, 
+//                 street_name = ${street_name}, 
+//                 lattitude = ${lattitude}, 
+//                 longitude = ${longitude}, 
+//                 code = ${code}, 
+//                 elevation = ${elevation}, 
+//                 rate = ${rate}, 
+//                 propertyuserate = ${propertyuserate}, 
+//                 propertytyperate = ${propertytyperate}, 
+//                 propertyclassrate = ${propertyclassrate}, 
+//                 assessmentby = ${assessmentby}
+//             WHERE house_no = ${house_no}
+//         `;
+
+//         if (updateProperty.rowsAffected[0] > 0) {
+//             res.send("Record successfully edited");
+//         } else {
+//             res.send("Record does not exist");
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// app.listen(3000, () => {
+//     console.log('Server running on port 3000');
+// });
+
+
+ export default router;

@@ -6,9 +6,35 @@ import swaggerUi from 'swagger-ui-express';
 import multer, { diskStorage } from 'multer';
 import colors from 'colors';
 import morgan from 'morgan';
-import mysql from 'mysql2/promise'; // Use promise-based mysql client
+import mysql from 'mysql2/promise';
 import swaggerJSDoc from 'swagger-jsdoc';
-import businessRoutes from './routes/api/businessRoutes.js'; // Adjusted path
+import businessRoutes from './routes/api/businessRoutes.js';
+import accReceiptRoutes from './routes/api/accReceiptRoutes.js';
+import authRoutes from './routes/api/authRoutes.js';
+import balanceRoutes from './routes/api/balanceRoutes.js';
+import budgetAssessRoutes from './routes/api/budgetAssessRoutes.js';
+import bussCurrBalanceRoutes from './routes/api/bussCurrBalanceRoutes.js';
+import electoralAreaRoutes from './routes/api/electoralArea.js';
+import gradeFeesRoutes from './routes/api/gradeFeesRoutes.js';
+import gradeRateRoutes from './routes/api/gradeRateRoutes.js';
+import offBudgetAssessmentRoutes from './routes/api/offBudgetAssessmentRoutes.js';
+import officerAssessmentRoutes from './routes/api/officerAssessmentRoutes.js';
+import officerBudgetWeeklyRoutes from './routes/api/officerBudgetWeeklyRoutes.js';
+import officerRoutes from './routes/api/officerRoutes.js';
+import operatorDefinitionRoutes from './routes/api/operatorDefinitionRoutes.js';
+import operatorPermissionRoutes from './routes/api/operatorPermissionRoutes.js';
+import paymentReportRoutes from './routes/api/paymentReportRoutes.js';
+import propertyBalanceRoutes from './routes/api/propertyBalanceRoutes.js';
+import propertyClassRoutes from './routes/api/propertyClassRoutes.js';
+import propertyCollectorElectoralareaRoutes from './routes/api/propertyCollectorElectoralareaRoutes.js';
+import propertyOfficerAssessmentRoutes from './routes/api/propertyOfficerAssessmentRoutes.js';
+import propertyOfficerBudgetRoutes from './routes/api/propertyOfficerBudgetRoutes.js';
+import propertyOfficerRoutes from './routes/api/propertyOfficerRoutes.js';
+import propertyRateRoutes from './routes/api/propertyRateRoutes.js';
+import propertyTypeRoutes from './routes/api/propertyTypeRoutes.js';
+import propertyUseRoutes from './routes/api/propertyUseRoutes.js';
+import receiptRoutes from './routes/api/receiptRoutes.js';
+import transSavingsRoutes from './routes/api/transSavingsRoutes.js';
 // Load environment variables from .env file
 const environment = process.env.NODE_ENV || 'development';
 dotenv.config(); // Load .env file from the default location
@@ -34,6 +60,9 @@ const dbConfig = {
 };
 console.log(colors.green('MySQL configuration:'), dbConfig);
 let connection;
+console.log('Email User:', process.env.EMAIL_USER);
+console.log('App Password:', process.env.APP_PASSWORD);
+console.log('MongoDB URI:', process.env.MONGODB_URI);
 // Create MySQL connection
 const connectDB = async () => {
     try {
@@ -78,7 +107,32 @@ app.get('/', (req, res) => {
 });
 // Use the business routes
 app.use('/api/business', businessRoutes);
-//app.use('/api/events', Events);
+app.use('/api/accReceipt', accReceiptRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/balance', balanceRoutes);
+app.use('/api/budgetAssess', budgetAssessRoutes);
+app.use('/api/bussCurrBalance', bussCurrBalanceRoutes);
+app.use('/api/electoralArea', electoralAreaRoutes);
+app.use('/api/gradeFees', gradeFeesRoutes);
+app.use('/api/gradeRate', gradeRateRoutes);
+app.use('/api/offBudgetAssessment', offBudgetAssessmentRoutes);
+app.use('/api/officerAssessment', officerAssessmentRoutes);
+app.use('/api/officerBudgetWeekly', officerBudgetWeeklyRoutes);
+app.use('/api/officer', officerRoutes);
+app.use('/api/operatorDefinition', operatorDefinitionRoutes);
+app.use('/api/operatorPermissions', operatorPermissionRoutes);
+app.use('/api/paymentReport', paymentReportRoutes);
+app.use('/api/propertyBalance', propertyBalanceRoutes);
+app.use('/api/propertyClass', propertyClassRoutes);
+app.use('/api/propertyCollectorElectoralArea', propertyCollectorElectoralareaRoutes);
+app.use('/api/propertyOfficerAssessment', propertyOfficerAssessmentRoutes);
+app.use('/api/propertyOfficerBudget', propertyOfficerBudgetRoutes);
+app.use('/api/propertyOfficer', propertyOfficerRoutes);
+app.use('/api/propertyRate', propertyRateRoutes);
+app.use('/api/propertyType', propertyTypeRoutes);
+app.use('/api/propertyUse', propertyUseRoutes);
+app.use('/api/receipt', receiptRoutes);
+app.use('/api/transSavings', transSavingsRoutes);
 // Set up multer storage
 const storage = diskStorage({
     destination: (req, file, cb) => {

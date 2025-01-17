@@ -164,3 +164,200 @@ router.delete('/:house_no', async (req: Request, res: Response) => {
 });
 
 export default router;
+
+
+
+
+
+
+
+
+
+
+
+// const express = require('express');
+// const mssql = require('mssql');
+// const app = express();
+// const port = 3000;
+
+// // Database configuration
+// const config = {
+//   user: 'sa',
+//   password: 'Timbuk2tu',
+//   server: 'your_server_name',
+//   database: 'your_database_name',
+//   options: {
+//     encrypt: true, // Use this if you're on Windows Azure
+//   },
+// };
+
+// // Fetch business types (electoral areas)
+// app.get('/api/businessTypes', async (req, res) => {
+//   try {
+//     const pool = await mssql.connect(config);
+//     const result = await pool.request().query(`SELECT DISTINCT electroral_area FROM tb_Property ORDER BY electroral_area ASC`);
+//     res.json(result.recordset);
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// });
+
+// // Fetch electoral areas
+// app.get('/api/electoralAreas', async (req, res) => {
+//   try {
+//     const pool = await mssql.connect(config);
+//     const result = await pool.request().query(`SELECT DISTINCT electroral_area FROM tb_Property ORDER BY electroral_area ASC`);
+//     res.json(result.recordset);
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// });
+
+// // Fetch distinct transaction dates based on the selected electoral area
+// app.get('/api/dates', async (req, res) => {
+//   try {
+//     const { electoral_area } = req.query;
+//     const pool = await mssql.connect(config);
+//     const result = await pool.request()
+//       .input('electoral_area', mssql.NVarChar, electoral_area)
+//       .query(`SELECT DISTINCT transdate FROM tb_PropertyBilling WHERE electoralarea = @electoral_area ORDER BY transdate`);
+//     res.json(result.recordset);
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// });
+
+// // Generate and fetch detailed preview data
+// app.get('/api/detailedPreview', async (req, res) => {
+//   try {
+//     const { electoral_area, start_date, end_date } = req.query;
+//     const pool = await mssql.connect(config);
+
+//     // Delete existing records in tb_PropertyVariance
+//     await pool.request().query(`DELETE FROM tb_PropertyVariance`);
+
+//     // Fetch properties and process them
+//     const properties = await pool.request()
+//       .input('electoral_area', mssql.NVarChar, electoral_area)
+//       .query(electoral_area
+//         ? `SELECT * FROM tb_Property WHERE electroral_area = @electoral_area ORDER BY electroral_area ASC`
+//         : `SELECT * FROM tb_Property ORDER BY electroral_area ASC`);
+
+//     for (const property of properties.recordset) {
+//       const varBalanceBF = await findBalanceBF(property.house_no, start_date);
+//       const varCurrentRate = await findCurrentRate(property.house_no, end_date);
+//       const varPaidAmount = await findPaidAmount(property.house_no, start_date, end_date);
+//       const varTotal = varBalanceBF + varCurrentRate - varPaidAmount;
+
+//       await pool.request()
+//         .input('house_no', mssql.NVarChar, property.house_no)
+//         .input('balancebf', mssql.Decimal(13, 2), varBalanceBF)
+//         .input('current_rate', mssql.Decimal(13, 2), varCurrentRate)
+//         .input('paid_amount', mssql.Decimal(13, 2), varPaidAmount)
+//         .input('Total', mssql.Decimal(13, 2), varTotal)
+//         .input('electroral_area', mssql.NVarChar, property.electroral_area)
+//         .query(`INSERT INTO tb_PropertyVariance (house_no, balancebf, current_rate, paid_amount, Total, electroral_area) VALUES (@house_no, @balancebf, @current_rate, @paid_amount, @Total, @electroral_area)`);
+//     }
+
+//     // Fetch processed records
+//     const result = await pool.request().query(`SELECT * FROM tb_PropertyVariance`);
+//     if (result.recordset.length > 0) {
+//       res.json(result.recordset);
+//     } else {
+//       res.status(404).send('No records found');
+//     }
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// });
+
+// // Generate and fetch summary preview data
+// app.get('/api/summaryPreview', async (req, res) => {
+//   try {
+//     const { electoral_area, start_date, end_date } = req.query;
+//     const pool = await mssql.connect(config);
+
+//     // Delete existing records in tb_PropertyVariance
+//     await pool.request().query(`DELETE FROM tb_PropertyVariance`);
+
+//     // Fetch properties and process them
+//     const properties = await pool.request()
+//       .input('electoral_area', mssql.NVarChar, electoral_area)
+//       .query(electoral_area
+//         ? `SELECT * FROM tb_Property WHERE electroral_area = @electoral_area ORDER BY electroral_area ASC`
+//         : `SELECT * FROM tb_Property ORDER BY electroral_area ASC`);
+
+//     for (const property of properties.recordset) {
+//       const varBalanceBF = await findBalanceBF(property.house_no, start_date);
+//       const varCurrentRate = await findCurrentRate(property.house_no, end_date);
+//       const varPaidAmount = await findPaidAmount(property.house_no, start_date, end_date);
+//       const varTotal = varBalanceBF + varCurrentRate - varPaidAmount;
+
+//       await pool.request()
+//         .input('house_no', mssql.NVarChar, property.house_no)
+//         .input('balancebf', mssql.Decimal(13, 2), varBalanceBF)
+//         .input('current_rate', mssql.Decimal(13, 2), varCurrentRate)
+//         .input('paid_amount', mssql.Decimal(13, 2), varPaidAmount)
+//         .input('Total', mssql.Decimal(13, 2), varTotal)
+//         .input('electroral_area', mssql.NVarChar, property.electroral_area)
+//         .query(`INSERT INTO tb_PropertyVariance (house_no, balancebf, current_rate, paid_amount, Total, electroral_area) VALUES (@house_no, @balancebf, @current_rate, @paid_amount, @Total, @electroral_area)`);
+//     }
+
+//     // Fetch processed records
+//     const result = await pool.request().query(`SELECT * FROM tb_PropertyVariance`);
+//     if (result.recordset.length > 0) {
+//       res.json(result.recordset);
+//     } else {
+//       res.status(404).send('No records found');
+//     }
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// });
+
+// // Helper function to find Balance BF
+// const findBalanceBF = async (house_no, start_date) => {
+//   try {
+//     const pool = await mssql.connect(config);
+//     const result = await pool.request()
+//       .input('house_no', mssql.NVarChar, house_no)
+//       .input('start_date', mssql.DateTime, start_date)
+//       .query(`SELECT SUM(amount) AS totsum FROM tb_PropertyPayments WHERE house_no = @house_no AND transdate < @start_date`);
+//     return result.recordset[0]?.totsum || 0;
+//   } catch (err) {
+//     throw new Error(err.message);
+//   }
+// };
+
+// // Helper function to find Current Rate
+// const findCurrentRate = async (house_no, end_date) => {
+//   try {
+//     const pool = await mssql.connect(config);
+//     const result = await pool.request()
+//       .input('house_no', mssql.NVarChar, house_no)
+//       .input('end_date', mssql.DateTime, end_date)
+//       .query(`SELECT current_rate FROM tb_PropertyBilling WHERE house_no = @house_no AND YEAR(transdate) = YEAR(@end_date)`);
+//     return result.recordset[0]?.current_rate || 0;
+//   } catch (err) {
+//     throw new Error(err.message);
+//   }
+// };
+
+// // Helper function to find Paid Amount
+// const findPaidAmount = async (house_no, start_date, end_date) => {
+//   try {
+//     const pool = await mssql.connect(config);
+//     const result = await pool.request()
+//       .input('house_no', mssql.NVarChar, house_no)
+//       .input('start_date', mssql.DateTime, start_date)
+//       .input('end_date', mssql.DateTime, end_date)
+//       .query(`SELECT SUM(amount) AS totsum FROM tb_PropertyPayments WHERE house_no = @house_no AND transdate BETWEEN @start_date AND @end_date`);
+//     return result.recordset[0]?.totsum || 0;
+//   } catch (err) {
+//     throw new Error(err.message);
+//   }
+// };
+
+// app.listen(port, () => {
+//   console.log(`Server running at http://localhost:${port}`);
+// });

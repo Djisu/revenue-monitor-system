@@ -343,3 +343,204 @@ router.delete('/:buss_no', async (req: Request, res: Response) => {
 });
 
 export default router;
+
+
+
+
+
+
+
+
+
+
+// import express from 'express';
+// import sql from 'mssql';
+
+// const app = express();
+// app.use(express.json());
+
+// const config = {
+//     user: 'sa',
+//     password: 'Timbuk2tu',
+//     server: '(local)',
+//     database: 'Saltpond',
+//     options: {
+//         encrypt: false,
+//         trustServerCertificate: true,
+//     }
+// };
+
+// // Fetch officers
+// app.get('/api/officers', async (req, res) => {
+//     try {
+//         await sql.connect(config);
+//         const result = await sql.query`SELECT officer_no, officer_name FROM tb_officer`;
+//         res.json(result.recordset);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Fetch properties based on electoral area
+// app.get('/api/properties', async (req, res) => {
+//     const { electoral_area } = req.query;
+
+//     try {
+//         await sql.connect(config);
+//         const result = await sql.query`SELECT * FROM tb_business WHERE electroral_area = ${electoral_area}`;
+//         res.json(result.recordset);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Fetch distinct fiscal years
+// app.get('/api/fiscal-years', async (req, res) => {
+//     try {
+//         await sql.connect(config);
+//         const result = await sql.query`SELECT DISTINCT fiscalyear FROM tb_busscurrbalance`;
+//         res.json(result.recordset);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Fetch distinct electoral areas
+// app.get('/api/electoral-areas', async (req, res) => {
+//     try {
+//         await sql.connect(config);
+//         const result = await sql.query`SELECT DISTINCT electroral_area FROM tb_business`;
+//         res.json(result.recordset);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Fetch total sum of payments for a specific business
+// app.get('/api/payments', async (req, res) => {
+//     const { buss_no } = req.query;
+
+//     try {
+//         await sql.connect(config);
+//         const result = await sql.query`SELECT SUM(amount) AS totsum FROM tb_busPayments WHERE buss_no = ${buss_no}`;
+//         const totsum = result.recordset[0]?.totsum || 0;
+//         res.json(totsum);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Fetch total sum of billings for a specific business in the previous fiscal year
+// app.get('/api/billings', async (req, res) => {
+//     const { buss_no, fiscalyear } = req.query;
+
+//     try {
+//         await sql.connect(config);
+//         const result = await sql.query`SELECT SUM(current_balance) AS totPrevBal FROM tb_bussCurrBalance WHERE buss_no = ${buss_no} AND fiscalyear < ${fiscalyear}`;
+//         const totPrevBal = result.recordset[0]?.totPrevBal || 0;
+//         res.json(totPrevBal);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Update balance in tb_BussCurrBalance
+// app.post('/api/update-balance', async (req, res) => {
+//     const { buss_no, fiscalyear, balancebf } = req.body;
+
+//     try {
+//         await sql.connect(config);
+//         const result = await sql.query`
+//             UPDATE tb_BussCurrBalance 
+//             SET balancebf = ${balancebf} 
+//             WHERE buss_no = ${buss_no} AND fiscalyear = ${fiscalyear}
+//         `;
+//         res.send("Balance updated successfully");
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Update current_rate and balancenew in tb_business
+// app.post('/api/update-property', async (req, res) => {
+//     const { buss_no, current_rate, balancenew } = req.body;
+
+//     try {
+//         await sql.connect(config);
+//         const result = await sql.query`
+//             UPDATE tb_business 
+//             SET current_rate = ${current_rate}, 
+//                 balancenew = ${balancenew} 
+//             WHERE buss_no = ${buss_no}
+//         `;
+//         res.send("Property updated successfully");
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Clear temporary tables
+// app.post('/api/clear-temp-tables', async (req, res) => {
+//     try {
+//         await sql.connect(config);
+//         await sql.query`DELETE FROM tmp_business`;
+//         await sql.query`DELETE FROM tmp_BussCurrBalance`;
+//         res.send("Temporary tables cleared successfully");
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Insert data into temporary tables
+// app.post('/api/insert-temp-data', async (req, res) => {
+//     const { electoral_area, fiscalyear } = req.body;
+
+//     try {
+//         await sql.connect(config);
+//         await sql.query`
+//             INSERT INTO tmp_business 
+//             SELECT DISTINCT * 
+//             FROM tb_business 
+//             WHERE electroral_area = ${electoral_area} 
+//             AND current_rate > 0 
+//             AND status = 'Active' 
+//             ORDER BY buss_name ASC
+//         `;
+//         await sql.query`
+//             INSERT INTO tmp_BussCurrBalance 
+//             SELECT DISTINCT * 
+//             FROM tb_BussCurrBalance 
+//             WHERE fiscalyear = ${fiscalyear} 
+//             AND electoralarea = ${electoral_area}
+//         `;
+//         res.send("Data inserted into temporary tables successfully");
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// // Generate and return the report data
+// app.get('/api/report', async (req, res) => {
+//     try {
+//         await sql.connect(config);
+//         const result = await sql.query`SELECT * FROM tmp_business ORDER BY buss_name ASC`;
+//         res.json(result.recordset);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+// app.listen(3000, () => {
+//     console.log('Server running on port 3000');
+// });

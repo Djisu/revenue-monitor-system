@@ -21,33 +21,43 @@ const initialState: PropertyClassState = {
     error: null,
 };
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+
+console.log('in authSlice.ts')
+
+console.log('BASE_URL:', BASE_URL);
+
+console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
+console.log('BASE_URL: ', BASE_URL)
+
 // Async thunk to fetch all property classes
 export const fetchPropertyClasses = createAsyncThunk('propertyClass/fetchPropertyClasses', async () => {
-    const response = await axios.get('/api/propertyClass');
+    const response = await axios.get(`${BASE_URL}/api/propertyClass`);
     return response.data;
 });
 
 // Async thunk to fetch a single property class by property_class
 export const fetchPropertyClassById = createAsyncThunk('propertyClass/fetchPropertyClassById', async (property_class: string) => {
-    const response = await axios.get(`/api/propertyClass/${property_class}`);
+    const response = await axios.get(`${BASE_URL}/api/propertyClass/${property_class}`);
     return response.data;
 });
 
 // Async thunk to create a new property class
 export const createPropertyClass = createAsyncThunk('propertyClass/createPropertyClass', async (propertyClassData: PropertyClassData) => {
-    const response = await axios.post('/api/propertyClass', propertyClassData);
+    const response = await axios.post(`${BASE_URL}/api/propertyClass`, propertyClassData);
     return response.data;
 });
 
 // Async thunk to update a property class
 export const updatePropertyClass = createAsyncThunk('propertyClass/updatePropertyClass', async ({ property_class, propertyClassData }: { property_class: string; propertyClassData: PropertyClassData }) => {
-    const response = await axios.put(`/api/propertyClass/${property_class}`, propertyClassData);
+    const response = await axios.put(`${BASE_URL}/api/propertyClass/${property_class}`, propertyClassData);
     return response.data;
 });
 
 // Async thunk to delete a property class
 export const deletePropertyClass = createAsyncThunk('propertyClass/deletePropertyClass', async (property_class: string) => {
-    const response = await axios.delete(`/api/propertyClass/${property_class}`);
+    const response = await axios.delete(`${BASE_URL}/api/propertyClass/${property_class}`);
     return response.data;
 });
 

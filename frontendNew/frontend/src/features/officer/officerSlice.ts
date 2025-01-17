@@ -22,33 +22,43 @@ const initialState: OfficerState = {
     error: null,
 };
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+
+console.log('in authSlice.ts')
+
+console.log('BASE_URL:', BASE_URL);
+
+console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
+console.log('BASE_URL: ', BASE_URL)
+
 // Async thunk to fetch all officers
 export const fetchOfficers = createAsyncThunk('officer/fetchOfficers', async () => {
-    const response = await axios.get('/api/officer');
+    const response = await axios.get(`${BASE_URL}/api/officer`);
     return response.data;
 });
 
 // Async thunk to fetch a single officer by officer_no
 export const fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', async (officer_no: string) => {
-    const response = await axios.get(`/api/officer/${officer_no}`);
+    const response = await axios.get(`${BASE_URL}/api/officer/${officer_no}`);
     return response.data;
 });
 
 // Async thunk to create a new officer
 export const createOfficer = createAsyncThunk('officer/createOfficer', async (officerData: OfficerData) => {
-    const response = await axios.post('/api/officer', officerData);
+    const response = await axios.post(`${BASE_URL}/api/officer`, officerData);
     return response.data;
 });
 
 // Async thunk to update an officer
 export const updateOfficer = createAsyncThunk('officer/updateOfficer', async ({ officer_no, officerData }: { officer_no: string; officerData: OfficerData }) => {
-    const response = await axios.put(`/api/officer/${officer_no}`, officerData);
+    const response = await axios.put(`${BASE_URL}/api/officer/${officer_no}`, officerData);
     return response.data;
 });
 
 // Async thunk to delete an officer
 export const deleteOfficer = createAsyncThunk('officer/deleteOfficer', async (officer_no: string) => {
-    const response = await axios.delete(`/api/officer/${officer_no}`);
+    const response = await axios.delete(`${BASE_URL}/api/officer/${officer_no}`);
     return response.data;
 });
 

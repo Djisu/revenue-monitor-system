@@ -192,3 +192,107 @@ router.delete('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
 });
 
 export default router;
+
+
+
+
+
+
+
+
+
+// app.post('/api/update-business-zones', async (req, res) => {
+//     try {
+//         await db.query("set dateformat dmy update var_busPayments set electroral_area=tb_business.electroral_area from tb_business where tb_business.buss_no=var_busPayments.buss_no");
+//         await db.query("set dateformat dmy update var_busPayments set buss_type=tb_business.buss_type from tb_business where tb_business.buss_no=var_busPayments.buss_no");
+//         await db.query("set dateformat dmy update tb_busPayments set electroral_area=tb_business.electroral_area from tb_business where tb_business.buss_no=tb_busPayments.buss_no");
+//         await db.query("set dateformat dmy update tb_busPayments set buss_type=tb_business.buss_type from tb_business where tb_business.buss_no=tb_busPayments.buss_no");
+//         res.status(200).send({ success: true });
+//     } catch (error) {
+//         res.status(500).send({ success: false, message: error.message });
+//     }
+// });
+
+// app.get('/api/zones', async (req, res) => {
+//     try {
+//         const result = await db.query("set dateformat dmy select distinct electroral_area from tb_buspayments where amount>0");
+//         res.status(200).json(result.recordset.map((row: any) => row.electroral_area));
+//     } catch (error) {
+//         res.status(500).send({ success: false, message: error.message });
+//     }
+// });
+
+// app.get('/api/business-types', async (req, res) => {
+//     const { zone } = req.query;
+//     if (!zone) {
+//         return res.status(400).send({ success: false, message: "Select a zone" });
+//     }
+
+//     try {
+//         const result = await db.query(`set dateformat dmy select distinct buss_type from tb_busPayments where electroral_area=convert(varchar(50),'${zone}')`);
+//         res.status(200).json(result.recordset.map((row: any) => row.buss_type));
+//     } catch (error) {
+//         res.status(500).send({ success: false, message: error.message });
+//     }
+// });
+
+// app.get('/api/payment-dates', async (req, res) => {
+//     const { zone } = req.query;
+//     if (!zone) {
+//         return res.status(400).send({ success: false, message: "Select a zone" });
+//     }
+
+//     try {
+//         const result = await db.query(`set dateformat dmy select transdate from tb_busPayments where electroral_area=convert(varchar(100),'${zone}') order by convert(datetime,transdate)`);
+//         res.status(200).json(result.recordset.map((row: any) => row.transdate));
+//     } catch (error) {
+//         res.status(500).send({ success: false, message: error.message });
+//     }
+// });
+
+// app.post('/api/produce-report', async (req, res) => {
+//     const { firstDate, lastDate, zone, bussType, posted } = req.body;
+
+//     try {
+//         // Delete from tmp_busPayments
+//         await db.query("set dateformat dmy delete from tmp_busPayments");
+
+//         // Update the business zones in payments (if needed, can be moved to a separate endpoint if called frequently)
+//         await db.query("set dateformat dmy update var_busPayments set electroral_area=tb_business.electroral_area from tb_business where tb_business.buss_no=var_busPayments.buss_no");
+//         await db.query("set dateformat dmy update var_busPayments set buss_type=tb_business.buss_type from tb_business where tb_business.buss_no=var_busPayments.buss_no");
+//         await db.query("set dateformat dmy update tb_busPayments set electroral_area=tb_business.electroral_area from tb_business where tb_business.buss_no=tb_busPayments.buss_no");
+//         await db.query("set dateformat dmy update tb_busPayments set buss_type=tb_business.buss_type from tb_business where tb_business.buss_no=tb_busPayments.buss_no");
+
+//         let query;
+//         if (zone && bussType) {
+//             query = `set dateformat dmy select * from tb_busPayments where transdate between convert(datetime,'${firstDate}') and convert(datetime,'${lastDate}') and electroral_area=convert(varchar(50),'${zone}') and buss_type='${bussType}'`;
+//         } else if (zone) {
+//             query = `set dateformat dmy select * from tb_busPayments where transdate between convert(datetime,'${firstDate}') and convert(datetime,'${lastDate}') and electroral_area=convert(varchar(50),'${zone}')`;
+//         } else if (bussType) {
+//             query = `set dateformat dmy select * from tb_busPayments where transdate between convert(datetime,'${firstDate}') and convert(datetime,'${lastDate}') and buss_type='${bussType}'`;
+//         } else {
+//             query = `set dateformat dmy select * from tb_busPayments where transdate between convert(datetime,'${firstDate}') and convert(datetime,'${lastDate}')`;
+//         }
+
+//         const result = await db.query(query);
+//         if (result.recordset.length === 0) {
+//             return res.status(404).send({ success: false, message: "Record not found" });
+//         }
+
+//         // Insert into tmp_busPayments
+//         const insertQuery = `set dateformat dmy insert into tmp_busPayments select * from tb_busPayments where transdate between convert(datetime,'${firstDate}') and convert(datetime,'${lastDate}')`;
+//         await db.query(insertQuery);
+
+//         // Check tmp_busPayments
+//         const tmpResult = await db.query("set dateformat dmy select * from tmp_busPayments");
+//         if (tmpResult.recordset.length > 0) {
+//             // Logic to display the report (e.g., redirect to a report page)
+//             res.status(200).send({ success: true, message: "Processing completed" });
+//         } else {
+//             res.status(404).send({ success: false, message: "No payments found" });
+//         }
+//     } catch (error) {
+//         res.status(500).send({ success: false, message: error.message });
+//     }
+// });
+

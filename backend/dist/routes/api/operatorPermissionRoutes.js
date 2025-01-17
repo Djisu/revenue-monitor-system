@@ -14,6 +14,7 @@ const dbConfig = {
 // Create a new operator permission record
 router.post('/', async (req, res) => {
     const operatorPermissionData = req.body;
+    console.log('router.post Creating new operator permission', operatorPermissionData);
     const connection = await mysql.createConnection(dbConfig);
     try {
         // Check if an operator permission with the same OperatorID already exists
@@ -22,14 +23,19 @@ router.post('/', async (req, res) => {
             res.status(409).json({ message: 'Operator permission with this OperatorID already exists.' });
             return;
         }
+        // Find operator definitions password
+        const [operator] = await connection.execute('SELECT password FROM operator_definition WHERE OperatorID = ?', [operatorPermissionData.OperatorID]);
+        if (operator.length == 0) {
+            res.status(404).json({ message: 'Operator definition with this OperatorID does not exist.' });
+            return;
+        }
+        const hashedPassword = operator[0].password;
         // Insert the new operator permission data
-        const [result] = await connection.execute(`INSERT INTO operator_permission (OperatorID, Menus, Reports, databasesx, password) 
-            VALUES (?, ?, ?, ?, ?)`, [
+        const [result] = await connection.execute(`INSERT INTO operator_permission (OperatorID, Menus, password) 
+            VALUES (?, ?, ?)`, [
             operatorPermissionData.OperatorID,
             operatorPermissionData.Menus,
-            operatorPermissionData.Reports,
-            operatorPermissionData.databasesx,
-            operatorPermissionData.password,
+            hashedPassword,
         ]);
         res.status(201).json({ message: 'Operator permission created successfully' });
     }
@@ -92,8 +98,6 @@ router.put('/:OperatorID', async (req, res) => {
         const [result] = await connection.execute(`UPDATE operator_permission SET Menus = ?, Reports = ?, databasesx = ?, password = ? 
             WHERE OperatorID = ?`, [
             operatorPermissionData.Menus,
-            operatorPermissionData.Reports,
-            operatorPermissionData.databasesx,
             operatorPermissionData.password,
             OperatorID
         ]);

@@ -3,6 +3,7 @@ import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import mysql, { ResultSetHeader } from 'mysql2/promise';
+import bcrypt from 'bcrypt';
 
 const router = Router();
 
@@ -16,23 +17,37 @@ const dbConfig = {
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'revmonitor',
 };
-
-// Operator data interface
-interface OperatorData {
+// backend/src/models/OperatorDefinition.ts
+export interface OperatorDefinition {
     OperatorID: string;
     OperatorName: string;
     password: string;
     firstname: string;
     lastname: string;
+    email: string;
 }
+
 
 // Create a new operator record
 router.post('/', async (req: Request, res: Response): Promise<void> => {
-    const operatorData: OperatorData = req.body;
+    console.log('in operator definition router.post');
+    
+    const operatorData: OperatorDefinition = req.body;
+
+    console.log('operatorData:', operatorData);
 
     const connection = await mysql.createConnection(dbConfig);
     
     try {
+        // Validate required fields
+        const requiredFields = ['OperatorID', 'OperatorName', 'password', 'firstname', 'lastname', 'email'];
+        for (const field of requiredFields) {
+            if (operatorData[field as keyof OperatorDefinition] === undefined) {
+                res.status(400).json({ message: `${field} is required.` });
+                return;
+            }
+        }
+
         // Check if an operator with the same OperatorID already exists
         let [existingOperator] = await connection.execute(
             'SELECT * FROM Operator_definition WHERE OperatorID = ?', 
@@ -44,16 +59,66 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+       
+
+        // Check if an operator with the same OperatorName already exists
+        [existingOperator] = await connection.execute(
+            'SELECT * FROM Operator_definition WHERE OperatorName = ?', 
+            [operatorData.OperatorName]
+        );
+        if ((existingOperator as any).length > 0) {
+            res.status(409).json({ message: 'Operator with this OperatorName already exists.' });
+            return;
+        }
+
+        // Check if an operator with the same firstname and lastname already exists
+        [existingOperator] = await connection.execute(
+            'SELECT * FROM Operator_definition WHERE firstname = ? AND lastname = ?', 
+            [operatorData.firstname, operatorData.lastname]
+        );
+        if ((existingOperator as any).length > 0) {
+            res.status(409).json({ message: 'Operator with this firstname and lastname already exists.' });
+            return;
+        }
+
+        // Validate lengths
+        if (operatorData.OperatorName.length < 3) {
+            res.status(409).json({ message: 'OperatorName must be at least 3 characters long.' });
+            return;
+        }
+        if (operatorData.password.length < 8) {
+            res.status(409).json({ message: 'Password must be at least 8 characters long.' });
+            return;
+        }
+        if (operatorData.firstname.length < 3) {
+            res.status(409).json({ message: 'Firstname must be at least 3 characters long.' });
+            return;
+        }
+        if (operatorData.lastname.length < 3) {
+            res.status(409).json({ message: 'Lastname must be at least 3 characters long.' });
+            return;
+        }
+        if (operatorData.email.length < 3) {
+            res.status(409).json({ message: 'Email must be at least 3 characters long.' });
+            return;
+        }
+
+         // Hash the password
+         const salt = await bcrypt.genSalt(10);
+         const hashedPassword = await bcrypt.hash(operatorData.password, salt);
+         operatorData.password = hashedPassword;
+
         // Insert the new operator data
         const [result] = await connection.execute<ResultSetHeader>(
-            `INSERT INTO Operator_definition (OperatorID, OperatorName, password, firstname, lastname) 
-            VALUES (?, ?, ?, ?, ?)`,
+            `INSERT INTO Operator_definition (OperatorID, OperatorName, password, firstname, lastname, email) 
+            VALUES (?, ?, ?, ?, ?, ?)`,
             [
                 operatorData.OperatorID,
                 operatorData.OperatorName,
                 operatorData.password,
                 operatorData.firstname,
                 operatorData.lastname,
+                operatorData.email
             ]
         );
 
@@ -65,6 +130,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         connection.end();
     }
 });
+
 
 // Read all operators
 router.get('/', async (req: Request, res: Response) => {
@@ -119,7 +185,7 @@ router.get('/:OperatorID', async (req: Request, res: Response) => {
 // Update an operator record
 router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> => {
     const { OperatorID } = req.params;
-    const operatorData: OperatorData = req.body;
+    const operatorData: OperatorDefinition = req.body;
 
     const connection = await mysql.createConnection(dbConfig);
     try {
@@ -145,8 +211,7 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
                 OperatorID
             ]
         );
-
-       
+      
         res.status(200).json({ message: 'Operator updated successfully' });
         return
     } catch (error) {

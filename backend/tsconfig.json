@@ -3,6 +3,7 @@
       "target": "es2020",
       "module": "esnext",
       "outDir": "./dist", // Outputs compiled files to the dist folder
+      "rootDir": "./src",
       "resolveJsonModule": true,
       "allowSyntheticDefaultImports": true,
       "strict": true,

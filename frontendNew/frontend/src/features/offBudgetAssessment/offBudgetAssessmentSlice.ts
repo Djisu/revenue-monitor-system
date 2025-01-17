@@ -31,17 +31,24 @@ interface OffBudgetAssessmentData {
     DecemberBudget: number;
 }
 
+// Define the type for the response of the amountByOfficerAndMonth API
+interface AmountByOfficerAndMonthResponse {
+    totsum: number | null;
+}
+
 // Define the initial state for the slice
 interface OffBudgetAssessmentState {
     assessments: OffBudgetAssessmentData[];
     loading: boolean;
     error: string | null;
+    amountByOfficerAndMonth: AmountByOfficerAndMonthResponse | null;
 }
 
 const initialState: OffBudgetAssessmentState = {
     assessments: [],
     loading: false,
     error: null,
+    amountByOfficerAndMonth: null,
 };
 
 // Async thunk to fetch all OffBudgetAssessment records
@@ -76,6 +83,17 @@ export const deleteOffBudgetAssessment = createAsyncThunk('offBudgetAssessment/d
     const response = await axios.delete(`/api/offBudgetAssessment/${officer_name}`);
     return response.data;
 });
+
+// Async thunk to fetch amount by officer and month
+export const fetchAmountByOfficerAndMonth = createAsyncThunk(
+    'offBudgetAssessment/fetchAmountByOfficerAndMonth',
+    async ({ officerNo, fiscalYear, monthPaid }: { officerNo: string; fiscalYear: string; monthPaid: string }) => {
+        const response = await axios.get<{ totsum: number | null }>('/api/amountByOfficerAndMonth', {
+            params: { officerNo, fiscalYear, monthPaid }
+        });
+        return response.data;
+    }
+);
 
 // Create the slice
 const offBudgetAssessmentSlice = createSlice({
@@ -147,6 +165,18 @@ const offBudgetAssessmentSlice = createSlice({
             .addCase(deleteOffBudgetAssessment.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to delete OffBudgetAssessment record';
+            })
+            .addCase(fetchAmountByOfficerAndMonth.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchAmountByOfficerAndMonth.fulfilled, (state, action) => {
+                state.loading = false;
+                state.amountByOfficerAndMonth = action.payload; // Update the amountByOfficerAndMonth state
+                state.error = null;
+            })
+            .addCase(fetchAmountByOfficerAndMonth.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to fetch amount by officer and month';
             });
     },
 });

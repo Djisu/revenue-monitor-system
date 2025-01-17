@@ -41,6 +41,172 @@ interface OfficerAssessmentData {
     remarks: string;
 }
 
+async function getFiscalYears(): Promise<number[]> {
+    try {
+      const connection = await mysql.createConnection(dbConfig);
+
+       const [rows] = await connection.execute('SELECT DISTINCT fiscal_year FROM tb_busPayments ORDER BY fiscal_year')
+
+      return rows.map(row => row.fiscal_year);
+
+    } catch (err) {
+      console.error('Error fetching fiscal years:', err);
+      throw err;
+    }
+  }
+  
+  async function getOfficers(): Promise<Officer[]> {
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+
+        // Fetch the officers directly from the tb_officer table
+        const [rows] = await connection.execute('SELECT officer_no, officer_name FROM tb_officer');
+
+        return rows as Officer[]; // Type assertion to match the Officer interface
+
+    } catch (err: any) {
+        console.error('Error fetching officers:', err);
+        throw err;
+    }
+}
+
+async function getAmountByOfficerAndMonth(officerNo: string, fiscalYear: number, monthPaid: string): Promise<number | null> {
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+
+        const [rows] = await connection.execute(`
+            SELECT 
+                SUM(amount) AS totsum 
+            FROM tb_buspayments 
+            WHERE officer_no = ? 
+              AND fiscal_year = ? 
+              AND (monthpaid = ? OR monthpaid = CAST(? AS UNSIGNED))
+        `, [officerNo, fiscalYear, monthPaid, monthPaid]);
+
+        return rows[0]?.totsum ?? null;  // Use optional chaining and nullish coalescing
+
+    } catch (err) {
+        console.error('Error fetching amount by officer and month:', err);
+        throw err;
+    }
+}
+
+async function deleteOfficerMonthAssess() {
+    const connection = await mysql.createConnection(dbConfig);
+    try {
+        
+
+        // Execute the DELETE statement
+        await connection.execute(`DELETE FROM tb_officerMonthAssess`);
+
+    } catch (err) {
+        console.error('Error deleting officer month assess:', err);
+        throw err;
+    } finally {
+        // Ensure the connection is closed after the operation
+        if (connection) {
+            await connection.end();
+        }
+    }
+}
+  
+async function insertOfficerMonthAssess(data: OfficerMonthlyPerformance[]) {
+  const connection = await mysql.createConnection(dbConfig);
+
+  try {
+
+      // Prepare an insert statement
+      const insertQuery = `
+          INSERT INTO tb_officerMonthAssess (officer_name, month, amount, fiscalyear) 
+          VALUES (?, ?, ?, ?)
+      `;
+
+      for (let item of data) {
+          await connection.execute(insertQuery, [item.officer_name, item.month, item.amount, item.fiscalyear]);
+      }
+      
+  } catch (err: any) {
+      console.error('Error inserting officer month assess:', err);
+  } finally {
+      connection.end(); // Always release the connection back to the pool
+  }
+}
+
+  interface FiscalYear {
+    fiscal_year: number;
+  }
+  
+  interface Officer {
+    officer_no: string;
+    officer_name: string;
+  }
+  
+  interface OfficerMonthlyPerformance {
+    officer_name: string;
+    month: string;
+    amount: number;
+    fiscalyear: number;
+  }
+
+  router.get('/api/fiscalYears', async (req: Request, res: Response) => {
+    try {
+      const fiscalYears = await getFiscalYears();
+      res.json(fiscalYears);
+    } catch (err) {
+      res.status(500).send((err as Error).message);
+    }
+  });
+
+  router.get('/api/officers', async (req: Request, res: Response) => {
+    try {
+      const officers = await getOfficers();
+      res.json(officers);
+    } catch (err) {
+      res.status(500).send((err as Error).message);
+    }
+  });
+
+    router.post('/api/officerMonthAssess', async (req: Request, res: Response) => {
+        try {
+        const data = req.body as OfficerMonthlyPerformance[];
+        await deleteOfficerMonthAssess();
+        await insertOfficerMonthAssess(data);
+        res.send('Officer month assess records created successfully');
+        } catch (err) {
+        res.status(500).send((err as Error).message);
+        }
+    });
+
+    router.delete('/api/officerMonthAssess', async (req: Request, res: Response) => {
+        try {
+          await deleteOfficerMonthAssess();
+          res.send('Officer month assess deleted');
+        } catch (err) {
+          res.status(500).send((err as Error).message);
+        }
+      });
+      
+      router.post('/api/officerMonthAssess', async (req: Request, res: Response) => {
+        try {
+          const data = req.body as OfficerMonthlyPerformance[];
+          await insertOfficerMonthAssess(data);
+          res.send('Officer month assess inserted');
+        } catch (err) {
+          res.status(500).send((err as Error).message);
+        }
+      });
+      
+ 
+router.get('/api/amountByOfficerAndMonth', async (req: Request, res: Response) => {
+    try {
+      const { officerNo, fiscalYear, monthPaid } = req.query as { officerNo: string; fiscalYear: string; monthPaid: string };
+      const amount = await getAmountByOfficerAndMonth(officerNo, Number(fiscalYear), monthPaid);
+      res.json({ totsum: amount });
+    } catch (err) {
+      res.status(500).send((err as Error).message);
+    }
+  })
+
 // Create a new officer assessment record
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const officerAssessmentData: OfficerAssessmentData = req.body;

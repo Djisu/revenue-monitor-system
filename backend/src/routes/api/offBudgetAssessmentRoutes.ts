@@ -17,6 +17,15 @@ const dbConfig = {
     database: process.env.DB_NAME || 'revmonitor',
 };
 
+interface FiscalYear {
+    fiscal_year: number;
+  }
+  
+  interface Officer {
+    officer_no: string;
+    officer_name: string;
+  }
+
 // OffBudgetAssessment data interface
 interface OffBudgetAssessmentData {
     officer_name: string;
@@ -45,6 +54,81 @@ interface OffBudgetAssessmentData {
     DecemberAmount: number;
     DecemberBudget: number;
 }
+
+interface OfficerBudget {
+    januaryAmount: number;
+    februaryAmount: number;
+    marchAmount: number;
+    aprilAmount: number;
+    mayAmount: number;
+    juneAmount: number;
+    julyAmount: number;
+    augustAmount: number;
+    septemberAmount: number;
+    octoberAmount: number;
+    novemberAmount: number;
+    decemberAmount: number;
+    totalValue: number;
+  }
+  
+  interface AssessmentData {
+    month: string;
+    budget: number;
+    amount: number;
+    fiscalYear: number;
+    assessmentby: string;
+  }
+
+// Experimental code to get officer budget data
+router.get('/fiscalYears', async (req: Request, res: Response) => {
+    try {
+      const fiscalYears = await getFiscalYears();
+      res.json(fiscalYears);
+    } catch (err) {
+      res.status(500).send((err as Error).message);
+    }
+});
+  
+router.get('/officers', async (req: Request, res: Response) => {
+  try {
+    const officers = await getOfficers();
+    res.json(officers);
+  } catch (err) {
+    res.status(500).send((err as Error).message);
+  }
+})
+
+router.get('/officerbudget', async (req: Request, res: Response) => {
+  try {
+    const { fiscalYear, officerNo } = req.query as { fiscalYear: string; officerNo: string };
+
+    const officerBudget = await getOfficerBudget(Number(fiscalYear), officerNo);
+
+    res.json(officerBudget);
+  } catch (err) {
+    res.status(500).send((err as Error).message);
+  }
+});
+  
+router.delete('/budgetAssess', async (req: Request, res: Response) => {
+  try {
+    await deleteBudgetAssess();
+    res.send('Budget assess deleted');
+  } catch (err) {
+    res.status(500).send((err as Error).message);
+  }
+})
+
+router.post('/budgetAssess', async (req: Request, res: Response) => {
+  try {
+    const data = req.body as AssessmentData[];
+    await insertBudgetAssess(data);
+    res.send('Budget assess inserted');
+  } catch (err) {
+    res.status(500).send((err as Error).message);
+  }
+});  
+//end of experimental code
 
 // Create a new OffBudgetAssessment record
 router.post('/', async (req: Request, res: Response): Promise<void> => {
@@ -211,5 +295,184 @@ router.delete('/:officer_name', async (req: Request, res: Response) => {
         connection.end();
     }
 });
+
+
+
+async function getFiscalYears(): Promise<number[]> {
+  const connection = await mysql.createConnection(dbConfig);
+
+    try {    
+      const [result] = await connection.execute('SELECT DISTINCT fiscal_year FROM tb_officerbudget ORDER BY fiscal_year');
+
+      return result.map(row => row.fiscal_year);
+    } catch (err) {
+      console.error('Error fetching fiscal years:', err);
+      throw err;
+    }
+  }
+  
+  async function getOfficers(): Promise<{ officer_no: string; officer_name: string }[]> {
+    const connection = await mysql.createConnection(dbConfig);
+
+    try {
+      const [result] = await connection.execute('SELECT * FROM tb_officer');
+      return result;
+    } catch (err) {
+      console.error('Error fetching officers:', err);
+      throw err;
+    }
+  }   
+
+  //import mysql from 'mysql2/promise';
+
+interface OfficerBudget {
+  januaryAmount: number;
+  februaryAmount: number;
+  marchAmount: number;
+  aprilAmount: number;
+  mayAmount: number;
+  juneAmount: number;
+  julyAmount: number;
+  augustAmount: number;
+  septemberAmount: number;
+  octoberAmount: number;
+  novemberAmount: number;
+  decemberAmount: number;
+  totalValue: number;
+}
+
+
+// Make sure to replace dbConfig with your actual database configuration object.
+async function getOfficerBudget(fiscalYear: number, officerNo: string): Promise<OfficerBudget[]> {
+  let connection: mysql.Connection | null = null;
+
+  try {
+    // Ensure you have a connection to the database
+    if (!connection) {
+      connection = await mysql.createConnection(dbConfig); // replace dbConfig with your actual db config
+    }
+
+    if (connection) {
+        const [rows, fields]: [OfficerBudget[], any] = await connection.execute(
+          `SELECT 
+            SUM(CASE WHEN monthpaid IN ('1', 'January') THEN amount ELSE 0 END) AS januaryAmount,
+            SUM(CASE WHEN monthpaid IN ('2', 'February') THEN amount ELSE 0 END) AS februaryAmount,
+            SUM(CASE WHEN monthpaid IN ('3', 'March') THEN amount ELSE 0 END) AS marchAmount,
+            SUM(CASE WHEN monthpaid IN ('4', 'April') THEN amount ELSE 0 END) AS aprilAmount,
+            SUM(CASE WHEN monthpaid IN ('5', 'May') THEN amount ELSE 0 END) AS mayAmount,
+            SUM(CASE WHEN monthpaid IN ('6', 'June') THEN amount ELSE 0 END) AS juneAmount,
+            SUM(CASE WHEN monthpaid IN ('7', 'July') THEN amount ELSE 0 END) AS julyAmount,
+            SUM(CASE WHEN monthpaid IN ('8', 'August') THEN amount ELSE 0 END) AS augustAmount,
+            SUM(CASE WHEN monthpaid IN ('9', 'September') THEN amount ELSE 0 END) AS septemberAmount,
+            SUM(CASE WHEN monthpaid IN ('10', 'October') THEN amount ELSE 0 END) AS octoberAmount,
+            SUM(CASE WHEN monthpaid IN ('11', 'November') THEN amount ELSE 0 END) AS novemberAmount,
+            SUM(CASE WHEN monthpaid IN ('12', 'December') THEN amount ELSE 0 END) AS decemberAmount,
+            SUM(amount) AS totalValue
+          FROM tb_buspayments
+          WHERE fiscal_year = ? AND officer_no = ?
+          GROUP BY officer_no, fiscal_year`,
+          [fiscalYear, officerNo] 
+        );
+        return rows;
+    } 
+    
+  } catch (err: any) {
+    console.error('Error fetching officer budget:', err);
+    throw err;
+  } finally {
+    if (connection) {
+      await connection.end(); // Close the connection if it was opened
+    }
+  }
+  return []
+}
+
+
+  
+  async function deleteBudgetAssess() {
+    let connection: mysql.Connection | null = null;
+
+  try {
+    // Ensure you have a connection to the database
+      if (!connection) {
+        connection = await mysql.createConnection(dbConfig); // replace dbConfig with your actual db config
+      }
+    
+      return await connection.execute('DELETE FROM tb_BudgetAssess'); 
+    } catch (err) {
+      console.error('Error deleting budget assess:', err);
+      throw err;
+    }
+  }
+
+interface AssessmentData {
+  month: string;    // Assuming month is a string like 'January'
+  budget: number;   // Assuming budget is a number (decimal)
+  amount: number;   // Assuming amount is a number (decimal)
+  fiscalYear: number; // Assuming fiscal year is a number (integer)
+  assessmentby: string; // Assuming assessmentby is a string
+}
+
+async function insertBudgetAssess(data: AssessmentData[]) {
+  let connection: mysql.Connection | null = null;
+  
+  try {
+    // Create a connection to the database
+    connection = await mysql.createConnection(dbConfig); // Replace dbConfig with your actual configuration
+
+    for (let item of data) {
+      const [result] = await connection.execute(
+        `INSERT INTO tb_BudgetAssess (month, budget, amount, variance, fiscalyear, assessmentby) 
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          item.month,
+          item.budget,
+          item.amount,
+          item.budget - item.amount, // Calculate variance here
+          item.fiscalYear,
+          item.assessmentby
+        ]
+      );
+    }
+  } catch (err) {
+    console.error('Error inserting budget assess:', err);
+    throw err;
+  } finally {
+    if (connection) {
+      await connection.end(); // Close the connection if it was opened
+    }
+  }
+}
+  
+// async function insertBudgetAssess(data: AssessmentData[]) {
+//   let connection: mysql.Connection | null = null;
+  
+//   try {
+//     // Create a connection to the database
+//     connection = await mysql.createConnection(dbConfig); // Replace dbConfig with your actual configuration
+
+//     for (let item of data) {
+//       const [result] = await connection.execute(
+//         `INSERT INTO tb_BudgetAssess (month, budget, amount, variance, fiscalyear, assessmentby) 
+//          VALUES (?, ?, ?, ?, ?, ?)`,
+//         [
+//           item.month,
+//           item.budget,
+//           item.amount,
+//           item.budget - item.amount, // Calculate variance here
+//           item.fiscalYear,
+//           item.assessmentby
+//         ]
+//       );
+//     }
+//   } catch (err) {
+//     console.error('Error inserting budget assess:', err);
+//     throw err;
+//   } finally {
+//     if (connection) {
+//       await connection.end(); // Close the connection if it was opened
+//     }
+//   }
+// }
 
 export default router;

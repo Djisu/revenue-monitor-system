@@ -3,6 +3,7 @@ import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import mysql, { ResultSetHeader } from 'mysql2/promise';
+import bcrypt from 'bcrypt';
 
 const router = Router();
 
@@ -21,18 +22,21 @@ const dbConfig = {
 interface OperatorPermissionData {
     OperatorID: string;
     Menus: string;
-    Reports: string;
-    databasesx: string;
     password: string;
 }
 
 // Create a new operator permission record
 router.post('/', async (req: Request, res: Response): Promise<void> => {
+
+    
     const operatorPermissionData: OperatorPermissionData = req.body;
+
+    console.log('router.post Creating new operator permission', operatorPermissionData)
 
     const connection = await mysql.createConnection(dbConfig);
     
     try {
+
         // Check if an operator permission with the same OperatorID already exists
         let [existingPermission] = await connection.execute(
             'SELECT * FROM operator_permission WHERE OperatorID = ?', 
@@ -44,16 +48,27 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        // Find operator definitions password
+        const [operator] = await connection.execute(
+            'SELECT password FROM operator_definition WHERE OperatorID = ?', 
+            [operatorPermissionData.OperatorID]
+        );
+
+        if ((operator as any).length == 0) {
+            res.status(404).json({ message: 'Operator definition with this OperatorID does not exist.' });
+            return;
+        }
+
+        const hashedPassword = (operator as any)[0].password;
+
         // Insert the new operator permission data
         const [result] = await connection.execute<ResultSetHeader>(
-            `INSERT INTO operator_permission (OperatorID, Menus, Reports, databasesx, password) 
-            VALUES (?, ?, ?, ?, ?)`,
+            `INSERT INTO operator_permission (OperatorID, Menus, password) 
+            VALUES (?, ?, ?)`,
             [
                 operatorPermissionData.OperatorID,
                 operatorPermissionData.Menus,
-                operatorPermissionData.Reports,
-                operatorPermissionData.databasesx,
-                operatorPermissionData.password,
+                hashedPassword,
             ]
         );
 
@@ -125,8 +140,6 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
             WHERE OperatorID = ?`,
             [
                 operatorPermissionData.Menus,
-                operatorPermissionData.Reports,
-                operatorPermissionData.databasesx,
                 operatorPermissionData.password,
                 OperatorID
             ]

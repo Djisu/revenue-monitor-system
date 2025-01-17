@@ -20,21 +20,31 @@ const initialState: BusinessTypeState = {
     error: null,
 };
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+
+console.log('in authSlice.ts')
+
+console.log('BASE_URL:', BASE_URL);
+
+console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
+console.log('BASE_URL: ', BASE_URL)
+
 // Async thunk to fetch all BusinessType records
 export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTypes', async () => {
-    const response = await axios.get('/api/businessType');
+    const response = await axios.get(`${BASE_URL}/api/businessType`);
     return response.data;
 });
 
 // Async thunk to create a new BusinessType record
 export const createBusinessType = createAsyncThunk('businessType/createBusinessType', async (data: BusinessTypeData) => {
-    const response = await axios.post('/api/businessType', data);
+    const response = await axios.post(`${BASE_URL}/api/businessType`, data);
     return response.data;
 });
 
 // Async thunk to fetch a single BusinessType record by Business_Type
 export const fetchBusinessTypeById = createAsyncThunk('businessType/fetchBusinessTypeById', async (Business_Type: string) => {
-    const response = await axios.get(`/api/businessType/${Business_Type}`);
+    const response = await axios.get(`${BASE_URL}/api/businessType/${Business_Type}`);
     return response.data;
 });
 
@@ -42,14 +52,14 @@ export const fetchBusinessTypeById = createAsyncThunk('businessType/fetchBusines
 export const updateBusinessType = createAsyncThunk(
     'businessType/updateBusinessType',
     async ({ Business_Type, data }: { Business_Type: string; data: BusinessTypeData }) => {
-        const response = await axios.put(`/api/businessType/${Business_Type}`, data);
+        const response = await axios.put(`${BASE_URL}/api/businessType/${Business_Type}`, data);
         return response.data;
     }
 );
 
 // Async thunk to delete a BusinessType record
 export const deleteBusinessType = createAsyncThunk('businessType/deleteBusinessType', async (Business_Type: string) => {
-    const response = await axios.delete(`/api/businessType/${Business_Type}`);
+    const response = await axios.delete(`${BASE_URL}/api/businessType/${Business_Type}`);
     return response.data;
 });
 

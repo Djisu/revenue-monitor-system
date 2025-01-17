@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import mysql from 'mysql2/promise';
+import bcrypt from 'bcrypt';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -13,23 +14,71 @@ const dbConfig = {
 };
 // Create a new operator record
 router.post('/', async (req, res) => {
+    console.log('in operator definition router.post');
     const operatorData = req.body;
+    console.log('operatorData:', operatorData);
     const connection = await mysql.createConnection(dbConfig);
     try {
+        // Validate required fields
+        const requiredFields = ['OperatorID', 'OperatorName', 'password', 'firstname', 'lastname', 'email'];
+        for (const field of requiredFields) {
+            if (operatorData[field] === undefined) {
+                res.status(400).json({ message: `${field} is required.` });
+                return;
+            }
+        }
         // Check if an operator with the same OperatorID already exists
         let [existingOperator] = await connection.execute('SELECT * FROM Operator_definition WHERE OperatorID = ?', [operatorData.OperatorID]);
         if (existingOperator.length > 0) {
             res.status(409).json({ message: 'Operator with this OperatorID already exists.' });
             return;
         }
+        // Check if an operator with the same OperatorName already exists
+        [existingOperator] = await connection.execute('SELECT * FROM Operator_definition WHERE OperatorName = ?', [operatorData.OperatorName]);
+        if (existingOperator.length > 0) {
+            res.status(409).json({ message: 'Operator with this OperatorName already exists.' });
+            return;
+        }
+        // Check if an operator with the same firstname and lastname already exists
+        [existingOperator] = await connection.execute('SELECT * FROM Operator_definition WHERE firstname = ? AND lastname = ?', [operatorData.firstname, operatorData.lastname]);
+        if (existingOperator.length > 0) {
+            res.status(409).json({ message: 'Operator with this firstname and lastname already exists.' });
+            return;
+        }
+        // Validate lengths
+        if (operatorData.OperatorName.length < 3) {
+            res.status(409).json({ message: 'OperatorName must be at least 3 characters long.' });
+            return;
+        }
+        if (operatorData.password.length < 8) {
+            res.status(409).json({ message: 'Password must be at least 8 characters long.' });
+            return;
+        }
+        if (operatorData.firstname.length < 3) {
+            res.status(409).json({ message: 'Firstname must be at least 3 characters long.' });
+            return;
+        }
+        if (operatorData.lastname.length < 3) {
+            res.status(409).json({ message: 'Lastname must be at least 3 characters long.' });
+            return;
+        }
+        if (operatorData.email.length < 3) {
+            res.status(409).json({ message: 'Email must be at least 3 characters long.' });
+            return;
+        }
+        // Hash the password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(operatorData.password, salt);
+        operatorData.password = hashedPassword;
         // Insert the new operator data
-        const [result] = await connection.execute(`INSERT INTO Operator_definition (OperatorID, OperatorName, password, firstname, lastname) 
-            VALUES (?, ?, ?, ?, ?)`, [
+        const [result] = await connection.execute(`INSERT INTO Operator_definition (OperatorID, OperatorName, password, firstname, lastname, email) 
+            VALUES (?, ?, ?, ?, ?, ?)`, [
             operatorData.OperatorID,
             operatorData.OperatorName,
             operatorData.password,
             operatorData.firstname,
             operatorData.lastname,
+            operatorData.email
         ]);
         res.status(201).json({ message: 'Operator created successfully' });
     }
