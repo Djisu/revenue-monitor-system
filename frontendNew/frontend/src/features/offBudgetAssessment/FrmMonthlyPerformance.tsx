@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface FiscalYear {
   fiscal_year: number;
@@ -148,6 +149,11 @@ const OfficerMonthlyPerformance: React.FC = () => {
         <button style={{ fontWeight: 'bold' }} onClick={handlePreviewClick}>Preview Monitoring Report (Monthly)</button>
         <button style={{ fontWeight: 'bold' }} onClick={handleExitClick}>Exit</button>
       </div>
+            
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+              
     </div>
   );
 };

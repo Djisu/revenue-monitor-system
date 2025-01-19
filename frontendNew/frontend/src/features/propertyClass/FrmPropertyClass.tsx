@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useAppDispatch } from '../../app/store';
 import { Button, Form, Table, Container, Row, Col } from 'react-bootstrap';
-import axios from 'axios';
+import { fetchPropertyClasses, createPropertyClass, deletePropertyClass } from './propertyClassSlice';
+import { Link } from 'react-router-dom';
 
 interface PropertyClass {
   property_class: string;
@@ -16,21 +18,36 @@ const FrmPropertyClass: React.FC = () => {
   const [addFlag, setAddFlag] = useState<string>('');
   const [delFlag, setDelFlag] = useState<string>('');
 
-  useEffect(() => {
-    populateListView();
-  }, []);
+  const [localPropertyClasses, setLocalPropertyClasses] = useState<PropertyClass[]>([]);
+  let [isDeleting, setIsDeleting] = useState(false);
 
-  const populateListView = async () => {
-    try {
-      const response = await axios.get<PropertyClass[]>('/api/propertyClasses');
-      setPropertyClasses(response.data);
-    } catch (error) {
-      console.error('Error fetching property classes:', error);
-    }
-  };
+  const dispatch = useAppDispatch();
+
+
+  useEffect(() => {
+    const fetchAreas = async () => {
+        try {
+            const result = await dispatch(fetchPropertyClasses()).unwrap();
+            console.log('Fetched property classes:', result); // Log the result
+            // Check if result is an array
+            if (Array.isArray(result.data)) {
+                setLocalPropertyClasses(result.data);
+            } else {
+                console.error('Expected an array, but received:', result.data);
+                setLocalPropertyClasses([]);
+            }
+        } catch (error) {
+            console.error('Error fetching electoral areas:', error);
+        }
+    };
+
+    fetchAreas();
+}, [dispatch]);
+
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
+
     setPropertyClass((prevPropertyClass) => ({
       ...prevPropertyClass,
       [name]: name === 'rate' ? parseFloat(value) : value,
@@ -46,10 +63,23 @@ const FrmPropertyClass: React.FC = () => {
         throw new Error('Enter the rate');
       }
 
-      const response = await axios.post('/api/propertyClasses', propertyClass);
+      const response = await dispatch(createPropertyClass(propertyClass)).unwrap();   
+
       setAddFlag(response.data.message);
-      populateListView();
+      // populateListView();
       setPropertyClass({ property_class: '', rate: 0 });
+
+      console.log(response);
+
+            alert("Record successfully added"); // Assuming response is successful
+            setPropertyClasses((prevPropertyClasses) => [
+              ...prevPropertyClasses,
+              { property_class: '', rate: 0 },
+            ]);
+            
+            // Refresh the list of electoral areas
+            const result = await dispatch(fetchPropertyClasses()).unwrap();
+            setLocalPropertyClasses(result.data);
     } catch (error) {
       console.error('Error adding property class:', error);
       setAddFlag('Error in adding a record');
@@ -62,14 +92,22 @@ const FrmPropertyClass: React.FC = () => {
         throw new Error('Enter the property class');
       }
 
-      const response = await axios.delete(`/api/propertyClasses/${propertyClass.property_class}`);
+      const response = await dispatch(deletePropertyClass(propertyClass.property_class)).unwrap();
+          setLocalPropertyClasses(localPropertyClasses.filter((pc) => pc.property_class !== propertyClass.property_class));
+          setIsDeleting(false);
+          setPropertyClass({ property_class: '', rate: 0 });
+          console.log(response);
+
       setDelFlag(response.data.message);
-      populateListView();
-      setPropertyClass({ property_class: '', rate: 0 });
-    } catch (error) {
-      console.error('Error deleting property class:', error);
-      setDelFlag('Error in deleting record');
-    }
+          //populateListView();
+          setPropertyClass({ property_class: '', rate: 0 });
+        } catch (error) {
+          console.error('Error deleting property class:', error);
+          setDelFlag('Error in deleting record');
+        } finally {
+          isDeleting = false; // Prevent multiple clicks
+          setIsDeleting(isDeleting); // Prevent multiple clicks
+      }
   };
 
   const handleSelectPropertyClass = (event: React.MouseEvent<HTMLElement>) => {
@@ -142,6 +180,13 @@ const FrmPropertyClass: React.FC = () => {
           </Table>
         </Col>
       </Row>
+            <Row className="mt-3">
+                <Col>
+                <Link to="/main" className="primary m-3">
+                    Go Back
+                </Link>
+                </Col>
+            </Row>
     </Container>
   );
 };

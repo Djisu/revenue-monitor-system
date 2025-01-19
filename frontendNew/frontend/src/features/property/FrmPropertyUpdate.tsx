@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Table } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface Officer {
     officer_no: string;
@@ -510,6 +511,13 @@ const PropertyUpdate: React.FC = () => {
                             ))}
                         </tbody>
                     </Table>
+                </Col>
+            </Row>
+            <Row className="mt-3">
+                <Col>
+                <Link to="/main" className="primary m-3">
+                    Go Back
+                </Link>
                 </Col>
             </Row>
         </Container>

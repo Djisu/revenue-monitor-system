@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button, Form, Table } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 // interface PropertyBillPaymentsProps {
 //   //uid: string;
@@ -440,6 +441,11 @@ const FrmDailyPropertyPayments: React.FC = () => {
           ))}
         </tbody>
       </Table>
+           
+                <Link to="/main" className="primary m-3">
+                    Go Back
+                </Link>
+               
     </div>
   );
 };

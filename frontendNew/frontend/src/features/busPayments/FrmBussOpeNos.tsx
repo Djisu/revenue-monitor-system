@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const FrmBussOpeNos: React.FC = () => {
   const [fiscalYear, setFiscalYear] = useState<string>('');
@@ -94,6 +95,11 @@ const FrmBussOpeNos: React.FC = () => {
           <Button variant="danger" onClick={() => console.log('Exit')}>Exit</Button>
         </div>
       </Form>
+            
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+              
     </div>
   );
 };

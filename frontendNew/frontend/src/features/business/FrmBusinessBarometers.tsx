@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Container, Row, Col, Table } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface Business {
   buss_no: string;
@@ -605,6 +606,13 @@ const BusinessBarometersForm: React.FC = () => {
         <Col>
           <Frame1 businesses={businesses} />
         </Col>
+      </Row>
+      <Row className="mt-3">
+          <Col>
+          <Link to="/main" className="primary m-3">
+              Go Back
+          </Link>
+          </Col>
       </Row>
     </Container>
   );

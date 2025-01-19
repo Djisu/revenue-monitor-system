@@ -71,7 +71,7 @@ router.get('/:electoral_area', async (req, res) => {
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_electoralarea WHERE electoral_area = ?', [electoral_area]);
         if (Array.isArray(rows) && rows.length > 0) {
-            res.json(rows[0]); // Return the first row
+            res.status(200).json({ success: true, data: rows[0] });
         }
         else {
             res.status(404).json({ success: false, message: 'Electoral area record not found' });
@@ -121,7 +121,7 @@ router.delete('/delete/:electoral_area', async (req, res) => {
         // Check for existing electoral area record
         const [rows] = await connection.execute('SELECT * FROM tb_electoralarea WHERE electoral_area = ?', [electoral_area]);
         if (Array.isArray(rows) && rows.length == 0) {
-            res.status(409).json({ message: 'Electoral area record does not exist' });
+            res.status(409).json({ success: true, message: 'Electoral area record does not exist' });
             return;
         }
         // Delete the electoral area record

@@ -44,7 +44,7 @@ var initialState = {
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
-console.log('in authSlice.ts');
+console.log('in propertyClassSlice.ts');
 console.log('BASE_URL:', BASE_URL);
 console.log('process.env.NODE_ENV: ', process.env.NODE_ENV);
 console.log('BASE_URL: ', BASE_URL);
@@ -53,10 +53,13 @@ export var fetchPropertyClasses = createAsyncThunk('propertyClass/fetchPropertyC
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/propertyClass"))];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/propertyClass/all"))];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
+                return [4 /*yield*/, response.data];
+            case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
+            case 3: throw new Error("Error fetching property classes : ".concat(response.statusText));
         }
     });
 }); });
@@ -68,32 +71,60 @@ export var fetchPropertyClassById = createAsyncThunk('propertyClass/fetchPropert
             case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/propertyClass/").concat(property_class))];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
+                return [4 /*yield*/, response.data];
+            case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
+            case 3: throw new Error("Error fetching property class by id    : ".concat(response.statusText));
         }
     });
 }); });
 // Async thunk to create a new property class
 export var createPropertyClass = createAsyncThunk('propertyClass/createPropertyClass', function (propertyClassData) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
+    var response, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/propertyClass"), propertyClassData)];
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/propertyClass"), propertyClassData, {
+                        headers: { 'Content-Type': 'application/json' },
+                    })];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
+            case 2:
+                error_1 = _a.sent();
+                if (axios.isAxiosError(error_1) && error_1.response) {
+                    // Handle specific error responses
+                    throw new Error(error_1.response.data.message || 'Failed to create property class');
+                }
+                throw new Error('Network error or other issue');
+            case 3: return [2 /*return*/];
         }
     });
 }); });
 // Async thunk to update a property class
 export var updatePropertyClass = createAsyncThunk('propertyClass/updatePropertyClass', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
-    var response;
+    var response, error_2;
     var property_class = _b.property_class, propertyClassData = _b.propertyClassData;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/propertyClass/").concat(property_class), propertyClassData)];
+            case 0:
+                console.log('in updatePropertyClass');
+                _c.label = 1;
             case 1:
+                _c.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/propertyClass/update/").concat(property_class), propertyClassData)];
+            case 2:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
+            case 3:
+                error_2 = _c.sent();
+                if (axios.isAxiosError(error_2) && error_2.response) {
+                    // Handle specific error responses
+                    throw new Error(error_2.response.data.message || 'Failed to delete electoral area');
+                }
+                throw new Error('Network error or other issue');
+            case 4: return [2 /*return*/];
         }
     });
 }); });
@@ -118,6 +149,7 @@ var propertyClassSlice = createSlice({
         builder
             .addCase(fetchPropertyClasses.pending, function (state) {
             state.loading = true;
+            state.error = null;
         })
             .addCase(fetchPropertyClasses.fulfilled, function (state, action) {
             state.loading = false;
@@ -142,18 +174,37 @@ var propertyClassSlice = createSlice({
         })
             .addCase(createPropertyClass.pending, function (state) {
             state.loading = true;
+            state.error = null;
         })
             .addCase(createPropertyClass.fulfilled, function (state, action) {
             state.loading = false;
-            state.propertyClasses.push(action.payload); // Add the new property class
-            state.error = null;
+            console.log('Before push, property classes:', state.propertyClasses);
+            if (action.payload.success) {
+                if (!Array.isArray(state.propertyClasses)) {
+                    console.warn('Resetting propertyClasses to an empty array');
+                    state.propertyClasses = [];
+                }
+                // Ensure the payload includes a rate, or provide a default value
+                var newPropertyClass = {
+                    property_class: action.payload.message,
+                    rate: action.payload.rate !== undefined ? action.payload.rate : 0, // Provide a default rate value if necessary
+                };
+                state.propertyClasses.push(newPropertyClass);
+                console.log('After push, propertyClasses:', state.propertyClasses);
+            }
+            else {
+                state.error = action.payload.message;
+            }
+            // state.propertyClasses.push(action.payload); // Add the new property class
+            // state.error = null;
         })
             .addCase(createPropertyClass.rejected, function (state, action) {
             state.loading = false;
-            state.error = action.error.message || 'Failed to create property class';
+            state.error = action.error.message || 'An error occurred while creating the property class';
         })
             .addCase(updatePropertyClass.pending, function (state) {
             state.loading = true;
+            state.error = null;
         })
             .addCase(updatePropertyClass.fulfilled, function (state, action) {
             state.loading = false;
@@ -169,6 +220,7 @@ var propertyClassSlice = createSlice({
         })
             .addCase(deletePropertyClass.pending, function (state) {
             state.loading = true;
+            state.error = null;
         })
             .addCase(deletePropertyClass.fulfilled, function (state, action) {
             state.loading = false;

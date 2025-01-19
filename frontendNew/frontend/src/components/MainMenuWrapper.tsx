@@ -3,10 +3,15 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import MainMenu from './layout/MainMenu'; // Adjust path as necessary
 import { useAuth } from '../context/AuthContext';
-import checkAccess from '../utilities/checkAccess'; // Import the checkAccess function
+//import checkAccess from '../utilities/checkAccess'; // Import the checkAccess function
 
-const MainMenuWrapper: React.FC = () => {
-    const { isAuthenticated, username } = useAuth();
+interface MainMenuWrapperProps {
+    handleSubmenuClick: () => void;
+    checkAccess: (menuOption: string) => Promise<boolean>; 
+}
+
+const MainMenuWrapper: React.FC<MainMenuWrapperProps> = ({ handleSubmenuClick, checkAccess }) => {
+    const { isAuthenticated } = useAuth();
 
     if (!isAuthenticated) {
         return <Navigate to="/" />;
@@ -14,8 +19,8 @@ const MainMenuWrapper: React.FC = () => {
 
     return (
         <MainMenu 
-            username={username} 
             checkAccess={checkAccess} // Use the imported function
+            handleSubmenuClick={handleSubmenuClick} // Pass handleSubmenuClick to MainMenu
         />
     );
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Alert, Table, Image } from 'react-bootstrap';
 import axios from 'axios';
 import { FaUpload } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 interface Officer {
   officer_no: string;
@@ -277,6 +278,11 @@ const EmployeeForm: React.FC = () => {
           <Image src={photo} alt="Employee Photo" style={{ width: '200px', height: '200px' }} />
         </div>
       )}
+      
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+         
     </Container>
   );
 };

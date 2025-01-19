@@ -11,7 +11,9 @@ const router = Router();
 
 // Load environment variables from .env file
 const environment = process.env.NODE_ENV || 'development';
+
 dotenv.config(); // Load .env file from the default location
+
 console.log(process.env); // Log all environment variables to check loading
 
 

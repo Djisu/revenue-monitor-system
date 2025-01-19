@@ -32,21 +32,41 @@ console.log('BASE_URL: ', BASE_URL)
 
 // Async thunk to fetch all BusinessType records
 export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTypes', async () => {
-    const response = await axios.get(`${BASE_URL}/api/businessType`);
-    return response.data;
+    const response = await axios.get(`${BASE_URL}/api/businessType/all`);
+
+    if (response.status >= 200 && response.status < 300) {
+        return await response.data; // This data will be available as `action.payload`
+    } else {
+        throw new Error(`Error fetching electoral areas: ${response.statusText}`);
+    }
 });
 
 // Async thunk to create a new BusinessType record
-export const createBusinessType = createAsyncThunk('businessType/createBusinessType', async (data: BusinessTypeData) => {
-    const response = await axios.post(`${BASE_URL}/api/businessType`, data);
-    return response.data;
+export const createBusinessType = createAsyncThunk(
+    'businessType/createBusinessType', 
+    async (data: string) => {
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/api/businessType`, 
+                data,
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                // Handle specific error responses
+                throw new Error(error.response.data.message || 'Failed to create business type');
+            }
+            throw new Error('Network error or other issue');
+        }
 });
 
 // Async thunk to fetch a single BusinessType record by Business_Type
-export const fetchBusinessTypeById = createAsyncThunk('businessType/fetchBusinessTypeById', async (Business_Type: string) => {
-    const response = await axios.get(`${BASE_URL}/api/businessType/${Business_Type}`);
-    return response.data;
-});
+// export const fetchBusinessTypeById = createAsyncThunk('businessType/fetchBusinessTypeById', async (Business_Type: string) => {
+//     const response = await axios.get(`${BASE_URL}/api/businessType/${Business_Type}`);
+//     return response.data;
+// });
 
 // Async thunk to update a BusinessType record
 export const updateBusinessType = createAsyncThunk(
@@ -59,8 +79,9 @@ export const updateBusinessType = createAsyncThunk(
 
 // Async thunk to delete a BusinessType record
 export const deleteBusinessType = createAsyncThunk('businessType/deleteBusinessType', async (Business_Type: string) => {
+   
     const response = await axios.delete(`${BASE_URL}/api/businessType/${Business_Type}`);
-    return response.data;
+    return response.data;   
 });
 
 // Create the slice
@@ -72,6 +93,7 @@ const businessTypeSlice = createSlice({
         builder
             .addCase(fetchBusinessTypes.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
             .addCase(fetchBusinessTypes.fulfilled, (state, action) => {
                 state.loading = false;
@@ -84,28 +106,40 @@ const businessTypeSlice = createSlice({
             })
             .addCase(createBusinessType.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
             .addCase(createBusinessType.fulfilled, (state, action) => {
                 state.loading = false;
-                state.businessTypes.push(action.payload); // Add the new Business Type
-                state.error = null;
+
+                console.log('Before push, businessTypes:', state.businessTypes);
+
+                if (action.payload.success) {
+                    if (!Array.isArray(state.businessTypes)) {
+                        console.warn('Resetting businessTypes to an empty array');
+                        state.businessTypes = [];
+                    }
+                    state.businessTypes.push({ Business_Type: action.payload.message });
+                    console.log('After push, businessTypes:', state.businessTypes);
+                } else {
+                    state.error = action.payload.message;
+                }
             })
             .addCase(createBusinessType.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to create Business Type';
             })
-            .addCase(fetchBusinessTypeById.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(fetchBusinessTypeById.fulfilled, (state) => {
-                state.loading = false;
-                // Handle the fetched single Business Type as needed
-                state.error = null;
-            })
-            .addCase(fetchBusinessTypeById.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.error.message || 'Failed to fetch Business Type';
-            })
+            // .addCase(fetchBusinessTypeById.pending, (state) => {
+            //     state.loading = true;
+            // })
+            // .addCase(fetchBusinessTypeById.fulfilled, (state) => {
+            //     state.loading = false;
+            //     // Handle the fetched single Business Type as needed
+            //     state.error = null;
+            // })
+            // .addCase(fetchBusinessTypeById.rejected, (state, action) => {
+            //     state.loading = false;
+            //     state.error = action.error.message || 'Failed to fetch Business Type';
+            // })
             .addCase(updateBusinessType.pending, (state) => {
                 state.loading = true;
             })
@@ -123,9 +157,14 @@ const businessTypeSlice = createSlice({
             })
             .addCase(deleteBusinessType.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
             .addCase(deleteBusinessType.fulfilled, (state, action) => {
-                state.loading = false;
+                console.log('Current electoralAreas before delete:', state.businessTypes);
+                if (!Array.isArray(state.businessTypes)) {
+                    console.warn('businessTypes is not an array, resetting to empty array');
+                    state.businessTypes = [];
+                }
                 // Remove the deleted Business Type from the state
                 state.businessTypes = state.businessTypes.filter(businessType => businessType.Business_Type !== action.meta.arg);
                 state.error = null;

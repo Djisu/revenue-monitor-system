@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const PropertyCollectorElectoralArea: React.FC = () => {
   const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
@@ -106,6 +107,11 @@ const PropertyCollectorElectoralArea: React.FC = () => {
           </tbody>
         </table>
       </div>
+            
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+              
     </div>
   );
 };

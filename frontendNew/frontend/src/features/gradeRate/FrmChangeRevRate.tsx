@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Link } from 'react-router-dom';
 
 
 
@@ -165,6 +166,11 @@ const ChangeRevRateForm: React.FC = () => {
           Exit
         </Button>
       </Form>
+            
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+             
     </Container>
   );
 };

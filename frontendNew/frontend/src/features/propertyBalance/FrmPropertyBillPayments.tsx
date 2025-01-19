@@ -1,5 +1,6 @@
 //import { get } from 'http';
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 // interface PropertyBillPaymentsProps {
 //   uid: string;
@@ -362,6 +363,11 @@ const FrmPropertyBillPayments: React.FC = () => {
       <div>Receipt No</div>
       <div>Collector:</div>
       <div>MARCORY MUNICIPAL ASSEMBLY</div>
+           
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+            
     </div>
   );
 };

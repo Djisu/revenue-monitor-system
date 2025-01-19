@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // For making HTTP requests
 import { Button, Form, Table } from 'react-bootstrap'; // Bootstrap components
+import { Link } from 'react-router-dom';
 
 interface PropertyBillPaymentsProps {
   MDImain: React.RefObject<any>; // Adjust the type based on your actual MDImain component
@@ -288,6 +289,11 @@ const PropertyBillPayments: React.FC<PropertyBillPaymentsProps> = ({ MDImain }) 
           ))}
         </tbody>
       </Table>
+            
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+               
     </div>
   );
 };

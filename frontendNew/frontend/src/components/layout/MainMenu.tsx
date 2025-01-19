@@ -4,26 +4,33 @@ import { Container, Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 interface MainMenuProps {
-    username: string | undefined;
+   // username: string | undefined;
     checkAccess: (menuOption: string) => Promise<boolean>;
+    handleSubmenuClick?: () => void; // Make it optional or required based on your needs
 }
 
-const MainMenu: React.FC<MainMenuProps> = ({ checkAccess }) => {
+const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
     const navigate = useNavigate();
 
     const handleMenuClick = (menuOption: string, formName: string) => {
         const resp = checkAccess(menuOption);
-        if (!resp) {
-            alert('Access denied. Your Operator id has no access to this option');
-            return;
-        }
-        
-        console.log(`Menu option ${menuOption} clicked`)
-        console.log(`Form name ${formName} selected`)
 
-        // Navigate to the appropriate route
-        navigate(`/${formName}`);
+        console.log('resp===', resp)
+
+        //resp.then(isAllowed => {
+            if (!resp) {
+                alert('Access denied. Your Operator id has no access to this option');
+                return;
+            }
+
+            console.log(`Menu option ${menuOption} clicked`);
+            console.log(`Form name ${formName} selected`);
+
+            // Navigate to the appropriate route
+            navigate(`/${formName}`);
+        //});
     };
+
 
     return (
         <Container fluid className="p-0">
@@ -34,7 +41,7 @@ const MainMenu: React.FC<MainMenuProps> = ({ checkAccess }) => {
                     <Nav className="me-auto justify-content-center w-100">
                         <NavDropdown title="BOP Setup" id="basic-nav-dropdown">
                             <NavDropdown.Item onClick={() => handleMenuClick('ST', 'SetupBusiness')}>
-                                ST_Setup Business
+                                ST_Setup Business Client
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('UC', 'UpdateBusinessClient')}>
                                 UC_Update Business Client

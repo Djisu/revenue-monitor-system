@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Alert, Table } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface Business {
   electroral_area: string;
@@ -297,6 +298,11 @@ const FrmMidlevelDetailedReport: React.FC = () => {
           ))}
         </tbody>
       </Table>
+            
+                <Link to="/main" className="primary m-3">
+                    Go Back
+                </Link>
+             
     </Container>
   );
 };

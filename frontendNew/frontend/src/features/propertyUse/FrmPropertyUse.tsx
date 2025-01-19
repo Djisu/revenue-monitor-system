@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Table, Container, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface PropertyUse {
   PropertyUse: string;
@@ -141,6 +142,13 @@ const FrmPropertyUse: React.FC = () => {
             </tbody>
           </Table>
         </Col>
+      </Row>
+      <Row className="mt-3">
+          <Col>
+          <Link to="/main" className="primary m-3">
+              Go Back
+          </Link>
+          </Col>
       </Row>
     </Container>
   );

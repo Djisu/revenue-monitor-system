@@ -3,6 +3,7 @@ import { Container, Form, Button, Alert, Table } from 'react-bootstrap';
 import axios from 'axios';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Link } from 'react-router-dom';
 
 interface Business {
   buss_no: number;
@@ -520,6 +521,11 @@ const TemporalPaymentForm: React.FC = () => {
           ))}
         </tbody>
       </Table>
+            
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+              
     </Container>
   );
 };

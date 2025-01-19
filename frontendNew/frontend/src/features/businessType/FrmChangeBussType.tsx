@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface BusinessType {
     buss_type: string;
@@ -137,6 +138,13 @@ const ChangeBusinessType: React.FC = () => {
                         </tbody>
                     </Table>
                 </Col>
+            </Row>
+            <Row className="mt-3">
+                
+                <Link to="/main" className="primary m-3">
+                    Go Back
+                </Link>
+                
             </Row>
         </Container>
     );

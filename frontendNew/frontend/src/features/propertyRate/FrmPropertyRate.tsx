@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Col, Form, Row, Table } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const FrmProducePropertyRate: React.FC = () => {
   // State management for form fields
@@ -161,6 +162,13 @@ const FrmProducePropertyRate: React.FC = () => {
             </tbody>
           </Table>
         </Col>
+      </Row>
+      <Row className="mt-3">
+          <Col>
+          <Link to="/main" className="primary m-3">
+              Go Back
+          </Link>
+          </Col>
       </Row>
     </div>
   );

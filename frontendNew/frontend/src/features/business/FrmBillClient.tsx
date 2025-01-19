@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button,  Alert } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface Business {
   buss_no: number;
@@ -148,6 +149,9 @@ export const FrmBillClient: React.FC = () => {
           Exit
         </Button>
       </Form>
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>        
     </Container>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Form, Table, Container, Row, Col, Card } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 const FrmPropertyCollectorElectoralArea: React.FC = () => {
   const [officerNo, setOfficerNo] = useState<string>('');
@@ -126,6 +127,13 @@ const FrmPropertyCollectorElectoralArea: React.FC = () => {
             </Card.Body>
           </Card>
         </Col>
+      </Row>
+      <Row className="mt-3">
+          <Col>
+          <Link to="/main" className="primary m-3">
+              Go Back
+          </Link>
+          </Col>
       </Row>
     </Container>
   );

@@ -12,7 +12,8 @@ const dbConfig = {
     database: process.env.DB_NAME || 'revmonitor',
 };
 // Create a new BusinessType record
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
+    console.log('Creating a new businessType record');
     const businessTypeData = req.body;
     const connection = await mysql.createConnection(dbConfig);
     try {
@@ -24,26 +25,26 @@ router.post('/', async (req, res) => {
         // Insert the new BusinessType data
         const [result] = await connection.execute(`INSERT INTO tb_BusinessType (Business_Type) 
             VALUES (?)`, [businessTypeData.Business_Type]);
-        res.status(201).json({ message: 'BusinessType record created successfully' });
+        res.status(201).json({ success: true, message: 'BusinessType record created successfully' });
     }
     catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating BusinessType record', error });
+        res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
     }
     finally {
         connection.end();
     }
 });
 // Read all BusinessType records
-router.get('/', async (req, res) => {
+router.get('/all', async (req, res) => {
     const connection = await mysql.createConnection(dbConfig);
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_BusinessType');
-        res.json(rows);
+        res.status(200).json({ success: true, data: rows });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching BusinessType records', error });
+        res.status(500).json({ success: false, message: 'Error fetching BusinessType records', error });
     }
     finally {
         connection.end();
@@ -56,15 +57,15 @@ router.get('/:Business_Type', async (req, res) => {
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_BusinessType WHERE Business_Type = ?', [Business_Type]);
         if (Array.isArray(rows) && rows.length > 0) {
-            res.json(rows[0]); // Return the first row
+            res.status(200).json({ success: true, data: rows[0] }); // Return the first row
         }
         else {
-            res.status(404).json({ message: 'BusinessType record not found' });
+            res.status(404).json({ success: false, message: 'BusinessType record not found' });
         }
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching BusinessType record', error });
+        res.status(500).json({ success: false, message: 'Error fetching BusinessType record', error });
     }
     finally {
         connection.end();
@@ -78,7 +79,7 @@ router.put('/:Business_Type', async (req, res) => {
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_BusinessType WHERE Business_Type = ?', [businessTypeData.Business_Type]);
         if (Array.isArray(rows) && rows.length > 0) {
-            res.status(409).json({ message: 'Business Type record already exists.' });
+            res.status(409).json({ success: false, message: 'Business Type record already exists.' });
             return;
         }
         // Update the BusinessType data
@@ -87,12 +88,12 @@ router.put('/:Business_Type', async (req, res) => {
             businessTypeData.Business_Type,
             Business_Type
         ]);
-        res.status(200).json({ message: 'BusinessType record updated successfully' });
+        res.status(200).json({ success: true, message: 'BusinessType record updated successfully' });
         return;
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating BusinessType record', error });
+        res.status(500).json({ success: false, message: 'Error updating BusinessType record', error });
     }
     finally {
         connection.end();
@@ -105,17 +106,17 @@ router.delete('/:Business_Type', async (req, res) => {
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_BusinessType WHERE Business_Type = ?', [Business_Type]);
         if (Array.isArray(rows) && rows.length > 0) {
-            res.status(409).json({ message: 'Business Type record already exists.' });
+            res.status(409).json({ success: true, message: 'Business Type record already exists.' });
             return;
         }
         // Delete the BusinessType record
         const [result] = await connection.execute('DELETE FROM tb_BusinessType WHERE Business_Type = ?', [Business_Type]);
-        res.status(200).json({ message: 'BusinessType record deleted successfully' });
+        res.status(200).json({ success: true, message: 'BusinessType record deleted successfully' });
         return;
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error deleting BusinessType record', error });
+        res.status(500).json({ success: false, message: 'Error deleting BusinessType record', error });
     }
     finally {
         connection.end();

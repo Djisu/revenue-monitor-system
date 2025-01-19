@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Link } from 'react-router-dom';
 
 interface BusinessType {
     buss_type: string;
@@ -157,6 +158,11 @@ const BusinessTypesReport: React.FC = () => {
                     </FormGroup>
                 </Form>
             </div>
+            
+            <Link to="/main" className="primary m-3">
+                Go Back
+            </Link>
+              
         </div>
     );
 };

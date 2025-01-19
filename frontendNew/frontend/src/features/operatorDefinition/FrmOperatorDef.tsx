@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Alert, Table } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface Operator {
   operatorID: string;
@@ -274,6 +275,11 @@ const OperatorDefForm: React.FC = () => {
           ))}
         </tbody>
       </Table>
+          
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+              
     </Container>
   );
 };

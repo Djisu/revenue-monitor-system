@@ -34,7 +34,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-// src/utilities/checkAccess.ts
 var checkAccess = function (menuOption) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         console.log("in checkAccess Checking access for menuOption: " + menuOption);
@@ -50,8 +49,11 @@ var checkAccess = function (menuOption) { return __awaiter(void 0, void 0, void 
                         console.log("Access: " + access);
                         // Check if menuOption exists in access permissions
                         if (access.includes(menuOption)) {
-                            resolve(true); // Access granted
-                            return;
+                            //resolve(true); // Access granted
+                            return true;
+                        }
+                        else {
+                            return false;
                         }
                     }
                     return;

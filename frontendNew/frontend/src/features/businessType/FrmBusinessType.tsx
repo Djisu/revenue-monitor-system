@@ -1,54 +1,61 @@
 import React, { useState, useEffect } from 'react';
+import { useAppDispatch } from '../../app/store';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
-import axios from 'axios';
+import { fetchBusinessTypes, createBusinessType, deleteBusinessType } from './businessTypeSlice'
+import { Link } from 'react-router-dom';
 
 interface BusinessType {
     business_type: string;
 }
 
-const BusinessTypeForm: React.FC = () => {
+const FrmBusinessType: React.FC = () => {
     const [businessType, setBusinessType] = useState<string>('');
-    const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
+    const [localBusinessTypes, setLocalBusinessTypes] = useState<BusinessType[]>([]);
+    let [isDeleting, setIsDeleting] = useState(false);
+
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
-        // Fetch business types on form load
-        fetchBusinessTypes();
-    }, []);
-
-    const fetchBusinessTypes = async () => {
-        try {
-            const response = await axios.get('/api/business-types');
-            setBusinessTypes(response.data);
-        } catch (error) {
-            console.error("Error fetching business types", error);
-            alert("An error occurred while fetching business types");
-        }
-    };
+        const fetchAreas = async () => {
+            try {
+                const result = await dispatch(fetchBusinessTypes()).unwrap();
+                console.log('Fetched electoral areas:', result); // Log the result
+                // Check if result is an array
+                if (Array.isArray(result.data)) {
+                    setLocalBusinessTypes(result.data);
+                } else {
+                    console.error('Expected an array, but received:', result.data);
+                    setLocalBusinessTypes([]);
+                }
+            } catch (error) {
+                console.error('Error fetching business types:', error);
+            }
+        };
+    
+        fetchAreas();
+    }, [dispatch]);
 
     const handleBusinessTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setBusinessType(e.target.value);
     };
 
     const handleAddClick = async () => {
+        console.log("Add clicked");
+
         if (!businessType) {
             alert("Enter a business type");
             return;
         }
 
         try {
-            const response = await axios.post('/api/add-business-type', {
-                business_type: businessType
-            });
+            // Dispatch the createBusinessType thunk
+            const response = await dispatch(createBusinessType(businessType)).unwrap();
 
-            if (response.data.success) {
-                alert("Record successfully added");
-                // Clear input field
-                setBusinessType('');
-                // Refresh the list of business types
-                fetchBusinessTypes();
-            } else {
-                alert("Record already exists");
-            }
+            alert(`Record successfully added: ${response.message}`); // Assuming response is successful
+            setBusinessType('');
+            // Refresh the list of electoral areas
+            const result = await dispatch(fetchBusinessTypes()).unwrap();
+            setLocalBusinessTypes(result.data);
         } catch (error) {
             console.error("Error adding business type", error);
             alert("Error in adding a record");
@@ -56,37 +63,47 @@ const BusinessTypeForm: React.FC = () => {
     };
 
     const handleDeleteClick = async () => {
+        console.log("Delete clicked, handleDeleteClick");
+        console.log(businessType);
+
         if (!businessType) {
             alert("Enter a business type");
             return;
         }
 
         try {
-            const response = await axios.post('/api/delete-business-type', {
-                business_type: businessType
-            });
+            const response = await dispatch(deleteBusinessType(businessType)).unwrap();
 
-            if (response.data.success) {
-                alert("Record successfully deleted");
-                // Clear input field
+            if (response.success) {
+                alert(response.message);
                 setBusinessType('');
-                // Refresh the list of business types
-                fetchBusinessTypes();
+    
+                // Optimistically remove the electoral area
+                setLocalBusinessTypes(prevAreas => 
+                    prevAreas.filter(area => area.business_type !== businessType)
+                );
+    
+                // Optionally refresh the list
+                // const result = await dispatch(fetchElectoralAreas()).unwrap();
+                // setLocalElectoralAreas(result);
             } else {
-                alert("Record not found");
+                alert("Record does not exist");
             }
         } catch (error) {
             console.error("Error deleting business type", error);
             alert("Error in deleting a record");
+        } finally {
+            isDeleting = false; // Prevent multiple clicks
+            setIsDeleting(isDeleting); // Prevent multiple clicks
         }
     };
 
-    const handleExitClick = () => {
-        // Hide the form and show main form (this can be handled via routing)
-        console.log("Exit button clicked");
-        // For example, you might navigate to another route here
-        // history.push('/main-form');
-    };
+    // const handleExitClick = () => {
+    //     // Hide the form and show main form (this can be handled via routing)
+    //     console.log("Exit button clicked");
+    //     // For example, you might navigate to another route here
+    //     // history.push('/main-form');
+    // };
 
     const handleRowClick = (bussType: BusinessType) => {
         setBusinessType(bussType.business_type);
@@ -96,7 +113,7 @@ const BusinessTypeForm: React.FC = () => {
         <Container fluid>
             <Row className="mb-3">
                 <Col>
-                    <h1 className="text-center text-primary">MFANTSEMAN MUNICIPAL ASSEMBLY</h1>
+                    <h1 className="text-center text-primary">MARCORY MUNICIPAL ASSEMBLY</h1>
                 </Col>
             </Row>
             <Row>
@@ -128,11 +145,6 @@ const BusinessTypeForm: React.FC = () => {
                         Delete Old Record
                     </Button>
                 </Col>
-                <Col>
-                    <Button variant="secondary" onClick={handleExitClick}>
-                        Exit
-                    </Button>
-                </Col>
             </Row>
             <Row className="mt-3">
                 <Col>
@@ -144,7 +156,7 @@ const BusinessTypeForm: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {businessTypes.map((bussType, index) => (
+                            {localBusinessTypes.map((bussType, index) => (
                                 <tr key={index} onClick={() => handleRowClick(bussType)}>
                                     <td>{bussType.business_type}</td>
                                 </tr>
@@ -153,139 +165,16 @@ const BusinessTypeForm: React.FC = () => {
                     </Table>
                 </Col>
             </Row>
+            <Row className="mt-3">
+                <Col>
+                <Link to="/main" className="primary m-3">
+                    Go Back
+                </Link>
+                </Col>
+            </Row>
         </Container>
     );
 };
 
-export default BusinessTypeForm;
-
-// const express = require('express');
-// const router = express.Router();
-// const { Sequelize, DataTypes } = require('sequelize');
-// const sequelize = new Sequelize('Saltpond', 'sa', 'Timbuk2tu', {
-//     host: 'localhost',
-//     dialect: 'mssql'
-// });
-
-// const BusinessType = sequelize.define('BusinessType', {
-//     business_type: {
-//         type: DataTypes.STRING,
-//         primaryKey: true
-//     }
-// }, {
-//     tableName: 'tb_businesstype',
-//     timestamps: false
-// });
-
-// router.get('/business-types', async (req, res) => {
-//     try {
-//         const businessTypes = await BusinessType.findAll({
-//             order: [['business_type', 'ASC']]
-//         });
-//         res.json(businessTypes);
-//     } catch (error) {
-//         console.error("Error fetching business types", error);
-//         res.status(500).json({ error: "An error occurred while fetching business types" });
-//     }
-// });
-
-// module.exports = router;
-
-// const express = require('express');
-// const router = express.Router();
-// const { Sequelize, DataTypes } = require('sequelize');
-// const sequelize = new Sequelize('Saltpond', 'sa', 'Timbuk2tu', {
-//     host: 'localhost',
-//     dialect: 'mssql'
-// });
-
-// const BusinessType = sequelize.define('BusinessType', {
-//     business_type: {
-//         type: DataTypes.STRING,
-//         primaryKey: true
-//     }
-// }, {
-//     tableName: 'tb_businesstype',
-//     timestamps: false
-// });
-
-// router.post('/add-business-type', async (req, res) => {
-//     const { business_type } = req.body;
-
-//     if (!business_type) {
-//         return res.status(400).json({ error: "Business type is required" });
-//     }
-
-//     try {
-//         const existingBusinessType = await BusinessType.findOne({
-//             where: {
-//                 business_type
-//             }
-//         });
-
-//         if (existingBusinessType) {
-//             return res.json({ success: false, message: "Record already exists" });
-//         }
-
-//         await BusinessType.create({
-//             business_type
-//         });
-
-//         res.json({ success: true });
-//     } catch (error) {
-//         console.error("Error adding business type", error);
-//         res.status(500).json({ error: "Error in adding a record" });
-//     }
-// });
-
-// module.exports = router;
-
-// const express = require('express');
-// const router = express.Router();
-// const { Sequelize, DataTypes } = require('sequelize');
-// const sequelize = new Sequelize('Saltpond', 'sa', 'Timbuk2tu', {
-//     host: 'localhost',
-//     dialect: 'mssql'
-// });
-
-// const BusinessType = sequelize.define('BusinessType', {
-//     business_type: {
-//         type: DataTypes.STRING,
-//         primaryKey: true
-//     }
-// }, {
-//     tableName: 'tb_businesstype',
-//     timestamps: false
-// });
-
-// router.post('/delete-business-type', async (req, res) => {
-//     const { business_type } = req.body;
-
-//     if (!business_type) {
-//         return res.status(400).json({ error: "Business type is required" });
-//     }
-
-//     try {
-//         const deletedBusinessType = await BusinessType.destroy({
-//             where: {
-//                 business_type
-//             }
-//         });
-
-//         if (deletedBusinessType > 0) {
-//             res.json({ success: true });
-//         } else {
-//             res.json({ success: false, message: "Record not found" });
-//         }
-//     } catch (error) {
-//         console.error("Error deleting business type", error);
-//         res.status(500).json({ error: "Error in deleting a record" });
-//     }
-// });
-
-// module.exports = router;
-
-
-
-
+export default FrmBusinessType;
 

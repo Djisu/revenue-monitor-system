@@ -45,10 +45,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
+import { useAppDispatch } from '../../app/store';
 import { Button, Form, Table, Container, Row, Col } from 'react-bootstrap';
-import axios from 'axios';
+import { fetchPropertyClasses, createPropertyClass, deletePropertyClass } from './propertyClassSlice';
 var FrmPropertyClass = function () {
     var _a = useState({
         property_class: '',
@@ -57,28 +67,39 @@ var FrmPropertyClass = function () {
     var _b = useState([]), propertyClasses = _b[0], setPropertyClasses = _b[1];
     var _c = useState(''), addFlag = _c[0], setAddFlag = _c[1];
     var _d = useState(''), delFlag = _d[0], setDelFlag = _d[1];
+    var _e = useState([]), localPropertyClasses = _e[0], setLocalPropertyClasses = _e[1];
+    var _f = useState(false), isDeleting = _f[0], setIsDeleting = _f[1];
+    var dispatch = useAppDispatch();
     useEffect(function () {
-        populateListView();
-    }, []);
-    var populateListView = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('/api/propertyClasses')];
-                case 1:
-                    response = _a.sent();
-                    setPropertyClasses(response.data);
-                    return [3 /*break*/, 3];
-                case 2:
-                    error_1 = _a.sent();
-                    console.error('Error fetching property classes:', error_1);
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
-            }
-        });
-    }); };
+        var fetchAreas = function () { return __awaiter(void 0, void 0, void 0, function () {
+            var result, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, dispatch(fetchPropertyClasses()).unwrap()];
+                    case 1:
+                        result = _a.sent();
+                        console.log('Fetched property classes:', result); // Log the result
+                        // Check if result is an array
+                        if (Array.isArray(result.data)) {
+                            setLocalPropertyClasses(result.data);
+                        }
+                        else {
+                            console.error('Expected an array, but received:', result.data);
+                            setLocalPropertyClasses([]);
+                        }
+                        return [3 /*break*/, 3];
+                    case 2:
+                        error_1 = _a.sent();
+                        console.error('Error fetching electoral areas:', error_1);
+                        return [3 /*break*/, 3];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); };
+        fetchAreas();
+    }, [dispatch]);
     var handleInputChange = function (event) {
         var _a = event.target, name = _a.name, value = _a.value;
         setPropertyClass(function (prevPropertyClass) {
@@ -87,30 +108,39 @@ var FrmPropertyClass = function () {
         });
     };
     var handleAdd = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_2;
+        var response, result, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
+                    _a.trys.push([0, 3, , 4]);
                     if (!propertyClass.property_class) {
                         throw new Error('Enter the property class');
                     }
                     if (!propertyClass.rate || isNaN(propertyClass.rate)) {
                         throw new Error('Enter the rate');
                     }
-                    return [4 /*yield*/, axios.post('/api/propertyClasses', propertyClass)];
+                    return [4 /*yield*/, dispatch(createPropertyClass(propertyClass)).unwrap()];
                 case 1:
                     response = _a.sent();
                     setAddFlag(response.data.message);
-                    populateListView();
+                    // populateListView();
                     setPropertyClass({ property_class: '', rate: 0 });
-                    return [3 /*break*/, 3];
+                    console.log(response);
+                    alert("Record successfully added"); // Assuming response is successful
+                    setPropertyClasses(function (prevPropertyClasses) { return __spreadArray(__spreadArray([], prevPropertyClasses, true), [
+                        { property_class: '', rate: 0 },
+                    ], false); });
+                    return [4 /*yield*/, dispatch(fetchPropertyClasses()).unwrap()];
                 case 2:
+                    result = _a.sent();
+                    setLocalPropertyClasses(result.data);
+                    return [3 /*break*/, 4];
+                case 3:
                     error_2 = _a.sent();
                     console.error('Error adding property class:', error_2);
                     setAddFlag('Error in adding a record');
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     }); };
@@ -119,23 +149,31 @@ var FrmPropertyClass = function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
+                    _a.trys.push([0, 2, 3, 4]);
                     if (!propertyClass.property_class) {
                         throw new Error('Enter the property class');
                     }
-                    return [4 /*yield*/, axios.delete("/api/propertyClasses/".concat(propertyClass.property_class))];
+                    return [4 /*yield*/, dispatch(deletePropertyClass(propertyClass.property_class)).unwrap()];
                 case 1:
                     response = _a.sent();
-                    setDelFlag(response.data.message);
-                    populateListView();
+                    setLocalPropertyClasses(localPropertyClasses.filter(function (pc) { return pc.property_class !== propertyClass.property_class; }));
+                    setIsDeleting(false);
                     setPropertyClass({ property_class: '', rate: 0 });
-                    return [3 /*break*/, 3];
+                    console.log(response);
+                    setDelFlag(response.data.message);
+                    //populateListView();
+                    setPropertyClass({ property_class: '', rate: 0 });
+                    return [3 /*break*/, 4];
                 case 2:
                     error_3 = _a.sent();
                     console.error('Error deleting property class:', error_3);
                     setDelFlag('Error in deleting record');
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    return [3 /*break*/, 4];
+                case 3:
+                    isDeleting = false; // Prevent multiple clicks
+                    setIsDeleting(isDeleting); // Prevent multiple clicks
+                    return [7 /*endfinally*/];
+                case 4: return [2 /*return*/];
             }
         });
     }); };

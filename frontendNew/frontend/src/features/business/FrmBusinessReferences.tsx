@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Table } from 'react-bootstrap';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Link } from 'react-router-dom';
 
 interface Business {
     buss_no: number;
@@ -212,7 +213,10 @@ interface Business {
               </tr>
             ))}
           </tbody>
-        </Table>
+        </Table>       
+        <Link to="/main" className="primary m-3">
+            Go Back
+        </Link>   
       </Container>
     );
   };

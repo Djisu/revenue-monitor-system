@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Modal } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const FrmChangePrevBillAmount: React.FC = () => {
     const [busNo, setBusNo] = useState<string>('');
@@ -157,6 +158,11 @@ const FrmChangePrevBillAmount: React.FC = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
+           
+                <Link to="/main" className="primary m-3">
+                    Go Back
+                </Link>
+            
         </div>
     );
 };

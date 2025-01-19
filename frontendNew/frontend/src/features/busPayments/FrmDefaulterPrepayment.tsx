@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Container, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const DefaulterPrepaymentForm: React.FC = () => {
   const [fiscalYear, setFiscalYear] = useState('');
@@ -195,6 +196,13 @@ const DefaulterPrepaymentForm: React.FC = () => {
             Exit
           </Button>
         </Col>
+      </Row>
+      <Row className="mt-3">
+          <Col>
+          <Link to="/main" className="primary m-3">
+              Go Back
+          </Link>
+          </Col>
       </Row>
     </Container>
   );

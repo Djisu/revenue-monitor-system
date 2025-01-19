@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const CollectorElectoralArea: React.FC = () => {
   const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
@@ -99,6 +100,11 @@ const CollectorElectoralArea: React.FC = () => {
           </tbody>
         </table>
       </div>
+           
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+               
     </div>
   );
 };

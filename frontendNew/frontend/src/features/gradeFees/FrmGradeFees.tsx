@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Alert, Table } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 
 interface GradeFee {
@@ -253,6 +254,11 @@ const GradeFeesForm: React.FC = () => {
       <h6 className="mt-3" style={{ color: '#C00000' }}>
         MARCORY MUNICIPAL ASSEMBLY
       </h6>
+          
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+            
     </Container>
   );
 };

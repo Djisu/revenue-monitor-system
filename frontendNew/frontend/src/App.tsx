@@ -1,5 +1,5 @@
 // src/App.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -55,7 +55,7 @@ import FrmPropertyRate from './features/propertyRate/FrmPropertyRate';
 import FrmPropertyBillPayments from './features/propertyBalance/FrmPropertyBillPayments';
 import FrmDailyPropertyPayments from './features/propertyBalance/FrmDailyPropertyPayments';
 import FrmPropertySavingsStatementX from './features/propertyBalance/FrmPropertySavingsStatementX';
-//import checkAccess from './utilities/checkAccess';
+import checkAccess from './utilities/checkAccess';
 import NotFound from './components/layout/NotFound';
 import MainMenuWrapper from './components/MainMenuWrapper';
 
@@ -64,23 +64,28 @@ import MainMenuWrapper from './components/MainMenuWrapper';
 
 //import AuditTrail from './features/AuditTrail';
 
-// Example of a checkAccess function
-// const checkAccess = (option: string, username: string, password: string): boolean => {
-//     // Implement your access check logic here
-//     // For demonstration, let's assume all options are accessible
-//     return true;
-// };
-
 const App: React.FC = () => {
-    // const username = 'yourUsername'; // Replace with actual username
-    // const password = 'yourPassword'; // Replace with actual password
+    let [isMainMenuVisible, setMainMenuVisible] = useState(true);
+
+    const handleSubmenuClick = () => {
+        isMainMenuVisible = true
+        setMainMenuVisible(isMainMenuVisible); // Show the main menu when a submenu item is clicked
+        console.log('Submenu clicked!');
+    };
+
+    // const checkAccess = () => {
+    //     // Your access check logic here
+    //     return true; // or false based on the check
+    // };
 
     return (
         <AuthProvider>
             <Router>
+                
                 <Routes>
-                    <Route path="/" element={<FrmLogin />} />
-                    <Route path="/main" element={<MainMenuWrapper />} />
+                    <Route path="/" element={<FrmLogin />} />  
+                    {/* Define the /main route */}
+                    <Route path="/main" element={<MainMenuWrapper handleSubmenuClick={handleSubmenuClick} checkAccess={checkAccess} />} />                   
                     <Route path="/SetupBusiness" element={<ProtectedRoute element={<FrmBusiness />} />} />
                     <Route path="/UpdateBusinessClient" element={<ProtectedRoute element={<FrmUpdateClient />} />} />
                     <Route path="/SetupElectoralArea" element={<ProtectedRoute element={<FrmElectoralArea />} />} />
@@ -90,7 +95,7 @@ const App: React.FC = () => {
                     <Route path="/AssignCollectorToElectoralArea" element={<ProtectedRoute element={<FrmCollectorElectoralArea />} />} />
                     <Route path="/OperatorDefinition" element={<ProtectedRoute element={<FrmOperatorDef />} />} />
                     <Route path="/OperatorPermission" element={<ProtectedRoute element={<FrmOperatorPermissions />} />} />
-                    <Route path="/BusinessType" element={<ProtectedRoute element={<FrmBusinessType />} />} />
+                    <Route path="/SetupBusinessType" element={<ProtectedRoute element={<FrmBusinessType />} />} />
                     <Route path="/ChangeBusinessType" element={<ProtectedRoute element={<FrmChangeBussType />} />} />
                     <Route path="/OfficerBudget" element={<ProtectedRoute element={<FrmOfficerBudget />} />} />
                     <Route path="/CollectorPayment" element={<ProtectedRoute element={<FrmClientPayments />} />} />

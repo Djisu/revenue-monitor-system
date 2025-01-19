@@ -36,72 +36,76 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
+import { useAppDispatch } from '../../app/store';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
-import axios from 'axios';
-var BusinessTypeForm = function () {
+import { fetchBusinessTypes, createBusinessType, deleteBusinessType } from './businessTypeSlice';
+var FrmBusinessType = function () {
     var _a = useState(''), businessType = _a[0], setBusinessType = _a[1];
-    var _b = useState([]), businessTypes = _b[0], setBusinessTypes = _b[1];
+    var _b = useState([]), localBusinessTypes = _b[0], setLocalBusinessTypes = _b[1];
+    var _c = useState(false), isDeleting = _c[0], setIsDeleting = _c[1];
+    var dispatch = useAppDispatch();
     useEffect(function () {
-        // Fetch business types on form load
-        fetchBusinessTypes();
-    }, []);
-    var fetchBusinessTypes = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('/api/business-types')];
-                case 1:
-                    response = _a.sent();
-                    setBusinessTypes(response.data);
-                    return [3 /*break*/, 3];
-                case 2:
-                    error_1 = _a.sent();
-                    console.error("Error fetching business types", error_1);
-                    alert("An error occurred while fetching business types");
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
-            }
-        });
-    }); };
+        var fetchAreas = function () { return __awaiter(void 0, void 0, void 0, function () {
+            var result, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, dispatch(fetchBusinessTypes()).unwrap()];
+                    case 1:
+                        result = _a.sent();
+                        console.log('Fetched electoral areas:', result); // Log the result
+                        // Check if result is an array
+                        if (Array.isArray(result.data)) {
+                            setLocalBusinessTypes(result.data);
+                        }
+                        else {
+                            console.error('Expected an array, but received:', result.data);
+                            setLocalBusinessTypes([]);
+                        }
+                        return [3 /*break*/, 3];
+                    case 2:
+                        error_1 = _a.sent();
+                        console.error('Error fetching business types:', error_1);
+                        return [3 /*break*/, 3];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); };
+        fetchAreas();
+    }, [dispatch]);
     var handleBusinessTypeChange = function (e) {
         setBusinessType(e.target.value);
     };
     var handleAddClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_2;
+        var response, result, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    console.log("Add clicked");
                     if (!businessType) {
                         alert("Enter a business type");
                         return [2 /*return*/];
                     }
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.post('/api/add-business-type', {
-                            business_type: businessType
-                        })];
+                    _a.trys.push([1, 4, , 5]);
+                    return [4 /*yield*/, dispatch(createBusinessType(businessType)).unwrap()];
                 case 2:
                     response = _a.sent();
-                    if (response.data.success) {
-                        alert("Record successfully added");
-                        // Clear input field
-                        setBusinessType('');
-                        // Refresh the list of business types
-                        fetchBusinessTypes();
-                    }
-                    else {
-                        alert("Record already exists");
-                    }
-                    return [3 /*break*/, 4];
+                    alert("Record successfully added: ".concat(response.message)); // Assuming response is successful
+                    setBusinessType('');
+                    return [4 /*yield*/, dispatch(fetchBusinessTypes()).unwrap()];
                 case 3:
+                    result = _a.sent();
+                    setLocalBusinessTypes(result.data);
+                    return [3 /*break*/, 5];
+                case 4:
                     error_2 = _a.sent();
                     console.error("Error adding business type", error_2);
                     alert("Error in adding a record");
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
             }
         });
     }); };
@@ -110,47 +114,55 @@ var BusinessTypeForm = function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    console.log("Delete clicked, handleDeleteClick");
+                    console.log(businessType);
                     if (!businessType) {
                         alert("Enter a business type");
                         return [2 /*return*/];
                     }
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.post('/api/delete-business-type', {
-                            business_type: businessType
-                        })];
+                    _a.trys.push([1, 3, 4, 5]);
+                    return [4 /*yield*/, dispatch(deleteBusinessType(businessType)).unwrap()];
                 case 2:
                     response = _a.sent();
-                    if (response.data.success) {
-                        alert("Record successfully deleted");
-                        // Clear input field
+                    if (response.success) {
+                        alert(response.message);
                         setBusinessType('');
-                        // Refresh the list of business types
-                        fetchBusinessTypes();
+                        // Optimistically remove the electoral area
+                        setLocalBusinessTypes(function (prevAreas) {
+                            return prevAreas.filter(function (area) { return area.business_type !== businessType; });
+                        });
+                        // Optionally refresh the list
+                        // const result = await dispatch(fetchElectoralAreas()).unwrap();
+                        // setLocalElectoralAreas(result);
                     }
                     else {
-                        alert("Record not found");
+                        alert("Record does not exist");
                     }
-                    return [3 /*break*/, 4];
+                    return [3 /*break*/, 5];
                 case 3:
                     error_3 = _a.sent();
                     console.error("Error deleting business type", error_3);
                     alert("Error in deleting a record");
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 5];
+                case 4:
+                    isDeleting = false; // Prevent multiple clicks
+                    setIsDeleting(isDeleting); // Prevent multiple clicks
+                    return [7 /*endfinally*/];
+                case 5: return [2 /*return*/];
             }
         });
     }); };
-    var handleExitClick = function () {
-        // Hide the form and show main form (this can be handled via routing)
-        console.log("Exit button clicked");
-        // For example, you might navigate to another route here
-        // history.push('/main-form');
-    };
+    // const handleExitClick = () => {
+    //     // Hide the form and show main form (this can be handled via routing)
+    //     console.log("Exit button clicked");
+    //     // For example, you might navigate to another route here
+    //     // history.push('/main-form');
+    // };
     var handleRowClick = function (bussType) {
         setBusinessType(bussType.business_type);
     };
-    return (_jsxs(Container, { fluid: true, children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h1", { className: "text-center text-primary", children: "MFANTSEMAN MUNICIPAL ASSEMBLY" }) }) }), _jsx(Row, { children: _jsx(Col, { children: _jsx("h3", { className: "text-center text-danger", children: "BUSINESS TYPE DATA ENTRY" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formBusinessType", children: [_jsx(Form.Label, { children: "Business Type:" }), _jsx(Form.Control, { type: "text", value: businessType, onChange: handleBusinessTypeChange, required: true })] }) }) }), _jsxs(Row, { className: "mt-3", children: [_jsx(Col, { children: _jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add New Record" }) }), _jsx(Col, { children: _jsx(Button, { variant: "danger", onClick: handleDeleteClick, children: "Delete Old Record" }) }), _jsx(Col, { children: _jsx(Button, { variant: "secondary", onClick: handleExitClick, children: "Exit" }) })] }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { children: [_jsx("h2", { children: "List of Business Types" }), _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsx("tr", { children: _jsx("th", { children: "Business Type" }) }) }), _jsx("tbody", { children: businessTypes.map(function (bussType, index) { return (_jsx("tr", { onClick: function () { return handleRowClick(bussType); }, children: _jsx("td", { children: bussType.business_type }) }, index)); }) })] })] }) })] }));
+    return (_jsxs(Container, { fluid: true, children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h1", { className: "text-center text-primary", children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsx(Row, { children: _jsx(Col, { children: _jsx("h3", { className: "text-center text-danger", children: "BUSINESS TYPE DATA ENTRY" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formBusinessType", children: [_jsx(Form.Label, { children: "Business Type:" }), _jsx(Form.Control, { type: "text", value: businessType, onChange: handleBusinessTypeChange, required: true })] }) }) }), _jsxs(Row, { className: "mt-3", children: [_jsx(Col, { children: _jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add New Record" }) }), _jsx(Col, { children: _jsx(Button, { variant: "danger", onClick: handleDeleteClick, children: "Delete Old Record" }) })] }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { children: [_jsx("h2", { children: "List of Business Types" }), _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsx("tr", { children: _jsx("th", { children: "Business Type" }) }) }), _jsx("tbody", { children: localBusinessTypes.map(function (bussType, index) { return (_jsx("tr", { onClick: function () { return handleRowClick(bussType); }, children: _jsx("td", { children: bussType.business_type }) }, index)); }) })] })] }) })] }));
 };
-export default BusinessTypeForm;
+export default FrmBusinessType;

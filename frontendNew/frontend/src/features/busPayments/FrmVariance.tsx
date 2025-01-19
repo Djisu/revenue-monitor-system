@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Col, Row, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Link } from 'react-router-dom';
 
 interface PropertyData {
   buss_no: string;
@@ -225,6 +226,11 @@ const VarianceAnalysis: React.FC = () => {
           </Col>
         </Row>
       </Form>
+            
+      <Link to="/main" className="primary m-3">
+          Go Back
+      </Link>
+              
     </div>
   );
 };

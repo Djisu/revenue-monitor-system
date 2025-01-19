@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppDispatch } from '../../app/store';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 import { fetchElectoralAreas, createElectoralArea, deleteElectoralArea } from './electoralAreaSlice';
+import { Link } from 'react-router-dom';
 
 interface ElectoralArea {
     electoral_area: string;
@@ -40,6 +41,7 @@ const FrmElectoralArea: React.FC = () => {
 
     const handleAddClick = async () => {
         console.log("Add clicked");
+        
         if (!electoralArea) {
             alert("Enter the electoral area");
             return;
@@ -158,6 +160,13 @@ const FrmElectoralArea: React.FC = () => {
                             ))}
                         </tbody>
                     </Table>
+                </Col>
+            </Row>
+            <Row className="mt-3">
+                <Col>
+                <Link to="/main" className="primary m-3">
+                    Go Back
+                </Link>
                 </Col>
             </Row>
         </Container>
