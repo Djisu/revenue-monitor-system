@@ -45,19 +45,30 @@ var initialState = {
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
-console.log('in authSlice.ts');
-console.log('BASE_URL:', BASE_URL);
-console.log('process.env.NODE_ENV: ', process.env.NODE_ENV);
-console.log('BASE_URL: ', BASE_URL);
+// console.log('in authSlice.ts')
+// console.log('BASE_URL:', BASE_URL);
+// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
+// console.log('BASE_URL: ', BASE_URL)
 // Async thunk to fetch all officers
 export var fetchOfficers = createAsyncThunk('officer/fetchOfficers', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer"))];
+            case 0:
+                console.log('officeSlicer.ts: fetching officers');
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/all"))];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('officeSlicer.ts: officers fetched successfully');
+                    console.log('response.data:', response.data);
+                    console.log('response.data.officers:', response.data.officers);
+                    return [2 /*return*/, response.data]; // This data will be available as `action.payload`
+                }
+                else {
+                    throw new Error("Error fetching officers: ".concat(response.statusText));
+                }
+                return [2 /*return*/];
         }
     });
 }); });
@@ -66,7 +77,9 @@ export var fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', funct
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/").concat(officer_no))];
+            case 0:
+                console.log('fetching officer by id:', officer_no);
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/").concat(officer_no))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -75,26 +88,54 @@ export var fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', funct
 }); });
 // Async thunk to create a new officer
 export var createOfficer = createAsyncThunk('officer/createOfficer', function (officerData) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
+    var response, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/officer"), officerData)];
+            case 0:
+                console.log('creating officer:', officerData);
+                _a.label = 1;
             case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/officer/create"), officerData, {
+                        headers: { 'Content-Type': 'application/json' },
+                    })];
+            case 2:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                return [2 /*return*/, response.data]; // Assuming this is your success response
+            case 3:
+                error_1 = _a.sent();
+                if (axios.isAxiosError(error_1) && error_1.response) {
+                    // Handle specific error responses
+                    throw new Error(error_1.response.data.message || 'Failed to create officer');
+                }
+                throw new Error('Network error or other issue');
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Async thunk to update an officer
 export var updateOfficer = createAsyncThunk('officer/updateOfficer', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
-    var response;
+    var response, error_2;
     var officer_no = _b.officer_no, officerData = _b.officerData;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/officer/").concat(officer_no), officerData)];
+            case 0:
+                console.log('updating officer:', officer_no, officerData);
+                _c.label = 1;
             case 1:
+                _c.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/officer/update/").concat(officer_no), officerData)];
+            case 2:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
+            case 3:
+                error_2 = _c.sent();
+                if (axios.isAxiosError(error_2) && error_2.response) {
+                    // Handle specific error responses
+                    throw new Error(error_2.response.data.message || 'Failed to update officer');
+                }
+                throw new Error('Network error or other issue');
+            case 4: return [2 /*return*/];
         }
     });
 }); });
@@ -103,7 +144,9 @@ export var deleteOfficer = createAsyncThunk('officer/deleteOfficer', function (o
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/officer/").concat(officer_no))];
+            case 0:
+                console.log('deleting officer:', officer_no);
+                return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/officer/delete/").concat(officer_no))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -119,6 +162,7 @@ var officerSlice = createSlice({
         builder
             .addCase(fetchOfficers.pending, function (state) {
             state.loading = true;
+            state.error = null;
         })
             .addCase(fetchOfficers.fulfilled, function (state, action) {
             state.loading = false;
@@ -131,10 +175,11 @@ var officerSlice = createSlice({
         })
             .addCase(fetchOfficerById.pending, function (state) {
             state.loading = true;
+            state;
         })
-            .addCase(fetchOfficerById.fulfilled, function (state) {
+            .addCase(fetchOfficerById.fulfilled, function (state, action) {
             state.loading = false;
-            // Handle the fetched officer data as needed
+            state.officers = action.payload;
             state.error = null;
         })
             .addCase(fetchOfficerById.rejected, function (state, action) {
@@ -146,8 +191,12 @@ var officerSlice = createSlice({
         })
             .addCase(createOfficer.fulfilled, function (state, action) {
             state.loading = false;
-            state.officers.push(action.payload); // Add the new officer
-            state.error = null;
+            if (action.payload.message === 'Officer record created successfully') {
+                state.officers.push(action.meta.arg); // Add the officer data from the request
+            }
+            else {
+                state.error = action.payload.message;
+            }
         })
             .addCase(createOfficer.rejected, function (state, action) {
             state.loading = false;
@@ -155,14 +204,19 @@ var officerSlice = createSlice({
         })
             .addCase(updateOfficer.pending, function (state) {
             state.loading = true;
+            state.error = null;
         })
             .addCase(updateOfficer.fulfilled, function (state, action) {
             state.loading = false;
-            var index = state.officers.findIndex(function (officer) { return officer.officer_no === action.payload.officer_no; });
-            if (index !== -1) {
-                state.officers[index] = action.payload; // Update the officer
+            if (action.payload.message === 'Officer record updated successfully') {
+                var index = state.officers.findIndex(function (officer) { return officer.officer_no === action.meta.arg.officer_no; });
+                if (index !== -1) {
+                    state.officers[index] = action.meta.arg.officerData; // Update the officer data using the request data
+                }
             }
-            state.error = null;
+            else {
+                state.error = action.payload.message;
+            }
         })
             .addCase(updateOfficer.rejected, function (state, action) {
             state.loading = false;
@@ -170,6 +224,7 @@ var officerSlice = createSlice({
         })
             .addCase(deleteOfficer.pending, function (state) {
             state.loading = true;
+            state.error = null;
         })
             .addCase(deleteOfficer.fulfilled, function (state, action) {
             state.loading = false;

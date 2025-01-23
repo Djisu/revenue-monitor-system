@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 import axios from 'axios';
-import { Link, Links } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const SavingsStatementX: React.FC = () => {
     const [loanNo, setLoanNo] = useState<string>('');

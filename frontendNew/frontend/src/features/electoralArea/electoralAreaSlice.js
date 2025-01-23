@@ -44,10 +44,10 @@ var initialState = {
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
-console.log('in authSlice.ts');
-console.log('BASE_URL:', BASE_URL);
-console.log('process.env.NODE_ENV: ', process.env.NODE_ENV);
-console.log('BASE_URL: ', BASE_URL);
+// console.log('in authSlice.ts')
+// console.log('BASE_URL:', BASE_URL);
+// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
+// console.log('BASE_URL: ', BASE_URL)
 // Async thunks for API calls
 export var fetchElectoralAreas = createAsyncThunk('electoralArea/fetchElectoralAreas', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
@@ -141,6 +141,7 @@ var electoralAreaSlice = createSlice({
             .addCase(fetchElectoralAreas.fulfilled, function (state, action) {
             state.loading = false;
             state.electoralAreas = action.payload;
+            state.error = null;
         })
             .addCase(fetchElectoralAreas.rejected, function (state, action) {
             state.loading = false;
@@ -186,6 +187,7 @@ var electoralAreaSlice = createSlice({
                 state.electoralAreas = [];
             }
             state.electoralAreas = state.electoralAreas.filter(function (area) { return area.electoral_area !== action.meta.arg; });
+            state.error = null;
             console.log('electoralAreas after delete:', state.electoralAreas);
         })
             .addCase(deleteElectoralArea.rejected, function (state, action) {

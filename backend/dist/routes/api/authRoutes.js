@@ -27,19 +27,19 @@ router.post('/audit-log', async (req, res) => {
 router.post('/login', async (req, res) => {
     console.log('Route hit backend login', req.body);
     const { username, password } = req.body;
-    console.log('username: ', username);
-    console.log('password: ', password);
+    // console.log('username: ', username);
+    // console.log('password: ', password);
     // Validate inputs
     if (!username || !password) {
         res.status(400).json({ json: '', user: [], message: 'username and password cannot be blank!' });
         return;
     }
     const connection = await mysql.createConnection(dbConfig);
-    console.log('after connection');
+    // console.log('after connection');
     try {
         // Check if an operator with the same username exists
         const [operators] = await connection.execute('SELECT * FROM Operator_definition WHERE OperatorName = ?', [username]);
-        console.log('operators: ', operators);
+        //console.log('operators: ', operators);
         // Check if user exists
         if (operators.length === 0) {
             console.log('no user found, Invalid login parameters');
@@ -52,7 +52,7 @@ router.post('/login', async (req, res) => {
             res.json({ json: '', user: [], message: 'Invalid login parameters' });
             return;
         }
-        console.log('passwords matched');
+        //console.log('passwords matched');
         // Log the login attempt
         const now = new Date();
         const formattedDateTime = now.toISOString().slice(0, 19).replace('T', ' ');
@@ -69,7 +69,7 @@ router.post('/login', async (req, res) => {
             lastname: operators[0].lastname,
             existingPermissions
         };
-        console.log('existingPermissions: ', existingPermissions);
+        // console.log('existingPermissions: ', existingPermissions);
         // Generate JWT token
         const token = jwt.sign({ user }, config.jwtSecret, { expiresIn: '1h' });
         // Send back response

@@ -23,12 +23,12 @@ const initialState: BusinessTypeState = {
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 
-console.log('in authSlice.ts')
+// console.log('in authSlice.ts')
 
-console.log('BASE_URL:', BASE_URL);
+// console.log('BASE_URL:', BASE_URL);
 
-console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-console.log('BASE_URL: ', BASE_URL)
+// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
+// console.log('BASE_URL: ', BASE_URL)
 
 // Async thunk to fetch all BusinessType records
 export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTypes', async () => {

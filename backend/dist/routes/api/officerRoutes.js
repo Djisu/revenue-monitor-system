@@ -1,7 +1,10 @@
+// backend/src/routes/api/officerRoutes.ts
 import * as dotenv from 'dotenv';
-import { Router } from 'express';
+import express from 'express';
 import mysql from 'mysql2/promise';
-const router = Router();
+import multer, { diskStorage } from 'multer';
+import bodyParser from 'body-parser';
+const router = express.Router();
 // Load environment variables from .env file
 dotenv.config();
 // MySQL connection configuration
@@ -11,8 +14,17 @@ const dbConfig = {
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'revmonitor',
 };
+// Set up multer storage
+const storage = diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    },
+});
 // Create a new officer record
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
     const officerData = req.body;
     const connection = await mysql.createConnection(dbConfig);
     try {
@@ -39,7 +51,7 @@ router.post('/', async (req, res) => {
     }
 });
 // Read all officer records
-router.get('/', async (req, res) => {
+router.get('/all', async (req, res) => {
     const connection = await mysql.createConnection(dbConfig);
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_officer');
@@ -75,7 +87,7 @@ router.get('/:officer_no', async (req, res) => {
     }
 });
 // Update an officer record
-router.put('/:officer_no', async (req, res) => {
+router.put('/update/:officer_no', async (req, res) => {
     const { officer_no } = req.params;
     const officerData = req.body;
     const connection = await mysql.createConnection(dbConfig);
@@ -104,7 +116,7 @@ router.put('/:officer_no', async (req, res) => {
     }
 });
 // Delete an officer record
-router.delete('/:officer_no', async (req, res) => {
+router.delete('/delete/:officer_no', async (req, res) => {
     const { officer_no } = req.params;
     const connection = await mysql.createConnection(dbConfig);
     try {
@@ -126,5 +138,97 @@ router.delete('/:officer_no', async (req, res) => {
         connection.end();
     }
 });
+// Middleware
+router.use(bodyParser.json());
+const upload = multer({ storage: multer.memoryStorage() });
+// Endpoint to store a photo
+router.post('/photos', async (req, res) => {
+    const { officer_no, photo } = req.body;
+    if (!officer_no || !photo) {
+        return res.status(400).json({ error: 'officer_no and photo are required' });
+    }
+    try {
+        const result = await storePhoto(officer_no, photo);
+        res.status(201).json({ message: 'Photo stored successfully', result });
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Error storing photo', details: err });
+    }
+});
+// Endpoint to retrieve a photo
+router.get('/photos/:officer_no', async (req, res) => {
+    const { officer_no } = req.params;
+    if (!officer_no) {
+        return res.status(400).json({ error: 'officer_no is required' });
+    }
+    try {
+        const photo = await getPhoto(officer_no);
+        if (photo) {
+            res.type('image/jpeg').send(photo); // Set appropriate content type
+        }
+        else {
+            res.status(404).json({ error: 'Photo not found' });
+        }
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Error getting photo', details: err });
+    }
+});
+// Endpoint to delete a photo
+router.delete('/photos/:officer_no', async (req, res) => {
+    const { officer_no } = req.params;
+    if (!officer_no) {
+        return res.status(400).json({ error: 'officer_no is required' });
+    }
+    try {
+        const result = await deletePhoto(officer_no);
+        if (result.affectedRows > 0) { // Ensure deletion was successful
+            res.status(200).json({ message: 'Photo deleted successfully', result });
+        }
+        else {
+            res.status(404).json({ error: 'Photo not found' });
+        }
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Error deleting photo', details: err });
+    }
+});
+// Error hand
+// Function to store a photo
+export const storePhoto = async (officer_no, photo) => {
+    const connection = await mysql.createConnection(dbConfig);
+    const sql = 'INSERT INTO photos (officer_no, photo) VALUES (?, ?)';
+    try {
+        const [result] = await connection.execute(sql, [officer_no, photo]);
+        return result;
+    }
+    catch (err) {
+        throw err;
+    }
+};
+// Function to retrieve a photo
+export const getPhoto = async (officer_no) => {
+    const connection = await mysql.createConnection(dbConfig);
+    const sql = 'SELECT photo FROM photos WHERE officer_no = ?';
+    try {
+        const [rows] = await connection.execute(sql, [officer_no]);
+        return rows.length > 0 ? rows[0].photo : null;
+    }
+    catch (err) {
+        throw err;
+    }
+};
+// Function to delete a photo
+export const deletePhoto = async (officer_no) => {
+    const connection = await mysql.createConnection(dbConfig);
+    const sql = 'DELETE FROM photos WHERE officer_no = ?';
+    try {
+        const [result] = await connection.execute(sql, [officer_no]);
+        return result;
+    }
+    catch (err) {
+        throw err;
+    }
+};
 export default router;
 //# sourceMappingURL=officerRoutes.js.map

@@ -36,9 +36,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { Container, Form, Button, Alert, Table, Image } from 'react-bootstrap';
-import axios from 'axios';
+import { Container, Form, Button, Alert, Table, Image, ButtonGroup } from 'react-bootstrap';
+import { useAppDispatch, useAppSelector } from '../../app/store';
 import { FaUpload } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import { fetchOfficers, createOfficer, updateOfficer, deleteOfficer } from './officerSlice';
+import { storePhotoAsync } from '../photos/photosSlice';
 var EmployeeForm = function () {
     var _a = useState(''), officerNo = _a[0], setOfficerNo = _a[1];
     var _b = useState(''), name = _b[0], setName = _b[1];
@@ -46,6 +49,11 @@ var EmployeeForm = function () {
     var _d = useState([]), officerList = _d[0], setOfficerList = _d[1];
     var _e = useState(''), error = _e[0], setError = _e[1];
     var _f = useState(''), successMessage = _f[0], setSuccessMessage = _f[1];
+    var _g = useState(''), photoType = _g[0], setPhotoType = _g[1];
+    var _h = useState(''), photoName = _h[0], setPhotoName = _h[1];
+    var dispatch = useAppDispatch();
+    var photoUrl = useAppSelector(function (state) { return state.photos.photoUrl; }); // Adjust the type as necessary
+    console.log('Photo URL:', photoUrl);
     useEffect(function () {
         fetchOfficerList();
     }, []);
@@ -55,10 +63,19 @@ var EmployeeForm = function () {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('http://your-api-url/tb_officer')];
+                    console.log('Fetching officers...');
+                    return [4 /*yield*/, dispatch(fetchOfficers()).unwrap()];
                 case 1:
                     response = _a.sent();
-                    setOfficerList(response.data);
+                    console.log('Fetched officers:', response); // Log the result
+                    // Check if result is an array
+                    if (Array.isArray(response)) {
+                        setOfficerList(response);
+                    }
+                    else {
+                        console.error('Expected an array, but received:', response);
+                        setOfficerList([]);
+                    }
                     return [3 /*break*/, 3];
                 case 2:
                     error_1 = _a.sent();
@@ -76,33 +93,70 @@ var EmployeeForm = function () {
         setName(e.target.value.toUpperCase());
     };
     var handlePhotoChange = function (e) {
+        console.log('in handlePhotoChange');
         if (e.target.files && e.target.files[0]) {
+            photoType = e.target.files[0].type;
+            setPhotoType(photoType);
+            photoName = e.target.files[0].name;
+            setPhotoName(photoName);
+            if (e.target.files[0] && e.target.files[0].size > 10 * 1024 * 1024) { // 10MB in bytes
+                alert('File size exceeds the limit of 10MB.');
+                return;
+            }
             setPhoto(URL.createObjectURL(e.target.files[0]));
+            console.log('Photo URL:', photo);
+            console.log('Photo:', e.target.files[0].name);
             uploadPhoto(e.target.files[0]);
         }
     };
     var uploadPhoto = function (file) { return __awaiter(void 0, void 0, void 0, function () {
-        var formData, response, error_2;
+        var resultAction, photoUrl_1, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    formData = new FormData();
-                    formData.append('photo', file);
+                    console.log('in uploadPhoto');
+                    console.log('about to dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }))');
+                    console.log('file:', file);
+                    console.log('officerNo:', officerNo);
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.post('http://your-api-url/upload_photo', formData, {
-                            headers: {
-                                'Content-Type': 'multipart/form-data',
-                            },
-                        })];
+                    return [4 /*yield*/, dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }))];
                 case 2:
-                    response = _a.sent();
-                    setPhoto(response.data.path);
+                    resultAction = _a.sent();
+                    console.log('after  dispatch(storePhotoAsync(', resultAction);
+                    if (storePhotoAsync.fulfilled.match(resultAction)) {
+                        console.log('Photo uploaded successfully:', resultAction.payload.photoUrl);
+                        photoUrl_1 = resultAction.payload.photoUrl //payload.result.url;
+                        ;
+                        console.log('Photo URL:', photoUrl_1);
+                        setPhoto(photoUrl_1); // Update the photo URL in state
+                        console.log('Photo URL:', photoUrl_1);
+                    }
+                    else if (storePhotoAsync.rejected.match(resultAction)) {
+                        if (resultAction.payload) {
+                            console.error('Error uploading photo XXXXX:', resultAction.payload.error);
+                            // Handle specific error, e.g., show error notification
+                            if (resultAction.payload.error.includes('Photo already exists')) {
+                                // Handle the specific 409 error
+                                console.log('Handling 409: Photo already exists');
+                                // Show a user-friendly message or notification
+                                alert('Photo already exists for this officer.');
+                            }
+                            else {
+                                // Handle other errors
+                                alert('Failed to upload photo. Please try again.');
+                            }
+                        }
+                        else {
+                            console.error('Error uploading photo: No payload');
+                            alert('Failed to upload photo. Please try again.');
+                        }
+                    }
                     return [3 /*break*/, 4];
                 case 3:
                     error_2 = _a.sent();
-                    console.error(error_2);
+                    console.error('Error uploading photo:', error_2);
                     setError('Error uploading photo');
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
@@ -121,14 +175,18 @@ var EmployeeForm = function () {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.post('http://your-api-url/add_rec', {
-                            officerNo: officerNo,
-                            name: name,
-                            photo: photo,
-                        })];
+                    console.log('about to dispatch(createOfficer({officer_no, officer_name, photo}))');
+                    console.log('officer_no:', officerNo);
+                    console.log('officer_name:', name);
+                    console.log('photo:', photo);
+                    return [4 /*yield*/, dispatch(createOfficer({
+                            officer_no: officerNo,
+                            officer_name: name,
+                            photo: photo, // Use the photo URL returned by storePhotoAsync
+                        }))];
                 case 2:
                     response = _a.sent();
-                    setSuccessMessage(response.data.message);
+                    setSuccessMessage(response.payload.message);
                     setError('');
                     clearForm();
                     fetchOfficerList();
@@ -155,14 +213,18 @@ var EmployeeForm = function () {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.put('http://your-api-url/edit_rec', {
-                            officerNo: officerNo,
-                            name: name,
-                            photo: photo,
-                        })];
+                    return [4 /*yield*/, dispatch(updateOfficer({
+                            officer_no: officerNo,
+                            officerData: {
+                                officer_no: officerNo,
+                                officer_name: name,
+                                photo: photo, // , // Use the photo file stored in state', // Use the photo URL stored in state
+                                // Add other fields as necessary
+                            }
+                        }))];
                 case 2:
                     response = _a.sent();
-                    setSuccessMessage(response.data.message);
+                    setSuccessMessage(response.payload.message);
                     setError('');
                     clearForm();
                     fetchOfficerList();
@@ -194,14 +256,10 @@ var EmployeeForm = function () {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.delete('http://your-api-url/delete_rec', {
-                            data: {
-                                officerNo: officerNo,
-                            },
-                        })];
+                    return [4 /*yield*/, dispatch(deleteOfficer(officerNo))];
                 case 2:
                     response = _a.sent();
-                    setSuccessMessage(response.data.message);
+                    setSuccessMessage(response.payload.message);
                     setError('');
                     clearForm();
                     fetchOfficerList();
@@ -216,30 +274,19 @@ var EmployeeForm = function () {
             }
         });
     }); };
-    var handleExitClick = function () {
-        window.location.href = '/'; // Redirect to main page or hide the form
-    };
+    // const handleExitClick = () => {
+    //   window.location.href = '/'; // Redirect to main page or hide the form
+    // };
     var clearForm = function () {
         setOfficerNo('');
         setName('');
         setPhoto('');
     };
-    // const validateOfficerNo = async (officerNo: string) => {
-    //   try {
-    //     const response = await axios.get<Officer>(`http://your-api-url/find_rec?officerNo=${officerNo}`);
-    //     setName(response.data.officer_name);
-    //     setPhoto(response.data.photo);
-    //     setError('');
-    //   } catch (error) {
-    //     console.error(error);
-    //     setError('Record not found');
-    //   }
-    // };
     var handleItemClick = function (officer) {
         setOfficerNo(officer.officer_no);
         setName(officer.officer_name);
         setPhoto(officer.photo);
     };
-    return (_jsxs(Container, { children: [_jsx("h2", { children: "Employee Data Entry Screen" }), error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formOfficerno", children: [_jsx(Form.Label, { children: "Employee ID:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: handleOfficerNoChange, maxLength: 10, required: true })] }), _jsxs(Form.Group, { controlId: "formName", children: [_jsx(Form.Label, { children: "Name:" }), _jsx(Form.Control, { type: "text", value: name, onChange: handleNameChange, maxLength: 50, required: true })] }), _jsxs(Form.Group, { controlId: "formPhoto", children: [_jsx(Form.Label, { children: "Photo:" }), _jsx(Form.Control, { type: "text", value: photo, onChange: handlePhotoChange, readOnly: true }), _jsxs(Button, { variant: "secondary", onClick: function () { var _a; return (_a = document.getElementById('photoInput')) === null || _a === void 0 ? void 0 : _a.click(); }, style: { marginTop: '10px' }, children: [_jsx(FaUpload, {}), " Upload Photo"] }), _jsx("input", { id: "photoInput", type: "file", onChange: handlePhotoChange, style: { display: 'none' } })] }), _jsx(Button, { variant: "primary", onClick: handleAddClick, style: { marginTop: '10px' }, children: "Add" }), _jsx(Button, { variant: "success", onClick: handleEditClick, style: { marginLeft: '10px', marginTop: '10px' }, children: "Edit" }), _jsx(Button, { variant: "danger", onClick: handleDeleteClick, style: { marginLeft: '10px', marginTop: '10px' }, children: "Delete" }), _jsx(Button, { variant: "secondary", onClick: handleExitClick, style: { marginLeft: '10px', marginTop: '10px' }, children: "Exit" }), _jsx(Button, { variant: "info", onClick: function () { return window.alert('View Logins functionality not implemented'); }, style: { marginLeft: '10px', marginTop: '10px' }, children: "View Logins" })] }), _jsx("h3", { className: "mt-4", children: "List Of Employees" }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Employee ID" }), _jsx("th", { children: "Name" }), _jsx("th", { children: "Photo" })] }) }), _jsx("tbody", { children: officerList.map(function (officer) { return (_jsxs("tr", { onClick: function () { return handleItemClick(officer); }, children: [_jsx("td", { children: officer.officer_no.toUpperCase() }), _jsx("td", { children: officer.officer_name.toUpperCase() }), _jsx("td", { children: officer.photo && officer.photo !== 'xx' ? (_jsx(Image, { src: officer.photo, alt: officer.officer_name, style: { width: '100px', height: '100px' } })) : ('No Photo') })] }, officer.officer_no)); }) })] }), photo && photo !== 'xx' && (_jsxs("div", { className: "mt-4", children: [_jsx("h4", { children: "Photo Preview" }), _jsx(Image, { src: photo, alt: "Employee Photo", style: { width: '200px', height: '200px' } })] }))] }));
+    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formOfficerno", children: [_jsx(Form.Label, { children: "Employee ID:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: handleOfficerNoChange, maxLength: 10, required: true })] }), _jsxs(Form.Group, { controlId: "formName", children: [_jsx(Form.Label, { children: "Name:" }), _jsx(Form.Control, { type: "text", value: name, onChange: handleNameChange, maxLength: 50, required: true })] }), _jsxs(Form.Group, { controlId: "formPhoto", children: [_jsx(Form.Label, { children: "Photo:" }), _jsx(Form.Control, { type: "text", value: photo, onChange: handlePhotoChange, readOnly: true }), _jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs(Button, { variant: "secondary", onClick: function () { var _a; return (_a = document.getElementById('photoInput')) === null || _a === void 0 ? void 0 : _a.click(); }, children: [_jsx(FaUpload, {}), " Upload Photo"] }), _jsx("input", { id: "photoInput", type: "file", onChange: handlePhotoChange, style: { display: 'none' } })] })] }), _jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs(ButtonGroup, { children: [_jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add" }), _jsx(Button, { variant: "success", onClick: handleEditClick, style: { marginLeft: '10px' }, children: "Edit" }), _jsx(Button, { variant: "danger", onClick: handleDeleteClick, style: { marginLeft: '10px' }, children: "Delete" })] }), _jsx(Link, { to: "/main", className: "btn btn-secondary m-3", children: "Go Back" })] })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Employee ID" }), _jsx("th", { children: "Name" }), _jsx("th", { children: "Photo" })] }) }), _jsx("tbody", { children: officerList.map(function (officer) { return (_jsxs("tr", { onClick: function () { return handleItemClick(officer); }, children: [_jsx("td", { children: officer.officer_no }), _jsx("td", { children: officer.officer_name }), _jsx("td", { children: officer.photo && officer.photo !== 'xx' ? (_jsx(Image, { src: officer.photo, alt: officer.officer_name, style: { width: '100px', height: '100px' } })) : ('No Photo') })] }, officer.officer_no)); }) })] }), photo && photo !== 'xx' && (_jsxs("div", { className: "mt-4", children: [_jsx("h4", { children: "Photo Preview" }), _jsx(Image, { src: photoUrl, alt: "Employee Photo", style: { width: '200px', height: '200px' } })] }))] }));
 };
 export default EmployeeForm;

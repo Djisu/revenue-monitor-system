@@ -12,7 +12,7 @@ const FrmLogin: React.FC = () => {
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        console.log('in frmlogin handlesubmit Username:', username, 'Password:', password);
+        //console.log('in frmlogin handlesubmit Username:', username, 'Password:', password);
 
         // Validate inputs
         if (!username || !password) {
@@ -21,11 +21,11 @@ const FrmLogin: React.FC = () => {
         }
 
         try {
-            console.log('Logging in with username:', username, 'and password:', password);
+            //console.log('Logging in with username:', username, 'and password:', password);
 
             await login(username, password); 
 
-            console.log('About to navigate to MainMenu!');
+            //console.log('About to navigate to MainMenu!');
 
             navigate('/main'); // Redirect to MainMenu on successful login
         } catch (error) {
@@ -61,7 +61,7 @@ const FrmLogin: React.FC = () => {
                 <Button variant="success" type="submit" className="mt-3" style={{ width: '100%' }}>
                     OK
                 </Button>
-                <Button variant="danger" type="button" className="mt-3" style={{ width: '100%' }} onClick={() => navigate('/')}>
+                <Button variant="danger" type="button" className="mt-3" style={{ width: '100%' }} onClick={() => navigate('/main')}>
                     Cancel
                 </Button>
                 {error && <Alert variant="danger" className="mt-3">{error}</Alert>}

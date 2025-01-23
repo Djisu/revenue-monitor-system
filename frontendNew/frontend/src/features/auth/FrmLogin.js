@@ -51,7 +51,7 @@ var FrmLogin = function () {
             switch (_a.label) {
                 case 0:
                     event.preventDefault();
-                    console.log('in frmlogin handlesubmit Username:', username, 'Password:', password);
+                    //console.log('in frmlogin handlesubmit Username:', username, 'Password:', password);
                     // Validate inputs
                     if (!username || !password) {
                         setError('Username and password cannot be blank!');
@@ -60,11 +60,12 @@ var FrmLogin = function () {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    console.log('Logging in with username:', username, 'and password:', password);
+                    //console.log('Logging in with username:', username, 'and password:', password);
                     return [4 /*yield*/, login(username, password)];
                 case 2:
+                    //console.log('Logging in with username:', username, 'and password:', password);
                     _a.sent();
-                    console.log('About to navigate to MainMenu!');
+                    //console.log('About to navigate to MainMenu!');
                     navigate('/main'); // Redirect to MainMenu on successful login
                     return [3 /*break*/, 4];
                 case 3:
@@ -76,6 +77,6 @@ var FrmLogin = function () {
             }
         });
     }); };
-    return (_jsx(Container, { className: "d-flex justify-content-center align-items-center", style: { height: '100vh' }, children: _jsxs(Form, { onSubmit: handleSubmit, style: { width: '300px', margin: '0 auto' }, children: [_jsxs(Form.Group, { controlId: "formUsername", children: [_jsx("h1", { children: "Login" }), _jsx(Form.Label, { children: "User Name" }), _jsx(Form.Control, { type: "text", value: username, onChange: function (e) { return setUsername(e.target.value); }, placeholder: "Enter username", required: true })] }), _jsxs(Form.Group, { controlId: "formPassword", children: [_jsx(Form.Label, { children: "Password" }), _jsx(Form.Control, { type: "password", value: password, onChange: function (e) { return setPassword(e.target.value); }, placeholder: "Enter password", required: true })] }), _jsx(Button, { variant: "success", type: "submit", className: "mt-3", style: { width: '100%' }, children: "OK" }), _jsx(Button, { variant: "danger", type: "button", className: "mt-3", style: { width: '100%' }, onClick: function () { return navigate('/'); }, children: "Cancel" }), error && _jsx(Alert, { variant: "danger", className: "mt-3", children: error }), _jsx("div", { className: "mt-3 text-center", style: { color: 'red' }, children: "(c) SoftPlus Solutions" })] }) }));
+    return (_jsx(Container, { className: "d-flex justify-content-center align-items-center", style: { height: '100vh' }, children: _jsxs(Form, { onSubmit: handleSubmit, style: { width: '300px', margin: '0 auto' }, children: [_jsxs(Form.Group, { controlId: "formUsername", children: [_jsx("h1", { children: "Login" }), _jsx(Form.Label, { children: "User Name" }), _jsx(Form.Control, { type: "text", value: username, onChange: function (e) { return setUsername(e.target.value); }, placeholder: "Enter username", required: true })] }), _jsxs(Form.Group, { controlId: "formPassword", children: [_jsx(Form.Label, { children: "Password" }), _jsx(Form.Control, { type: "password", value: password, onChange: function (e) { return setPassword(e.target.value); }, placeholder: "Enter password", required: true })] }), _jsx(Button, { variant: "success", type: "submit", className: "mt-3", style: { width: '100%' }, children: "OK" }), _jsx(Button, { variant: "danger", type: "button", className: "mt-3", style: { width: '100%' }, onClick: function () { return navigate('/main'); }, children: "Cancel" }), error && _jsx(Alert, { variant: "danger", className: "mt-3", children: error }), _jsx("div", { className: "mt-3 text-center", style: { color: 'red' }, children: "(c) SoftPlus Solutions" })] }) }));
 };
 export default FrmLogin;

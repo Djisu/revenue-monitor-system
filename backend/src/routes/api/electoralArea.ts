@@ -7,20 +7,6 @@ import mysql, { ResultSetHeader } from 'mysql2/promise';
 
 const router = Router();
 
-// Create a logger instance
-// const logger = winston.createLogger({
-//     level: 'info',
-//     format: winston.format.json(),
-//     transports: [
-//         new winston.transports.Console(),
-//         new winston.transports.File({ filename: 'combined.log' })
-//     ]
-// });
-
-// Log messages
-// logger.info('Informational message');
-// logger.error('Error message');
-
 // Load environment variables from .env file
 dotenv.config();
 

@@ -38,6 +38,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 export var FrmReceipts = function () {
     var _a = useState(0), fiscalYear = _a[0], setFiscalYear = _a[1];
     var _b = useState(0), batchNo = _b[0], setBatchNo = _b[1];
@@ -234,5 +235,5 @@ export var FrmReceipts = function () {
                                             setBatchNo(receipt.batchno);
                                             setFirstNo(receipt.firstno);
                                             setLastNo(receipt.lastno);
-                                        }, children: [_jsx("td", { children: receipt.fiscalyear }), _jsx("td", { children: receipt.batchno }), _jsx("td", { children: receipt.firstno }), _jsx("td", { children: receipt.lastno })] }, index)); }) })] })] }) })] }));
+                                        }, children: [_jsx("td", { children: receipt.fiscalyear }), _jsx("td", { children: receipt.batchno }), _jsx("td", { children: receipt.firstno }), _jsx("td", { children: receipt.lastno })] }, index)); }) })] })] }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) })] }));
 };

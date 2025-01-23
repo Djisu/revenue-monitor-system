@@ -56,18 +56,18 @@ export interface LoginError {
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 
-console.log('in authSlice.ts')
+// console.log('in authSlice.ts')
 
-console.log('BASE_URL:', BASE_URL);
+// console.log('BASE_URL:', BASE_URL);
 
-console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-console.log('BASE_URL: ', BASE_URL)
+// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
+// console.log('BASE_URL: ', BASE_URL)
 
 // Define the async thunk for login
 export const loginUser = createAsyncThunk<LoginResponse, { username: string; password: string }, { rejectValue: LoginError }>(
     'auth/loginUser',
     async (credentials, { rejectWithValue }) => {
-        console.log('Sending login request:', { username: credentials.username, password: credentials.password });
+        //console.log('Sending login request:', { username: credentials.username, password: credentials.password });
 
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/login`, {
@@ -75,7 +75,7 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
                 password: credentials.password
             });
 
-            console.log('Login response:', response.data);
+            //console.log('Login response:', response.data);
 
             // Check if the response contains a token
             if (!response.data.token) {
@@ -88,7 +88,7 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
 
             // Assuming existingPermissions is an array
             const permissions = response.data.user.existingPermissions; 
-            console.log('Permissions:', permissions);
+            //console.log('Permissions:', permissions);
             
             // Store permissions if they exist
             localStorage.setItem('existingPermissions', JSON.stringify(permissions));

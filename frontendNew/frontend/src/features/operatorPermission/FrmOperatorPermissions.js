@@ -38,6 +38,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { Container, Form, Button, Alert, Table } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 var OperatorPermissionsForm = function () {
     var _a = useState(''), operatorID = _a[0], setOperatorID = _a[1];
     var _b = useState(''), menus = _b[0], setMenus = _b[1];
@@ -259,6 +260,6 @@ var OperatorPermissionsForm = function () {
                                 setReports(permission.reports);
                                 setDatabases(permission.databases);
                                 setPassword(permission.password);
-                            }, children: [_jsx("td", { children: permission.operatorID.toUpperCase() }), _jsx("td", { children: permission.menus.toUpperCase() }), _jsx("td", { children: permission.reports.toUpperCase() }), _jsx("td", { children: permission.databases.toUpperCase() }), _jsx("td", { children: permission.password.toUpperCase() })] }, permission.operatorID)); }) })] })] }));
+                            }, children: [_jsx("td", { children: permission.operatorID.toUpperCase() }), _jsx("td", { children: permission.menus.toUpperCase() }), _jsx("td", { children: permission.reports.toUpperCase() }), _jsx("td", { children: permission.databases.toUpperCase() }), _jsx("td", { children: permission.password.toUpperCase() })] }, permission.operatorID)); }) })] }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] }));
 };
 export default OperatorPermissionsForm;

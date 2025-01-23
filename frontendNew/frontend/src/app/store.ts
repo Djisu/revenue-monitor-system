@@ -30,7 +30,7 @@ import  propertyTypeReducer from '../features/propertyType/propertyTypeSlice';
 import  propertyUseReducer from '../features/propertyUse/propertyUseSlice';
 import  receiptReducer from '../features/receipt/receiptSlice';
 import  transSavingsReducer from '../features/transSavings/transSavingsSlice';
-
+import photosReducer from '../features/photos/photosSlice'; 
 
 
 const store = configureStore({
@@ -62,6 +62,7 @@ const store = configureStore({
         propertyUse: propertyUseReducer,
         receipt: receiptReducer,
         transSavings: transSavingsReducer,
+        photos: photosReducer,
     },
 });
 

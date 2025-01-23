@@ -23,12 +23,12 @@ const initialState: ElectoralAreaState = {
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 
-console.log('in authSlice.ts')
+// console.log('in authSlice.ts')
 
-console.log('BASE_URL:', BASE_URL);
+// console.log('BASE_URL:', BASE_URL);
 
-console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-console.log('BASE_URL: ', BASE_URL)
+// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
+// console.log('BASE_URL: ', BASE_URL)
 
 
 // Async thunks for API calls
@@ -103,6 +103,7 @@ const electoralAreaSlice = createSlice({
             .addCase(fetchElectoralAreas.fulfilled, (state, action) => {
                 state.loading = false;
                 state.electoralAreas = action.payload;
+                state.error = null
             })
             .addCase(fetchElectoralAreas.rejected, (state, action) => {
                 state.loading = false;
@@ -114,7 +115,9 @@ const electoralAreaSlice = createSlice({
             })
             .addCase(createElectoralArea.fulfilled, (state, action) => {
                 state.loading = false;
+
                 console.log('Before push, electoralAreas:', state.electoralAreas);
+
                 if (action.payload.success) {
                     if (!Array.isArray(state.electoralAreas)) {
                         console.warn('Resetting electoralAreas to an empty array');
@@ -147,6 +150,7 @@ const electoralAreaSlice = createSlice({
                     state.electoralAreas = [];
                 }
                 state.electoralAreas = state.electoralAreas.filter(area => area.electoral_area !== action.meta.arg);
+                state.error = null;
                 console.log('electoralAreas after delete:', state.electoralAreas);
             })
             .addCase(deleteElectoralArea.rejected, (state, action) => {

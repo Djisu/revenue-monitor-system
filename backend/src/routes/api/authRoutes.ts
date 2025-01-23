@@ -61,8 +61,8 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
     const { username, password } = req.body;
 
-    console.log('username: ', username);
-    console.log('password: ', password);
+    // console.log('username: ', username);
+    // console.log('password: ', password);
 
     // Validate inputs
     if (!username || !password) {
@@ -72,7 +72,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
     const connection = await mysql.createConnection(dbConfig);
 
-    console.log('after connection');
+   // console.log('after connection');
 
     try {
         // Check if an operator with the same username exists
@@ -81,7 +81,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             [username]
         );
 
-        console.log('operators: ', operators);
+        //console.log('operators: ', operators);
 
         // Check if user exists
         if (operators.length === 0) {
@@ -97,7 +97,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        console.log('passwords matched');
+        //console.log('passwords matched');
 
         // Log the login attempt
         const now = new Date();
@@ -127,7 +127,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             existingPermissions 
         };
 
-        console.log('existingPermissions: ', existingPermissions);
+       // console.log('existingPermissions: ', existingPermissions);
 
         // Generate JWT token
         const token = jwt.sign({ user }, config.jwtSecret as string, { expiresIn: '1h' });

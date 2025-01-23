@@ -3,18 +3,6 @@ import { Router } from 'express';
 import mysql from 'mysql2/promise';
 //import winston from 'winston';
 const router = Router();
-// Create a logger instance
-// const logger = winston.createLogger({
-//     level: 'info',
-//     format: winston.format.json(),
-//     transports: [
-//         new winston.transports.Console(),
-//         new winston.transports.File({ filename: 'combined.log' })
-//     ]
-// });
-// Log messages
-// logger.info('Informational message');
-// logger.error('Error message');
 // Load environment variables from .env file
 dotenv.config();
 // MySQL connection configuration

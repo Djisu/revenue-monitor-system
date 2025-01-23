@@ -45,10 +45,10 @@ var initialState = {
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
-console.log('in authSlice.ts');
-console.log('BASE_URL:', BASE_URL);
-console.log('process.env.NODE_ENV: ', process.env.NODE_ENV);
-console.log('BASE_URL: ', BASE_URL);
+// console.log('in authSlice.ts')
+// console.log('BASE_URL:', BASE_URL);
+// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
+// console.log('BASE_URL: ', BASE_URL)
 // Define the async thunk for login
 export var loginUser = createAsyncThunk('auth/loginUser', function (credentials_1, _a) { return __awaiter(void 0, [credentials_1, _a], void 0, function (credentials, _b) {
     var response, permissions, error_1;
@@ -57,17 +57,14 @@ export var loginUser = createAsyncThunk('auth/loginUser', function (credentials_
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                console.log('Sending login request:', { username: credentials.username, password: credentials.password });
-                _d.label = 1;
-            case 1:
-                _d.trys.push([1, 3, , 4]);
+                _d.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/auth/login"), {
                         username: credentials.username, // Ensure this matches 'OperatorName'
                         password: credentials.password
                     })];
-            case 2:
+            case 1:
                 response = _d.sent();
-                console.log('Login response:', response.data);
+                //console.log('Login response:', response.data);
                 // Check if the response contains a token
                 if (!response.data.token) {
                     // Handle invalid credentials based on the backend response
@@ -76,15 +73,15 @@ export var loginUser = createAsyncThunk('auth/loginUser', function (credentials_
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 permissions = response.data.user.existingPermissions;
-                console.log('Permissions:', permissions);
+                //console.log('Permissions:', permissions);
                 // Store permissions if they exist
                 localStorage.setItem('existingPermissions', JSON.stringify(permissions));
                 return [2 /*return*/, response.data];
-            case 3:
+            case 2:
                 error_1 = _d.sent();
                 // Handle errors from the backend
                 return [2 /*return*/, rejectWithValue(((_c = error_1.response) === null || _c === void 0 ? void 0 : _c.data) || { message: 'An error occurred' })];
-            case 4: return [2 /*return*/];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
