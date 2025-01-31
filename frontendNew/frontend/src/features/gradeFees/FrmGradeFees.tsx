@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '../../app/store';
 import { Container, Form, Button, Alert, Table } from 'react-bootstrap';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { fetchGradeFees,  deleteGradeFee, createGradeFee, setGradeFees } from './gradeFeesSlice';
+import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 
 
 interface GradeFee {
@@ -11,56 +13,93 @@ interface GradeFee {
   fees: number;
 }
 
-interface BusinessType {
-  buss_type: string;
-}
-
-interface AddRecResponse {
-  message: string;
-}
-
-interface EditRecResponse {
-  message: string;
-}
-
-// interface DeleteRecResponse {
-//   message: string;
-// }
-
 const GradeFeesForm: React.FC = () => {
+  const dispatch = useAppDispatch();
+
+  const gradeFees = useAppSelector(state => state.gradeFees.gradeFees);
+  const { businessTypes, loading, error } = useAppSelector((state) => state.businessType);
+
+  // console.log('businessTypes:', businessTypes); // Debugging statement
+  console.log('gradeFees:', gradeFees); // Debugging statement
+ 
   const [businessType, setBusinessType] = useState<string>('');
   const [grade, setGrade] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [fees, setFees] = useState<number>(0);
-  const [gradeFeesList, setGradeFeesList] = useState<GradeFee[]>([]);
-  const [businessTypeList, setBusinessTypeList] = useState<string[]>([]);
-  const [error, setError] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
+  let [errorFlag, setErrorFlag] = useState<string>('');
+  let [localGradeFeesList, setLocalGradeFeesList] = useState<GradeFee[]>([]);
+
+  
+  let [loadingFlag, setLoadingFlag] = useState<boolean>(false);
+
+  let [selectedBussType, setSelectedBussType] = useState<string | null>(null);
+  let [selectedGrade, setSelectedGrade] = useState<string | null>(null);
+  let [selectedDescription, setSelectedDescription] = useState<string | null>(null);
+  let [selectedFees, setSelectedFees] = useState<number>(0);
+
+
 
   useEffect(() => {
-    fetchBusinessTypes();
+    console.log('in useEffect: Fetching grade fees');
+    dispatch(fetchGradeFees());
+  }, [dispatch]);
+
+
+  useEffect(() => {
+    console.log('in useEffect: Fetching grade fees list');
     fetchGradeFeesList();
   }, []);
 
-  const fetchBusinessTypes = async () => {
-    try {
-      const response = await axios.get<BusinessType[]>('http://your-api-url/business_types');
-      setBusinessTypeList(response.data.map(type => type.buss_type));
-    } catch (error) {
-      console.error(error);
-      setError('Error fetching business types');
-    }
-  };
+  useEffect(() => {
+      const fetchAndSetBusinessTypes = async () => {
+          try {
+              const response = await dispatch(fetchBusinessTypes()).unwrap();
+              setBusinessType(response.data.Business_Type);
+          } catch (error: any) {
+              console.error("Error fetching business types", error);
+              alert("Error in fetching business types");
+          }
+      };
+
+      fetchAndSetBusinessTypes();
+  }, [dispatch])
 
   const fetchGradeFeesList = async () => {
     try {
-      const response = await axios.get<GradeFee[]>('http://your-api-url/tb_gradefees');
-      setGradeFeesList(response.data);
-    } catch (error) {
-      console.error(error);
-      setError('Error fetching grade fees list');
+        console.log('Fetching grade fees list');
+        loadingFlag = true;
+        setLoadingFlag(loadingFlag); // Start loading
+
+        const response = await dispatch(fetchGradeFees()).unwrap();
+        
+        console.log('Fetched grade fees list:', response);
+
+        if (response && Array.isArray(response)) {
+            console.log('IT IS AN ARRAY');
+
+            const formattedGradeFees: GradeFee[] = response.map((gr: any): GradeFee => ({
+                buss_type: gr?.buss_type || '',
+                description: gr?.description || '',
+                grade: gr?.grade || '',
+                fees: parseFloat(gr?.fees) || 0,
+            }));
+
+            setLocalGradeFeesList(formattedGradeFees);
+            dispatch(setGradeFees(formattedGradeFees));
+        } else {
+            console.error('Expected an array of GradeFee objects but found:', response);
+            setErrorFlag('Error fetching grade fees list');
+        }
+    } catch (error: any) {
+        console.error(error);
+        setErrorFlag(error.message);
+    } finally {
+        loadingFlag = false;
+        setLoadingFlag(loadingFlag); // Stop loading
     }
-  };
+};
+
 
   const handleBusinessTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setBusinessType(e.target.value);
@@ -75,81 +114,100 @@ const GradeFeesForm: React.FC = () => {
   };
 
   const handleFeesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const {value} = e.target;
+
     if (value === '' || !isNaN(Number(value))) {
       setFees(Number(value));
     }
   };
 
   const handleAddClick = async () => {
+    console.log('Adding new grade fee record')
+
     if (!businessType || !grade || !description || !fees) {
-      setError('Please fill in all fields');
+      errorFlag = 'Please fill in all fields'
+      setErrorFlag(errorFlag);
       return;
     }
 
     try {
-      const response = await axios.post<AddRecResponse>('http://your-api-url/add_rec', {
-        businessType,
-        grade,
-        description,
-        fees,
-      });
+      const response = await dispatch(createGradeFee({ buss_type: businessType, grade, description, fees })).unwrap();
 
-      setSuccessMessage(response.data.message);
-      setError('');
+      setSuccessMessage(response.message);
+      //dispatch(setGradeFees([...gradeFees, response.data]));
+      dispatch(fetchGradeFees());
       clearForm();
-      fetchGradeFeesList();
     } catch (error) {
       console.error(error);
-      setError('Error adding record');
+      setErrorFlag('Error adding record');
       setSuccessMessage('');
     }
   };
 
-  const handleEditClick = async () => {
-    if (!businessType || !grade || !description || !fees) {
-      setError('Please fill in all fields');
-      return;
-    }
+  // const handleEditClick = async () => {
+  //   if (!businessType || !grade || !description || !fees) {
+  //       setErrorFlag('Please fill in all fields');
+  //       return;
+  //   }
 
-    try {
-      const response = await axios.put<EditRecResponse>('http://your-api-url/edit_rec', {
-        businessType,
-        grade,
-        description,
-        fees,
-      });
+  //   const formattedGradeFees = {
+  //     buss_type: businessType, // Renamed from businessType
+  //     grade: grade, 
+  //     data: {
+  //       buss_type: businessType,
+  //       grade: grade, 
+  //       description: description,
+  //       fees: fees
+  //     },
+  //   };
 
-      setSuccessMessage(response.data.message);
-      setError('');
-      clearForm();
-      fetchGradeFeesList();
-    } catch (error) {
-      console.error(error);
-      setError('Error editing record');
-      setSuccessMessage('');
-    }
-  };
+  //   try {
+  //       const response = await dispatch(updateGradeFee(formattedGradeFees)).unwrap();
+
+  //       setSuccessMessage(`Grade fee record updated successfully: ${JSON.stringify(response)}`);
+  //       fetchGradeFeesList();
+  //       clearForm();
+       
+  //       setErrorFlag('');
+  //     } catch (error: any) {
+  //       console.error(error);
+  //       setErrorFlag('Error editing record');
+  //     }
+  //   }
+
+    const handleDelete = async (bussType: string | null, grade: string | null) => {
+      console.log('Deleting grade fee record')
+      try {
+        if (!bussType || !grade) {
+          throw new Error('Select the business type and enter the grade');
+        }
+  
+        const response = await dispatch(deleteGradeFee({
+          buss_type: bussType,
+          grade: grade
+        })).unwrap();
+  
+        console.log('response: ', response);
+        setSuccessMessage('Grade rate deleted successfully');
+        clearForm();
+        fetchGradeFeesList();
+        setErrorFlag('');
+      } catch (error) {
+        console.error('Error deleting grade rate:', error);
+        setErrorFlag('Error in deleting record');
+      }
+    };
+   
 
   const handleViewClick = async () => {
     try {
       fetchGradeFeesList();
     } catch (error) {
       console.error(error);
-      setError('Error fetching grade fees list');
+      setErrorFlag('Error fetching grade fees list');
     }
   };
 
-  const handleExitClick = () => {
-    window.location.href = '/'; // Redirect to main page or hide the form
-  };
-
-  const handleItemClick = (gradeFee: GradeFee) => {
-    setBusinessType(gradeFee.buss_type);
-    setGrade(gradeFee.grade);
-    setDescription(gradeFee.description);
-    setFees(gradeFee.fees);
-  };
 
   const clearForm = () => {
     setBusinessType('');
@@ -158,22 +216,68 @@ const GradeFeesForm: React.FC = () => {
     setFees(0);
   };
 
+
+  const handleSelectedBusstype = (bussType: string | null, grade: string | null) => {
+    console.log('Selected buss_type:', bussType, 'Selected grade:', grade);
+
+    if (bussType && grade) {
+      console.log('there are values in both fields')
+
+      // Find the corresponding record in the gradeFees array
+      const selectedRecord = gradeFees.find(
+        (gr: any) => gr.buss_type === bussType && gr.grade === grade
+      );
+
+      if (selectedRecord) {
+        console.log('Found the selected record:', selectedRecord);
+        setSelectedBussType(bussType);
+        setSelectedGrade(grade);
+        selectedDescription = selectedRecord.description;
+        setSelectedDescription(selectedDescription);
+
+        selectedFees = selectedRecord.fees || 0
+        setSelectedFees(selectedFees);
+      } else {
+        console.error('No record found for buss_type:', bussType, 'and grade:', grade);
+        setSelectedBussType(bussType);
+        setSelectedGrade(grade);
+        setSelectedDescription(null);
+        setSelectedFees(0); // Convert 0 to a string
+      }
+    }
+  };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
+
   return (
     <Container>
-      <h2>Grade Fees Entry</h2>
+      {/* <p>Grade Fees Entry</p> */}
       {error && <Alert variant="danger">{error}</Alert>}
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
+      <p className="mt-3" style={{ color: '#C00000' }}>
+        MARCORY MUNICIPAL ASSEMBLY
+      </p>  
       <Form>
         <Form.Group controlId="formBusinessType">
           <Form.Label>Business Type:</Form.Label>
-          <Form.Select value={businessType} onChange={handleBusinessTypeChange}>
+          <Form.Select value={businessType} onChange={handleBusinessTypeChange} required>
             <option value="">Select a business type</option>
-            {businessTypeList.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </Form.Select>
+            {businessTypes && businessTypes.length > 0 ? (
+                businessTypes.map((businessType, index) => (
+                    <option key={index} value={businessType.Business_Type}>
+                        {businessType.Business_Type}
+                    </option>
+                ))
+            ) : (
+                <option value="" disabled>No Business Types records found</option>
+            )}
+        </Form.Select>
         </Form.Group>
 
         <Form.Group controlId="formGrade">
@@ -209,60 +313,82 @@ const GradeFeesForm: React.FC = () => {
           </Form.Text>
         </Form.Group>
 
-        <Button variant="primary" onClick={handleAddClick} style={{ marginTop: '10px' }}>
-          Add New Record
-        </Button>
-        <Button variant="success" onClick={handleEditClick} style={{ marginLeft: '10px', marginTop: '10px' }}>
-          Edit Old Record
-        </Button>
-        <Button variant="info" onClick={handleViewClick} style={{ marginLeft: '10px', marginTop: '10px' }}>
-          View Grades
-        </Button>
-        <Button variant="danger" onClick={handleExitClick} style={{ marginLeft: '10px', marginTop: '10px' }}>
-          Exit
-        </Button>
-        <Button variant="secondary" onClick={() => window.alert('Report functionality not implemented')} style={{ marginLeft: '10px', marginTop: '10px' }}>
-          Report
-        </Button>
-        <Form.Text className="text-danger" style={{ marginTop: '10px' }}>
-          Know that you are changing ONLY the fees and description
-        </Form.Text>
-      </Form>
-
-      <h3 className="mt-4">List of Business Types</h3>
+        <div>
+            <Button variant="primary" onClick={handleAddClick} className="uniform-button">
+                Add New Record
+            </Button>
+            {/* <Button variant="success" onClick={handleEditClick} className="uniform-button">
+                Edit Old Record
+            </Button> */}
+            {/* <Button variant="danger" onClick={handleDelete} className="uniform-button">
+                Delete Old Record
+            </Button> */}
+            <Button variant="info" onClick={handleViewClick} className="uniform-button">
+                View Grades
+            </Button>
+            {/* Uncomment the following buttons if needed */}
+            {/* <Button variant="danger" onClick={handleExitClick} className="uniform-button">
+                Exit
+            </Button> */}
+            {/* <Button variant="secondary" onClick={() => window.alert('Report functionality not implemented')} className="uniform-button">
+                Report
+            </Button> */}
+            {/* <Form.Text className="text-danger" style={{ marginTop: '10px', marginLeft: '10px' }}>
+                Change only the fees and description
+            </Form.Text> */}
+            <Link to="/main" className="btn btn-primary uniform-button">
+                Go Back
+            </Link>
+        </div>
+        </Form>
+        {/* Note: Change only the fees and description */}
+      {/* <h3 className="mt-4">List of Business Types</h3> */}
       <Table striped bordered hover className="mt-3">
-        <thead>
-          <tr>
-            <th>Business Type</th>
-            <th>Grade</th>
-            <th>Description</th>
-            <th>Fees (GHC)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {gradeFeesList.map((gradeFee) => (
-            <tr key={`${gradeFee.buss_type}-${gradeFee.grade}`} onClick={() => handleItemClick(gradeFee)}>
-              <td>{gradeFee.buss_type.toUpperCase()}</td>
-              <td>{gradeFee.grade.toUpperCase()}</td>
-              <td>{gradeFee.description.toUpperCase()}</td>
-              <td>{gradeFee.fees.toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+          <thead>
+              <tr>
+                  <th>Business Type</th>
+                  <th>Grade</th>
+                  <th>Description</th>
+                  <th>Fees (GHC)</th>
+              </tr>
+          </thead>
+          <tbody>
+  {localGradeFeesList && localGradeFeesList.length > 0 ? (
+    localGradeFeesList.map((gr, index) => (
+      <tr 
+        key={index} 
+        data-buss_type={gr.buss_type} 
+        data-grade={gr.grade} 
+        onClick={() => handleSelectedBusstype(gr.buss_type, gr.grade)}
+        className={selectedBussType === gr.buss_type && selectedGrade === gr.grade ? 'selected' : ''}
+      >
+        <td>{gr.buss_type}</td>
+        <td>{gr.grade}</td>
+        <td>{gr.description}</td>
+        <td>{gr.fees.toString()}</td> 
+        <td>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent the row click event from firing
+              handleDelete(gr.buss_type, gr.grade);
+            }}
+            className="uniform-button"
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan={4}>No Grade Fees records found</td>
+    </tr>
+  )}
+</tbody>
 
-      <h6 className="mt-3" style={{ color: '#C00000' }}>
-        MARCORY MUNICIPAL ASSEMBLY
-      </h6>
-          
-      <Link to="/main" className="primary m-3">
-          Go Back
-      </Link>
-            
+      </Table>
     </Container>
   );
 };
 
 export default GradeFeesForm;
-
-

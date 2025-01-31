@@ -19,10 +19,19 @@ const FrmElectoralArea: React.FC = () => {
         const fetchAreas = async () => {
             try {
                 const result = await dispatch(fetchElectoralAreas()).unwrap();
-                console.log('Fetched electoral areas:', result); // Log the result
+                console.log('Fetched electoral areasXXXXXXX:', result); // Log the result
+
+                if (!Array.isArray(result.data)){
+                    console.log('NOT AN ARRAY!!!')
+                }
+
                 // Check if result is an array
                 if (Array.isArray(result.data)) {
+                     console.log('it is an array of electoralareas');
+
                     setLocalElectoralAreas(result.data);
+                    console.log('result.data:: ', result.data)
+                    console.log('localElectoralAreas:: ', localElectoralAreas)
                 } else {
                     console.error('Expected an array, but received:', result.data);
                     setLocalElectoralAreas([]);

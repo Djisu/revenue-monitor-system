@@ -59,6 +59,8 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 // Read all BusinessType records
 router.get('/all', async (req: Request, res: Response) => {
     const connection = await mysql.createConnection(dbConfig);
+    console.log('Fetching all businessType records');
+
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_BusinessType');
         res.status(200).json({ success: true, data: rows });
@@ -132,14 +134,16 @@ router.put('/:Business_Type', async (req: Request, res: Response): Promise<void>
 router.delete('/:Business_Type', async (req: Request, res: Response) => {
     const { Business_Type } = req.params;
 
+    console.log('Deleting BusinessType record:', Business_Type);
+
     const connection = await mysql.createConnection(dbConfig);
 
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_BusinessType WHERE Business_Type = ?', 
         [Business_Type]
         );
-        if (Array.isArray(rows) && rows.length > 0) {          
-            res.status(409).json({ success: true, message: 'Business Type record already exists.' });
+        if (rows.length === 0) {          
+            res.status(409).json({ success: true, message: 'Business Type record does not exists.' });
             return;
         }
 

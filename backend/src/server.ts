@@ -36,6 +36,7 @@ import propertyUseRoutes from './routes/api/propertyUseRoutes.js';
 import receiptRoutes from './routes/api/receiptRoutes.js'; 
 import transSavingsRoutes from './routes/api/transSavingsRoutes.js'; 
 import photosRoute from './routes/api/photosRoutes.js'; 
+import businessTypeRoute from './routes/api/businessTypeRoutes.js';
 
 // Load environment variables from .env file
 const environment = process.env.NODE_ENV || 'development';
@@ -80,20 +81,48 @@ const connectDB = async () => {
     }
 };
 
-// Middleware setup
+// // Middleware setup
 const allowedOrigins = [
     'https://typescript-church-new.onrender.com',
     'http://localhost:3000',
     'http://localhost:5173',
 ];
 
-// Use CORS middleware
-app.use(cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-}));
+const corsOptions ={
+    origin: allowedOrigins, 
+    credentials:true,            //access-control-allow-credentials:true
+    optionSuccessStatus:200
+}
+app.use(cors(corsOptions));
+
+// // Middleware setup
+// const allowedOrigins = [
+//     'https://typescript-church-new.onrender.com',
+//     'http://localhost:3000',
+//     'http://localhost:5173',
+// ];
+
+// //Use CORS middleware
+// app.use(cors({
+//     origin: allowedOrigins,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+//     credentials: true,
+// }));
+
+// app.use(cors({
+//     origin: (origin, callback) => {
+//         if (allowedOrigins.includes(origin) || !origin) { // Allow requests without origin (e.g., curl)
+//             callback(null, true);
+//         } else {
+//             callback(new Error('Not allowed by CORS'));
+//         }
+//     },
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+//     credentials: true,
+// }));
+
 
 app.use(morgan('dev')); // Logging middleware
 
@@ -147,6 +176,7 @@ app.use('/api/propertyUse', propertyUseRoutes);
 app.use('/api/receipt', receiptRoutes);
 app.use('/api/transSavings', transSavingsRoutes);
 app.use('/api/photos', photosRoute);
+app.use('/api/businessType', businessTypeRoute);
 
 // Set up multer storage
 const storage: StorageEngine = diskStorage({

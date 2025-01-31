@@ -1,91 +1,89 @@
 import React, { useState, useEffect } from 'react';
-import { useAppDispatch } from '../../app/store';
-import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
-import { fetchBusinessTypes, createBusinessType, deleteBusinessType } from './businessTypeSlice'
+import { useAppDispatch, useAppSelector } from '../../app/store';
+import { fetchBusinessTypes, createBusinessType, deleteBusinessType } from './businessTypeSlice';
 import { Link } from 'react-router-dom';
+import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 
-interface BusinessType {
-    business_type: string;
-}
+
+// interface BusinessTypeData {
+//     business_Type: string;
+// }
+
+// Define the interface for the component state
+// interface BusinessTypeState {
+//     businessTypes: BusinessTypeData[];
+// }
 
 const FrmBusinessType: React.FC = () => {
-    const [businessType, setBusinessType] = useState<string>('');
-    const [localBusinessTypes, setLocalBusinessTypes] = useState<BusinessType[]>([]);
-    let [isDeleting, setIsDeleting] = useState(false);
+    const [businessTypeList, setBusinessTypeList] = useState<string[]>([]);
 
+    const [isDeleting, setIsDeleting] = useState(false);
     const dispatch = useAppDispatch();
+    const { businessTypes, loading, error } = useAppSelector((state) => state.businessType);
+
 
     useEffect(() => {
-        const fetchAreas = async () => {
+        const fetchAndSetBusinessTypes = async () => {
             try {
-                const result = await dispatch(fetchBusinessTypes()).unwrap();
-                console.log('Fetched electoral areas:', result); // Log the result
-                // Check if result is an array
-                if (Array.isArray(result.data)) {
-                    setLocalBusinessTypes(result.data);
-                } else {
-                    console.error('Expected an array, but received:', result.data);
-                    setLocalBusinessTypes([]);
-                }
-            } catch (error) {
-                console.error('Error fetching business types:', error);
+                const response = await dispatch(fetchBusinessTypes()).unwrap();
+                console.log("Fetched business types:", response.data); // Debugging statement
+            } catch (error: any) {
+                console.error("Error fetching business types", error);
+                alert("Error in fetching business types");
             }
         };
-    
-        fetchAreas();
+
+        fetchAndSetBusinessTypes();
     }, [dispatch]);
 
     const handleBusinessTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setBusinessType(e.target.value);
+        setBusinessTypeList(e.target.value.split(','));
+        console.log("Business type list:", businessTypeList); // Debugging statement
     };
 
     const handleAddClick = async () => {
         console.log("Add clicked");
 
-        if (!businessType) {
+        if (businessTypeList.length === 0) {
             alert("Enter a business type");
             return;
         }
 
         try {
-            // Dispatch the createBusinessType thunk
-            const response = await dispatch(createBusinessType(businessType)).unwrap();
-
-            alert(`Record successfully added: ${response.message}`); // Assuming response is successful
-            setBusinessType('');
-            // Refresh the list of electoral areas
+            const response = await dispatch(createBusinessType(businessTypeList[0])).unwrap();
+            console.log("Added business type:", response.message); // Debugging statement
+            alert(`Record successfully added: ${response.message}`);
+            setBusinessTypeList([]); // Reset the state to an empty array
+            // Refresh the list of business types
             const result = await dispatch(fetchBusinessTypes()).unwrap();
-            setLocalBusinessTypes(result.data);
+            console.log("Refreshed business types:", result.data); // Debugging statement
         } catch (error) {
             console.error("Error adding business type", error);
             alert("Error in adding a record");
         }
     };
 
-    const handleDeleteClick = async () => {
+const handleDeleteClick = async () => {
         console.log("Delete clicked, handleDeleteClick");
-        console.log(businessType);
+        console.log(businessTypeList);
 
-        if (!businessType) {
+        if (!businessTypeList) {
             alert("Enter a business type");
             return;
         }
 
+        setIsDeleting(true); // Set deleting state to true
         try {
-            const response = await dispatch(deleteBusinessType(businessType)).unwrap();
+            const response = await dispatch(deleteBusinessType(businessTypeList[0])).unwrap();
+            console.log("Deleted business type:", response.message); // Debugging statement
 
             if (response.success) {
                 alert(response.message);
-                setBusinessType('');
-    
-                // Optimistically remove the electoral area
-                setLocalBusinessTypes(prevAreas => 
-                    prevAreas.filter(area => area.business_type !== businessType)
+                setBusinessTypeList([]);
+                // Optimistically remove the business type
+                setBusinessTypeList(prevTypes => 
+                    prevTypes.filter(type => type !== businessTypeList[0])
                 );
-    
-                // Optionally refresh the list
-                // const result = await dispatch(fetchElectoralAreas()).unwrap();
-                // setLocalElectoralAreas(result);
             } else {
                 alert("Record does not exist");
             }
@@ -93,21 +91,17 @@ const FrmBusinessType: React.FC = () => {
             console.error("Error deleting business type", error);
             alert("Error in deleting a record");
         } finally {
-            isDeleting = false; // Prevent multiple clicks
-            setIsDeleting(isDeleting); // Prevent multiple clicks
+            setIsDeleting(false); // Reset deleting state
         }
     };
 
-    // const handleExitClick = () => {
-    //     // Hide the form and show main form (this can be handled via routing)
-    //     console.log("Exit button clicked");
-    //     // For example, you might navigate to another route here
-    //     // history.push('/main-form');
-    // };
-
-    const handleRowClick = (bussType: BusinessType) => {
-        setBusinessType(bussType.business_type);
+    const handleRowClick = (bussType: any) => {
+        console.log("Row clicked:", bussType);
+        //setBusinessTypeList(prevList => [...prevList, bussType.business_Type]);
+        setBusinessTypeList([bussType.Business_Type]);
     };
+
+    //console.log("Current localBusinessTypes:", localBusinessTypes); // Debugging statement
 
     return (
         <Container fluid>
@@ -127,7 +121,7 @@ const FrmBusinessType: React.FC = () => {
                         <Form.Label>Business Type:</Form.Label>
                         <Form.Control
                             type="text"
-                            value={businessType}
+                            value={businessTypeList}
                             onChange={handleBusinessTypeChange}
                             required
                         />
@@ -141,7 +135,7 @@ const FrmBusinessType: React.FC = () => {
                     </Button>
                 </Col>
                 <Col>
-                    <Button variant="danger" onClick={handleDeleteClick}>
+                    <Button variant="danger" onClick={handleDeleteClick} disabled={isDeleting}>
                         Delete Old Record
                     </Button>
                 </Col>
@@ -149,6 +143,8 @@ const FrmBusinessType: React.FC = () => {
             <Row className="mt-3">
                 <Col>
                     <h2>List of Business Types</h2>
+                    {loading && <p>Loading...</p>}
+                    {error && <p>Error: {error}</p>}
                     <Table striped bordered hover>
                         <thead>
                             <tr>
@@ -156,9 +152,9 @@ const FrmBusinessType: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {localBusinessTypes.map((bussType, index) => (
+                            {businessTypes.map((bussType, index) => (
                                 <tr key={index} onClick={() => handleRowClick(bussType)}>
-                                    <td>{bussType.business_type}</td>
+                                    <td>{bussType.Business_Type}</td> 
                                 </tr>
                             ))}
                         </tbody>
@@ -167,9 +163,9 @@ const FrmBusinessType: React.FC = () => {
             </Row>
             <Row className="mt-3">
                 <Col>
-                <Link to="/main" className="primary m-3">
-                    Go Back
-                </Link>
+                    <Link to="/main" className="primary m-3">
+                        Go Back
+                    </Link>
                 </Col>
             </Row>
         </Container>
@@ -177,4 +173,14 @@ const FrmBusinessType: React.FC = () => {
 };
 
 export default FrmBusinessType;
+
+
+
+
+
+
+
+
+
+
 

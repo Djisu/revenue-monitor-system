@@ -1,7 +1,6 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import mysql from 'mysql2/promise';
-//import winston from 'winston';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();

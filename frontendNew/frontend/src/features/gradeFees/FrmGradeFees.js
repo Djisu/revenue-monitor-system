@@ -36,62 +36,99 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '../../app/store';
 import { Container, Form, Button, Alert, Table } from 'react-bootstrap';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
-// interface DeleteRecResponse {
-//   message: string;
-// }
+import { fetchGradeFees, deleteGradeFee, createGradeFee, setGradeFees } from './gradeFeesSlice';
+import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 var GradeFeesForm = function () {
-    var _a = useState(''), businessType = _a[0], setBusinessType = _a[1];
-    var _b = useState(''), grade = _b[0], setGrade = _b[1];
-    var _c = useState(''), description = _c[0], setDescription = _c[1];
-    var _d = useState(0), fees = _d[0], setFees = _d[1];
-    var _e = useState([]), gradeFeesList = _e[0], setGradeFeesList = _e[1];
-    var _f = useState([]), businessTypeList = _f[0], setBusinessTypeList = _f[1];
-    var _g = useState(''), error = _g[0], setError = _g[1];
-    var _h = useState(''), successMessage = _h[0], setSuccessMessage = _h[1];
+    var dispatch = useAppDispatch();
+    var gradeFees = useAppSelector(function (state) { return state.gradeFees.gradeFees; });
+    var _a = useAppSelector(function (state) { return state.businessType; }), businessTypes = _a.businessTypes, loading = _a.loading, error = _a.error;
+    // console.log('businessTypes:', businessTypes); // Debugging statement
+    console.log('gradeFees:', gradeFees); // Debugging statement
+    var _b = useState(''), businessType = _b[0], setBusinessType = _b[1];
+    var _c = useState(''), grade = _c[0], setGrade = _c[1];
+    var _d = useState(''), description = _d[0], setDescription = _d[1];
+    var _e = useState(0), fees = _e[0], setFees = _e[1];
+    var _f = useState(''), successMessage = _f[0], setSuccessMessage = _f[1];
+    var _g = useState(''), errorFlag = _g[0], setErrorFlag = _g[1];
+    var _h = useState([]), localGradeFeesList = _h[0], setLocalGradeFeesList = _h[1];
+    var _j = useState(false), loadingFlag = _j[0], setLoadingFlag = _j[1];
+    var _k = useState(null), selectedBussType = _k[0], setSelectedBussType = _k[1];
+    var _l = useState(null), selectedGrade = _l[0], setSelectedGrade = _l[1];
+    var _m = useState(null), selectedDescription = _m[0], setSelectedDescription = _m[1];
+    var _o = useState(0), selectedFees = _o[0], setSelectedFees = _o[1];
     useEffect(function () {
-        fetchBusinessTypes();
+        console.log('in useEffect: Fetching grade fees');
+        dispatch(fetchGradeFees());
+    }, [dispatch]);
+    useEffect(function () {
+        console.log('in useEffect: Fetching grade fees list');
         fetchGradeFeesList();
     }, []);
-    var fetchBusinessTypes = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('http://your-api-url/business_types')];
-                case 1:
-                    response = _a.sent();
-                    setBusinessTypeList(response.data.map(function (type) { return type.buss_type; }));
-                    return [3 /*break*/, 3];
-                case 2:
-                    error_1 = _a.sent();
-                    console.error(error_1);
-                    setError('Error fetching business types');
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
-            }
-        });
-    }); };
+    useEffect(function () {
+        var fetchAndSetBusinessTypes = function () { return __awaiter(void 0, void 0, void 0, function () {
+            var response, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, dispatch(fetchBusinessTypes()).unwrap()];
+                    case 1:
+                        response = _a.sent();
+                        setBusinessType(response.data.Business_Type);
+                        return [3 /*break*/, 3];
+                    case 2:
+                        error_1 = _a.sent();
+                        console.error("Error fetching business types", error_1);
+                        alert("Error in fetching business types");
+                        return [3 /*break*/, 3];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); };
+        fetchAndSetBusinessTypes();
+    }, [dispatch]);
     var fetchGradeFeesList = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_2;
+        var response, formattedGradeFees, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('http://your-api-url/tb_gradefees')];
+                    _a.trys.push([0, 2, 3, 4]);
+                    console.log('Fetching grade fees list');
+                    loadingFlag = true;
+                    setLoadingFlag(loadingFlag); // Start loading
+                    return [4 /*yield*/, dispatch(fetchGradeFees()).unwrap()];
                 case 1:
                     response = _a.sent();
-                    setGradeFeesList(response.data);
-                    return [3 /*break*/, 3];
+                    console.log('Fetched grade fees list:', response);
+                    if (response && Array.isArray(response)) {
+                        console.log('IT IS AN ARRAY');
+                        formattedGradeFees = response.map(function (gr) { return ({
+                            buss_type: (gr === null || gr === void 0 ? void 0 : gr.buss_type) || '',
+                            description: (gr === null || gr === void 0 ? void 0 : gr.description) || '',
+                            grade: (gr === null || gr === void 0 ? void 0 : gr.grade) || '',
+                            fees: parseFloat(gr === null || gr === void 0 ? void 0 : gr.fees) || 0,
+                        }); });
+                        setLocalGradeFeesList(formattedGradeFees);
+                        dispatch(setGradeFees(formattedGradeFees));
+                    }
+                    else {
+                        console.error('Expected an array of GradeFee objects but found:', response);
+                        setErrorFlag('Error fetching grade fees list');
+                    }
+                    return [3 /*break*/, 4];
                 case 2:
                     error_2 = _a.sent();
                     console.error(error_2);
-                    setError('Error fetching grade fees list');
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    setErrorFlag(error_2.message);
+                    return [3 /*break*/, 4];
+                case 3:
+                    loadingFlag = false;
+                    setLoadingFlag(loadingFlag); // Stop loading
+                    return [7 /*endfinally*/];
+                case 4: return [2 /*return*/];
             }
         });
     }); };
@@ -115,66 +152,87 @@ var GradeFeesForm = function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    console.log('Adding new grade fee record');
                     if (!businessType || !grade || !description || !fees) {
-                        setError('Please fill in all fields');
+                        errorFlag = 'Please fill in all fields';
+                        setErrorFlag(errorFlag);
                         return [2 /*return*/];
                     }
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.post('http://your-api-url/add_rec', {
-                            businessType: businessType,
-                            grade: grade,
-                            description: description,
-                            fees: fees,
-                        })];
+                    return [4 /*yield*/, dispatch(createGradeFee({ buss_type: businessType, grade: grade, description: description, fees: fees })).unwrap()];
                 case 2:
                     response = _a.sent();
-                    setSuccessMessage(response.data.message);
-                    setError('');
+                    setSuccessMessage(response.message);
+                    //dispatch(setGradeFees([...gradeFees, response.data]));
+                    dispatch(fetchGradeFees());
                     clearForm();
-                    fetchGradeFeesList();
                     return [3 /*break*/, 4];
                 case 3:
                     error_3 = _a.sent();
                     console.error(error_3);
-                    setError('Error adding record');
+                    setErrorFlag('Error adding record');
                     setSuccessMessage('');
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
         });
     }); };
-    var handleEditClick = function () { return __awaiter(void 0, void 0, void 0, function () {
+    // const handleEditClick = async () => {
+    //   if (!businessType || !grade || !description || !fees) {
+    //       setErrorFlag('Please fill in all fields');
+    //       return;
+    //   }
+    //   const formattedGradeFees = {
+    //     buss_type: businessType, // Renamed from businessType
+    //     grade: grade, 
+    //     data: {
+    //       buss_type: businessType,
+    //       grade: grade, 
+    //       description: description,
+    //       fees: fees
+    //     },
+    //   };
+    //   try {
+    //       const response = await dispatch(updateGradeFee(formattedGradeFees)).unwrap();
+    //       setSuccessMessage(`Grade fee record updated successfully: ${JSON.stringify(response)}`);
+    //       fetchGradeFeesList();
+    //       clearForm();
+    //       setErrorFlag('');
+    //     } catch (error: any) {
+    //       console.error(error);
+    //       setErrorFlag('Error editing record');
+    //     }
+    //   }
+    var handleDelete = function (bussType, grade) { return __awaiter(void 0, void 0, void 0, function () {
         var response, error_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!businessType || !grade || !description || !fees) {
-                        setError('Please fill in all fields');
-                        return [2 /*return*/];
-                    }
+                    console.log('Deleting grade fee record');
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.put('http://your-api-url/edit_rec', {
-                            businessType: businessType,
-                            grade: grade,
-                            description: description,
-                            fees: fees,
-                        })];
+                    if (!bussType || !grade) {
+                        throw new Error('Select the business type and enter the grade');
+                    }
+                    return [4 /*yield*/, dispatch(deleteGradeFee({
+                            buss_type: bussType,
+                            grade: grade
+                        })).unwrap()];
                 case 2:
                     response = _a.sent();
-                    setSuccessMessage(response.data.message);
-                    setError('');
+                    console.log('response: ', response);
+                    setSuccessMessage('Grade rate deleted successfully');
                     clearForm();
                     fetchGradeFeesList();
+                    setErrorFlag('');
                     return [3 /*break*/, 4];
                 case 3:
                     error_4 = _a.sent();
-                    console.error(error_4);
-                    setError('Error editing record');
-                    setSuccessMessage('');
+                    console.error('Error deleting grade rate:', error_4);
+                    setErrorFlag('Error in deleting record');
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -187,26 +245,50 @@ var GradeFeesForm = function () {
             }
             catch (error) {
                 console.error(error);
-                setError('Error fetching grade fees list');
+                setErrorFlag('Error fetching grade fees list');
             }
             return [2 /*return*/];
         });
     }); };
-    var handleExitClick = function () {
-        window.location.href = '/'; // Redirect to main page or hide the form
-    };
-    var handleItemClick = function (gradeFee) {
-        setBusinessType(gradeFee.buss_type);
-        setGrade(gradeFee.grade);
-        setDescription(gradeFee.description);
-        setFees(gradeFee.fees);
-    };
     var clearForm = function () {
         setBusinessType('');
         setGrade('');
         setDescription('');
         setFees(0);
     };
-    return (_jsxs(Container, { children: [_jsx("h2", { children: "Grade Fees Entry" }), error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formBusinessType", children: [_jsx(Form.Label, { children: "Business Type:" }), _jsxs(Form.Select, { value: businessType, onChange: handleBusinessTypeChange, children: [_jsx("option", { value: "", children: "Select a business type" }), businessTypeList.map(function (type) { return (_jsx("option", { value: type, children: type }, type)); })] })] }), _jsxs(Form.Group, { controlId: "formGrade", children: [_jsx(Form.Label, { children: "Grade:" }), _jsx(Form.Control, { type: "text", value: grade, onChange: handleGradeChange, maxLength: 50 })] }), _jsxs(Form.Group, { controlId: "formDescription", children: [_jsx(Form.Label, { children: "Description:" }), _jsx(Form.Control, { type: "text", value: description, onChange: handleDescriptionChange, maxLength: 100 })] }), _jsxs(Form.Group, { controlId: "formFees", children: [_jsx(Form.Label, { children: "Fees (GHC):" }), _jsx(Form.Control, { type: "number", step: "0.01", value: fees, onChange: handleFeesChange }), _jsx(Form.Text, { className: "text-muted", children: "GHC" })] }), _jsx(Button, { variant: "primary", onClick: handleAddClick, style: { marginTop: '10px' }, children: "Add New Record" }), _jsx(Button, { variant: "success", onClick: handleEditClick, style: { marginLeft: '10px', marginTop: '10px' }, children: "Edit Old Record" }), _jsx(Button, { variant: "info", onClick: handleViewClick, style: { marginLeft: '10px', marginTop: '10px' }, children: "View Grades" }), _jsx(Button, { variant: "danger", onClick: handleExitClick, style: { marginLeft: '10px', marginTop: '10px' }, children: "Exit" }), _jsx(Button, { variant: "secondary", onClick: function () { return window.alert('Report functionality not implemented'); }, style: { marginLeft: '10px', marginTop: '10px' }, children: "Report" }), _jsx(Form.Text, { className: "text-danger", style: { marginTop: '10px' }, children: "Know that you are changing ONLY the fees and description" })] }), _jsx("h3", { className: "mt-4", children: "List of Business Types" }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Business Type" }), _jsx("th", { children: "Grade" }), _jsx("th", { children: "Description" }), _jsx("th", { children: "Fees (GHC)" })] }) }), _jsx("tbody", { children: gradeFeesList.map(function (gradeFee) { return (_jsxs("tr", { onClick: function () { return handleItemClick(gradeFee); }, children: [_jsx("td", { children: gradeFee.buss_type.toUpperCase() }), _jsx("td", { children: gradeFee.grade.toUpperCase() }), _jsx("td", { children: gradeFee.description.toUpperCase() }), _jsx("td", { children: gradeFee.fees.toFixed(2) })] }, "".concat(gradeFee.buss_type, "-").concat(gradeFee.grade))); }) })] }), _jsx("h6", { className: "mt-3", style: { color: '#C00000' }, children: "MARCORY MUNICIPAL ASSEMBLY" }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] }));
+    var handleSelectedBusstype = function (bussType, grade) {
+        console.log('Selected buss_type:', bussType, 'Selected grade:', grade);
+        if (bussType && grade) {
+            console.log('there are values in both fields');
+            // Find the corresponding record in the gradeFees array
+            var selectedRecord = gradeFees.find(function (gr) { return gr.buss_type === bussType && gr.grade === grade; });
+            if (selectedRecord) {
+                console.log('Found the selected record:', selectedRecord);
+                setSelectedBussType(bussType);
+                setSelectedGrade(grade);
+                selectedDescription = selectedRecord.description;
+                setSelectedDescription(selectedDescription);
+                selectedFees = selectedRecord.fees || 0;
+                setSelectedFees(selectedFees);
+            }
+            else {
+                console.error('No record found for buss_type:', bussType, 'and grade:', grade);
+                setSelectedBussType(bussType);
+                setSelectedGrade(grade);
+                setSelectedDescription(null);
+                setSelectedFees(0); // Convert 0 to a string
+            }
+        }
+    };
+    if (loading) {
+        return _jsx("p", { children: "Loading..." });
+    }
+    if (error) {
+        return _jsxs("p", { children: ["Error: ", error] });
+    }
+    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsx("p", { className: "mt-3", style: { color: '#C00000' }, children: "MARCORY MUNICIPAL ASSEMBLY" }), _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formBusinessType", children: [_jsx(Form.Label, { children: "Business Type:" }), _jsxs(Form.Select, { value: businessType, onChange: handleBusinessTypeChange, required: true, children: [_jsx("option", { value: "", children: "Select a business type" }), businessTypes && businessTypes.length > 0 ? (businessTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.Business_Type, children: businessType.Business_Type }, index)); })) : (_jsx("option", { value: "", disabled: true, children: "No Business Types records found" }))] })] }), _jsxs(Form.Group, { controlId: "formGrade", children: [_jsx(Form.Label, { children: "Grade:" }), _jsx(Form.Control, { type: "text", value: grade, onChange: handleGradeChange, maxLength: 50 })] }), _jsxs(Form.Group, { controlId: "formDescription", children: [_jsx(Form.Label, { children: "Description:" }), _jsx(Form.Control, { type: "text", value: description, onChange: handleDescriptionChange, maxLength: 100 })] }), _jsxs(Form.Group, { controlId: "formFees", children: [_jsx(Form.Label, { children: "Fees (GHC):" }), _jsx(Form.Control, { type: "number", step: "0.01", value: fees, onChange: handleFeesChange }), _jsx(Form.Text, { className: "text-muted", children: "GHC" })] }), _jsxs("div", { children: [_jsx(Button, { variant: "primary", onClick: handleAddClick, className: "uniform-button", children: "Add New Record" }), _jsx(Button, { variant: "info", onClick: handleViewClick, className: "uniform-button", children: "View Grades" }), _jsx(Link, { to: "/main", className: "btn btn-primary uniform-button", children: "Go Back" })] })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Business Type" }), _jsx("th", { children: "Grade" }), _jsx("th", { children: "Description" }), _jsx("th", { children: "Fees (GHC)" })] }) }), _jsx("tbody", { children: localGradeFeesList && localGradeFeesList.length > 0 ? (localGradeFeesList.map(function (gr, index) { return (_jsxs("tr", { "data-buss_type": gr.buss_type, "data-grade": gr.grade, onClick: function () { return handleSelectedBusstype(gr.buss_type, gr.grade); }, className: selectedBussType === gr.buss_type && selectedGrade === gr.grade ? 'selected' : '', children: [_jsx("td", { children: gr.buss_type }), _jsx("td", { children: gr.grade }), _jsx("td", { children: gr.description }), _jsx("td", { children: gr.fees.toString() }), _jsx("td", { children: _jsx("button", { onClick: function (e) {
+                                            e.stopPropagation(); // Prevent the row click event from firing
+                                            handleDelete(gr.buss_type, gr.grade);
+                                        }, className: "uniform-button", children: "Delete" }) })] }, index)); })) : (_jsx("tr", { children: _jsx("td", { colSpan: 4, children: "No Grade Fees records found" }) })) })] })] }));
 };
 export default GradeFeesForm;

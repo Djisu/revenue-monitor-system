@@ -2,9 +2,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Define the type for BusinessType data
+// Define the type for BusinessType data// Define the type for BusinessType data
 interface BusinessTypeData {
-    Business_Type: string;
+    Business_Type: string; // Updated to match API response
 }
 
 // Define the initial state for the slice
@@ -23,36 +23,35 @@ const initialState: BusinessTypeState = {
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 
-// console.log('in authSlice.ts')
-
-// console.log('BASE_URL:', BASE_URL);
-
-// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-// console.log('BASE_URL: ', BASE_URL)
-
 // Async thunk to fetch all BusinessType records
 export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTypes', async () => {
+    //console.log('inside fetchBusinessTypes thunk');
     const response = await axios.get(`${BASE_URL}/api/businessType/all`);
+
+    //console.log('after fetchBusinessTypes thunk, Response data:', response.data)
 
     if (response.status >= 200 && response.status < 300) {
         return await response.data; // This data will be available as `action.payload`
     } else {
-        throw new Error(`Error fetching electoral areas: ${response.statusText}`);
+        throw new Error(`Error fetching business types: ${response.statusText}`);
     }
 });
 
 // Async thunk to create a new BusinessType record
 export const createBusinessType = createAsyncThunk(
     'businessType/createBusinessType', 
-    async (data: string) => {
+    async (businessType: string) => {
+        console.log('Creating a new business type record:', businessType);
+
         try {
             const response = await axios.post(
-                `${BASE_URL}/api/businessType`, 
-                data,
+                `${BASE_URL}/api/businessType/create`, 
+                { Business_Type: businessType },
                 {
                     headers: { 'Content-Type': 'application/json' },
-                });
-                return response.data;
+                }
+            );
+            return response.data;
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
                 // Handle specific error responses
@@ -78,11 +77,13 @@ export const updateBusinessType = createAsyncThunk(
 );
 
 // Async thunk to delete a BusinessType record
-export const deleteBusinessType = createAsyncThunk('businessType/deleteBusinessType', async (Business_Type: string) => {
-   
-    const response = await axios.delete(`${BASE_URL}/api/businessType/${Business_Type}`);
-    return response.data;   
-});
+export const deleteBusinessType = createAsyncThunk(
+    'businessType/deleteBusinessType',
+    async (Business_Type: string) => {
+        const response = await axios.delete(`${BASE_URL}/api/businessType/${Business_Type}`);
+        return response.data;
+    }
+);
 
 // Create the slice
 const businessTypeSlice = createSlice({
@@ -97,7 +98,7 @@ const businessTypeSlice = createSlice({
             })
             .addCase(fetchBusinessTypes.fulfilled, (state, action) => {
                 state.loading = false;
-                state.businessTypes = action.payload;
+                state.businessTypes = action.payload.data;
                 state.error = null;
             })
             .addCase(fetchBusinessTypes.rejected, (state, action) => {
@@ -119,7 +120,7 @@ const businessTypeSlice = createSlice({
                         state.businessTypes = [];
                     }
                     state.businessTypes.push({ Business_Type: action.payload.message });
-                    console.log('After push, businessTypes:', state.businessTypes);
+                    //console.log('After push, businessTypes:', state.businessTypes);
                 } else {
                     state.error = action.payload.message;
                 }

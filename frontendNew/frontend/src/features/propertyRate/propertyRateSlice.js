@@ -72,9 +72,12 @@ export var createPropertyRate = createAsyncThunk('propertyRate/createPropertyRat
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post('/api/propertyRate', propertyRateData)];
+            case 0:
+                console.log('createPropertyRate action called with ', propertyRateData);
+                return [4 /*yield*/, axios.post('/api/propertyRate/create', propertyRateData)];
             case 1:
                 response = _a.sent();
+                console.log("after axios.post, response.data: ".concat(JSON.stringify(response.data)));
                 return [2 /*return*/, response.data];
         }
     });
@@ -85,7 +88,7 @@ export var updatePropertyRate = createAsyncThunk('propertyRate/updatePropertyRat
     var property_Class = _b.property_Class, fiscalyear = _b.fiscalyear, propertyRateData = _b.propertyRateData;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.put("/api/propertyRate/".concat(property_Class, "/").concat(fiscalyear), propertyRateData)];
+            case 0: return [4 /*yield*/, axios.put("/api/propertyRate/update".concat(property_Class, "/").concat(fiscalyear), propertyRateData)];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];

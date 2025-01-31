@@ -3,7 +3,6 @@ import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import mysql, { ResultSetHeader } from 'mysql2/promise';
-//import winston from 'winston';
 
 const router = Router();
 
@@ -27,6 +26,7 @@ interface ElectoralAreaData {
 // Create a new electoral area record
 router.post('/create', async (req: Request, res: Response): Promise<void> => {
     console.log('in electoral area create', req.body)
+
     const electoralAreaData: ElectoralAreaData = req.body;
 
     const connection = await mysql.createConnection(dbConfig);
@@ -59,6 +59,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 // Read all electoral area records
 router.get('/all', async (req: Request, res: Response) => {
     const connection = await mysql.createConnection(dbConfig);
+    
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_electoralarea');
         res.status(200).json({ success: true, data: rows });

@@ -18,6 +18,14 @@ const dbConfig = {
 };
 
 // PropertyRate data interface
+// interface PropertyRateData {
+//     property_class: string;
+//     fiscalyear: number;
+//     rate: number;
+//     registrationrate: number;
+// }
+
+
 interface PropertyRateData {
     property_Class: string;
     fiscalyear: number;
@@ -25,42 +33,84 @@ interface PropertyRateData {
     registrationrate: number;
 }
 
-// Create a new property rate record
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/create', async (req: Request, res: Response): Promise<void> => {
+    // Validate the request body
     const propertyRateData: PropertyRateData = req.body;
+    
+    console.log('in create property rate');
+    console.log('propertyRateData: ', propertyRateData);
+   
+    console.log(' propertyRateData.property_Class: ',  propertyRateData.property_Class ) 
+    console.log(' propertyRateData.rate: ',  propertyRateData.rate)
+    console.log(' propertyRateData.registrationrate: ',  propertyRateData.registrationrate)
+    console.log(' propertyRateData.fiscalyear: ',  propertyRateData.fiscalyear)
+
+    console.log('===========================')
+
+    if (!propertyRateData.property_Class || // Changed to property_class
+        !propertyRateData.fiscalyear 
+        // || 
+        // typeof propertyRateData.rate !== 'number' || 
+        // typeof propertyRateData.registrationrate !== 'number'
+        ) {
+
+        console.log('invalid property rate data')   
+        res.status(400).json({ message: 'Invalid property rate data' });
+        return;
+    }
+
+    console.log('after validation: ')
 
     const connection = await mysql.createConnection(dbConfig);
     
+    
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_propertyrate WHERE property_Class = ? AND fiscalyear = ?', 
-        [propertyRateData.property_Class, propertyRateData.fiscalyear]);
+        const [rows] = await connection.execute('SELECT * FROM tb_propertyrate WHERE property_class = ? AND fiscalyear = ?', 
+        [propertyRateData.property_Class.toLowerCase(), propertyRateData.fiscalyear]); // Convert property_class to lowercase
 
         if (Array.isArray(rows) && rows.length > 0) {
-            res.status(409).json({ message: 'Property rate record already exists' });
-            return
+            res.status(409).json({ success: false, message: 'Property rate record already exists' });
+            return;
         }
 
-        // Insert the new property rate data
-        const [result] = await connection.execute<ResultSetHeader>(
+        console.log('before insert')
+
+        // Insert the new property rate data  <ResultSetHeader>
+        const [result] = await connection.execute(
             `INSERT INTO tb_propertyrate 
-            (property_Class, fiscalyear, rate, registrationrate) 
+            (property_class, fiscalyear, rate, registrationrate) 
             VALUES (?, ?, ?, ?)`,
             [
-                propertyRateData.property_Class,
+                propertyRateData.property_Class.toLowerCase(), // Convert property_class to lowercase
                 propertyRateData.fiscalyear,
                 propertyRateData.rate,
                 propertyRateData.registrationrate,
             ]
         );
+        console.log('after insert')
 
-        res.status(201).json({ message: 'Property rate record created successfully' });
-    } catch (error) {
+       // Ensure result is not undefined before accessing insertId
+       if (result && 'insertId' in result) {
+        res.status(201).json({ 
+            success: true, 
+            message: 'Property rate record created successfully', 
+            property_class: propertyRateData.property_Class, // Use the processed property class   
+            rate: propertyRateData.rate 
+            });
+        } else {
+            res.status(500).json({ 
+                success: false, 
+                message: 'Failed to create property rate record' 
+            });
+        }
+    } catch (error: any) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating property rate record', error });
+        res.status(500).json({ message: 'Error creating property rate record', error: error.message }); // Send only the error message
     } finally {
         connection.end();
     }
 });
+
 
 // Read all property rate records
 router.get('/', async (req: Request, res: Response) => {

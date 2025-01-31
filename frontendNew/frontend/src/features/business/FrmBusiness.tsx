@@ -155,57 +155,57 @@ export const FrmBusiness: React.FC = () => {
   const officer = useAppSelector((state) => state.officer.officers);
   setAssessments(officer.map((officer: any) => `${officer.officer_no} ${officer.officer_name}`));
 
-  // propertyClasses.push(response.data.map((property: any) => property.property_class));
-  // setPropertyClasses(response.data.map((property: any) => property.property_class));
+  propertyClasses.push(response.data.map((property: any) => property.property_class));
+  setPropertyClasses(response.data.map((property: any) => property.property_class));
 
-  // const loadElectoralAreas = async () => {
-  //   try {
-  //     // Fetch data from API
-  //    // const response = dispatch(fetchElectoralAreas());
+  const loadElectoralAreas = async () => {
+    try {
+      // Fetch data from API
+     // const response = dispatch(fetchElectoralAreas());
      
-  //     const electoralAreas = useAppSelector((state) => state.electoralArea.electoralAreas);
-  //     setElectoralAreas(electoralAreas.map((area: any) => area.electoral_area));
-  //   } catch (error) {
-  //     console.error(error);
-  //     alert('Error loading electoral areas');
-  //   }
-  // };
+      const electoralAreas = useAppSelector((state) => state.electoralArea.electoralAreas);
+      setElectoralAreas(electoralAreas.map((area: any) => area.electoral_area));
+    } catch (error) {
+      console.error(error);
+      alert('Error loading electoral areas');
+    }
+  };
 
-  // const loadBusinessTypes = async () => {
-  //   try {
-  //     //const response = dispatch(fetchBusinessTypes());
-  //     const businessTypes = useAppSelector((state) => state.businessType.businessTypes); //electoralArea.electoralAreas);
+  const loadBusinessTypes = async () => {
+    try {
+      //const response = dispatch(fetchBusinessTypes());
+      const businessTypes = useAppSelector((state) => state.businessType.businessTypes); //electoralArea.electoralAreas);
       
-  //     setBusinessTypes(businessTypes.map((type: any) => type.buss_type));
-  //   } catch (error) {
-  //     console.error(error);
-  //     alert('Error loading business types');
-  //   }
-  // };
+      setBusinessTypes(businessTypes.map((type: any) => type.buss_type));
+    } catch (error) {
+      console.error(error);
+      alert('Error loading business types');
+    }
+  };
 
-  // const loadPropertyClasses = async () => {
-  //   try {
-  //     const response = dispatch(fetchPropertyClasses());
+  const loadPropertyClasses = async () => {
+    try {
+      const response = dispatch(fetchPropertyClasses());
 
-  //     propertyClasses.push(response.data.map((property: any) => property.property_class));
-  //     setPropertyClasses(response.data.map((property: any) => property.property_class));
-  //   } catch (error) {
-  //     console.error(error);
-  //     alert('Error loading property classes');
-  //   }
-  // };
+      propertyClasses.push(response.data.map((property: any) => property.property_class));
+      setPropertyClasses(response.data.map((property: any) => property.property_class));
+    } catch (error) {
+      console.error(error);
+      alert('Error loading property classes');
+    }
+  };
 
-  // const loadAssessments = async () => {
-  //   try {
-  //     const response = dispatch(fetchOfficers());
+  const loadAssessments = async () => {
+    try {
+      const response = dispatch(fetchOfficers());
 
-  //     assessments.push(response.data.map((officer: any) => `${officer.officer_no} ${officer.officer_name}`));
-  //     setAssessments(response.data.map((officer: any) => `${officer.officer_no} ${officer.officer_name}`));
-  //   } catch (error) {
-  //     console.error(error);
-  //     alert('Error loading assessments');
-  //   }
-  // };
+      assessments.push(response.data.map((officer: any) => `${officer.officer_no} ${officer.officer_name}`));
+      setAssessments(response.data.map((officer: any) => `${officer.officer_no} ${officer.officer_name}`));
+    } catch (error) {
+      console.error(error);
+      alert('Error loading assessments');
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

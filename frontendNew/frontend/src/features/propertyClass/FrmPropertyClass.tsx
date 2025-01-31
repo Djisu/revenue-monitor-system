@@ -1,48 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { useAppDispatch } from '../../app/store';
+import { useAppDispatch, useAppSelector } from '../../app/store';
 import { Button, Form, Table, Container, Row, Col } from 'react-bootstrap';
 import { fetchPropertyClasses, createPropertyClass, deletePropertyClass } from './propertyClassSlice';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons'; // Import the trash icon
 
 interface PropertyClass {
   property_class: string;
   rate: number;
 }
 
+interface FetchPropertyClassesResponse {
+  data: PropertyClass[];
+}
+
 const FrmPropertyClass: React.FC = () => {
+  const dispatch = useAppDispatch();
+
+  const propertyClasses = useAppSelector((state) => state.propertyClass.propertyClasses);
+  console.log('propertyClasses:', propertyClasses);
+  const [localPropertyClasses, setLocalPropertyClasses] = useState<PropertyClass[]>([]);
+  const [addFlag, setAddFlag] = useState<string>('');
+  const [delFlag, setDelFlag] = useState<string>('')
+  let [isDeleting, setIsDeleting] = useState(false);
+
   const [propertyClass, setPropertyClass] = useState<PropertyClass>({
     property_class: '',
     rate: 0,
   });
-  const [propertyClasses, setPropertyClasses] = useState<PropertyClass[]>([]);
-  const [addFlag, setAddFlag] = useState<string>('');
-  const [delFlag, setDelFlag] = useState<string>('');
+ 
 
-  const [localPropertyClasses, setLocalPropertyClasses] = useState<PropertyClass[]>([]);
-  let [isDeleting, setIsDeleting] = useState(false);
-
-  const dispatch = useAppDispatch();
-
-
-  useEffect(() => {
-    const fetchAreas = async () => {
-        try {
-            const result = await dispatch(fetchPropertyClasses()).unwrap();
-            console.log('Fetched property classes:', result); // Log the result
-            // Check if result is an array
-            if (Array.isArray(result.data)) {
-                setLocalPropertyClasses(result.data);
-            } else {
-                console.error('Expected an array, but received:', result.data);
-                setLocalPropertyClasses([]);
-            }
-        } catch (error) {
-            console.error('Error fetching electoral areas:', error);
-        }
-    };
-
-    fetchAreas();
+useEffect(() => {
+    dispatch(fetchPropertyClasses());
 }, [dispatch]);
+ 
+
+useEffect(() => {
+  if (Array.isArray(propertyClasses)) {
+      setLocalPropertyClasses(propertyClasses);
+  } else {
+      console.error('propertyClasses is not an array:', propertyClasses);
+      setLocalPropertyClasses([]);
+  }
+}, [propertyClasses]);
 
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,31 +56,28 @@ const FrmPropertyClass: React.FC = () => {
   };
 
   const handleAdd = async () => {
+    console.log('in handleAdd Property class:', propertyClass);
     try {
       if (!propertyClass.property_class) {
         throw new Error('Enter the property class');
       }
       if (!propertyClass.rate || isNaN(propertyClass.rate)) {
-        throw new Error('Enter the rate');
+        throw new Error('Enter a valid property rate');
       }
 
-      const response = await dispatch(createPropertyClass(propertyClass)).unwrap();   
+      console.log('Before dispatch, property class:', propertyClass);
+
+      const response = await dispatch(createPropertyClass(propertyClass)).unwrap();
 
       setAddFlag(response.data.message);
-      // populateListView();
       setPropertyClass({ property_class: '', rate: 0 });
 
       console.log(response);
 
-            alert("Record successfully added"); // Assuming response is successful
-            setPropertyClasses((prevPropertyClasses) => [
-              ...prevPropertyClasses,
-              { property_class: '', rate: 0 },
-            ]);
-            
-            // Refresh the list of electoral areas
-            const result = await dispatch(fetchPropertyClasses()).unwrap();
-            setLocalPropertyClasses(result.data);
+      alert('Record successfully added'); // Assuming response is successful
+
+      const result = await dispatch(fetchPropertyClasses()).unwrap() as FetchPropertyClassesResponse;
+      setLocalPropertyClasses(result.data);
     } catch (error) {
       console.error('Error adding property class:', error);
       setAddFlag('Error in adding a record');
@@ -87,46 +85,51 @@ const FrmPropertyClass: React.FC = () => {
   };
 
   const handleDelete = async () => {
+    console.log(`Deleting property class: ${propertyClass.property_class}`);
+    setIsDeleting(true);
+
     try {
-      if (!propertyClass.property_class) {
-        throw new Error('Enter the property class');
-      }
+        if (!propertyClass.property_class) {
+            throw new Error('Enter the property class');
+        }
 
-      const response = await dispatch(deletePropertyClass(propertyClass.property_class)).unwrap();
-          setLocalPropertyClasses(localPropertyClasses.filter((pc) => pc.property_class !== propertyClass.property_class));
-          setIsDeleting(false);
-          setPropertyClass({ property_class: '', rate: 0 });
-          console.log(response);
+        const response = await dispatch(deletePropertyClass(propertyClass.property_class)).unwrap();
+        setLocalPropertyClasses(localPropertyClasses.filter((pc) => pc.property_class !== propertyClass.property_class));
+        setIsDeleting(false);
+        setPropertyClass({ property_class: '', rate: 0 });
 
-      setDelFlag(response.data.message);
-          //populateListView();
-          setPropertyClass({ property_class: '', rate: 0 });
-        } catch (error) {
-          console.error('Error deleting property class:', error);
-          setDelFlag('Error in deleting record');
-        } finally {
-          isDeleting = false; // Prevent multiple clicks
-          setIsDeleting(isDeleting); // Prevent multiple clicks
-      }
-  };
+        console.log(response);
 
-  const handleSelectPropertyClass = (event: React.MouseEvent<HTMLElement>) => {
-    const selectedPropertyClass = event.currentTarget.getAttribute('data-propertyclass');
-    if (selectedPropertyClass) {
-      const selectedRecord = propertyClasses.find((pc) => pc.property_class === selectedPropertyClass);
-      if (selectedRecord) {
-        setPropertyClass(selectedRecord);
-      }
+        setDelFlag(response.message);
+    } catch (error) {
+        console.error('Error deleting property class:', error);
+        setDelFlag('Error in deleting record');
+    } finally {
+        setIsDeleting(false); // Prevent multiple clicks
     }
-  };
+};
+
+  // const handleSelectPropertyClass = (event: React.MouseEvent<HTMLElement>) => {
+  //   const selectedPropertyClass = event.currentTarget.getAttribute('data-propertyclass');
+
+  //   console.log('Selected property class:', selectedPropertyClass);
+
+  //   if (selectedPropertyClass) {
+  //     const selectedRecord = propertyClasses.find((pc) => pc.property_class === selectedPropertyClass);
+  //     if (selectedRecord) {
+  //       setPropertyClass(selectedRecord);
+  //     } else {
+  //       setPropertyClass({ property_class: selectedPropertyClass, rate: 0 });
+  //     }
+  //   }
+  // };
 
   return (
     <Container>
       <Row className="justify-content-center">
         <Col xs={12} md={8}>
-          <h1 className="text-center text-primary">Property Class</h1>
-          <h2 className="text-center text-danger">MARCORY MUNICIPAL ASSEMBLY</h2>
-          <h3 className="text-center text-info">PROPERTY CLASS DATA ENTRY</h3>
+          <h5 className="text-center text-danger">MARCORY MUNICIPAL ASSEMBLY</h5>
+          <p className="text-center text-info">PROPERTY CLASS DATA ENTRY</p>
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>Property Class:</Form.Label>
@@ -141,9 +144,9 @@ const FrmPropertyClass: React.FC = () => {
             <Form.Group className="mb-3">
               <Form.Label>Property Rate:</Form.Label>
               <Form.Control
-                type="text"
+                type="number"
                 name="rate"
-                value={propertyClass.rate.toFixed(2)}
+                value={propertyClass.rate.toString()}
                 onChange={handleInputChange}
                 placeholder="Enter Property Rate"
               />
@@ -152,107 +155,48 @@ const FrmPropertyClass: React.FC = () => {
               <Button variant="primary" onClick={handleAdd}>
                 Add New Record
               </Button>
-              <Button variant="warning" onClick={handleDelete}>
+              <Button variant="warning" onClick={handleDelete} disabled={isDeleting}>
                 Delete
               </Button>
-              <Button variant="secondary" onClick={() => alert('Exit')}>
-                Exit
-              </Button>
             </div>
+            <Row className="mt-3">
+              <Col>
+                <Link to="/main" className="primary m-3">
+                  Go Back
+                </Link>
+              </Col>
+            </Row>
             {addFlag && <p className="text-success mt-2">{addFlag}</p>}
             {delFlag && <p className="text-danger mt-2">{delFlag}</p>}
           </Form>
           <Table striped bordered hover className="mt-3">
-            <thead>
-              <tr>
-                <th>PROPERTY CLASS</th>
-                <th>RATE</th>
-              </tr>
-            </thead>
-            <tbody>
-              {propertyClasses.map((pc) => (
-                <tr key={pc.property_class} data-propertyclass={pc.property_class} onClick={handleSelectPropertyClass}>
-                  <td>{pc.property_class.toUpperCase()}</td>
-                  <td>{pc.rate.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+                <thead>
+                    <tr>
+                        <th>PROPERTY CLASS</th>
+                        <th>RATE</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {localPropertyClasses.map((pc) => (
+                        <tr key={pc.property_class}>
+                            <td>{pc.property_class}</td>
+                            <td>{pc.rate}</td>
+                            <td>
+                                <button onClick={() => setPropertyClass(pc)} disabled={isDeleting}>
+                                    {isDeleting ? 'Deleting...' : <FontAwesomeIcon icon={faTrash} />}
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
         </Col>
       </Row>
-            <Row className="mt-3">
-                <Col>
-                <Link to="/main" className="primary m-3">
-                    Go Back
-                </Link>
-                </Col>
-            </Row>
+      <div>{delFlag}</div>
     </Container>
   );
 };
 
 export default FrmPropertyClass;
 
-
-// import express from 'express';
-// import { Request, Response } from 'express';
-// import { Pool } from 'pg';
-
-// const app = express();
-// app.use(express.json());
-
-// const pool = new Pool({
-//   user: 'sa',
-//   host: 'localhost',
-//   database: 'dsnSaltpond',
-//   password: 'Timbuk2tu',
-//   port: 5432,
-// });
-
-// app.get('/api/propertyClasses', async (req: Request, res: Response) => {
-//   try {
-//     const result = await pool.query<PropertyClass[]>('SELECT * FROM tb_propertyclass ORDER BY property_class ASC');
-//     res.json(result.rows);
-//   } catch (err) {
-//     res.status(500).json({ message: 'Error fetching property classes' });
-//   }
-// });
-
-// app.post('/api/propertyClasses', async (req: Request, res: Response) => {
-//   const { property_class, rate } = req.body;
-//   try {
-//     const result = await pool.query<PropertyClass[]>(
-//       'SELECT * FROM tb_propertyclass WHERE property_class = $1',
-//       [property_class]
-//     );
-//     if (result.rows.length > 0) {
-//       return res.status(400).json({ message: 'Record already exists' });
-//     }
-//     await pool.query('INSERT INTO tb_propertyclass(property_class, rate) VALUES($1, $2)', [property_class, rate]);
-//     res.json({ message: 'Record successfully added' });
-//   } catch (err) {
-//     res.status(500).json({ message: 'Error in adding a record' });
-//   }
-// });
-
-// app.delete('/api/propertyClasses/:property_class', async (req: Request, res: Response) => {
-//   const { property_class } = req.params;
-//   try {
-//     const result = await pool.query<PropertyClass[]>(
-//       'SELECT * FROM tb_propertyclass WHERE property_class = $1',
-//       [property_class]
-//     );
-//     if (result.rows.length === 0) {
-//       return res.status(404).json({ message: 'Record does not exist' });
-//     }
-//     await pool.query('DELETE FROM tb_propertyclass WHERE property_class = $1', [property_class]);
-//     res.json({ message: 'Record successfully deleted' });
-//   } catch (err) {
-//     res.status(500).json({ message: 'Error in deleting record' });
-//   }
-// });
-
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`);
-// });

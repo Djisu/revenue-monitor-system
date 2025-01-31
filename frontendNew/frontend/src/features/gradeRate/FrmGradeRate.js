@@ -48,36 +48,52 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { Button, Form, Table, Container, Row, Col } from 'react-bootstrap';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { fetchGradeRates, createGradeRate, updateGradeRate, deleteGradeRate } from './gradeRateSlice';
+import { useAppDispatch, useAppSelector } from '../../app/store';
+import { setGradeRates, clearError } from './gradeRateSlice';
 var GradeRateForm = function () {
+    var dispatch = useAppDispatch();
+    var gradeRatesState = useAppSelector(function (state) { return state.gradeRate; });
+    var loading = gradeRatesState.loading, error = gradeRatesState.error, gradeRates = gradeRatesState.gradeRates;
+    console.log("gradeRates: ".concat(JSON.stringify(gradeRates)));
     var _a = useState({
         grade: '',
-        minValue: 0,
-        maxValue: 0,
-        rate: 0,
-    }), gradeRate = _a[0], setGradeRate = _a[1];
-    var _b = useState([]), gradeRates = _b[0], setGradeRates = _b[1];
-    var _c = useState(''), addFlag = _c[0], setAddFlag = _c[1];
-    var _d = useState(''), editFlag = _d[0], setEditFlag = _d[1];
-    var _e = useState(''), delFlag = _e[0], setDelFlag = _e[1];
+        minValuex: '',
+        maxValuex: '',
+        rate: '',
+    }), formState = _a[0], setFormState = _a[1];
+    var _b = useState(''), addFlag = _b[0], setAddFlag = _b[1];
+    var _c = useState(''), editFlag = _c[0], setEditFlag = _c[1];
+    var _d = useState(''), delFlag = _d[0], setDelFlag = _d[1];
+    var _e = useState(''), errorFlag = _e[0], setErrorFlag = _e[1];
     useEffect(function () {
         populateListView();
-    }, []);
+    }, [dispatch]);
     var populateListView = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_1;
+        var response, formattedGradeRates, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('/api/gradeRates')];
+                    return [4 /*yield*/, dispatch(fetchGradeRates()).unwrap()];
                 case 1:
                     response = _a.sent();
-                    setGradeRates(response.data);
+                    console.log("after dispatch(fetchGradeRates()).unwrap(), response.data: ".concat(JSON.stringify(response.data)));
+                    if (response.data && Array.isArray(response.data)) {
+                        formattedGradeRates = response.data.map(function (gr) { return ({
+                            grade: gr === null || gr === void 0 ? void 0 : gr.grade,
+                            minValuex: parseFloat(gr === null || gr === void 0 ? void 0 : gr.minValuex) || 0, // Provide default value if undefined
+                            maxValuex: parseFloat(gr === null || gr === void 0 ? void 0 : gr.maxValuex) || 0, // Provide default value if undefined
+                            rate: parseFloat(gr === null || gr === void 0 ? void 0 : gr.rate) || 0, // Provide default value if undefined
+                        }); });
+                        dispatch(setGradeRates(formattedGradeRates));
+                    }
                     return [3 /*break*/, 3];
                 case 2:
                     error_1 = _a.sent();
                     console.error('Error fetching grade rates:', error_1);
+                    setErrorFlag('Error fetching grade rates');
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
@@ -85,69 +101,92 @@ var GradeRateForm = function () {
     }); };
     var handleInputChange = function (event) {
         var _a = event.target, name = _a.name, value = _a.value;
-        setGradeRate(function (prevGradeRate) {
+        setFormState(function (prevFormState) {
             var _a;
-            return (__assign(__assign({}, prevGradeRate), (_a = {}, _a[name] = name === 'rate' ? parseFloat(value) : parseInt(value, 10), _a)));
+            return (__assign(__assign({}, prevFormState), (_a = {}, _a[name] = value, _a)));
         });
     };
     var handleAdd = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_2;
+        var gradeRate, response, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    if (!gradeRate.grade) {
+                    if (!formState.grade) {
                         throw new Error('Enter the grade');
                     }
-                    if (!gradeRate.minValue) {
-                        throw new Error('Enter the Minimum Value');
+                    if (isNaN(parseFloat(formState.minValuex))) {
+                        throw new Error('Enter a valid Minimum Value');
                     }
-                    if (!gradeRate.maxValue) {
-                        throw new Error('Enter the Maximum Value');
+                    if (isNaN(parseFloat(formState.maxValuex))) {
+                        throw new Error('Enter a valid Maximum Value');
                     }
-                    if (!gradeRate.rate) {
-                        throw new Error('Enter the rate');
+                    if (isNaN(parseFloat(formState.rate))) {
+                        throw new Error('Enter a valid rate');
                     }
-                    return [4 /*yield*/, axios.post('/api/gradeRates', gradeRate)];
+                    gradeRate = {
+                        grade: formState.grade,
+                        minValuex: parseFloat(formState.minValuex),
+                        maxValuex: parseFloat(formState.maxValuex),
+                        rate: parseFloat(formState.rate),
+                    };
+                    return [4 /*yield*/, dispatch(createGradeRate(gradeRate)).unwrap()];
                 case 1:
                     response = _a.sent();
-                    setAddFlag(response.data.message);
+                    setAddFlag(response.message);
                     populateListView();
-                    setGradeRate({ grade: '', minValue: 0, maxValue: 0, rate: 0 });
+                    setFormState({ grade: '', minValuex: '', maxValuex: '', rate: '' });
                     return [3 /*break*/, 3];
                 case 2:
                     error_2 = _a.sent();
                     console.error('Error adding grade rate:', error_2);
-                    setAddFlag('Error in adding a record');
+                    setErrorFlag('Error in adding a record');
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
         });
     }); };
     var handleEdit = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_3;
+        var gradeRate, formattedGradeRate, response, error_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    if (!gradeRate.grade) {
+                    if (!formState.grade) {
                         throw new Error('Enter the grade');
                     }
-                    if (!gradeRate.minValue) {
-                        throw new Error('Enter the Minimum Value');
+                    if (isNaN(parseFloat(formState.minValuex))) {
+                        throw new Error('Enter a valid Minimum Value');
                     }
-                    if (!gradeRate.maxValue) {
-                        throw new Error('Enter the Maximum Value');
+                    if (isNaN(parseFloat(formState.maxValuex))) {
+                        throw new Error('Enter a valid Maximum Value');
                     }
-                    if (!gradeRate.rate) {
-                        throw new Error('Enter the rate');
+                    if (isNaN(parseFloat(formState.rate))) {
+                        throw new Error('Enter a valid rate');
                     }
-                    return [4 /*yield*/, axios.put("/api/gradeRates/".concat(gradeRate.grade), gradeRate)];
+                    gradeRate = {
+                        grade: formState.grade,
+                        minValuex: parseFloat(formState.minValuex),
+                        maxValuex: parseFloat(formState.maxValuex),
+                        rate: parseFloat(formState.rate),
+                    };
+                    formattedGradeRate = {
+                        grade: gradeRate.grade,
+                        minValuex: gradeRate.minValuex, // Correct the typo if necessary, otherwise ensure this property exists
+                        maxValuex: gradeRate.maxValuex, // Correct the typo if necessary, otherwise ensure this property exists
+                        data: {
+                            grade: gradeRate.grade,
+                            minValuex: gradeRate.minValuex,
+                            maxValuex: gradeRate.maxValuex,
+                            rate: gradeRate.rate,
+                        },
+                    };
+                    return [4 /*yield*/, dispatch(updateGradeRate(formattedGradeRate)).unwrap()];
                 case 1:
                     response = _a.sent();
-                    setEditFlag(response.data.message);
+                    setEditFlag(response.message);
                     populateListView();
-                    setGradeRate({ grade: '', minValue: 0, maxValue: 0, rate: 0 });
+                    setFormState({ grade: '', minValuex: '', maxValuex: '', rate: '' });
                     return [3 /*break*/, 3];
                 case 2:
                     error_3 = _a.sent();
@@ -164,15 +203,20 @@ var GradeRateForm = function () {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    if (!gradeRate.grade) {
+                    if (!formState.grade) {
                         throw new Error('Enter the grade');
                     }
-                    return [4 /*yield*/, axios.delete("/api/gradeRates/".concat(gradeRate.grade))];
+                    return [4 /*yield*/, dispatch(deleteGradeRate({
+                            grade: formState.grade,
+                            minValuex: parseFloat(formState.minValuex),
+                            maxValuex: parseFloat(formState.maxValuex),
+                        })).unwrap()];
                 case 1:
                     response = _a.sent();
-                    setDelFlag(response.data.message);
+                    console.log('response: ', response);
+                    setDelFlag('Grade rate deleted successfully');
                     populateListView();
-                    setGradeRate({ grade: '', minValue: 0, maxValue: 0, rate: 0 });
+                    setFormState({ grade: '', minValuex: '', maxValuex: '', rate: '' });
                     return [3 /*break*/, 3];
                 case 2:
                     error_4 = _a.sent();
@@ -188,10 +232,25 @@ var GradeRateForm = function () {
         if (selectedGrade) {
             var selectedRecord = gradeRates.find(function (gr) { return gr.grade === selectedGrade; });
             if (selectedRecord) {
-                setGradeRate(selectedRecord);
+                setFormState({
+                    grade: selectedRecord.grade,
+                    minValuex: selectedRecord.minValuex.toString(),
+                    maxValuex: selectedRecord.maxValuex.toString(),
+                    rate: selectedRecord.rate.toString(),
+                });
             }
         }
     };
-    return (_jsxs(Container, { children: [_jsx(Row, { className: "justify-content-center", children: _jsxs(Col, { xs: 12, md: 8, children: [_jsx("h1", { className: "text-center text-primary", children: "Grade Rates Data Entry" }), _jsx("h2", { className: "text-center text-info", children: "CALIBRATE FEE FIXING GRADES" }), _jsx("h2", { className: "text-center text-danger", children: "MARCORY MUNICIPAL ASSEMBLY" }), _jsxs(Form, { children: [_jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Grade:" }), _jsx(Form.Control, { type: "text", name: "grade", value: gradeRate.grade, onChange: handleInputChange, placeholder: "Enter Grade" })] }), _jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Minimum Value:" }), _jsx(Form.Control, { type: "text", name: "minValue", value: gradeRate.minValue, onChange: handleInputChange, placeholder: "Enter Minimum Value" })] }), _jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Maximum Value:" }), _jsx(Form.Control, { type: "text", name: "maxValue", value: gradeRate.maxValue, onChange: handleInputChange, placeholder: "Enter Maximum Value" })] }), _jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Rate:" }), _jsx(Form.Control, { type: "text", name: "rate", value: gradeRate.rate.toFixed(2), onChange: handleInputChange, placeholder: "Enter Rate" })] }), _jsxs("div", { className: "d-flex justify-content-between", children: [_jsx(Button, { variant: "primary", onClick: handleAdd, children: "Add New Record" }), _jsx(Button, { variant: "warning", onClick: handleEdit, children: "Edit Old Record" }), _jsx(Button, { variant: "danger", onClick: handleDelete, children: "Delete" }), _jsx(Button, { variant: "secondary", onClick: function () { return alert('Exit'); }, children: "Exit" }), _jsx(Button, { variant: "info", onClick: populateListView, children: "Load Spreadsheet" })] }), addFlag && _jsx("p", { className: "text-success mt-2", children: addFlag }), editFlag && _jsx("p", { className: "text-success mt-2", children: editFlag }), delFlag && _jsx("p", { className: "text-danger mt-2", children: delFlag })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "GRADE" }), _jsx("th", { children: "MINIMUM VALUE" }), _jsx("th", { children: "MAXIMUM VALUE" }), _jsx("th", { children: "RATE" })] }) }), _jsx("tbody", { children: gradeRates.map(function (gr) { return (_jsxs("tr", { "data-grade": gr.grade, onClick: handleSelectGradeRate, children: [_jsx("td", { children: gr.grade.toUpperCase() }), _jsx("td", { children: gr.minValue }), _jsx("td", { children: gr.maxValue }), _jsx("td", { children: gr.rate.toFixed(2) })] }, gr.grade)); }) })] })] }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) })] }));
+    var handleClearError = function () {
+        dispatch(clearError());
+        setErrorFlag('');
+    };
+    if (loading) {
+        return _jsx("p", { children: "Loading..." });
+    }
+    if (error) {
+        return _jsxs("p", { children: ["Error: ", error] });
+    }
+    return (_jsx(Container, { children: _jsx(Row, { className: "justify-content-center", children: _jsxs(Col, { xs: 12, md: 8, children: [_jsx("h1", { className: "text-center text-primary", children: "Grade Rates Data Entry" }), _jsx("p", { className: "text-center text-info", children: "CALIBRATE FEE FIXING GRADES" }), _jsx("p", { className: "text-center text-danger", children: "MARCORY MUNICIPAL ASSEMBLY" }), _jsxs(Form, { children: [_jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Grade:" }), _jsx(Form.Control, { type: "text", name: "grade", value: formState.grade, onChange: handleInputChange, placeholder: "Enter Grade" })] }), _jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Minimum Value:" }), _jsx(Form.Control, { type: "text", name: "minValue", value: formState.minValuex, onChange: handleInputChange, placeholder: "Enter Minimum Value" })] }), _jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Maximum Value:" }), _jsx(Form.Control, { type: "text", name: "maxValue", value: formState.maxValuex, onChange: handleInputChange, placeholder: "Enter Maximum Value" })] }), _jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Rate:" }), _jsx(Form.Control, { type: "text", name: "rate", value: formState.rate, onChange: handleInputChange, placeholder: "Enter Rate" })] }), _jsxs("div", { className: "d-flex justify-content-between", children: [_jsx(Button, { variant: "primary", onClick: handleAdd, children: "Add New Record" }), _jsx(Button, { variant: "warning", onClick: handleEdit, children: "Edit Old Record" }), _jsx(Button, { variant: "danger", onClick: handleDelete, children: "Delete" }), _jsx(Button, { variant: "info", onClick: populateListView, children: "Load Spreadsheet" }), _jsx(Button, { variant: "secondary", onClick: handleClearError, children: "Clear Error" }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] }), addFlag && _jsx("p", { className: "text-success mt-2", children: addFlag }), editFlag && _jsx("p", { className: "text-success mt-2", children: editFlag }), delFlag && _jsx("p", { className: "text-success mt-2", children: delFlag }), errorFlag && _jsx("p", { className: "text-danger mt-2", children: errorFlag })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "GRADE" }), _jsx("th", { children: "MINIMUM VALUE" }), _jsx("th", { children: "MAXIMUM VALUE" }), _jsx("th", { children: "RATE" })] }) }), _jsx("tbody", { children: gradeRates.map(function (gr, index) { return (_jsxs("tr", { "data-grade": gr.grade, onClick: handleSelectGradeRate, children: [_jsx("td", { children: gr.grade }), _jsx("td", { children: gr.minValuex.toString() }), _jsx("td", { children: gr.maxValuex.toString() }), _jsx("td", { children: gr.rate.toString() })] }, index)); }) })] })] }) }) }));
 };
 export default GradeRateForm;

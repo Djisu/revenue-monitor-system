@@ -12,39 +12,50 @@ const dbConfig = {
     database: process.env.DB_NAME || 'revmonitor',
 };
 // Create a new GradeRate record
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
     const gradeRateData = req.body;
+    console.log('in router.post /create GradeRate data:', gradeRateData);
+    console.log('gradeRateData.grade: ', gradeRateData.grade);
+    console.log('gradeRateData.minValue: ', gradeRateData.minValue);
+    console.log('gradeRateData.maxValue: ', gradeRateData.maxValue);
+    console.log('gradeRateData.rate: ', gradeRateData.rate);
+    // Validate request values
+    if (!gradeRateData.grade || !gradeRateData.minValue || !gradeRateData.maxValue || !gradeRateData.rate) {
+        res.status(400).json({ message: 'GradeRate data is missing' });
+        return;
+    }
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_graderate WHERE grade = ? AND minValuex = ? AND maxValuex = ?', [gradeRateData.grade, gradeRateData.minValuex, gradeRateData.maxValuex]);
+        const [rows] = await connection.execute('SELECT * FROM tb_graderate WHERE grade = ? AND minValuex = ? AND maxValuex = ?', [gradeRateData.grade, gradeRateData.minValue, gradeRateData.maxValue]);
         if (Array.isArray(rows) && rows.length > 0) {
-            res.status(409).json({ message: 'GradeRate record already exists' });
+            res.status(409).json({ success: true, message: 'GradeRate record already exists', rate: 0 });
             return;
         }
-        // Insert the new GradeRate data
+        // Insert the new GradeRate data <ResultSetHeader>
         const [result] = await connection.execute(`INSERT INTO tb_graderate (grade, minValuex, maxValuex, rate) 
             VALUES (?, ?, ?, ?)`, [
             gradeRateData.grade,
-            gradeRateData.minValuex,
-            gradeRateData.maxValuex,
+            gradeRateData.minValue,
+            gradeRateData.maxValue,
             gradeRateData.rate,
         ]);
-        res.status(201).json({ message: 'GradeRate record created successfully' });
+        console.log('after INSERT result:', result);
+        res.status(200).json({ success: true, message: 'GradeRate record created successfully', rate: gradeRateData.rate });
     }
     catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating GradeRate record', error });
+        res.status(500).json({ message: 'Error creating GradeRate record', error: error.message });
     }
     finally {
-        connection.end();
+        await connection.end(); // Ensure the connection is ended properly
     }
 });
 // Read all GradeRate records
-router.get('/', async (req, res) => {
+router.get('/all', async (req, res) => {
     const connection = await mysql.createConnection(dbConfig);
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_graderate');
-        res.json(rows);
+        res.status(200).json({ success: true, data: rows });
     }
     catch (error) {
         console.error(error);
@@ -59,17 +70,12 @@ router.get('/:grade/:minValuex/:maxValuex', async (req, res) => {
     const { grade, minValuex, maxValuex } = req.params;
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [result] = await connection.execute('SELECT * FROM tb_graderate WHERE grade = ? AND minValuex = ? AND maxValuex = ?', [grade, minValuex, maxValuex]);
-        if (Array.isArray(result) && result.length > 0) {
-            res.status(409).json({ message: 'GradeRate record already exists' });
-            return;
-        }
-        const [rows] = await connection.execute('SELECT * FROM tb_graderate WHERE grade = ?', [grade]);
-        if (Array.isArray(rows) && rows.length > 0) {
-            res.json(rows[0]); // Return the first row
+        const [rows] = await connection.execute('SELECT * FROM tb_graderate WHERE grade = ? AND minValuex = ? AND maxValuex = ?', [grade, minValuex, maxValuex]);
+        if (Array.isArray(rows) && rows.length === 0) {
+            res.status(404).json({ success: false, message: 'GradeRate record not found' });
         }
         else {
-            res.status(404).json({ message: 'GradeRate record not found' });
+            res.status(200).json({ success: true, data: rows[0] });
         }
     }
     catch (error) {
@@ -82,22 +88,22 @@ router.get('/:grade/:minValuex/:maxValuex', async (req, res) => {
 });
 // Update a GradeRate record
 router.put('/:grade/:minValuex/:maxValuex', async (req, res) => {
-    const { grade, minValuex, maxValuex } = req.params;
+    const { grade, minValuex, maxValuex, rate } = req.params;
     const gradeRateData = req.body;
     const connection = await mysql.createConnection(dbConfig);
     try {
         const [row] = await connection.execute('SELECT * FROM tb_graderate WHERE grade = ? AND minValuex = ? AND maxValuex = ?', [grade, minValuex, maxValuex]);
         if (Array.isArray(row) && row.length == 0) {
-            res.status(409).json({ message: 'GradeRate record does not exist' });
+            res.status(400).json({ message: 'GradeRate record does not exist' });
             return;
         }
         // Update the GradeRate data
-        const [result] = await connection.execute(`UPDATE tb_graderate SET minValuex = ?, maxValuex = ?, rate = ? 
-            WHERE grade = ?`, [
-            gradeRateData.minValuex,
-            gradeRateData.maxValuex,
+        const [result] = await connection.execute(`UPDATE tb_graderate SET rate = ? 
+            WHERE grade = ? AND minValuex = ? AND maxValuex = ?`, [
             gradeRateData.rate,
-            grade
+            gradeRateData.grade,
+            gradeRateData.minValue,
+            gradeRateData.maxValue
         ]);
         res.status(200).json({ message: 'GradeRate record updated successfully' });
         return;
@@ -111,13 +117,13 @@ router.put('/:grade/:minValuex/:maxValuex', async (req, res) => {
     }
 });
 // Delete a GradeRate record
-router.delete('/:grade/:minValuex/:maxValuex', async (req, res) => {
+router.delete('/delete/:grade/:minValuex/:maxValuex', async (req, res) => {
     const { grade, minValuex, maxValuex } = req.params;
     const connection = await mysql.createConnection(dbConfig);
     try {
         const [row] = await connection.execute('SELECT * FROM tb_graderate WHERE grade = ? AND minValuex = ? AND maxValuex = ?', [grade, minValuex, maxValuex]);
-        if (Array.isArray(row) && row.length > 0) {
-            res.status(409).json({ message: 'GradeRate record already exists' });
+        if (Array.isArray(row) && row.length === 0) {
+            res.status(400).json({ message: 'GradeRate record does not exist' });
             return;
         }
         // Delete the GradeRate record

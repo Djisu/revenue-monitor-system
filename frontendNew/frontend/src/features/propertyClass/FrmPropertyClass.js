@@ -45,62 +45,38 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { useAppDispatch } from '../../app/store';
+import { useAppDispatch, useAppSelector } from '../../app/store';
 import { Button, Form, Table, Container, Row, Col } from 'react-bootstrap';
 import { fetchPropertyClasses, createPropertyClass, deletePropertyClass } from './propertyClassSlice';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons'; // Import the trash icon
 var FrmPropertyClass = function () {
-    var _a = useState({
+    var dispatch = useAppDispatch();
+    var propertyClasses = useAppSelector(function (state) { return state.propertyClass.propertyClasses; });
+    console.log('propertyClasses:', propertyClasses);
+    var _a = useState([]), localPropertyClasses = _a[0], setLocalPropertyClasses = _a[1];
+    var _b = useState(''), addFlag = _b[0], setAddFlag = _b[1];
+    var _c = useState(''), delFlag = _c[0], setDelFlag = _c[1];
+    var _d = useState(false), isDeleting = _d[0], setIsDeleting = _d[1];
+    var _e = useState({
         property_class: '',
         rate: 0,
-    }), propertyClass = _a[0], setPropertyClass = _a[1];
-    var _b = useState([]), propertyClasses = _b[0], setPropertyClasses = _b[1];
-    var _c = useState(''), addFlag = _c[0], setAddFlag = _c[1];
-    var _d = useState(''), delFlag = _d[0], setDelFlag = _d[1];
-    var _e = useState([]), localPropertyClasses = _e[0], setLocalPropertyClasses = _e[1];
-    var _f = useState(false), isDeleting = _f[0], setIsDeleting = _f[1];
-    var dispatch = useAppDispatch();
+    }), propertyClass = _e[0], setPropertyClass = _e[1];
     useEffect(function () {
-        var fetchAreas = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var result, error_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, dispatch(fetchPropertyClasses()).unwrap()];
-                    case 1:
-                        result = _a.sent();
-                        console.log('Fetched property classes:', result); // Log the result
-                        // Check if result is an array
-                        if (Array.isArray(result.data)) {
-                            setLocalPropertyClasses(result.data);
-                        }
-                        else {
-                            console.error('Expected an array, but received:', result.data);
-                            setLocalPropertyClasses([]);
-                        }
-                        return [3 /*break*/, 3];
-                    case 2:
-                        error_1 = _a.sent();
-                        console.error('Error fetching electoral areas:', error_1);
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
-                }
-            });
-        }); };
-        fetchAreas();
+        dispatch(fetchPropertyClasses());
     }, [dispatch]);
+    useEffect(function () {
+        if (Array.isArray(propertyClasses)) {
+            setLocalPropertyClasses(propertyClasses);
+        }
+        else {
+            console.error('propertyClasses is not an array:', propertyClasses);
+            setLocalPropertyClasses([]);
+        }
+    }, [propertyClasses]);
     var handleInputChange = function (event) {
         var _a = event.target, name = _a.name, value = _a.value;
         setPropertyClass(function (prevPropertyClass) {
@@ -109,84 +85,88 @@ var FrmPropertyClass = function () {
         });
     };
     var handleAdd = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, result, error_2;
+        var response, result, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 3, , 4]);
+                    console.log('in handleAdd Property class:', propertyClass);
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 4, , 5]);
                     if (!propertyClass.property_class) {
                         throw new Error('Enter the property class');
                     }
                     if (!propertyClass.rate || isNaN(propertyClass.rate)) {
-                        throw new Error('Enter the rate');
+                        throw new Error('Enter a valid property rate');
                     }
+                    console.log('Before dispatch, property class:', propertyClass);
                     return [4 /*yield*/, dispatch(createPropertyClass(propertyClass)).unwrap()];
-                case 1:
+                case 2:
                     response = _a.sent();
                     setAddFlag(response.data.message);
-                    // populateListView();
                     setPropertyClass({ property_class: '', rate: 0 });
                     console.log(response);
-                    alert("Record successfully added"); // Assuming response is successful
-                    setPropertyClasses(function (prevPropertyClasses) { return __spreadArray(__spreadArray([], prevPropertyClasses, true), [
-                        { property_class: '', rate: 0 },
-                    ], false); });
+                    alert('Record successfully added'); // Assuming response is successful
                     return [4 /*yield*/, dispatch(fetchPropertyClasses()).unwrap()];
-                case 2:
+                case 3:
                     result = _a.sent();
                     setLocalPropertyClasses(result.data);
-                    return [3 /*break*/, 4];
-                case 3:
-                    error_2 = _a.sent();
-                    console.error('Error adding property class:', error_2);
+                    return [3 /*break*/, 5];
+                case 4:
+                    error_1 = _a.sent();
+                    console.error('Error adding property class:', error_1);
                     setAddFlag('Error in adding a record');
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
             }
         });
     }); };
     var handleDelete = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_3;
+        var response, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, 3, 4]);
+                    console.log("Deleting property class: ".concat(propertyClass.property_class));
+                    setIsDeleting(true);
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, 4, 5]);
                     if (!propertyClass.property_class) {
                         throw new Error('Enter the property class');
                     }
                     return [4 /*yield*/, dispatch(deletePropertyClass(propertyClass.property_class)).unwrap()];
-                case 1:
+                case 2:
                     response = _a.sent();
                     setLocalPropertyClasses(localPropertyClasses.filter(function (pc) { return pc.property_class !== propertyClass.property_class; }));
                     setIsDeleting(false);
                     setPropertyClass({ property_class: '', rate: 0 });
                     console.log(response);
-                    setDelFlag(response.data.message);
-                    //populateListView();
-                    setPropertyClass({ property_class: '', rate: 0 });
-                    return [3 /*break*/, 4];
-                case 2:
-                    error_3 = _a.sent();
-                    console.error('Error deleting property class:', error_3);
-                    setDelFlag('Error in deleting record');
-                    return [3 /*break*/, 4];
+                    setDelFlag(response.message);
+                    return [3 /*break*/, 5];
                 case 3:
-                    isDeleting = false; // Prevent multiple clicks
-                    setIsDeleting(isDeleting); // Prevent multiple clicks
+                    error_2 = _a.sent();
+                    console.error('Error deleting property class:', error_2);
+                    setDelFlag('Error in deleting record');
+                    return [3 /*break*/, 5];
+                case 4:
+                    setIsDeleting(false); // Prevent multiple clicks
                     return [7 /*endfinally*/];
-                case 4: return [2 /*return*/];
+                case 5: return [2 /*return*/];
             }
         });
     }); };
-    var handleSelectPropertyClass = function (event) {
-        var selectedPropertyClass = event.currentTarget.getAttribute('data-propertyclass');
-        if (selectedPropertyClass) {
-            var selectedRecord = propertyClasses.find(function (pc) { return pc.property_class === selectedPropertyClass; });
-            if (selectedRecord) {
-                setPropertyClass(selectedRecord);
-            }
-        }
-    };
-    return (_jsxs(Container, { children: [_jsx(Row, { className: "justify-content-center", children: _jsxs(Col, { xs: 12, md: 8, children: [_jsx("h1", { className: "text-center text-primary", children: "Property Class" }), _jsx("h2", { className: "text-center text-danger", children: "MARCORY MUNICIPAL ASSEMBLY" }), _jsx("h3", { className: "text-center text-info", children: "PROPERTY CLASS DATA ENTRY" }), _jsxs(Form, { children: [_jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Property Class:" }), _jsx(Form.Control, { type: "text", name: "property_class", value: propertyClass.property_class, onChange: handleInputChange, placeholder: "Enter Property Class" })] }), _jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Property Rate:" }), _jsx(Form.Control, { type: "text", name: "rate", value: propertyClass.rate.toFixed(2), onChange: handleInputChange, placeholder: "Enter Property Rate" })] }), _jsxs("div", { className: "d-flex justify-content-between", children: [_jsx(Button, { variant: "primary", onClick: handleAdd, children: "Add New Record" }), _jsx(Button, { variant: "warning", onClick: handleDelete, children: "Delete" }), _jsx(Button, { variant: "secondary", onClick: function () { return alert('Exit'); }, children: "Exit" })] }), addFlag && _jsx("p", { className: "text-success mt-2", children: addFlag }), delFlag && _jsx("p", { className: "text-danger mt-2", children: delFlag })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "PROPERTY CLASS" }), _jsx("th", { children: "RATE" })] }) }), _jsx("tbody", { children: propertyClasses.map(function (pc) { return (_jsxs("tr", { "data-propertyclass": pc.property_class, onClick: handleSelectPropertyClass, children: [_jsx("td", { children: pc.property_class.toUpperCase() }), _jsx("td", { children: pc.rate.toFixed(2) })] }, pc.property_class)); }) })] })] }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) })] }));
+    // const handleSelectPropertyClass = (event: React.MouseEvent<HTMLElement>) => {
+    //   const selectedPropertyClass = event.currentTarget.getAttribute('data-propertyclass');
+    //   console.log('Selected property class:', selectedPropertyClass);
+    //   if (selectedPropertyClass) {
+    //     const selectedRecord = propertyClasses.find((pc) => pc.property_class === selectedPropertyClass);
+    //     if (selectedRecord) {
+    //       setPropertyClass(selectedRecord);
+    //     } else {
+    //       setPropertyClass({ property_class: selectedPropertyClass, rate: 0 });
+    //     }
+    //   }
+    // };
+    return (_jsxs(Container, { children: [_jsx(Row, { className: "justify-content-center", children: _jsxs(Col, { xs: 12, md: 8, children: [_jsx("h5", { className: "text-center text-danger", children: "MARCORY MUNICIPAL ASSEMBLY" }), _jsx("p", { className: "text-center text-info", children: "PROPERTY CLASS DATA ENTRY" }), _jsxs(Form, { children: [_jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Property Class:" }), _jsx(Form.Control, { type: "text", name: "property_class", value: propertyClass.property_class, onChange: handleInputChange, placeholder: "Enter Property Class" })] }), _jsxs(Form.Group, { className: "mb-3", children: [_jsx(Form.Label, { children: "Property Rate:" }), _jsx(Form.Control, { type: "number", name: "rate", value: propertyClass.rate.toString(), onChange: handleInputChange, placeholder: "Enter Property Rate" })] }), _jsxs("div", { className: "d-flex justify-content-between", children: [_jsx(Button, { variant: "primary", onClick: handleAdd, children: "Add New Record" }), _jsx(Button, { variant: "warning", onClick: handleDelete, disabled: isDeleting, children: "Delete" })] }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) }), addFlag && _jsx("p", { className: "text-success mt-2", children: addFlag }), delFlag && _jsx("p", { className: "text-danger mt-2", children: delFlag })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "PROPERTY CLASS" }), _jsx("th", { children: "RATE" }), _jsx("th", { children: "ACTIONS" })] }) }), _jsx("tbody", { children: localPropertyClasses.map(function (pc) { return (_jsxs("tr", { children: [_jsx("td", { children: pc.property_class }), _jsx("td", { children: pc.rate }), _jsx("td", { children: _jsx("button", { onClick: function () { return setPropertyClass(pc); }, disabled: isDeleting, children: isDeleting ? 'Deleting...' : _jsx(FontAwesomeIcon, { icon: faTrash }) }) })] }, pc.property_class)); }) })] })] }) }), _jsx("div", { children: delFlag })] }));
 };
 export default FrmPropertyClass;

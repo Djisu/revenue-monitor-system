@@ -45,6 +45,7 @@ const FrmLogin: React.FC = () => {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="Enter username"
+                        autoComplete="current-username"
                         required
                     />
                 </Form.Group>
@@ -55,6 +56,7 @@ const FrmLogin: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Enter password"
+                        autoComplete="current-password"
                         required
                     />
                 </Form.Group>

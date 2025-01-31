@@ -36,17 +36,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var checkAccess = function (menuOption) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
-        console.log("in checkAccess Checking access for menuOption: " + menuOption);
+        //console.log("in checkAccess Checking access for menuOption: " + menuOption)
         return [2 /*return*/, new Promise(function (resolve) {
                 // Retrieve existing permissions from localStorage
                 var permission = localStorage.getItem('existingPermissions');
-                console.log("Existing permissions: " + permission);
+                //console.log("Existing permissions: " + permission);
                 if (permission) {
                     var newArr = permission.split(',');
-                    console.log("New array: " + newArr);
+                    //console.log("New array: " + newArr);
                     if (newArr) {
                         var access = JSON.parse(permission);
-                        console.log("Access: " + access);
+                        //console.log("Access: " + access);
                         // Check if menuOption exists in access permissions
                         if (access.includes(menuOption)) {
                             //resolve(true); // Access granted

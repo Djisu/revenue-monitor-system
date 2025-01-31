@@ -2,7 +2,9 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-import mysql, { ResultSetHeader } from 'mysql2/promise';
+import mysql, { ResultSetHeader, QueryResult  } from 'mysql2/promise';
+import { OkPacket } from 'mysql2'; // Import OkPacket from mysql2
+
 
 const router = Router();
 
@@ -25,14 +27,25 @@ interface PropertyClassData {
 
 // Create a new property class record
 router.post('/create', async (req: Request, res: Response): Promise<void> => {
-    console.log('in create property class', req.body)
+    console.log('in create property class route', req.body)
 
-    const propertyClassData: PropertyClassData = req.body;
+    const propertyClassData = req.body;
+    const { property_class, rate } = propertyClassData;
+
+    console.log('Received propertyClassData:', propertyClassData); // Debug log
+
+    if (!property_class || !rate) {
+        res.status(400).json({ success: false, message: 'Property class and rate are required' });
+        return;
+    }
+
+   
 
     const connection = await mysql.createConnection(dbConfig);
     
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_propertyclass WHERE property_class = ?', [propertyClassData.property_class]);
+        const [rows] = await connection.execute('SELECT * FROM tb_propertyclass WHERE property_class = ?',
+         [property_class]);
 
         if (Array.isArray(rows) && rows.length > 0) {
             res.status(409).json({ message: 'Property class record already exists' });
@@ -45,13 +58,16 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
             (property_class, rate) 
             VALUES (?, ?)`,
             [
-                propertyClassData.property_class,
-                propertyClassData.rate,
+                property_class,
+                rate,
             ]
         );
-
-        //res.status(201).json({  success: true, message: 'Electoral area record created successfully' });
-        res.status(201).json({ success: true, message: propertyClassData.property_class });
+        
+        if (result.length > 0) {
+            res.status(200).json({ success: true, message: propertyClassData.property_class, rate: propertyClassData.rate });
+        } else {
+            res.status(500).json({ success: false, message: 'Failed to create property class' });
+        }
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({   success: false, message: 'Error creating property class record', error });
@@ -63,6 +79,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 // Read all property class records
 router.get('/all', async (req: Request, res: Response) => {
     const connection = await mysql.createConnection(dbConfig);
+    
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_propertyclass');
         res.status(200).json({ success: true, data: rows });
@@ -132,7 +149,8 @@ router.put('/:property_class', async (req: Request, res: Response): Promise<void
 
 // Delete a property class record
 router.delete('/delete/:property_class', async (req: Request, res: Response) => {
-    console.log('in property class delete', req.params)
+    console.log('in property class delete', req.params);
+    
     const { property_class } = req.params;
 
     const connection = await mysql.createConnection(dbConfig);
@@ -148,10 +166,10 @@ router.delete('/delete/:property_class', async (req: Request, res: Response) => 
         // Delete the property class record
         const [result] = await connection.execute('DELETE FROM tb_propertyclass WHERE property_class = ?', [property_class]);
 
-        res.status(200).json({ message: 'Property class record deleted successfully' });
-    } catch (error) {
+        res.status(200).json({ success: true, message: 'Property class record deleted successfully' });
+    } catch (error: any) {
         console.error(error);
-        res.status(500).json({ success: true, message: 'Error deleting property class record', error });
+        res.status(500).json({ success: false, message: 'Error deleting property class record', error: error.message });
     } finally {
         connection.end();
     }

@@ -47,11 +47,11 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 UC_Update Business Client
                             </NavDropdown.Item>
                             {/*Hidden menu items are commented out for now */}
-                            <NavDropdown.Item onClick={() => handleMenuClick('PP', 'UpdateBusinessClientsBarometers')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('PP', 'UpdateBusinessClientsBarometers')}>
                                 PP_Update Business Client's Barometers
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('BY', 'BusinessReferences')}>
-                                BY_Business References
+                                BY_List of Business 
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('SB', 'SetupBusinessType')}>
                                 SB_Setup Business Type
@@ -59,7 +59,10 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('SE', 'SetupElectoralArea')}>
                                 SE_Setup Electoral Area
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('ZO', 'SetupContainerKioskFees')}>
+                            <NavDropdown.Item onClick={() => handleMenuClick('ZO', 'PropertyClass')}>
+                                SE_Setup Property Class
+                            </NavDropdown.Item>
+                            <NavDropdown.Item onClick={() => handleMenuClick('ZO', 'PropertyRate')}>
                                 ZO_Setup Container/Kiosk Fees
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('SG', 'SetupGradeRates')}>
@@ -69,22 +72,22 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 GF_Setup Grade Fees
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('EM', 'SetupOfficer')}>
-                                EM_Setup Officer
+                                EM_Setup Collector
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('AE', 'AssignCollectorToElectoralArea')}>
                                 AE_Assign Collector To Electoral Area
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('DD', 'OperatorDefinition')}>
-                                DD_Operator Definition
+                                DD_User Definition
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('VZ', 'OperatorPermission')}>
-                                VZ_Operator Permission
+                                VZ_User Permission
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('LS', 'LoadSpreadsheet')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('LS', 'LoadSpreadsheet')}>
                                 LS_Load Spreadsheet
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('SB', 'ChangeBusinessType')}>
-                                SB_Change an Old Business Type to a New Business Type
+                                SB_Change Old Business Type to a New Business Type
                             </NavDropdown.Item>
                             <NavDropdown.Divider />
                             <NavDropdown.Item onClick={() => handleMenuClick('mnuExit', 'Exit')}>
@@ -94,7 +97,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
 
                         <NavDropdown title="BOP Finances" id="basic-nav-dropdown">
                             <NavDropdown.Item onClick={() => handleMenuClick('OB', 'OfficerBudget')}>
-                                OB_Officer Budget
+                                OB_Collector Budget
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'CollectorPayment')}>
                                 CP_Collector Payment
@@ -110,10 +113,10 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 RR_Enter Receipt Numbers From Accountant General
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'BillClient')}>
-                                CP_Bill a Client
+                                CP_Bill a Business
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'ChangeLastYearRate')}>
-                                CP_Change Last Year Rate For Client
+                                CP_Change Last Year Rate For a Business
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'ChangePrevBillAmount')}>
                                 CP_CHANGE PREVIOUSLY BILLED AMOUNT
@@ -122,17 +125,17 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
 
                         <NavDropdown title="BOP Reports" id="basic-nav-dropdown">
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'BusinessOperatingPermitBusinessNumbers')}>
-                                BN_Business Operating Permit (Business Numbers)
+                                BN_Produce Business Operating Permits (Business Numbers)
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BO', 'BusinessOperatingPermit')}>
-                                BO_Business Operating Permit (Electoral Areas)
+                                BO_Produce Business Operating Permits (Electoral Areas)
                             </NavDropdown.Item>
                             {/* Hidden menu items are commented out for now */}
                             <NavDropdown.Item onClick={() => handleMenuClick('MJ', 'BusinessOperatingPermitBusstypes')}>
-                                MJ_Business Operating Permit (Buss types)
+                                MJ_Produce Business Operating Permits (Buss types)
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('MJ', 'BusinessOperationgPermitPrintDifferentNumbers')}>
-                                MJ_Business Operationg Permit(Print Different Numbers at the Same)
+                                MJ_Produce Business Operationg Permits (Print Different Numbers at the Same)
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('RM', 'RevenueMobilisationRegister')}>
                                 RM_Produce Business Client Statement
@@ -144,13 +147,13 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 BO_Produce Daily Payments Report
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('ME', 'MonitoringAndEvaluationReport')}>
-                                ME_Collector Monitoring And Evaluation Report
+                                ME_Produce Collector Monitoring And Evaluation Report
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('FZ', 'MiddleLevelManagementReport')}>
-                                FZ_Middle Level Management Report
+                                FZ_Produce Middle Level Management Report
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BO', 'ExecutiveSummaryReport')}>
-                                BO_Executive Summary Report
+                                BO_ProduceExecutive Summary Report
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProduceClientAnnualBalancesReport')}>
                                 BN_Produce Client Annual Balances Report
@@ -162,7 +165,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 BN_Produce a Balance Brought Forward Report
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'DefaultersPrepaymentsReport')}>
-                                BN_Defaulters Report
+                                BN_Produce Defaulters Report
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('AT', 'AuditTrail')}>
                                 AT_Produce Audit Trail
@@ -172,22 +175,22 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                         <NavDropdown title="BOP Collector Reports" id="basic-nav-dropdown">
                             {/* Hidden menu items are commented out for now */}
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'CollectorPerformanceGraph')}>
-                                BN_Collector Performance Graph
+                                BN_Produce Collector Performance Graph
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'OneMonthPerformanceGraph')}>
-                                BN_Collector One Month Performance Graph-Financial
+                                BN_Produce Collector One Month Performance Graph-Financial
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'OneMonthPerformanceGraphPercentage')}>
-                                BN_Collector One Month Performance Graph-Percentage
+                                BN_Produce Collector One Month Performance Graph-Percentage
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BO', 'CompareTwoYearsPaymentPeriods')}>
-                                BO_Compare Two Years Payment Periods-Graph
+                                BO_Produce Compare Two Years Payment Periods-Graph
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BT', 'BusinessTypesReport')}>
-                                BT_Business Types Report-Graph
+                                BT_Produce Business Types Report-Graph
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('OB', 'CollectorsBusinessesReport')}>
-                                ZB_Businesses for a  Collector Report-Graph
+                                ZB_Produce Businesses for a  Collector Report-Graph
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('Login', 'Login')}>
                                 Login
@@ -195,7 +198,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                         </NavDropdown>
 
                         {/* Hidden menu items are commented out for now */}
-                        <NavDropdown title="Property Rate Setup" id="basic-nav-dropdown">
+                        <NavDropdown title="Property Setup" id="basic-nav-dropdown">
                             <NavDropdown.Item onClick={() => handleMenuClick('SP', 'SetupPropertyClass')}>
                                 SP_Fee Fixing Setup Property Class
                             </NavDropdown.Item>
@@ -206,19 +209,19 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 SE_Fee Fixing Setup Type of Property
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('SE', 'SetupPropertyRateOfficer')}>
-                                SE_Setup Property Rate Officer
+                                SE_Fee Fixing Setup Property Rate Officer
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('AE', 'AssignPropertyRateCollectorToElectoralArea')}>
-                                AE_Assign Property Rate Collector To Electoral Area
+                                AE_Fee Fixing Assign Property Rate Collector To Electoral Area
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('SE', 'SetupProperty')}>
-                                SE_Setup Property
+                                SE_Fee Fixing Setup Property
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'UpdateProperty')}>
-                                BN_Update Property
+                                BN_Fee Fixing Update Property
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'PropertyRateOfficerBudget')}>
-                                BN_Property Rate Officer Budget
+                                BN_Setup Property Rate Officer Budget
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'PayPropertyBill')}>
                                 BN_Pay Property Bill
@@ -233,7 +236,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 BN_Produce Property Client Statement
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('ME', 'PropertyRateMonitoringAndEvaluationReport')}>
-                                ME_Property Rate Monitoring And Evaluation Report
+                                ME_ProduceProperty Rate Monitoring And Evaluation Report
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProduceDailyPropertyRatePaymentsReport')}>
                                 BN_Produce Daily Property Rate PaymentsReport

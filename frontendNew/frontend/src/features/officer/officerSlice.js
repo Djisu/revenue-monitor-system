@@ -56,7 +56,7 @@ export var fetchOfficers = createAsyncThunk('officer/fetchOfficers', function ()
         switch (_a.label) {
             case 0:
                 console.log('officeSlicer.ts: fetching officers');
-                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/all"))];
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/retrieve"))];
             case 1:
                 response = _a.sent();
                 if (response.status >= 200 && response.status < 300) {
@@ -79,7 +79,7 @@ export var fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', funct
         switch (_a.label) {
             case 0:
                 console.log('fetching officer by id:', officer_no);
-                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/").concat(officer_no))];
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/retrieve/").concat(officer_no))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];

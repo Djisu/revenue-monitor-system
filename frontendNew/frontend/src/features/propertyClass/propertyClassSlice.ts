@@ -24,19 +24,12 @@ const initialState: PropertyClassState = {
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 
-// console.log('in propertyClassSlice.ts')
-
-// console.log('BASE_URL:', BASE_URL);
-
-// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-// console.log('BASE_URL: ', BASE_URL)
-
 // Async thunk to fetch all property classes
 export const fetchPropertyClasses = createAsyncThunk('propertyClass/fetchPropertyClasses', async () => {
     const response = await axios.get(`${BASE_URL}/api/propertyClass/all`);
 
     if (response.status >= 200 && response.status < 300) {
-        return await response.data; // This data will be available as `action.payload`
+        return await response.data.data; // This data will be available as `action.payload`
     } else {
         throw new Error(`Error fetching property classes : ${response.statusText}`);
     }
@@ -55,13 +48,17 @@ export const fetchPropertyClassById = createAsyncThunk('propertyClass/fetchPrope
 
 // Async thunk to create a new property class
 export const createPropertyClass = createAsyncThunk('propertyClass/createPropertyClass', async (propertyClassData: PropertyClassData) => {
+    console.log('in createPropertyClass')
+
     try {
         const response = await axios.post(
-            `${BASE_URL}/api/propertyClass`,
+            `${BASE_URL}/api/propertyClass/create`,
              propertyClassData,
              {
                 headers: { 'Content-Type': 'application/json' },
         });
+
+        console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
         return response.data;
     } catch (error: any) {
         if (axios.isAxiosError(error) && error.response) {
@@ -92,7 +89,9 @@ export const updatePropertyClass = createAsyncThunk('propertyClass/updatePropert
 
 // Async thunk to delete a property class
 export const deletePropertyClass = createAsyncThunk('propertyClass/deletePropertyClass', async (property_class: string) => {
-    const response = await axios.delete(`${BASE_URL}/api/propertyClass/${property_class}`);
+    console.log('in deletePropertyClass')
+
+    const response = await axios.delete(`${BASE_URL}/api/propertyClass/delete/${property_class}`);
     return response.data;
 });
 
@@ -135,26 +134,25 @@ const propertyClassSlice = createSlice({
             .addCase(createPropertyClass.fulfilled, (state, action) => {
                 state.loading = false;
 
-                 console.log('Before push, property classes:', state.propertyClasses);
+                console.log('Before push, propertyClasses:', state.propertyClasses);
 
                 if (action.payload.success) {
                     if (!Array.isArray(state.propertyClasses)) {
                         console.warn('Resetting propertyClasses to an empty array');
                         state.propertyClasses = [];
                     }
-                   // Ensure the payload includes a rate, or provide a default value
-                const newPropertyClass: PropertyClassData = {
-                    property_class: action.payload.message,
-                    rate: action.payload.rate !== undefined ? action.payload.rate : 0, // Provide a default rate value if necessary
-                };
 
-                state.propertyClasses.push(newPropertyClass);
-                console.log('After push, propertyClasses:', state.propertyClasses);
-                        } else {
-                            state.error = action.payload.message;
-                        }
-                        // state.propertyClasses.push(action.payload); // Add the new property class
-                        // state.error = null;
+                    // Ensure the payload includes a rate, or provide a default value
+                    const newPropertyClass: PropertyClassData = {
+                        property_class: action.payload.message,
+                        rate: action.payload.rate !== undefined ? action.payload.rate : 0, // Provide a default rate value if necessary
+                    };
+
+                    state.propertyClasses.push(newPropertyClass);
+                    console.log('After push, propertyClasses:', state.propertyClasses);
+                } else {
+                    state.error = action.payload.message;
+                }
             })
             .addCase(createPropertyClass.rejected, (state, action) => {
                 state.loading = false;
@@ -182,7 +180,18 @@ const propertyClassSlice = createSlice({
             })
             .addCase(deletePropertyClass.fulfilled, (state, action) => {
                 state.loading = false;
-                state.propertyClasses = state.propertyClasses.filter(cls => cls.property_class !== action.meta.arg);
+                
+                // Add logging to check the type of state.propertyClasses
+                console.log('Before filter, state.propertyClasses:', state.propertyClasses);
+                console.log('Type of state.propertyClasses:', Array.isArray(state.propertyClasses) ? 'array' : 'not array');
+                
+                if (!Array.isArray(state.propertyClasses)) {
+                    console.error('state.propertyClasses is not an array:', state.propertyClasses);
+                    state.propertyClasses = []; // Reset to an empty array if it's not an array
+                } else {
+                    state.propertyClasses = state.propertyClasses.filter(cls => cls.property_class !== action.meta.arg);
+                }
+                
                 state.error = null;
             })
             .addCase(deletePropertyClass.rejected, (state, action) => {

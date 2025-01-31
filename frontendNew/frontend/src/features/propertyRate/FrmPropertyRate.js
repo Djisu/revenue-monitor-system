@@ -37,18 +37,26 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { Button, Col, Form, Row, Table } from 'react-bootstrap';
-import axios from 'axios';
+import { useAppDispatch, useAppSelector } from '../../app/store';
 import { Link } from 'react-router-dom';
+import { fetchPropertyRates, createPropertyRate, updatePropertyRate, deletePropertyRate } from './propertyRateSlice';
+import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
 var FrmProducePropertyRate = function () {
+    // Use dispatch to call actions and update state
+    var dispatch = useAppDispatch();
+    // Use selector to get state
+    var propertyRates = useAppSelector(function (state) { return state.propertyRate.rates; });
+    var propertyClasses = useAppSelector(function (state) { return state.propertyClass.propertyClasses; });
     // State management for form fields
     var _a = useState(''), propertyClass = _a[0], setPropertyClass = _a[1];
-    var _b = useState(''), fiscalYear = _b[0], setFiscalYear = _b[1];
+    var year = new Date().getFullYear();
+    var _b = useState(year.toString()), fiscalYear = _b[0], setFiscalYear = _b[1];
     var _c = useState(''), rate = _c[0], setRate = _c[1];
     var _d = useState(''), registrationRate = _d[0], setRegistrationRate = _d[1];
     // State management for dropdowns
-    var _e = useState([]), propertyClasses = _e[0], setPropertyClasses = _e[1];
+    var _e = useState([]), localPropertyClasses = _e[0], setLocalPropertyClasses = _e[1];
     // State management for ListView equivalent
-    var _f = useState([]), propertyRates = _f[0], setPropertyRates = _f[1];
+    var _f = useState([]), localPropertyRates = _f[0], setLocalPropertyRates = _f[1];
     // Fetch dropdowns and ListView data on component mount
     useEffect(function () {
         fetchClasses();
@@ -60,10 +68,11 @@ var FrmProducePropertyRate = function () {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('/api/classes')];
+                    return [4 /*yield*/, dispatch(fetchPropertyClasses())];
                 case 1:
                     response = _a.sent();
-                    setPropertyClasses(response.data);
+                    localPropertyClasses = response.payload.property_classes;
+                    setLocalPropertyClasses(localPropertyClasses);
                     return [3 /*break*/, 3];
                 case 2:
                     error_1 = _a.sent();
@@ -79,10 +88,11 @@ var FrmProducePropertyRate = function () {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('/api/rates')];
+                    return [4 /*yield*/, dispatch(fetchPropertyRates())];
                 case 1:
                     response = _a.sent();
-                    setPropertyRates(response.data);
+                    localPropertyRates = response.payload.rates;
+                    setLocalPropertyRates(localPropertyRates);
                     return [3 /*break*/, 3];
                 case 2:
                     error_2 = _a.sent();
@@ -93,20 +103,21 @@ var FrmProducePropertyRate = function () {
         });
     }); };
     var handleAddClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_3;
+        var propertyRateData, response, error_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.post('/api/addRate', {
-                            property_class: propertyClass,
-                            fiscalyear: parseInt(fiscalYear, 10),
-                            rate: parseFloat(rate),
-                            registrationrate: parseFloat(registrationRate),
-                        })];
+                    propertyRateData = {
+                        property_Class: propertyClass,
+                        fiscalyear: parseInt(fiscalYear, 10),
+                        rate: parseFloat(rate),
+                        registrationrate: parseFloat(registrationRate),
+                    };
+                    return [4 /*yield*/, dispatch(createPropertyRate(propertyRateData))];
                 case 1:
                     response = _a.sent();
-                    alert(response.data.message);
+                    alert(response.payload.message);
                     fetchRates();
                     return [3 /*break*/, 3];
                 case 2:
@@ -119,20 +130,21 @@ var FrmProducePropertyRate = function () {
         });
     }); };
     var handleEditClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_4;
+        var propertyRateData, response, error_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.post('/api/editRate', {
-                            property_class: propertyClass,
-                            fiscalyear: parseInt(fiscalYear, 10),
-                            rate: parseFloat(rate),
-                            registrationrate: parseFloat(registrationRate),
-                        })];
+                    propertyRateData = {
+                        property_Class: propertyClass,
+                        fiscalyear: parseInt(fiscalYear, 10),
+                        rate: parseFloat(rate),
+                        registrationrate: parseFloat(registrationRate),
+                    };
+                    return [4 /*yield*/, dispatch(updatePropertyRate({ property_Class: propertyClass, fiscalyear: parseInt(fiscalYear, 10), propertyRateData: propertyRateData }))];
                 case 1:
                     response = _a.sent();
-                    alert(response.data.message);
+                    alert(response.payload.message);
                     fetchRates();
                     return [3 /*break*/, 3];
                 case 2:
@@ -144,16 +156,51 @@ var FrmProducePropertyRate = function () {
             }
         });
     }); };
-    var handleExitClick = function () {
-        // Add your logic to exit here
-        console.log('Exit');
+    var handleDeleteClick = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var response, error_5;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, dispatch(deletePropertyRate({ property_Class: propertyClass, fiscalyear: parseInt(fiscalYear, 10) }))];
+                case 1:
+                    response = _a.sent();
+                    alert(response.payload.message);
+                    fetchRates();
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_5 = _a.sent();
+                    console.error('Error editing rate:', error_5);
+                    alert('Error in editing a record');
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    }); };
+    // const handleExitClick = () => {
+    //   // Add your logic to exit here
+    //   console.log('Exit');
+    //   setPropertyClass(rate.property_class);
+    //   setFiscalYear(rate.fiscalyear.toString());
+    //   setRate(rate.rate.toString());
+    //   setRegistrationRate(rate.registrationrate.toString());
+    // };
+    var handleSelectChange = function (e) {
+        var selectedValue = e.target.value;
+        console.log('Selected value:', selectedValue);
+        var selectedPropertyClass = propertyClasses.find(function (propertyClass) { return propertyClass.property_class === selectedValue; });
+        if (selectedPropertyClass) {
+            console.log('selectedPropertyClass.property_class: ', selectedPropertyClass.property_class);
+            setPropertyClass(selectedPropertyClass.property_class);
+            console.log('rate: ', rate);
+            setRate(selectedPropertyClass.rate.toString()); // Ensure rate is a string if you're using it as a controlled component value
+        }
     };
     var handleListViewItemClick = function (rate) {
-        setPropertyClass(rate.property_class);
-        setFiscalYear(rate.fiscalyear.toString());
-        setRate(rate.rate.toString());
-        setRegistrationRate(rate.registrationrate.toString());
+        // Your logic here, e.g., navigating to a detail page or opening a modal
+        console.log('Clicked rate:', rate);
     };
-    return (_jsxs("div", { className: "container", children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h2", { className: "text-primary", children: "Property Rate Data Entry" }) }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Property Class:" }), _jsxs(Form.Select, { value: propertyClass, onChange: function (e) { return setPropertyClass(e.target.value); }, children: [_jsx("option", { children: "Select Property Class" }), propertyClasses.map(function (cls) { return (_jsx("option", { value: cls, children: cls }, cls)); })] })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Fiscal Year:" }), _jsx(Form.Control, { value: fiscalYear, onChange: function (e) { return setFiscalYear(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Rate:" }), _jsx(Form.Control, { value: rate, onChange: function (e) { return setRate(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Registration Rate:" }), _jsx(Form.Control, { value: registrationRate, onChange: function (e) { return setRegistrationRate(e.target.value); } })] }) }), _jsxs(Row, { className: "mb-3", children: [_jsx(Col, { children: _jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add New Record" }) }), _jsx(Col, { children: _jsx(Button, { variant: "warning", onClick: handleEditClick, children: "Edit Old Record" }) }), _jsx(Col, { children: _jsx(Button, { variant: "danger", onClick: handleExitClick, children: "Exit" }) })] }), _jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "PROPERTY CLASS" }), _jsx("th", { children: "FISCAL YEAR" }), _jsx("th", { children: "RATE" }), _jsx("th", { children: "REGISTRATION RATE" })] }) }), _jsx("tbody", { children: propertyRates.map(function (rate) { return (_jsxs("tr", { onClick: function () { return handleListViewItemClick(rate); }, children: [_jsx("td", { children: rate.property_class }), _jsx("td", { children: rate.fiscalyear }), _jsx("td", { children: rate.rate }), _jsx("td", { children: rate.registrationrate })] }, "".concat(rate.property_class, "-").concat(rate.fiscalyear))); }) })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) })] }));
+    return (_jsx("div", { className: "container", children: _jsxs("div", { children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h4", { className: "text-primary", children: "Property Rate Data Entry" }) }) }), _jsxs("div", { children: [_jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Property Class:" }), _jsxs(Form.Select, { value: propertyClass, onChange: handleSelectChange, children: [_jsx("option", { value: "", children: "Select Property Class" }), propertyClasses.map(function (propertyClass, index) { return (_jsxs("option", { value: propertyClass.property_class, children: [propertyClass.property_class, " ", propertyClass.rate] }, index)); })] })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Rate:" }), _jsx(Form.Control, { value: rate, onChange: function (e) { return setRate(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Fiscal Year:" }), _jsx(Form.Control, { value: fiscalYear, onChange: function (e) { return setFiscalYear(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Registration Rate:" }), _jsx(Form.Control, { value: registrationRate, onChange: function (e) { return setRegistrationRate(e.target.value); } })] }) })] }), _jsx("div", { children: _jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "PROPERTY CLASS" }), _jsx("th", { children: "FISCAL YEAR" }), _jsx("th", { children: "RATE" }), _jsx("th", { children: "REGISTRATION RATE" })] }) }), _jsx("tbody", { children: propertyRates.map(function (rate) { return (_jsxs("tr", { onClick: function () { return handleListViewItemClick(rate); }, children: [_jsx("td", { children: rate.property_Class }), _jsx("td", { children: rate.fiscalyear }), _jsx("td", { children: rate.rate }), _jsx("td", { children: rate.registrationrate })] }, "".concat(rate.property_Class, "-").concat(rate.fiscalyear))); }) })] }) }) }) }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { className: "d-flex flex-column", children: [_jsx(Button, { variant: "primary", onClick: handleAddClick, className: "mb-2", children: "Add New Record" }), _jsx(Button, { variant: "warning", onClick: handleEditClick, className: "mb-2", children: "Edit Old Record" }), _jsx(Button, { variant: "danger", onClick: handleDeleteClick, className: "mb-2", children: "Delete Old Record" }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] }) })] }) }));
+    ;
 };
 export default FrmProducePropertyRate;

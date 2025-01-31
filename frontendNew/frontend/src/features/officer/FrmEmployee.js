@@ -1,3 +1,14 @@
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -46,19 +57,20 @@ var EmployeeForm = function () {
     var _a = useState(''), officerNo = _a[0], setOfficerNo = _a[1];
     var _b = useState(''), name = _b[0], setName = _b[1];
     var _c = useState(''), photo = _c[0], setPhoto = _c[1];
-    var _d = useState([]), officerList = _d[0], setOfficerList = _d[1];
-    var _e = useState(''), error = _e[0], setError = _e[1];
-    var _f = useState(''), successMessage = _f[0], setSuccessMessage = _f[1];
-    var _g = useState(''), photoType = _g[0], setPhotoType = _g[1];
-    var _h = useState(''), photoName = _h[0], setPhotoName = _h[1];
+    var _d = useState(''), photoUrlFromState = _d[0], setPhotoUrlFromState = _d[1];
+    var _e = useState([]), officerList = _e[0], setOfficerList = _e[1];
+    var _f = useState(''), error = _f[0], setError = _f[1];
+    var _g = useState(''), successMessage = _g[0], setSuccessMessage = _g[1];
+    var _h = useState(''), photoType = _h[0], setPhotoType = _h[1];
+    var _j = useState(''), photoName = _j[0], setPhotoName = _j[1];
     var dispatch = useAppDispatch();
-    var photoUrl = useAppSelector(function (state) { return state.photos.photoUrl; }); // Adjust the type as necessary
-    console.log('Photo URL:', photoUrl);
+    var selectedPhotoUrl = useAppSelector(function (state) { return state.photos.photoUrl; });
+    console.log('Photo URL from state:', selectedPhotoUrl);
     useEffect(function () {
         fetchOfficerList();
     }, []);
     var fetchOfficerList = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_1;
+        var response, officersWithUrls, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -70,7 +82,16 @@ var EmployeeForm = function () {
                     console.log('Fetched officers:', response); // Log the result
                     // Check if result is an array
                     if (Array.isArray(response)) {
-                        setOfficerList(response);
+                        officersWithUrls = response.map(function (officer) {
+                            if (officer.photo instanceof Blob) {
+                                return __assign(__assign({}, officer), { photoUrl: URL.createObjectURL(officer.photo) });
+                            }
+                            else {
+                                return __assign(__assign({}, officer), { photoUrl: officer.photo // Assuming photo is a URL string
+                                 });
+                            }
+                        });
+                        setOfficerList(officersWithUrls);
                     }
                     else {
                         console.error('Expected an array, but received:', response);
@@ -95,41 +116,51 @@ var EmployeeForm = function () {
     var handlePhotoChange = function (e) {
         console.log('in handlePhotoChange');
         if (e.target.files && e.target.files[0]) {
-            photoType = e.target.files[0].type;
+            var file = e.target.files[0];
+            photoType = file.type;
             setPhotoType(photoType);
-            photoName = e.target.files[0].name;
+            photoName = file.name;
             setPhotoName(photoName);
-            if (e.target.files[0] && e.target.files[0].size > 10 * 1024 * 1024) { // 10MB in bytes
+            if (file.size > 10 * 1024 * 1024) { // 10MB in bytes
                 alert('File size exceeds the limit of 10MB.');
                 return;
             }
-            setPhoto(URL.createObjectURL(e.target.files[0]));
-            console.log('Photo URL:', photo);
-            console.log('Photo:', e.target.files[0].name);
-            uploadPhoto(e.target.files[0]);
+            var photoBlobUrl = URL.createObjectURL(file);
+            setPhoto(file); // Store the Blob itself
+            setPhotoUrlFromState(photoBlobUrl); // Update the photo URL in state
+            console.log('Photo URL:', photoBlobUrl);
+            console.log('Photo:', file.name);
+            uploadPhoto(file);
         }
     };
     var uploadPhoto = function (file) { return __awaiter(void 0, void 0, void 0, function () {
-        var resultAction, photoUrl_1, error_2;
+        var resultAction, photoUrl_1, updatedOfficerList, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     console.log('in uploadPhoto');
-                    console.log('about to dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }))');
-                    console.log('file:', file);
-                    console.log('officerNo:', officerNo);
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
+                    console.log('about to dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }))');
+                    console.log('file:', file);
+                    console.log('officerNo:', officerNo);
                     return [4 /*yield*/, dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }))];
                 case 2:
                     resultAction = _a.sent();
-                    console.log('after  dispatch(storePhotoAsync(', resultAction);
+                    console.log('after dispatch(storePhotoAsync(', resultAction);
                     if (storePhotoAsync.fulfilled.match(resultAction)) {
                         console.log('Photo uploaded successfully:', resultAction.payload.photoUrl);
-                        photoUrl_1 = resultAction.payload.photoUrl //payload.result.url;
-                        ;
+                        photoUrl_1 = resultAction.payload.photoUrl;
                         console.log('Photo URL:', photoUrl_1);
+                        updatedOfficerList = officerList.map(function (officer) {
+                            if (officer.officer_no === officerNo) {
+                                return __assign(__assign({}, officer), { photoUrl: photoUrl_1 });
+                            }
+                            return officer;
+                        });
+                        setOfficerList(updatedOfficerList);
+                        setPhotoUrlFromState(photoUrl_1); // Update the photo URL in state
                         setPhoto(photoUrl_1); // Update the photo URL in state
                         console.log('Photo URL:', photoUrl_1);
                     }
@@ -178,11 +209,11 @@ var EmployeeForm = function () {
                     console.log('about to dispatch(createOfficer({officer_no, officer_name, photo}))');
                     console.log('officer_no:', officerNo);
                     console.log('officer_name:', name);
-                    console.log('photo:', photo);
+                    console.log('photo:', photoUrlFromState);
                     return [4 /*yield*/, dispatch(createOfficer({
                             officer_no: officerNo,
                             officer_name: name,
-                            photo: photo, // Use the photo URL returned by storePhotoAsync
+                            photo: photoUrlFromState //typeof photo === 'string' ? photo : URL.createObjectURL(photo), // Use the photo URL
                         }))];
                 case 2:
                     response = _a.sent();
@@ -218,9 +249,8 @@ var EmployeeForm = function () {
                             officerData: {
                                 officer_no: officerNo,
                                 officer_name: name,
-                                photo: photo, // , // Use the photo file stored in state', // Use the photo URL stored in state
-                                // Add other fields as necessary
-                            }
+                                photo: typeof photo === 'string' ? photo : URL.createObjectURL(photo), // Use the photo URL
+                            },
                         }))];
                 case 2:
                     response = _a.sent();
@@ -274,19 +304,55 @@ var EmployeeForm = function () {
             }
         });
     }); };
-    // const handleExitClick = () => {
-    //   window.location.href = '/'; // Redirect to main page or hide the form
-    // };
     var clearForm = function () {
         setOfficerNo('');
         setName('');
         setPhoto('');
+        setPhotoUrlFromState(''); // Clear the photo URL in state
     };
     var handleItemClick = function (officer) {
+        var _a;
         setOfficerNo(officer.officer_no);
         setName(officer.officer_name);
-        setPhoto(officer.photo);
+        setPhoto(officer.photoUrl ? '' : officer.photo); // If photoUrl is available, clear photo
+        setPhotoUrlFromState((_a = officer.photoUrl) !== null && _a !== void 0 ? _a : ''); // Use the nullish coalescing operator
     };
-    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formOfficerno", children: [_jsx(Form.Label, { children: "Employee ID:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: handleOfficerNoChange, maxLength: 10, required: true })] }), _jsxs(Form.Group, { controlId: "formName", children: [_jsx(Form.Label, { children: "Name:" }), _jsx(Form.Control, { type: "text", value: name, onChange: handleNameChange, maxLength: 50, required: true })] }), _jsxs(Form.Group, { controlId: "formPhoto", children: [_jsx(Form.Label, { children: "Photo:" }), _jsx(Form.Control, { type: "text", value: photo, onChange: handlePhotoChange, readOnly: true }), _jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs(Button, { variant: "secondary", onClick: function () { var _a; return (_a = document.getElementById('photoInput')) === null || _a === void 0 ? void 0 : _a.click(); }, children: [_jsx(FaUpload, {}), " Upload Photo"] }), _jsx("input", { id: "photoInput", type: "file", onChange: handlePhotoChange, style: { display: 'none' } })] })] }), _jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs(ButtonGroup, { children: [_jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add" }), _jsx(Button, { variant: "success", onClick: handleEditClick, style: { marginLeft: '10px' }, children: "Edit" }), _jsx(Button, { variant: "danger", onClick: handleDeleteClick, style: { marginLeft: '10px' }, children: "Delete" })] }), _jsx(Link, { to: "/main", className: "btn btn-secondary m-3", children: "Go Back" })] })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Employee ID" }), _jsx("th", { children: "Name" }), _jsx("th", { children: "Photo" })] }) }), _jsx("tbody", { children: officerList.map(function (officer) { return (_jsxs("tr", { onClick: function () { return handleItemClick(officer); }, children: [_jsx("td", { children: officer.officer_no }), _jsx("td", { children: officer.officer_name }), _jsx("td", { children: officer.photo && officer.photo !== 'xx' ? (_jsx(Image, { src: officer.photo, alt: officer.officer_name, style: { width: '100px', height: '100px' } })) : ('No Photo') })] }, officer.officer_no)); }) })] }), photo && photo !== 'xx' && (_jsxs("div", { className: "mt-4", children: [_jsx("h4", { children: "Photo Preview" }), _jsx(Image, { src: photoUrl, alt: "Employee Photo", style: { width: '200px', height: '200px' } })] }))] }));
+    // const [photoUrlFromState, setPhotoUrlFromState] = useState<string>(''); // State to store the photo URL from Redux
+    useEffect(function () {
+        var fetchOfficers = function () { return __awaiter(void 0, void 0, void 0, function () {
+            var response, officers, error_6;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, fetch('/api/officers')];
+                    case 1:
+                        response = _a.sent();
+                        if (!response.ok) {
+                            throw new Error("HTTP error! status: ".concat(response.status));
+                        }
+                        return [4 /*yield*/, response.json()];
+                    case 2:
+                        officers = _a.sent();
+                        setOfficerList(officers); // Set the officer list with the JSON data
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_6 = _a.sent();
+                        console.error('Failed to fetch officers:', error_6);
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        }); };
+        fetchOfficers();
+        // return () => {
+        //   officerList.forEach((officer) => {
+        //     if (officer.photoUrl) {
+        //       URL.revokeObjectURL(officer.photoUrl);
+        //     }
+        //   });
+        // };
+    }, [officerList]);
+    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formOfficerno", children: [_jsx(Form.Label, { children: "Employee ID:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: handleOfficerNoChange, maxLength: 10, required: true })] }), _jsxs(Form.Group, { controlId: "formName", children: [_jsx(Form.Label, { children: "Name:" }), _jsx(Form.Control, { type: "text", value: name, onChange: handleNameChange, maxLength: 50, required: true })] }), _jsxs(Form.Group, { controlId: "formPhoto", children: [_jsx(Form.Label, { children: "Photo:" }), _jsx(Form.Control, { type: "text", value: typeof photo === 'string' ? photo : photoName, readOnly: true }), _jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs(Button, { variant: "secondary", onClick: function () { var _a; return (_a = document.getElementById('photoInput')) === null || _a === void 0 ? void 0 : _a.click(); }, children: [_jsx(FaUpload, {}), " Upload Photo"] }), _jsx("input", { id: "photoInput", type: "file", accept: "image/*", onChange: handlePhotoChange, style: { display: 'none' } })] })] }), _jsx("div", { style: { marginTop: '10px' }, children: _jsxs(ButtonGroup, { children: [_jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add" }), _jsx(Button, { variant: "success", onClick: handleEditClick, style: { marginLeft: '10px' }, children: "Edit" }), _jsx(Button, { variant: "danger", onClick: handleDeleteClick, style: { marginLeft: '10px' }, children: "Delete" }), _jsx(Link, { to: "/main", className: "btn btn-secondary m-3", children: "Go Back" })] }) })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Employee ID" }), _jsx("th", { children: "Name" }), _jsx("th", { children: "Photo" })] }) }), _jsx("tbody", { children: officerList.map(function (officer) { return (_jsxs("tr", { onClick: function () { return handleItemClick(officer); }, children: [_jsx("td", { children: officer.officer_no }), _jsx("td", { children: officer.officer_name }), _jsx("td", { children: officer.photoUrl && officer.photoUrl !== 'xx' ? (_jsx(Image, { src: officer.photoUrl, alt: officer.officer_name, style: { width: '100px', height: '100px' } })) : ('No Photo') })] }, officer.officer_no)); }) })] }), photoUrlFromState && photoUrlFromState !== 'xx' && (_jsxs("div", { className: "mt-4", children: [_jsx("h4", { children: "Photo Preview" }), _jsx(Image, { src: photoUrlFromState, alt: "Employee Photo", style: { width: '200px', height: '200px' } })] }))] }));
 };
 export default EmployeeForm;

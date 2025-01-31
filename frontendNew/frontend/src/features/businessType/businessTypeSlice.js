@@ -45,10 +45,6 @@ var initialState = {
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
-// console.log('in authSlice.ts')
-// console.log('BASE_URL:', BASE_URL);
-// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-// console.log('BASE_URL: ', BASE_URL)
 // Async thunk to fetch all BusinessType records
 export var fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTypes', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
@@ -60,31 +56,34 @@ export var fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessType
                 if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
                 return [4 /*yield*/, response.data];
             case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
-            case 3: throw new Error("Error fetching electoral areas: ".concat(response.statusText));
+            case 3: throw new Error("Error fetching business types: ".concat(response.statusText));
         }
     });
 }); });
 // Async thunk to create a new BusinessType record
-export var createBusinessType = createAsyncThunk('businessType/createBusinessType', function (data) { return __awaiter(void 0, void 0, void 0, function () {
+export var createBusinessType = createAsyncThunk('businessType/createBusinessType', function (businessType) { return __awaiter(void 0, void 0, void 0, function () {
     var response, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/businessType"), data, {
+                console.log('Creating a new business type record:', businessType);
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/businessType/create"), { Business_Type: businessType }, {
                         headers: { 'Content-Type': 'application/json' },
                     })];
-            case 1:
+            case 2:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
-            case 2:
+            case 3:
                 error_1 = _a.sent();
                 if (axios.isAxiosError(error_1) && error_1.response) {
                     // Handle specific error responses
                     throw new Error(error_1.response.data.message || 'Failed to create business type');
                 }
                 throw new Error('Network error or other issue');
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
@@ -131,7 +130,7 @@ var businessTypeSlice = createSlice({
         })
             .addCase(fetchBusinessTypes.fulfilled, function (state, action) {
             state.loading = false;
-            state.businessTypes = action.payload;
+            state.businessTypes = action.payload.data;
             state.error = null;
         })
             .addCase(fetchBusinessTypes.rejected, function (state, action) {
@@ -151,7 +150,7 @@ var businessTypeSlice = createSlice({
                     state.businessTypes = [];
                 }
                 state.businessTypes.push({ Business_Type: action.payload.message });
-                console.log('After push, businessTypes:', state.businessTypes);
+                //console.log('After push, businessTypes:', state.businessTypes);
             }
             else {
                 state.error = action.payload.message;

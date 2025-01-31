@@ -25,9 +25,16 @@ interface GradeFeesData {
     fees: number;
 }
 
+
 // Create a new GradeFees record
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const gradeFeesData: GradeFeesData = req.body;
+
+     // Validate request values
+     if (!gradeFeesData.buss_type || !gradeFeesData.grade || !gradeFeesData.description || !gradeFeesData.fees) {
+        res.status(400).json({ message: 'Grade Fees data is missing' });
+        return;
+    }
 
     const connection = await mysql.createConnection(dbConfig);
     
@@ -36,11 +43,11 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         [gradeFeesData.buss_type, gradeFeesData.grade]);
 
         if (Array.isArray(rows) && rows.length > 0) {
-            res.status(409).json({ message: 'GradeFees record already exists' });
+            res.status(409).json({ success: true, message: 'GradeFees record already exists', fees: 0});
             return;
         }
 
-        // Insert the new GradeFees data
+        // Insert the new GradeFees data  'GradeRate record created successfully'
         const [result] = await connection.execute<ResultSetHeader>(
             `INSERT INTO tb_gradefees (buss_type, grade, description, fees) 
             VALUES (?, ?, ?, ?)`,
@@ -51,25 +58,42 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
                 gradeFeesData.fees,
             ]
         );
-
-        res.status(201).json({ message: 'GradeFees record created successfully'});
-    } catch (error) {
+        res.status(200).json({ success: true, message: 'Grade Fees record created successfully', fees: gradeFeesData.fees });
+        // res.status(200).json({ success: true, message: {
+        //     buss_type: gradeFeesData.buss_type,
+        //     grade: gradeFeesData.grade,
+        //     description: gradeFeesData.description
+        //     }, data: {
+        //         id: Math.floor(Math.random() * 10) + 1,
+        //         description: gradeFeesData.description,
+        //         fees: gradeFeesData.fees
+        //     } 
+        // });      
+    } catch (error: any) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating GradeFees record', error });
+        res.status(500).json({ message: 'Error creating GradeFees record', error: error.message });
     } finally {
         connection.end();
     }
 });
 
 // Read all GradeFees records
-router.get('/', async (req: Request, res: Response) => {
+router.get('/all', async (req: Request, res: Response) => {
+    console.log('router.get(/all Fetching all GradeFees records')
+
     const connection = await mysql.createConnection(dbConfig);
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_gradefees');
-        res.json(rows);
-    } catch (error) {
+
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        console.log('rows:::', rows)
+        
+        res.status(200).json(rows);
+    } catch (error: any) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching GradeFees records', error });
+        res.status(500).json({ message: 'Error fetching GradeFees records', error: error.message });
     } finally {
         connection.end();
     }
@@ -84,14 +108,14 @@ router.get('/:buss_type/:grade', async (req: Request, res: Response) => {
     try {        
         const [result] = await connection.execute('SELECT * FROM tb_gradefees WHERE buss_type = ? AND grade = ?', [buss_type, grade]);
 
-        if (Array.isArray(result) && result.length > 0) {
-            res.json(result[0]); // Return the first row
+        if (Array.isArray(result) && result.length === 0) {
+            res.status(404).json({  success: false, message: 'Grade Fees record not found' });
         } else {
-            res.status(404).json({ message: 'GradeFees record not found' });
+            res.status(200).json({ success: true, data: result[0] });
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching GradeFees record', error });
+        res.status(500).json({ message: 'Error fetching Grade Fees record', error });
     } finally {
         connection.end();
     }
@@ -124,7 +148,7 @@ router.put('/:buss_type/:grade', async (req: Request, res: Response): Promise<vo
         );
 
         
-        res.status(200).json({ message: 'GradeFees record updated successfully' });
+        res.status(200).json({ message: 'Grade Fees record updated successfully' });
        return
     } catch (error) {
         console.error(error);

@@ -38,62 +38,93 @@ var _a;
 // src/store/gradeFeesSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-// Initial state
+// Initial state as GradeFeesData[]
 var initialState = {
     gradeFees: [],
     loading: false,
+    successMessage: '',
     error: null,
 };
-// Define async thunks
-export var fetchGradeFees = createAsyncThunk('gradeFees/fetchGradeFees', function () { return __awaiter(void 0, void 0, void 0, function () {
+var BASE_URL = import.meta.env.VITE_BASE_URL ||
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+// Async thunk to fetch all grade fees
+export var fetchGradeFees = createAsyncThunk('gradeFees/fetchgradeFees', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get('/api/gradeFees')];
+            case 0:
+                console.log('fetchGradeFees slice called');
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/gradeFees/all"))];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
-        }
-    });
-}); });
-export var fetchGradeFee = createAsyncThunk('gradeFees/fetchGradeFee', function (params) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("/api/gradeFees/".concat(params.buss_type, "/").concat(params.grade))];
-            case 1:
-                response = _a.sent();
-                return [2 /*return*/, response.data];
+                console.log("after axios.get, response.data: ".concat(JSON.stringify(response.data)));
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('fetchGradeFees fulfilled::: ', response.data);
+                    // Ensure response.data is an array
+                    return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //
+                    // return data; // This data will be available as `action.payload`
+                }
+                else {
+                    throw new Error("Error fetching grade fees. Status: ".concat(response.status, " - Error: ").concat(response.statusText));
+                }
+                return [2 /*return*/];
         }
     });
 }); });
 export var createGradeFee = createAsyncThunk('gradeFees/createGradeFee', function (gradeFeesData) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
+    var response, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post('/api/gradeFees', gradeFeesData)];
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/gradeFees/create"), gradeFeesData, {
+                        headers: { 'Content-Type': 'application/json' },
+                    })];
             case 1:
                 response = _a.sent();
+                console.log("after axios.post, response.data: ".concat(JSON.stringify(response.data)));
                 return [2 /*return*/, response.data];
+            case 2:
+                error_1 = _a.sent();
+                if (axios.isAxiosError(error_1) && error_1.response) {
+                    throw new Error(error_1.response.data.message || 'Failed to create property class');
+                }
+                throw new Error('Network error or other issue');
+            case 3: return [2 /*return*/];
         }
     });
 }); });
 export var updateGradeFee = createAsyncThunk('gradeFees/updateGradeFee', function (params) { return __awaiter(void 0, void 0, void 0, function () {
+    var response, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.put("/api/gradeFees/".concat(params.buss_type, "/").concat(params.grade), params.data)];
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/gradeFees/update/").concat(params.buss_type, "/").concat(params.grade), params.data, {
+                        headers: { 'Content-Type': 'application/json' },
+                    })];
             case 1:
-                _a.sent();
+                response = _a.sent();
+                console.log("after axios.put, response.data: ".concat(JSON.stringify(response.data)));
                 return [2 /*return*/, { buss_type: params.buss_type, grade: params.grade, data: params.data }];
+            case 2:
+                error_2 = _a.sent();
+                if (axios.isAxiosError(error_2) && error_2.response) {
+                    throw new Error(error_2.response.data.message || 'Failed to create property class');
+                }
+                throw new Error('Network error or other issue');
+            case 3: return [2 /*return*/];
         }
     });
 }); });
 export var deleteGradeFee = createAsyncThunk('gradeFees/deleteGradeFee', function (params) { return __awaiter(void 0, void 0, void 0, function () {
+    var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.delete("/api/gradeFees/".concat(params.buss_type, "/").concat(params.grade))];
+            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/gradeFees/").concat(params.buss_type, "/").concat(params.grade))];
             case 1:
-                _a.sent();
+                response = _a.sent();
+                console.log("after axios.delete, response.data: ".concat(JSON.stringify(response.data)));
                 return [2 /*return*/, { buss_type: params.buss_type, grade: params.grade }];
         }
     });
@@ -102,42 +133,129 @@ export var deleteGradeFee = createAsyncThunk('gradeFees/deleteGradeFee', functio
 var gradeFeesSlice = createSlice({
     name: 'gradeFees',
     initialState: initialState,
-    reducers: {},
+    reducers: {
+        setGradeFees: function (state, action) {
+            state.gradeFees = action.payload;
+        },
+        addGradeFee: function (state, action) {
+            state.gradeFees.push(action.payload);
+        },
+        setLoading: function (state, action) {
+            state.loading = action.payload;
+        },
+        setError: function (state, action) {
+            state.error = action.payload;
+        },
+    },
     extraReducers: function (builder) {
         builder
             .addCase(fetchGradeFees.pending, function (state) {
             state.loading = true;
+            state.error = null;
         })
             .addCase(fetchGradeFees.fulfilled, function (state, action) {
             state.loading = false;
-            state.gradeFees = action.payload;
+            state.gradeFees = Array.isArray(action.payload) ? action.payload : [];
             state.error = null;
         })
-            .addCase(fetchGradeFees.rejected, function (state, action) {
+            .addCase(fetchGradeFees.rejected, function (state) {
             state.loading = false;
-            state.error = action.error.message || 'Failed to fetch grade fees';
-        })
-            .addCase(fetchGradeFee.fulfilled, function (state, action) {
-            var index = state.gradeFees.findIndex(function (fee) { return fee.buss_type === action.payload.buss_type && fee.grade === action.payload.grade; });
-            if (index !== -1) {
-                state.gradeFees[index] = action.payload;
+            if (state.error !== null) {
+                // Handle the case where state.error is a string
+                state.error = state.error && 'Failed to fetch grade fees';
+            }
+            else {
+                // Handle the case where state.error is null
+                state.error = null;
             }
         })
+            .addCase(createGradeFee.pending, function (state) {
+            state.loading = true;
+            state.error = null;
+        })
             .addCase(createGradeFee.fulfilled, function (state, action) {
-            state.gradeFees.push(action.payload);
+            state.loading = false;
+            state.gradeFees.push(action.payload); // Add the new GradeRate record
+            state.error = null;
+            // state.loading = false;
+            // console.log('Before push, propertyClasses:', state.gradeFees);
+            // if (action.payload.success) {               
+            //     const newGradeFees: GradeFeesData = {                  
+            //         buss_type: action.payload.message.buss_type,
+            //         grade: action.payload.message.grade,
+            //         description: action.payload.message.description,
+            //         fees: action.payload.message.fees                   
+            //     }
+            //     state.gradeFees.push(newGradeFees);
+            //     console.log('After push, gradeFees:', state.gradeFees);
+            // } else {
+            //     state.error = action.payload.message;
+            // };
+        })
+            .addCase(createGradeFee.rejected, function (state, action) {
+            state.loading = false;
+            if (action.error.message === "GradeRate record already exists") {
+                state.error = "GradeRate record already exists";
+            }
+            else {
+                state.error = action.error.message || 'Failed to create GradeRate record';
+            }
+            // state.loading = false;
+            // if (state.error !== null) {
+            //     // Handle the case where state.error is a string
+            //     state.error =  state.error  && 'Failed to fetch grade fees' 
+            // } else {
+            //     // Handle the case where state.error is null
+            //     state.error = null;
+            // }
+        })
+            .addCase(updateGradeFee.pending, function (state) {
+            state.loading = true;
+            state.error = null;
         })
             .addCase(updateGradeFee.fulfilled, function (state, action) {
             var index = state.gradeFees.findIndex(function (fee) { return fee.buss_type === action.payload.buss_type && fee.grade === action.payload.grade; });
             if (index !== -1) {
-                state.gradeFees[index] = action.payload.data;
+                state.gradeFees[index] = action.payload.data; // No type assertion needed if types are correct
+                state.successMessage = 'Grade fee updated successfully';
             }
+            else {
+                console.warn("Could not find grade fee with buss_type ".concat(action.payload.buss_type, " and grade ").concat(action.payload.grade, " to update"));
+                state.error = "Could not find grade fee with buss_type ".concat(action.payload.buss_type, " and grade ").concat(action.payload.grade, " to update");
+            }
+        })
+            .addCase(updateGradeFee.rejected, function (state, action) {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to update GradeRate record';
+            // if (state.error !== null) {
+            //     // Handle the case where state.error is a string
+            //     state.error =  state.error  && 'Failed to fetch grade fees' 
+            // } else {
+            //     // Handle the case where state.error is null
+            //     state.error = null;
+            // };
+        })
+            .addCase(deleteGradeFee.pending, function (state) {
+            state.loading = true;
+            state.error = null;
         })
             .addCase(deleteGradeFee.fulfilled, function (state, action) {
             state.gradeFees = state.gradeFees.filter(function (fee) { return !(fee.buss_type === action.payload.buss_type && fee.grade === action.payload.grade); });
+        })
+            .addCase(deleteGradeFee.rejected, function (state, action) {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to delete GradeRate record';
+            // if (state.error !== null) {
+            //     // Handle the case where state.error is a string
+            //     state.error =  state.error  && 'Failed to delete grade fee' 
+            // } else {
+            //     // Handle the case where state.error is null
+            //     state.error = null;
+            // }
         });
     },
 });
 // Export the async actions
-export var _b = _a = gradeFeesSlice.actions;
+export var setGradeFees = (_a = gradeFeesSlice.actions, _a.setGradeFees), addGradeFee = _a.addGradeFee, setLoading = _a.setLoading, setError = _a.setError;
 // Export the reducer
 export default gradeFeesSlice.reducer;

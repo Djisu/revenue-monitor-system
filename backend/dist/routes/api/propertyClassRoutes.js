@@ -13,11 +13,17 @@ const dbConfig = {
 };
 // Create a new property class record
 router.post('/create', async (req, res) => {
-    console.log('in create property class', req.body);
+    console.log('in create property class route', req.body);
     const propertyClassData = req.body;
+    const { property_class, rate } = propertyClassData;
+    console.log('Received propertyClassData:', propertyClassData); // Debug log
+    if (!property_class || !rate) {
+        res.status(400).json({ success: false, message: 'Property class and rate are required' });
+        return;
+    }
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_propertyclass WHERE property_class = ?', [propertyClassData.property_class]);
+        const [rows] = await connection.execute('SELECT * FROM tb_propertyclass WHERE property_class = ?', [property_class]);
         if (Array.isArray(rows) && rows.length > 0) {
             res.status(409).json({ message: 'Property class record already exists' });
             return;
@@ -26,11 +32,15 @@ router.post('/create', async (req, res) => {
         const [result] = await connection.execute(`INSERT INTO tb_propertyclass 
             (property_class, rate) 
             VALUES (?, ?)`, [
-            propertyClassData.property_class,
-            propertyClassData.rate,
+            property_class,
+            rate,
         ]);
-        //res.status(201).json({  success: true, message: 'Electoral area record created successfully' });
-        res.status(201).json({ success: true, message: propertyClassData.property_class });
+        if (result.length > 0) {
+            res.status(200).json({ success: true, message: propertyClassData.property_class, rate: propertyClassData.rate });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Failed to create property class' });
+        }
     }
     catch (error) {
         console.error('Error:', error);
@@ -117,11 +127,11 @@ router.delete('/delete/:property_class', async (req, res) => {
         }
         // Delete the property class record
         const [result] = await connection.execute('DELETE FROM tb_propertyclass WHERE property_class = ?', [property_class]);
-        res.status(200).json({ message: 'Property class record deleted successfully' });
+        res.status(200).json({ success: true, message: 'Property class record deleted successfully' });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ success: true, message: 'Error deleting property class record', error });
+        res.status(500).json({ success: false, message: 'Error deleting property class record', error: error.message });
     }
     finally {
         connection.end();

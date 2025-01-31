@@ -30,26 +30,39 @@ export const fetchPropertyRates = createAsyncThunk('propertyRate/fetchPropertyRa
 });
 
 // Async thunk to fetch a single property rate by property_Class and fiscalyear
-export const fetchPropertyRateById = createAsyncThunk('propertyRate/fetchPropertyRateById', async ({ property_Class, fiscalyear }: { property_Class: string; fiscalyear: number }) => {
+export const fetchPropertyRateById = createAsyncThunk('propertyRate/fetchPropertyRateById', 
+      async ({ property_Class, fiscalyear }: { property_Class: string; fiscalyear: number }) => {
     const response = await axios.get(`/api/propertyRate/${property_Class}/${fiscalyear}`);
     return response.data;
 });
 
 // Async thunk to create a new property rate
-export const createPropertyRate = createAsyncThunk('propertyRate/createPropertyRate', async (propertyRateData: PropertyRateData) => {
-    const response = await axios.post('/api/propertyRate', propertyRateData);
+export const createPropertyRate = createAsyncThunk('propertyRate/createPropertyRate', 
+   async (propertyRateData: PropertyRateData) => {
+
+    console.log('createPropertyRate action called with ', propertyRateData);
+
+    const response = await axios.post('/api/propertyRate/create', propertyRateData);
+
+    console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
     return response.data;
 });
 
 // Async thunk to update a property rate
-export const updatePropertyRate = createAsyncThunk('propertyRate/updatePropertyRate', async ({ property_Class, fiscalyear, propertyRateData }: { property_Class: string; fiscalyear: number; propertyRateData: PropertyRateData }) => {
-    const response = await axios.put(`/api/propertyRate/${property_Class}/${fiscalyear}`, propertyRateData);
+export const updatePropertyRate = createAsyncThunk('propertyRate/updatePropertyRate', 
+    async ({ property_Class, fiscalyear, propertyRateData }: 
+                { property_Class: string; fiscalyear: number; propertyRateData: PropertyRateData }) => {
+    
+    const response = await axios.put(`/api/propertyRate/update${property_Class}/${fiscalyear}`, propertyRateData);
     return response.data;
 });
 
 // Async thunk to delete a property rate
-export const deletePropertyRate = createAsyncThunk('propertyRate/deletePropertyRate', async ({ property_Class, fiscalyear }: { property_Class: string; fiscalyear: number }) => {
+export const deletePropertyRate = createAsyncThunk('propertyRate/deletePropertyRate', 
+    async ({ property_Class, fiscalyear }: { property_Class: string; fiscalyear: number }) => {
+
     const response = await axios.delete(`/api/propertyRate/${property_Class}/${fiscalyear}`);
+
     return response.data;
 });
 

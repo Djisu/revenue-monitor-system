@@ -36,7 +36,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL ||
 export const fetchOfficers = createAsyncThunk('officer/fetchOfficers', async () => {
     console.log('officeSlicer.ts: fetching officers');
 
-    const response = await axios.get(`${BASE_URL}/api/officer/all`);
+    const response = await axios.get(`${BASE_URL}/api/officer/retrieve`);
 
      if (response.status >= 200 && response.status < 300) {
         console.log('officeSlicer.ts: officers fetched successfully');
@@ -51,7 +51,7 @@ export const fetchOfficers = createAsyncThunk('officer/fetchOfficers', async () 
 // Async thunk to fetch a single officer by officer_no
 export const fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', async (officer_no: string) => {
     console.log('fetching officer by id:', officer_no);
-    const response = await axios.get(`${BASE_URL}/api/officer/${officer_no}`);
+    const response = await axios.get(`${BASE_URL}/api/officer/retrieve/${officer_no}`);
 
     return response.data;
 });
