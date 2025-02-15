@@ -7,9 +7,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-/node_modules
-/package-lock.json
-/yarn.lock
+/frontendnew/frontend/node_modules
+/frontendnew/frontend/package-lock.json
+/frontendnew/frontend/yarn.lock
 dist
 dist-ssr
 *.local
