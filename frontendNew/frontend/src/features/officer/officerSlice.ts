@@ -25,23 +25,18 @@ const initialState: OfficerState = {
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 
-// console.log('in authSlice.ts')
 
-// console.log('BASE_URL:', BASE_URL);
-
-// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-// console.log('BASE_URL: ', BASE_URL)
 
 // Async thunk to fetch all officers
 export const fetchOfficers = createAsyncThunk('officer/fetchOfficers', async () => {
-    console.log('officeSlicer.ts: fetching officers');
+    //console.log('officeSlicer.ts: fetching officers');
 
     const response = await axios.get(`${BASE_URL}/api/officer/retrieve`);
 
      if (response.status >= 200 && response.status < 300) {
-        console.log('officeSlicer.ts: officers fetched successfully');
-        console.log('response.data:', response.data);
-        console.log('response.data.officers:', response.data.officers);
+        // console.log('officeSlicer.ts: officers fetched successfully');
+        // console.log('response.data:', response.data);
+        // console.log('response.data.officers:', response.data.officers);
         return response.data; // This data will be available as `action.payload`
     } else {
         throw new Error(`Error fetching officers: ${response.statusText}`);
@@ -50,7 +45,7 @@ export const fetchOfficers = createAsyncThunk('officer/fetchOfficers', async () 
 
 // Async thunk to fetch a single officer by officer_no
 export const fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', async (officer_no: string) => {
-    console.log('fetching officer by id:', officer_no);
+    //console.log('fetching officer by id:', officer_no);
     const response = await axios.get(`${BASE_URL}/api/officer/retrieve/${officer_no}`);
 
     return response.data;
@@ -58,7 +53,7 @@ export const fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', asy
 
 // Async thunk to create a new officer
 export const createOfficer = createAsyncThunk('officer/createOfficer', async (officerData: OfficerData) => {
-    console.log('creating officer:', officerData);
+   // console.log('creating officer:', officerData);
 
     try {
         const response = await axios.post(
@@ -80,7 +75,7 @@ export const createOfficer = createAsyncThunk('officer/createOfficer', async (of
 
 // Async thunk to update an officer
 export const updateOfficer = createAsyncThunk('officer/updateOfficer', async ({ officer_no, officerData }: { officer_no: string; officerData: OfficerData }) => {
-    console.log('updating officer:', officer_no, officerData);
+    //console.log('updating officer:', officer_no, officerData);
 
     try {
         const response = await axios.put(`${BASE_URL}/api/officer/update/${officer_no}`, officerData);
@@ -96,7 +91,7 @@ export const updateOfficer = createAsyncThunk('officer/updateOfficer', async ({ 
 
 // Async thunk to delete an officer
 export const deleteOfficer = createAsyncThunk('officer/deleteOfficer', async (officer_no: string) => {
-    console.log('deleting officer:', officer_no);
+    //console.log('deleting officer:', officer_no);
 
     const response = await axios.delete(`${BASE_URL}/api/officer/delete/${officer_no}`);
     return response.data;

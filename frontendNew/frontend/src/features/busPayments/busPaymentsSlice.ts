@@ -1,17 +1,18 @@
 // src/features/busPayments/busPaymentsSlice.ts
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the type for BusPayments data
 interface BusPaymentsData {
     buss_no: string;
     officer_no: string;
-    amount: number;
+    paidAmount: number;
     monthpaid: string;
     transdate: string;
-    userid: string;
     fiscal_year: string;
     ReceiptNo: string;
+    email: string;
+    electoral_area: string;
 }
 
 // Define the initial state for the slice
@@ -27,21 +28,74 @@ const initialState: BusPaymentsState = {
     error: null,
 };
 
+
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+
 // Async thunk to fetch all BusPayments records
 export const fetchBusPayments = createAsyncThunk('busPayments/fetchBusPayments', async () => {
-    const response = await axios.get('/api/busPayments');
+    const response = await axios.get(`${BASE_URL}/api/busPayments`);
     return response.data;
 });
 
 // Async thunk to create a new BusPayments record
 export const createBusPayment = createAsyncThunk('busPayments/createBusPayment', async (data: BusPaymentsData) => {
-    const response = await axios.post('/api/busPayments', data);
+    console.log('createBusPayment slice', data);
+
+    // const response = await axios.post(`${BASE_URL}/api/busPayments/create`, data);
+    // return response.data;
+
+     // Call the API to create a new business
+     try {
+        const response = await axios.post(
+            `${BASE_URL}/api/busPayments/create`,
+            data,
+            {
+                headers: { 'Content-Type': 'application/json' },
+            }
+        );
+        console.log('AFTER APIresponse data', response.data);
+
+        if (response.status >= 200 && response.status < 300) {
+            console.log('busPayments fulfilled::: ', response.data);
+            // Ensure response.data is an array
+            return Array.isArray(response.data) ? response.data : []; //
+            // return data; // This data will be available as `action.payload`
+        } else {
+            throw new Error(`Error fetching business client payment. Status: ${response.status} - Error: ${response.statusText}`);
+        }           
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            throw new Error(error.response.data.message || 'Failed to create business');
+        }
+        throw new Error('Network error or other issue');
+    }
+});
+
+// Async thunk to fetch a single BusPayments record by buss_no
+export const fetchBusPaymentByBussNo = createAsyncThunk('busPayments/fetchBusPaymentByBussNo', async (buss_no: string) => {
+    const response = await axios.get(`${BASE_URL}/api/busPayments/${buss_no}`);
     return response.data;
 });
 
 // Async thunk to fetch a single BusPayments record by buss_no
-export const fetchBusPaymentById = createAsyncThunk('busPayments/fetchBusPaymentById', async (buss_no: string) => {
-    const response = await axios.get(`/api/busPayments/${buss_no}`);
+export const fetchBusPaymentByElectoralArea = createAsyncThunk('busPayments/fetchBusPaymentByElectoralArea', async (electoralArea: string) => {
+    const response = await axios.get(`${BASE_URL}/api/busPayments/${electoralArea}`);
+    return response.data;
+});
+
+// Async thunk to fetch a single BusPayments record by buss_no
+export const fetchBusPaymentByPaymentDate = createAsyncThunk('busPayments/fetchBusPaymentByPaymentDate', async (payment_date: Date) => {
+    const response = await axios.get(`${BASE_URL}/api/busPayments/${payment_date}`);
+    return response.data;
+});
+
+export const fetchBusPaymentByTwoDates = createAsyncThunk('busPayments/fetchBusPaymentByTwoDates', async ({ startDate, endDate }: { startDate: Date; endDate: Date }) => {
+    // You can format the dates as strings or pass them in a way your API expects
+    const formattedStartDate = startDate.toISOString().split('T')[0];
+    const formattedEndDate = endDate.toISOString().split('T')[0];
+
+    const response = await axios.get(`${BASE_URL}/api/busPayments?startDate=${formattedStartDate}&endDate=${formattedEndDate}`);
     return response.data;
 });
 
@@ -49,22 +103,36 @@ export const fetchBusPaymentById = createAsyncThunk('busPayments/fetchBusPayment
 export const updateBusPayment = createAsyncThunk(
     'busPayments/updateBusPayment',
     async ({ buss_no, data }: { buss_no: string; data: BusPaymentsData }) => {
-        const response = await axios.put(`/api/busPayments/${buss_no}`, data);
+        const response = await axios.put(`${BASE_URL}/api/busPayments/${buss_no}`, data);
         return response.data;
     }
 );
 
 // Async thunk to delete a BusPayments record
 export const deleteBusPayment = createAsyncThunk('busPayments/deleteBusPayment', async (buss_no: string) => {
-    const response = await axios.delete(`/api/busPayments/${buss_no}`);
+    const response = await axios.delete(`${BASE_URL}/api/busPayments/${buss_no}`);
     return response.data;
 });
 
-// Create the slice
+// Create the slice 
 const busPaymentsSlice = createSlice({
     name: 'busPayments',
     initialState,
-    reducers: {},
+    reducers: {
+        setBusPayments: (state, action: PayloadAction<BusPaymentsData[]>) => {
+            state.busPayments = action.payload;
+        },
+        addBusPayment: (state, action: PayloadAction<BusPaymentsData>) => {
+            state.busPayments.push(action.payload);
+        },
+      
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.loading = action.payload;
+        },
+        setError: (state, action: PayloadAction<string | null>) => {
+            state.error = action.payload;
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchBusPayments.pending, (state) => {
@@ -84,22 +152,58 @@ const busPaymentsSlice = createSlice({
             })
             .addCase(createBusPayment.fulfilled, (state, action) => {
                 state.loading = false;
-                state.busPayments.push(action.payload); // Add the new BusPayments record
+                state.busPayments.push(...action.payload); // Add the new business
                 state.error = null;
             })
             .addCase(createBusPayment.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to create BusPayments record';
             })
-            .addCase(fetchBusPaymentById.pending, (state) => {
+            .addCase(fetchBusPaymentByBussNo.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchBusPaymentById.fulfilled, (state) => {
+            .addCase(fetchBusPaymentByBussNo.fulfilled, (state, action) => {
                 state.loading = false;
-                // Handle the fetched single BusPayments record as needed
+                state.busPayments.push(action.payload); // Add the new BusPayments record
                 state.error = null;
             })
-            .addCase(fetchBusPaymentById.rejected, (state, action) => {
+            .addCase(fetchBusPaymentByBussNo.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to fetch BusPayments record';
+            })
+            .addCase(fetchBusPaymentByElectoralArea.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchBusPaymentByElectoralArea.fulfilled, (state, action) => {     
+                state.loading = false;
+                state.busPayments.push(action.payload); // Add the new BusPayments record
+                state.error = null;
+            })
+            .addCase(fetchBusPaymentByElectoralArea.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to fetch BusPayments record';
+            })
+            .addCase(fetchBusPaymentByPaymentDate.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchBusPaymentByPaymentDate.fulfilled, (state, action) => {
+                state.loading = false;
+                state.busPayments.push(action.payload); // Add the new BusPayments record
+                state.error = null;
+            })
+            .addCase(fetchBusPaymentByPaymentDate.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to fetch BusPayments record';
+            })
+            .addCase(fetchBusPaymentByTwoDates.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchBusPaymentByTwoDates.fulfilled, (state, action) => {
+                state.loading = false;
+                state.busPayments.push(action.payload); // Add the new BusPayments record
+                state.error = null;
+            })
+            .addCase(fetchBusPaymentByTwoDates.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch BusPayments record';
             })
@@ -135,7 +239,5 @@ const busPaymentsSlice = createSlice({
 });
 
 // Export the actions if needed
-export const {} = busPaymentsSlice.actions; // Add any synchronous actions if required
-
-// Export the reducer
+export const { setBusPayments, addBusPayment, setLoading, setError } = busPaymentsSlice.actions;
 export default busPaymentsSlice.reducer;

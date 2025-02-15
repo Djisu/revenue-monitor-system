@@ -33,20 +33,6 @@ export interface LoginResponse {
     token: string;
     user: OperatorDefinition; // The user object returned from the backend
 }
-
-// interface Permission {
-//     Menus: string; // or whatever type is appropriate
-// }
-
-// interface item {
-//     item: string
-// }
-
-// interface User {
-//     firstname: string;
-//     lastname: string;
-//     existingPermissions: Permission[];
-// }
   
 // Define the error response type for login
 export interface LoginError {
@@ -55,13 +41,6 @@ export interface LoginError {
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
-
-// console.log('in authSlice.ts')
-
-// console.log('BASE_URL:', BASE_URL);
-
-// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-// console.log('BASE_URL: ', BASE_URL)
 
 // Define the async thunk for login
 export const loginUser = createAsyncThunk<LoginResponse, { username: string; password: string }, { rejectValue: LoginError }>(
@@ -85,6 +64,11 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
 
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.user));
+
+            console.log(response.data.user.firstname +  ' ' + response.data.user.lastname)
+            localStorage.setItem('operatorId', JSON.stringify(response.data.user.firstname +  ' ' + response.data.user.lastname));
+
+            console.log('User:', response.data.user);
 
             // Assuming existingPermissions is an array
             const permissions = response.data.user.existingPermissions; 

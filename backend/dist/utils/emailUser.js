@@ -30,10 +30,10 @@ export const sendResetEmailUser = async (email, token) => {
     // Construct the email contents
     const resetUrl = `${frontendUrl}/auth/reset-password?token=${token}&env=${nodeEnv}`;
     const mailOptions = {
-        from: `"Typescript Church" <${emailUser}>`, // Sender address
-        to: email, // List of recipients
-        subject: 'Password Reset Request', // Subject line
-        text: `You requested a password reset. Click the link to reset your password: ${resetUrl}`, // Plain text body
+        from: `"Typescript Church" <${emailUser}>`,
+        to: email,
+        subject: 'Password Reset Request',
+        text: `You requested a password reset. Click the link to reset your password: ${resetUrl}`,
         html: `<p>You requested a password reset. Click the link to reset your password: <a href="${resetUrl}">${resetUrl}</a></p>`, // HTML body
     };
     // Send the email

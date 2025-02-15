@@ -45,10 +45,6 @@ var initialState = {
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
-// console.log('in authSlice.ts')
-// console.log('BASE_URL:', BASE_URL);
-// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-// console.log('BASE_URL: ', BASE_URL)
 // Define the async thunk for login
 export var loginUser = createAsyncThunk('auth/loginUser', function (credentials_1, _a) { return __awaiter(void 0, [credentials_1, _a], void 0, function (credentials, _b) {
     var response, permissions, error_1;
@@ -72,6 +68,9 @@ export var loginUser = createAsyncThunk('auth/loginUser', function (credentials_
                 }
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
+                console.log(response.data.user.firstname + ' ' + response.data.user.lastname);
+                localStorage.setItem('operatorId', JSON.stringify(response.data.user.firstname + ' ' + response.data.user.lastname));
+                console.log('User:', response.data.user);
                 permissions = response.data.user.existingPermissions;
                 //console.log('Permissions:', permissions);
                 // Store permissions if they exist

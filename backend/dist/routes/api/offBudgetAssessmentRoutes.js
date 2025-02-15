@@ -303,7 +303,7 @@ async function insertBudgetAssess(data) {
                 item.month,
                 item.budget,
                 item.amount,
-                item.budget - item.amount, // Calculate variance here
+                item.budget - item.amount,
                 item.fiscalYear,
                 item.assessmentby
             ]);

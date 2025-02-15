@@ -37,6 +37,7 @@ import receiptRoutes from './routes/api/receiptRoutes.js';
 import transSavingsRoutes from './routes/api/transSavingsRoutes.js'; 
 import photosRoute from './routes/api/photosRoutes.js'; 
 import businessTypeRoute from './routes/api/businessTypeRoutes.js';
+import busPaymentsRoutes from './routes/api/busPaymentsRoutes.js'; 
 
 // Load environment variables from .env file
 const environment = process.env.NODE_ENV || 'development';
@@ -177,6 +178,7 @@ app.use('/api/receipt', receiptRoutes);
 app.use('/api/transSavings', transSavingsRoutes);
 app.use('/api/photos', photosRoute);
 app.use('/api/businessType', businessTypeRoute);
+app.use('/api/busPayments', busPaymentsRoutes);
 
 // Set up multer storage
 const storage: StorageEngine = diskStorage({

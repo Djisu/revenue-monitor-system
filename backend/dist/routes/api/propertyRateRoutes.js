@@ -44,7 +44,7 @@ router.post('/create', async (req, res) => {
         const [result] = await connection.execute(`INSERT INTO tb_propertyrate 
             (property_class, fiscalyear, rate, registrationrate) 
             VALUES (?, ?, ?, ?)`, [
-            propertyRateData.property_Class.toLowerCase(), // Convert property_class to lowercase
+            propertyRateData.property_Class.toLowerCase(),
             propertyRateData.fiscalyear,
             propertyRateData.rate,
             propertyRateData.registrationrate,
@@ -55,7 +55,7 @@ router.post('/create', async (req, res) => {
             res.status(201).json({
                 success: true,
                 message: 'Property rate record created successfully',
-                property_class: propertyRateData.property_Class, // Use the processed property class   
+                property_class: propertyRateData.property_Class,
                 rate: propertyRateData.rate
             });
         }
@@ -91,14 +91,18 @@ router.get('/', async (req, res) => {
 });
 // Read a single property rate record by property_Class and fiscalyear
 router.get('/:property_Class/:fiscalyear', async (req, res) => {
+    console.log('in get property rate: ', req.params);
     const { property_Class, fiscalyear } = req.params;
     const connection = await mysql.createConnection(dbConfig);
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_propertyrate WHERE property_Class = ? AND fiscalyear = ?', [property_Class, fiscalyear]);
         if (Array.isArray(rows) && rows.length > 0) {
-            res.json(rows[0]); // Return the first row
+            console.log('rows: ', rows);
+            console.log('rows[0]: ', rows[0]);
+            res.status(200).json(rows); // Return the first row
         }
         else {
+            console.log('rows: ', rows);
             res.status(404).json({ message: 'Property rate record not found' });
         }
     }

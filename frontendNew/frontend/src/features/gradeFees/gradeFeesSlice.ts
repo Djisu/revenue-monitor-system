@@ -31,14 +31,14 @@ const BASE_URL = import.meta.env.VITE_BASE_URL ||
 
 // Async thunk to fetch all grade fees
 export const fetchGradeFees = createAsyncThunk('gradeFees/fetchgradeFees', async () => {
-    console.log('fetchGradeFees slice called')
+   // console.log('fetchGradeFees slice called')
 
     const response = await axios.get(`${BASE_URL}/api/gradeFees/all`);
 
     console.log(`after axios.get, response.data: ${JSON.stringify(response.data)}`);
 
     if (response.status >= 200 && response.status < 300) {
-        console.log('fetchGradeFees fulfilled::: ', response.data);
+        //console.log('fetchGradeFees fulfilled::: ', response.data);
         // Ensure response.data is an array
         return Array.isArray(response.data) ? response.data : []; //
         // return data; // This data will be available as `action.payload`
@@ -56,7 +56,7 @@ export const createGradeFee = createAsyncThunk('gradeFees/createGradeFee', async
                 headers: { 'Content-Type': 'application/json' },
         });
 
-        console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
+        //console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
         return response.data;
     } catch (error: any) {
         if (axios.isAxiosError(error) && error.response) {

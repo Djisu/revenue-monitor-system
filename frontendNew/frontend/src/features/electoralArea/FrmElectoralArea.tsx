@@ -3,6 +3,7 @@ import { useAppDispatch } from '../../app/store';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 import { fetchElectoralAreas, createElectoralArea, deleteElectoralArea } from './electoralAreaSlice';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface ElectoralArea {
     electoral_area: string;
@@ -14,6 +15,7 @@ const FrmElectoralArea: React.FC = () => {
     let [isDeleting, setIsDeleting] = useState(false);
 
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchAreas = async () => {
@@ -21,19 +23,19 @@ const FrmElectoralArea: React.FC = () => {
                 const result = await dispatch(fetchElectoralAreas()).unwrap();
                 console.log('Fetched electoral areasXXXXXXX:', result); // Log the result
 
-                if (!Array.isArray(result.data)){
+                if (!Array.isArray(result)){
                     console.log('NOT AN ARRAY!!!')
                 }
 
                 // Check if result is an array
-                if (Array.isArray(result.data)) {
+                if (Array.isArray(result)) {
                      console.log('it is an array of electoralareas');
 
-                    setLocalElectoralAreas(result.data);
-                    console.log('result.data:: ', result.data)
+                    setLocalElectoralAreas(result);
+                    console.log('result:: ', result)
                     console.log('localElectoralAreas:: ', localElectoralAreas)
                 } else {
-                    console.error('Expected an array, but received:', result.data);
+                    console.error('Expected an array, but received:', result);
                     setLocalElectoralAreas([]);
                 }
             } catch (error) {
@@ -65,7 +67,8 @@ const FrmElectoralArea: React.FC = () => {
             setElectoralArea('');
             // Refresh the list of electoral areas
             const result = await dispatch(fetchElectoralAreas()).unwrap();
-            setLocalElectoralAreas(result.data);
+            setLocalElectoralAreas(result);
+            navigate('/main');
         } catch (error: any) {
             console.error("Error adding electoral area", error);
             alert(error.message || "Error in adding a record");

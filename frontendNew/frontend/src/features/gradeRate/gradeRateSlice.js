@@ -156,6 +156,7 @@ var gradeRateSlice = createSlice({
         builder
             .addCase(fetchGradeRates.pending, function (state) {
             state.loading = true;
+            state.error = null;
         })
             .addCase(fetchGradeRates.fulfilled, function (state, action) {
             state.loading = false;
@@ -173,6 +174,7 @@ var gradeRateSlice = createSlice({
         })
             .addCase(createGradeRate.pending, function (state) {
             state.loading = true;
+            state.error = null;
         })
             .addCase(createGradeRate.fulfilled, function (state, action) {
             state.loading = false;

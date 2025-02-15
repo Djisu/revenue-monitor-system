@@ -168,7 +168,7 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
     const connection = await mysql.createConnection(dbConfig);
 
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_officer WHERE officer_no = ?', [req.params.officer_no]);
+        const [rows] = await connection.execute('SELECT officer_no FROM tb_officer WHERE officer_no = ?', [req.params.officer_no]);
 
         // res.status(200).json({ message: 'Officer record retrieved successfully', rows: rows });
         // return
@@ -181,105 +181,21 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
     }
 });
 
+router.get('/retrieve/:officer_name', async (req: Request, res: Response) => {
+    const connection = await mysql.createConnection(dbConfig);
 
+    try {
+        const [rows] = await connection.execute('SELECT officer_name FROM tb_officer WHERE officer_no = ?', [req.params.officer_no]);
 
-// // Endpoint to store a photo
-// router.post('/photos', async (req: CustomRequest, res: Response) => {
-//     const { officer_no, photo } = req.body;
-
-//     if (!officer_no || !photo) {
-//         return res.status(400).json({ error: 'officer_no and photo are required' });
-//     }
-
-//     try {
-//         const result = await storePhoto(officer_no, photo);
-//         res.status(201).json({ message: 'Photo stored successfully', result });
-//     } catch (err) {
-//         res.status(500).json({ error: 'Error storing photo', details: err });
-//     }
-// });
-
-// // Endpoint to retrieve a photo
-// router.get('/photos/:officer_no', async (req: Request<{ officer_no: string }>, res: Response) => {
-//     const { officer_no } = req.params;
-
-//     if (!officer_no) {
-//         return res.status(400).json({ error: 'officer_no is required' });
-//     }
-
-//     try {
-//         const photo = await getPhoto(officer_no);
-//         if (photo) {
-//             res.type('image/jpeg').send(photo); // Set appropriate content type
-//         } else {
-//             res.status(404).json({ error: 'Photo not found' });
-//         }
-//     } catch (err) {
-//         res.status(500).json({ error: 'Error getting photo', details: err });
-//     }
-// });
-
-// // Endpoint to delete a photo
-// router.delete('/photos/:officer_no', async (req: Request<{ officer_no: string }>, res: Response) => {
-//     const { officer_no } = req.params;
-
-//     if (!officer_no) {
-//         return res.status(400).json({ error: 'officer_no is required' });
-//     }
-
-//     try {
-//         const result = await deletePhoto(officer_no);
-//         if (result.affectedRows > 0) { // Ensure deletion was successful
-//             res.status(200).json({ message: 'Photo deleted successfully', result });
-//         } else {
-//             res.status(404).json({ error: 'Photo not found' });
-//         }
-//     } catch (err) {
-//         res.status(500).json({ error: 'Error deleting photo', details: err });
-//     }
-// });
-// Error hand
-
-// // Function to store a photo
-// export const storePhoto = async ( officer_no: string, photo: Buffer): Promise<any> => {
-//     const connection = await mysql.createConnection(dbConfig);
-    
-//     const sql = 'INSERT INTO photos (officer_no, photo) VALUES (?, ?)';
-//     try {
-//         const [result] = await connection.execute(sql, [officer_no, photo]);
-//         return result;
-//     } catch (err) {
-//         throw err;
-//     }
-// };
-
-
-// // Function to retrieve a photo
-// export const getPhoto = async ( officer_no: string): Promise<Buffer | null> => {
-//     const connection = await mysql.createConnection(dbConfig);
-    
-//     const sql = 'SELECT photo FROM photos WHERE officer_no = ?';
-//     try {
-//         const [rows] = await connection.execute(sql, [officer_no]);
-//         return rows.length > 0 ? rows[0].photo : null;
-//     } catch (err) {
-//         throw err;
-//     }
-// };
-
-// // Function to delete a photo
-// export const deletePhoto = async ( officer_no: string): Promise<any> => {
-//     const connection = await mysql.createConnection(dbConfig);
-    
-//     const sql = 'DELETE FROM photos WHERE officer_no = ?';
-//     try {
-//         const [result] = await connection.execute(sql, [officer_no]);
-//         return result;
-//     } catch (err) {
-//         throw err;
-//     }
-// };
-
-
+        // res.status(200).json({ message: 'Officer record retrieved successfully', rows: rows });
+        // return
+        res.json(rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error getting officer record', error });
+    } finally {
+        connection.end();
+    }
+});
 
 export default router;

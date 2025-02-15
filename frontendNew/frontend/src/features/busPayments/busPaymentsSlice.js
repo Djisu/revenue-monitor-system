@@ -43,12 +43,14 @@ var initialState = {
     loading: false,
     error: null,
 };
+var BASE_URL = import.meta.env.VITE_BASE_URL ||
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 // Async thunk to fetch all BusPayments records
 export var fetchBusPayments = createAsyncThunk('busPayments/fetchBusPayments', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get('/api/busPayments')];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments"))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -57,10 +59,46 @@ export var fetchBusPayments = createAsyncThunk('busPayments/fetchBusPayments', f
 }); });
 // Async thunk to create a new BusPayments record
 export var createBusPayment = createAsyncThunk('busPayments/createBusPayment', function (data) { return __awaiter(void 0, void 0, void 0, function () {
+    var response, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log('createBusPayment slice', data);
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/busPayments/create"), data, {
+                        headers: { 'Content-Type': 'application/json' },
+                    })];
+            case 2:
+                response = _a.sent();
+                console.log('AFTER APIresponse data', response.data);
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('busPayments fulfilled::: ', response.data);
+                    // Ensure response.data is an array
+                    return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //
+                    // return data; // This data will be available as `action.payload`
+                }
+                else {
+                    throw new Error("Error fetching business client payment. Status: ".concat(response.status, " - Error: ").concat(response.statusText));
+                }
+                return [3 /*break*/, 4];
+            case 3:
+                error_1 = _a.sent();
+                if (axios.isAxiosError(error_1) && error_1.response) {
+                    throw new Error(error_1.response.data.message || 'Failed to create business');
+                }
+                throw new Error('Network error or other issue');
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+// Async thunk to fetch a single BusPayments record by buss_no
+export var fetchBusPaymentByBussNo = createAsyncThunk('busPayments/fetchBusPaymentByBussNo', function (buss_no) { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post('/api/busPayments', data)];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/").concat(buss_no))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -68,13 +106,40 @@ export var createBusPayment = createAsyncThunk('busPayments/createBusPayment', f
     });
 }); });
 // Async thunk to fetch a single BusPayments record by buss_no
-export var fetchBusPaymentById = createAsyncThunk('busPayments/fetchBusPaymentById', function (buss_no) { return __awaiter(void 0, void 0, void 0, function () {
+export var fetchBusPaymentByElectoralArea = createAsyncThunk('busPayments/fetchBusPaymentByElectoralArea', function (electoralArea) { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("/api/busPayments/".concat(buss_no))];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/").concat(electoralArea))];
             case 1:
                 response = _a.sent();
+                return [2 /*return*/, response.data];
+        }
+    });
+}); });
+// Async thunk to fetch a single BusPayments record by buss_no
+export var fetchBusPaymentByPaymentDate = createAsyncThunk('busPayments/fetchBusPaymentByPaymentDate', function (payment_date) { return __awaiter(void 0, void 0, void 0, function () {
+    var response;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/").concat(payment_date))];
+            case 1:
+                response = _a.sent();
+                return [2 /*return*/, response.data];
+        }
+    });
+}); });
+export var fetchBusPaymentByTwoDates = createAsyncThunk('busPayments/fetchBusPaymentByTwoDates', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
+    var formattedStartDate, formattedEndDate, response;
+    var startDate = _b.startDate, endDate = _b.endDate;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                formattedStartDate = startDate.toISOString().split('T')[0];
+                formattedEndDate = endDate.toISOString().split('T')[0];
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments?startDate=").concat(formattedStartDate, "&endDate=").concat(formattedEndDate))];
+            case 1:
+                response = _c.sent();
                 return [2 /*return*/, response.data];
         }
     });
@@ -85,7 +150,7 @@ export var updateBusPayment = createAsyncThunk('busPayments/updateBusPayment', f
     var buss_no = _b.buss_no, data = _b.data;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.put("/api/busPayments/".concat(buss_no), data)];
+            case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/busPayments/").concat(buss_no), data)];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
@@ -97,18 +162,31 @@ export var deleteBusPayment = createAsyncThunk('busPayments/deleteBusPayment', f
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.delete("/api/busPayments/".concat(buss_no))];
+            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/busPayments/").concat(buss_no))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
         }
     });
 }); });
-// Create the slice
+// Create the slice 
 var busPaymentsSlice = createSlice({
     name: 'busPayments',
     initialState: initialState,
-    reducers: {},
+    reducers: {
+        setBusPayments: function (state, action) {
+            state.busPayments = action.payload;
+        },
+        addBusPayment: function (state, action) {
+            state.busPayments.push(action.payload);
+        },
+        setLoading: function (state, action) {
+            state.loading = action.payload;
+        },
+        setError: function (state, action) {
+            state.error = action.payload;
+        },
+    },
     extraReducers: function (builder) {
         builder
             .addCase(fetchBusPayments.pending, function (state) {
@@ -127,23 +205,60 @@ var busPaymentsSlice = createSlice({
             state.loading = true;
         })
             .addCase(createBusPayment.fulfilled, function (state, action) {
+            var _a;
             state.loading = false;
-            state.busPayments.push(action.payload); // Add the new BusPayments record
+            (_a = state.busPayments).push.apply(_a, action.payload); // Add the new business
             state.error = null;
         })
             .addCase(createBusPayment.rejected, function (state, action) {
             state.loading = false;
             state.error = action.error.message || 'Failed to create BusPayments record';
         })
-            .addCase(fetchBusPaymentById.pending, function (state) {
+            .addCase(fetchBusPaymentByBussNo.pending, function (state) {
             state.loading = true;
         })
-            .addCase(fetchBusPaymentById.fulfilled, function (state) {
+            .addCase(fetchBusPaymentByBussNo.fulfilled, function (state, action) {
             state.loading = false;
-            // Handle the fetched single BusPayments record as needed
+            state.busPayments.push(action.payload); // Add the new BusPayments record
             state.error = null;
         })
-            .addCase(fetchBusPaymentById.rejected, function (state, action) {
+            .addCase(fetchBusPaymentByBussNo.rejected, function (state, action) {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to fetch BusPayments record';
+        })
+            .addCase(fetchBusPaymentByElectoralArea.pending, function (state) {
+            state.loading = true;
+        })
+            .addCase(fetchBusPaymentByElectoralArea.fulfilled, function (state, action) {
+            state.loading = false;
+            state.busPayments.push(action.payload); // Add the new BusPayments record
+            state.error = null;
+        })
+            .addCase(fetchBusPaymentByElectoralArea.rejected, function (state, action) {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to fetch BusPayments record';
+        })
+            .addCase(fetchBusPaymentByPaymentDate.pending, function (state) {
+            state.loading = true;
+        })
+            .addCase(fetchBusPaymentByPaymentDate.fulfilled, function (state, action) {
+            state.loading = false;
+            state.busPayments.push(action.payload); // Add the new BusPayments record
+            state.error = null;
+        })
+            .addCase(fetchBusPaymentByPaymentDate.rejected, function (state, action) {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to fetch BusPayments record';
+        })
+            .addCase(fetchBusPaymentByTwoDates.pending, function (state) {
+            state.loading = true;
+        })
+            .addCase(fetchBusPaymentByTwoDates.fulfilled, function (state, action) {
+            state.loading = false;
+            state.busPayments.push(action.payload); // Add the new BusPayments record
+            state.error = null;
+        })
+            .addCase(fetchBusPaymentByTwoDates.rejected, function (state, action) {
             state.loading = false;
             state.error = action.error.message || 'Failed to fetch BusPayments record';
         })
@@ -178,6 +293,5 @@ var busPaymentsSlice = createSlice({
     },
 });
 // Export the actions if needed
-export var _b = _a = busPaymentsSlice.actions; // Add any synchronous actions if required
-// Export the reducer
+export var setBusPayments = (_a = busPaymentsSlice.actions, _a.setBusPayments), addBusPayment = _a.addBusPayment, setLoading = _a.setLoading, setError = _a.setError;
 export default busPaymentsSlice.reducer;

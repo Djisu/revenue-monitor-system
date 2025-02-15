@@ -1,148 +1,202 @@
 // src/features/business/businessSlice.ts
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-//import axiosInstance from '../../axiosinstance'
 
 // Define the type for Business data
 interface BusinessData {
-    buss_no: number;
-    buss_name: string;
-    buss_address: string;
-    buss_type: string;
-    buss_town: string;
-    buss_permitNo: string;
-    street_name: string;
-    landmark: string;
-    electroral_area: string;
-    property_class: string;
-    Tot_grade: number;
-    ceo: string;
-    telno: string;
-    strategiclocation: number;
-    productvariety: number;
-    businesspopularity: number;
-    businessenvironment: number;
-    sizeofbusiness: number;
-    numberofworkingdays: number;
-    businessoperatingperiod: number;
-    competitorsavailable: number;
-    assessmentby: string;
-    transdate: Date;
-    balance: number;
-    status: string;
-    serialno: number;
-    current_rate: number;
-    property_rate: number;
-    totalmarks: number;
-    meterid: number;
-    metercategory: string;
-    emailaddress: string;
-    FloorRoomNo: string;
-    suburb: string;
-    postaladdress: string;
-    irsno: string;
-    vatno: string;
-    blocklayout: string;
-    blockdivision: string;
-    noofemployees: number;
-    noofbranches: number;
-    detailsofbranches: string;
-    contactperson: string;
-    contacttelno: string;
-    BALANCENEW: number;
-    // buss_no: string;
-    // buss_name: string;
-    // buss_address: string;
-    // buss_type: string;
-    // BUSS_TOWN: string;
-    // buss_permitNo: string;
-    // street_name: string;
-    // landmark: string;
-    // electroral_area: string;
-    // property_class: string;
-    // Tot_grade: string;
-    // ceo: string;
-    // telno: string;
-    // strategiclocation: string;
-    // productvariety: string;
-    // businesspopularity: string;
-    // businessenvironment: string;
-    // sizeofbusiness: string;
-    // numberofworkingdays: string;
-    // businessoperatingperiod: string;
-    // competitorsavailable: string;
-    // assessmentby: string;
-    // transdate: string;
-    // balance: string;
-    // status: string;
-    // serialno: string;
-    // current_rate: string;
-    // property_rate: string;
-    // totalmarks: string;
-    // meterid: string;
-    // metercategory: string;
-    // emailaddress: string;
-    // FloorRoomNo: string;
-    // suburb: string;
-    // postaladdress: string;
-    // irsno: string;
-    // vatno: string;
-    // blocklayout: string;
-    // blockdivision: string;
-    // noofemployees: string;
-    // noofbranches: string;
-    // detailsofbranches: string;
-    // contactperson: string;
-    // contacttelno: string;
-    // BALANCENEW: string;
+  buss_no: number;
+  buss_name?: string;
+  buss_address?: string;
+  buss_type?: string;
+  buss_town?: string;
+  buss_permitNo?: string;
+  street_name?: string;
+  landmark?: string;
+  electroral_area?: string;
+  property_class?: string;
+  tot_grade?: string;
+  ceo?: string;
+  telno?: string;
+  strategiclocation?: number;
+  productvariety?: number;
+  businesspopularity?: number;
+  businessenvironment?: number;
+  sizeofbusiness?: number;
+  numberofworkingdays?: number;
+  businessoperatingperiod?: number;
+  competitorsavailable?: number;
+  assessmentby?: string;
+  transdate?: Date;
+  balance?: number;
+  status?: string;
+  current_rate?: number;
+  property_rate?: number;
+  totalmarks?: number;
+  emailaddress?: string; 
+  postaladdress?: string;
+  gps_address?: string; 
+  noofemployees?: number;
+  noofbranches?: number;
+  BALANCENEW?: number;
 }
 
 // Define the initial state for the slice
 interface BusinessState {
     businesses: BusinessData[];
     loading: boolean;
+    successMessage: string;
     error: string | null;
+    message: string
 }
 
 const initialState: BusinessState = {
-    businesses: [],
+    businesses: [] as BusinessData[],
     loading: false,
+    successMessage: '',
     error: null,
+    message: ''
 };
+
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 
-// console.log('in authSlice.ts')
-
-// console.log('BASE_URL:', BASE_URL);
-
-// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-// console.log('BASE_URL: ', BASE_URL)
 
 // Async thunk to fetch all businesses
 export const fetchBusinesses = createAsyncThunk('business/fetchBusinesses', async () => {
-    const response = await axios.get(`${BASE_URL}/api/business`);
-    return response.data;
+    // Call the API to fetch all businesses
+    console.log('in fetchBusinesses slice, Fetching all businesses')
+
+    const response = await axios.get(`${BASE_URL}/api/business/all`);
+
+    if (response.status >= 200 && response.status < 300) {
+        console.log('fetchGradeFees fulfilled::: ', response.data);
+        // Ensure response.data is an array
+        return Array.isArray(response.data) ? response.data : []; //
+        // return data; // This data will be available as `action.payload`
+    } else {
+        throw new Error(`Error fetching grade fees. Status: ${response.status} - Error: ${response.statusText}`);
+    }
 });
+
+// Async thunk to process operating permits electoralArea, fiscalYear
+export const processOperatingPermits = createAsyncThunk(
+    'business/processOperatingPermits',
+    async ({ electoralArea, fiscalYear }: 
+        { electoralArea: string, fiscalYear: number }) => {
+        console.log(
+            'in processOperatingPermits slice, Processing Operating Permits for electoral_area: ',
+            electoralArea,
+            'and fiscal_year: ',
+            fiscalYear
+        );
+
+        // Prepare the data object to send in the request
+        const data = {
+            electoralArea,
+            fiscalYear
+        };
+
+        // Call the API to create a new business
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/api/business/processOperatingPermits/${electoralArea}/${fiscalYear}`,
+                data,
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            );
+            console.log('response data', response.data.message);
+
+            if (response.status >= 200 && response.status < 300) {
+                console.log(response.data.message);
+                // Ensure response.data is an array
+                return response.data.message   
+            } else {
+                throw new Error(`Error fetching business client. Status: ${response.status} - Error: ${response.statusText}`);
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                throw new Error(error.response.data.message || 'Failed to create business');
+            }
+            throw new Error('Network error or other issue');
+        }
+    }
+);
+
 
 // Async thunk to create a new business
 export const createBusiness = createAsyncThunk('business/createBusiness', async (data: BusinessData) => {
-    const response = await axios.post(`${BASE_URL}/api/business`, data);
-    return response.data;
+    console.log('in createBusiness slice, Creating a new business')
+
+    // Call the API to create a new business
+    try {
+        const response = await axios.post(
+            `${BASE_URL}/api/business/create`,
+            data,
+            {
+                headers: { 'Content-Type': 'application/json' },
+            }
+        );
+        console.log('response data', response.data);
+
+        if (response.status >= 200 && response.status < 300) {
+            console.log('fetchGradeFees fulfilled::: ', response.data);
+            // Ensure response.data is an array
+            return Array.isArray(response.data) ? response.data : []; //
+            // return data; // This data will be available as `action.payload`
+        } else {
+            throw new Error(`Error fetching business client. Status: ${response.status} - Error: ${response.statusText}`);
+        }           
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            throw new Error(error.response.data.message || 'Failed to create business');
+        }
+        throw new Error('Network error or other issue');
+    }
 });
 
-// Async thunk to fetch a single business by buss_no
-export const fetchBusinessById = createAsyncThunk('business/fetchBusinessById', async (buss_no: string) => {
+// Async thunk to fetch a single business by buss_no 
+export const fetchBusinessById = createAsyncThunk('business/fetchBusinessById', async (buss_no: number) => {
     const response = await axios.get(`${BASE_URL}/api/business/${buss_no}`);
-    return response.data;
+    
+    if (response.status >= 200 && response.status < 300) {
+        console.log('fetchGradeFees fulfilled::: ', response.data);
+        // Ensure response.data is an array
+        return Array.isArray(response.data) ? response.data : []; //
+        // return data; // This data will be available as `action.payload`
+    } else {
+    throw new Error(`Error fetching business client. Status: ${response.status} - Error: ${response.statusText}`);
+    }    
+});
+
+export const fetchBusinessByName = createAsyncThunk('business/fetchBusinessById', async (buss_name: string) => {
+    const response = await axios.get(`${BASE_URL}/api/business/${buss_name}`);
+    
+    if (response.status >= 200 && response.status < 300) {
+        console.log('fetchGradeFees fulfilled::: ', response.data);
+        // Ensure response.data is an array
+        return Array.isArray(response.data) ? response.data : []; //
+        // return data; // This data will be available as `action.payload`
+    } else {
+    throw new Error(`Error fetching business client. Status: ${response.status} - Error: ${response.statusText}`);
+    }    
 });
 
 // Async thunk to update a business
 export const updateBusiness = createAsyncThunk(
     'business/updateBusiness',
-    async ({ buss_no, data }: { buss_no: string; data: BusinessData }) => {
-        const response = await axios.put(`${BASE_URL}/api/business/${buss_no}`, data);
+    async ({ buss_no, data }: { buss_no: number; data: BusinessData }) => {
+       console.log('in updateBusiness slice, Updating a business: ', data)
+
+        const response = await axios.put(
+            `${BASE_URL}/api/business/update/${buss_no}`,
+            data,
+            {
+                headers: { 'Content-Type': 'application/json' },
+        });
+
+        console.log(`after axios.put, response.data: ${JSON.stringify(response.data)}`);
         return response.data;
     }
 );
@@ -153,17 +207,46 @@ export const deleteBusiness = createAsyncThunk('business/deleteBusiness', async 
     return response.data;
 });
 
-// Create the slice
+// Create the slice 
 const businessSlice = createSlice({
     name: 'business',
     initialState,
-    reducers: {},
+    reducers: {
+        setGradeFees: (state, action: PayloadAction<BusinessData[]>) => {
+            state.businesses = action.payload;
+        },
+        addGradeFee: (state, action: PayloadAction<BusinessData>) => {
+            state.businesses.push(action.payload);
+        },
+      
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.loading = action.payload;
+        },
+        setError: (state, action: PayloadAction<string | null>) => {
+            state.error = action.payload;
+        },
+    },
     extraReducers: (builder) => {
         builder
+            .addCase(processOperatingPermits.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(processOperatingPermits.fulfilled, (state, action) => {
+                state.loading = false;
+                // You may want to store the message in a specific part of your state
+                state.successMessage = JSON.stringify(action.payload); // Assuming payload contains the message
+                //state.businesses.push(...payload.businesses); // Adjust if necessary
+                state.error = null;
+            })
+            .addCase(processOperatingPermits.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to create business';
+            })
             .addCase(fetchBusinesses.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchBusinesses.fulfilled, (state, action) => {
+            .addCase(fetchBusinesses.fulfilled, (state, action: PayloadAction<BusinessData[]>) => {
                 state.loading = false;
                 state.businesses = action.payload;
                 state.error = null;
@@ -174,10 +257,11 @@ const businessSlice = createSlice({
             })
             .addCase(createBusiness.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
             .addCase(createBusiness.fulfilled, (state, action) => {
                 state.loading = false;
-                state.businesses.push(action.payload); // Add the new business
+                state.businesses.push(...action.payload); // Add the new business
                 state.error = null;
             })
             .addCase(createBusiness.rejected, (state, action) => {
@@ -190,7 +274,7 @@ const businessSlice = createSlice({
             .addCase(fetchBusinessById.fulfilled, (state, action) => {
                 state.loading = false;
                 // Handle the fetched single business as needed
-                state.businesses.push(action.payload); // Add the new business
+                state.businesses.push(...action.payload); // Add the new business
                 state.error = null;
             })
             .addCase(fetchBusinessById.rejected, (state, action) => {
@@ -229,7 +313,7 @@ const businessSlice = createSlice({
 });
 
 // Export the actions if needed
-export const {} = businessSlice.actions; // Add any synchronous actions if required
+export const { setGradeFees, addGradeFee, setLoading, setError }   = businessSlice.actions; // Add any synchronous actions if required
 
 // Export the reducer
 export default businessSlice.reducer;

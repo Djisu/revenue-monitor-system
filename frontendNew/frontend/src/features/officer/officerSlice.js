@@ -45,24 +45,18 @@ var initialState = {
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
-// console.log('in authSlice.ts')
-// console.log('BASE_URL:', BASE_URL);
-// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-// console.log('BASE_URL: ', BASE_URL)
 // Async thunk to fetch all officers
 export var fetchOfficers = createAsyncThunk('officer/fetchOfficers', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                console.log('officeSlicer.ts: fetching officers');
-                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/retrieve"))];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/retrieve"))];
             case 1:
                 response = _a.sent();
                 if (response.status >= 200 && response.status < 300) {
-                    console.log('officeSlicer.ts: officers fetched successfully');
-                    console.log('response.data:', response.data);
-                    console.log('response.data.officers:', response.data.officers);
+                    // console.log('officeSlicer.ts: officers fetched successfully');
+                    // console.log('response.data:', response.data);
+                    // console.log('response.data.officers:', response.data.officers);
                     return [2 /*return*/, response.data]; // This data will be available as `action.payload`
                 }
                 else {
@@ -77,9 +71,7 @@ export var fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', funct
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                console.log('fetching officer by id:', officer_no);
-                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/retrieve/").concat(officer_no))];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/retrieve/").concat(officer_no))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -92,24 +84,21 @@ export var createOfficer = createAsyncThunk('officer/createOfficer', function (o
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log('creating officer:', officerData);
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 3, , 4]);
+                _a.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/officer/create"), officerData, {
                         headers: { 'Content-Type': 'application/json' },
                     })];
-            case 2:
+            case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data]; // Assuming this is your success response
-            case 3:
+            case 2:
                 error_1 = _a.sent();
                 if (axios.isAxiosError(error_1) && error_1.response) {
                     // Handle specific error responses
                     throw new Error(error_1.response.data.message || 'Failed to create officer');
                 }
                 throw new Error('Network error or other issue');
-            case 4: return [2 /*return*/];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
@@ -120,22 +109,19 @@ export var updateOfficer = createAsyncThunk('officer/updateOfficer', function (_
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                console.log('updating officer:', officer_no, officerData);
-                _c.label = 1;
-            case 1:
-                _c.trys.push([1, 3, , 4]);
+                _c.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/officer/update/").concat(officer_no), officerData)];
-            case 2:
+            case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
-            case 3:
+            case 2:
                 error_2 = _c.sent();
                 if (axios.isAxiosError(error_2) && error_2.response) {
                     // Handle specific error responses
                     throw new Error(error_2.response.data.message || 'Failed to update officer');
                 }
                 throw new Error('Network error or other issue');
-            case 4: return [2 /*return*/];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
@@ -144,9 +130,7 @@ export var deleteOfficer = createAsyncThunk('officer/deleteOfficer', function (o
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                console.log('deleting officer:', officer_no);
-                return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/officer/delete/").concat(officer_no))];
+            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/officer/delete/").concat(officer_no))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];

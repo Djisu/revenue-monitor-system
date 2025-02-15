@@ -122,6 +122,7 @@ const gradeRateSlice = createSlice({
         builder
             .addCase(fetchGradeRates.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
             .addCase(fetchGradeRates.fulfilled, (state, action) => {
                 state.loading = false;
@@ -136,8 +137,13 @@ const gradeRateSlice = createSlice({
                     state.error = action.error.message || 'Failed to fetch GradeRate records';
                 }
             })
+
+
+
+
             .addCase(createGradeRate.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
             .addCase(createGradeRate.fulfilled, (state, action) => {
                 state.loading = false;

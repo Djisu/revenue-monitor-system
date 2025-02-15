@@ -55,12 +55,14 @@ export var fetchPropertyRates = createAsyncThunk('propertyRate/fetchPropertyRate
     });
 }); });
 // Async thunk to fetch a single property rate by property_Class and fiscalyear
-export var fetchPropertyRateById = createAsyncThunk('propertyRate/fetchPropertyRateById', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
+export var fetchPropertyRateByPropertyClassAndFiscalyear = createAsyncThunk('propertyRate/fetchPropertyRateByPropertyClassAndFiscalyear', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
     var response;
     var property_Class = _b.property_Class, fiscalyear = _b.fiscalyear;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.get("/api/propertyRate/".concat(property_Class, "/").concat(fiscalyear))];
+            case 0:
+                console.log("fetchPropertyRateByPropertyClassAndFiscalyear: ".concat(property_Class, ", fiscalyear: ").concat(fiscalyear));
+                return [4 /*yield*/, axios.get("/api/propertyRate/".concat(property_Class, "/").concat(fiscalyear))];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
@@ -127,15 +129,15 @@ var propertyRateSlice = createSlice({
             state.loading = false;
             state.error = action.error.message || 'Failed to fetch property rates';
         })
-            .addCase(fetchPropertyRateById.pending, function (state) {
+            .addCase(fetchPropertyRateByPropertyClassAndFiscalyear.pending, function (state) {
             state.loading = true;
         })
-            .addCase(fetchPropertyRateById.fulfilled, function (state) {
+            .addCase(fetchPropertyRateByPropertyClassAndFiscalyear.fulfilled, function (state, action) {
             state.loading = false;
-            // Optionally handle the fetched rate data
+            state.rates = action.payload;
             state.error = null;
         })
-            .addCase(fetchPropertyRateById.rejected, function (state, action) {
+            .addCase(fetchPropertyRateByPropertyClassAndFiscalyear.rejected, function (state, action) {
             state.loading = false;
             state.error = action.error.message || 'Failed to fetch property rate';
         })

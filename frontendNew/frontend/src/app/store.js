@@ -31,6 +31,7 @@ import propertyUseReducer from '../features/propertyUse/propertyUseSlice';
 import receiptReducer from '../features/receipt/receiptSlice';
 import transSavingsReducer from '../features/transSavings/transSavingsSlice';
 import photosReducer from '../features/photos/photosSlice';
+import busPaymentsReducer from '../features/busPayments/busPaymentsSlice';
 var store = configureStore({
     reducer: {
         accReceipt: accReceiptReducer,
@@ -61,6 +62,7 @@ var store = configureStore({
         receipt: receiptReducer,
         transSavings: transSavingsReducer,
         photos: photosReducer,
+        busPayments: busPaymentsReducer,
     },
 });
 // Create typed hooks

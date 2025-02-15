@@ -55,7 +55,9 @@ export var fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessType
                 response = _a.sent();
                 if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
                 return [4 /*yield*/, response.data];
-            case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
+            case 2: 
+            // console.log('fetchBusinessTypes thunk, response data:', response.data);
+            return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
             case 3: throw new Error("Error fetching business types: ".concat(response.statusText));
         }
     });
@@ -66,24 +68,21 @@ export var createBusinessType = createAsyncThunk('businessType/createBusinessTyp
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log('Creating a new business type record:', businessType);
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 3, , 4]);
+                _a.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/businessType/create"), { Business_Type: businessType }, {
                         headers: { 'Content-Type': 'application/json' },
                     })];
-            case 2:
+            case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
-            case 3:
+            case 2:
                 error_1 = _a.sent();
                 if (axios.isAxiosError(error_1) && error_1.response) {
                     // Handle specific error responses
                     throw new Error(error_1.response.data.message || 'Failed to create business type');
                 }
                 throw new Error('Network error or other issue');
-            case 4: return [2 /*return*/];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
@@ -130,7 +129,7 @@ var businessTypeSlice = createSlice({
         })
             .addCase(fetchBusinessTypes.fulfilled, function (state, action) {
             state.loading = false;
-            state.businessTypes = action.payload.data;
+            state.businessTypes = action.payload;
             state.error = null;
         })
             .addCase(fetchBusinessTypes.rejected, function (state, action) {

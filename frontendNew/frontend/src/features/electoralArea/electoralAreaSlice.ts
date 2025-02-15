@@ -15,7 +15,7 @@ interface ElectoralAreaState {
 }
 
 const initialState: ElectoralAreaState = {
-    electoralAreas: [],
+    electoralAreas: [] as ElectoralArea[], 
     loading: false,
     error: null,
 };
@@ -23,21 +23,15 @@ const initialState: ElectoralAreaState = {
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 
-// console.log('in authSlice.ts')
-
-// console.log('BASE_URL:', BASE_URL);
-
-// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-// console.log('BASE_URL: ', BASE_URL)
-
-
 // Async thunks for API calls
 export const fetchElectoralAreas = createAsyncThunk('electoralArea/fetchElectoralAreas', async () => {
     
     const response = await axios.get(`${BASE_URL}/api/electoralArea/all`);
 
     if (response.status >= 200 && response.status < 300) {
-        return await response.data; // This data will be available as `action.payload`
+       // console.log('fetchElectoralAreas response:', response.data)
+        return Array.isArray(response.data) ? response.data : []; //
+        //return await response.data // This data will be available as `action.payload`
     } else {
         throw new Error(`Error fetching electoral areas: ${response.statusText}`);
     }
@@ -66,9 +60,9 @@ export const createElectoralArea = createAsyncThunk(
 );
 
 export const updateElectoralArea = createAsyncThunk('electoralArea/updateElectoralArea', async ({ electoral_area, data }: { electoral_area: string; data: ElectoralArea }) => {
-    console.log('in updateElectoralArea slice')
-    console.log('electoral_area: ', electoral_area)
-    console.log('data: ', data)
+    // console.log('in updateElectoralArea slice')
+    // console.log('electoral_area: ', electoral_area)
+    // console.log('data: ', data)
     try {
         const response = await axios.put(`${BASE_URL}/api/electoralArea/update/${electoral_area}`, data);
         return response.data;
@@ -82,8 +76,8 @@ export const updateElectoralArea = createAsyncThunk('electoralArea/updateElector
 });
 
 export const deleteElectoralArea = createAsyncThunk('electoralArea/deleteElectoralArea', async (electoral_area: string) => {
-    console.log('in deleteElectoralArea slice')
-    console.log('electoral_area: ', electoral_area)
+    // console.log('in deleteElectoralArea slice')
+    // console.log('electoral_area: ', electoral_area)
 
     const response = await axios.delete(`${BASE_URL}/api/electoralArea/delete/${electoral_area}`);
     return response.data;

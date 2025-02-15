@@ -52,14 +52,12 @@ export var fetchGradeFees = createAsyncThunk('gradeFees/fetchgradeFees', functio
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                console.log('fetchGradeFees slice called');
-                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/gradeFees/all"))];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/gradeFees/all"))];
             case 1:
                 response = _a.sent();
                 console.log("after axios.get, response.data: ".concat(JSON.stringify(response.data)));
                 if (response.status >= 200 && response.status < 300) {
-                    console.log('fetchGradeFees fulfilled::: ', response.data);
+                    //console.log('fetchGradeFees fulfilled::: ', response.data);
                     // Ensure response.data is an array
                     return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //
                     // return data; // This data will be available as `action.payload`
@@ -82,7 +80,7 @@ export var createGradeFee = createAsyncThunk('gradeFees/createGradeFee', functio
                     })];
             case 1:
                 response = _a.sent();
-                console.log("after axios.post, response.data: ".concat(JSON.stringify(response.data)));
+                //console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
                 return [2 /*return*/, response.data];
             case 2:
                 error_1 = _a.sent();

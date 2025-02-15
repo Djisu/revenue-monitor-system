@@ -62,7 +62,15 @@ router.get('/all', async (req: Request, res: Response) => {
     
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_electoralarea');
-        res.status(200).json({ success: true, data: rows });
+
+         // Map the rows to an array of strings
+         // Convert rows to an array of objects
+         const electoralAreas = (rows as { electoral_area: string }[]).map(row => ({ electoral_area: row.electoral_area }));
+
+
+        console.log('electoralAreas', electoralAreas)
+        res.status(200).json(rows);
+        //res.status(200).json({ data: electoralAreas }); // Ensure the response is an object with a data property
     } catch (error) {
         console.error(error);
         res.status(500).json({  success: false, message: 'Error fetching electoral area records', error });

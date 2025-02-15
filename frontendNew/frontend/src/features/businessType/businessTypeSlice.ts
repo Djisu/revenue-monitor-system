@@ -15,7 +15,7 @@ interface BusinessTypeState {
 }
 
 const initialState: BusinessTypeState = {
-    businessTypes: [],
+    businessTypes: [] as BusinessTypeData[],
     loading: false,
     error: null,
 };
@@ -31,6 +31,8 @@ export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTy
     //console.log('after fetchBusinessTypes thunk, Response data:', response.data)
 
     if (response.status >= 200 && response.status < 300) {
+       // console.log('fetchBusinessTypes thunk, response data:', response.data);
+
         return await response.data; // This data will be available as `action.payload`
     } else {
         throw new Error(`Error fetching business types: ${response.statusText}`);
@@ -41,7 +43,7 @@ export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTy
 export const createBusinessType = createAsyncThunk(
     'businessType/createBusinessType', 
     async (businessType: string) => {
-        console.log('Creating a new business type record:', businessType);
+        //console.log('Creating a new business type record:', businessType);
 
         try {
             const response = await axios.post(
@@ -98,7 +100,7 @@ const businessTypeSlice = createSlice({
             })
             .addCase(fetchBusinessTypes.fulfilled, (state, action) => {
                 state.loading = false;
-                state.businessTypes = action.payload.data;
+                state.businessTypes = action.payload;
                 state.error = null;
             })
             .addCase(fetchBusinessTypes.rejected, (state, action) => {

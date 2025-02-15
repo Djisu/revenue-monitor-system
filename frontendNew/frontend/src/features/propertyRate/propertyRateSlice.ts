@@ -30,10 +30,12 @@ export const fetchPropertyRates = createAsyncThunk('propertyRate/fetchPropertyRa
 });
 
 // Async thunk to fetch a single property rate by property_Class and fiscalyear
-export const fetchPropertyRateById = createAsyncThunk('propertyRate/fetchPropertyRateById', 
+export const fetchPropertyRateByPropertyClassAndFiscalyear = createAsyncThunk('propertyRate/fetchPropertyRateByPropertyClassAndFiscalyear', 
       async ({ property_Class, fiscalyear }: { property_Class: string; fiscalyear: number }) => {
-    const response = await axios.get(`/api/propertyRate/${property_Class}/${fiscalyear}`);
-    return response.data;
+      console.log(`fetchPropertyRateByPropertyClassAndFiscalyear: ${property_Class}, fiscalyear: ${fiscalyear}`);
+
+      const response = await axios.get(`/api/propertyRate/${property_Class}/${fiscalyear}`);
+      return response.data;
 });
 
 // Async thunk to create a new property rate
@@ -85,15 +87,15 @@ const propertyRateSlice = createSlice({
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch property rates';
             })
-            .addCase(fetchPropertyRateById.pending, (state) => {
+            .addCase(fetchPropertyRateByPropertyClassAndFiscalyear.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPropertyRateById.fulfilled, (state) => {
+            .addCase(fetchPropertyRateByPropertyClassAndFiscalyear.fulfilled, (state, action) => {
                 state.loading = false;
-                // Optionally handle the fetched rate data
+                state.rates = action.payload;
                 state.error = null;
             })
-            .addCase(fetchPropertyRateById.rejected, (state, action) => {
+            .addCase(fetchPropertyRateByPropertyClassAndFiscalyear.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch property rate';
             })

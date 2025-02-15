@@ -128,16 +128,23 @@ router.get('/', async (req: Request, res: Response) => {
 
 // Read a single property rate record by property_Class and fiscalyear
 router.get('/:property_Class/:fiscalyear', async (req: Request, res: Response) => {
+    console.log('in get property rate: ', req.params)
+
     const { property_Class, fiscalyear } = req.params;
 
     const connection = await mysql.createConnection(dbConfig);
 
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_propertyrate WHERE property_Class = ? AND fiscalyear = ?', [property_Class, fiscalyear]);
+        const [rows] = await connection.execute('SELECT * FROM tb_propertyrate WHERE property_Class = ? AND fiscalyear = ?',
+          [property_Class, fiscalyear]
+        );
 
         if (Array.isArray(rows) && rows.length > 0) {
-            res.json(rows[0]); // Return the first row
+            console.log('rows: ', rows)
+            console.log('rows[0]: ', rows[0])
+            res.status(200).json(rows); // Return the first row
         } else {
+            console.log('rows: ', rows)
             res.status(404).json({ message: 'Property rate record not found' });
         }
     } catch (error) {

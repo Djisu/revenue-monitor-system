@@ -1,23 +1,22 @@
 {
   "compilerOptions": {
-      "target": "es2020",
-      "module": "esnext",
+      "module": "ESNext", // Use ESNext module system
+      "target": "ESNext", // Target ESNext,
       "outDir": "./dist", // Outputs compiled files to the dist folder
       "rootDir": "./src",
       "resolveJsonModule": true,
       "allowSyntheticDefaultImports": true,
       "strict": true,
       "esModuleInterop": true,
-      "moduleResolution": "node",
+      "moduleResolution": "Node",
       "sourceMap": true,
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
       "types": ["node", "express", "multer", "vitest"],
       "typeRoots": ["node_modules/@types", "src/@types"]
   },
-  "include": ["src/**/*.ts", "src/types.d.ts", "tests/**/*.ts", "*.spec.ts"],
+  "include": ["src/**/*.ts", "src/types.d.ts", "tests/**/*.ts", "*.spec.ts", "dist/**/*.js", "dist/**/*.d.ts", "src/seedDatabase.ts"],
   "exclude": [
-      "node_modules",
-      "dist"
+      "node_modules"
   ]
 }

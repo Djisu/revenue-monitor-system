@@ -44,10 +44,6 @@ var initialState = {
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
-// console.log('in authSlice.ts')
-// console.log('BASE_URL:', BASE_URL);
-// console.log('process.env.NODE_ENV: ', process.env.NODE_ENV)
-// console.log('BASE_URL: ', BASE_URL)
 // Async thunks for API calls
 export var fetchElectoralAreas = createAsyncThunk('electoralArea/fetchElectoralAreas', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
@@ -56,10 +52,15 @@ export var fetchElectoralAreas = createAsyncThunk('electoralArea/fetchElectoralA
             case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/electoralArea/all"))];
             case 1:
                 response = _a.sent();
-                if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
-                return [4 /*yield*/, response.data];
-            case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
-            case 3: throw new Error("Error fetching electoral areas: ".concat(response.statusText));
+                if (response.status >= 200 && response.status < 300) {
+                    // console.log('fetchElectoralAreas response:', response.data)
+                    return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //
+                    //return await response.data // This data will be available as `action.payload`
+                }
+                else {
+                    throw new Error("Error fetching electoral areas: ".concat(response.statusText));
+                }
+                return [2 /*return*/];
         }
     });
 }); });
@@ -92,24 +93,19 @@ export var updateElectoralArea = createAsyncThunk('electoralArea/updateElectoral
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                console.log('in updateElectoralArea slice');
-                console.log('electoral_area: ', electoral_area);
-                console.log('data: ', data);
-                _c.label = 1;
-            case 1:
-                _c.trys.push([1, 3, , 4]);
+                _c.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/electoralArea/update/").concat(electoral_area), data)];
-            case 2:
+            case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
-            case 3:
+            case 2:
                 error_2 = _c.sent();
                 if (axios.isAxiosError(error_2) && error_2.response) {
                     // Handle specific error responses
                     throw new Error(error_2.response.data.message || 'Failed to delete electoral area');
                 }
                 throw new Error('Network error or other issue');
-            case 4: return [2 /*return*/];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
@@ -117,10 +113,7 @@ export var deleteElectoralArea = createAsyncThunk('electoralArea/deleteElectoral
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                console.log('in deleteElectoralArea slice');
-                console.log('electoral_area: ', electoral_area);
-                return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/electoralArea/delete/").concat(electoral_area))];
+            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/electoralArea/delete/").concat(electoral_area))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];

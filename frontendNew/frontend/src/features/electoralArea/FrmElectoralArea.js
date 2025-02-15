@@ -40,11 +40,13 @@ import { useAppDispatch } from '../../app/store';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 import { fetchElectoralAreas, createElectoralArea, deleteElectoralArea } from './electoralAreaSlice';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 var FrmElectoralArea = function () {
     var _a = useState(''), electoralArea = _a[0], setElectoralArea = _a[1];
     var _b = useState([]), localElectoralAreas = _b[0], setLocalElectoralAreas = _b[1];
     var _c = useState(false), isDeleting = _c[0], setIsDeleting = _c[1];
     var dispatch = useAppDispatch();
+    var navigate = useNavigate();
     useEffect(function () {
         var fetchAreas = function () { return __awaiter(void 0, void 0, void 0, function () {
             var result, error_1;
@@ -56,18 +58,18 @@ var FrmElectoralArea = function () {
                     case 1:
                         result = _a.sent();
                         console.log('Fetched electoral areasXXXXXXX:', result); // Log the result
-                        if (!Array.isArray(result.data)) {
+                        if (!Array.isArray(result)) {
                             console.log('NOT AN ARRAY!!!');
                         }
                         // Check if result is an array
-                        if (Array.isArray(result.data)) {
+                        if (Array.isArray(result)) {
                             console.log('it is an array of electoralareas');
-                            setLocalElectoralAreas(result.data);
-                            console.log('result.data:: ', result.data);
+                            setLocalElectoralAreas(result);
+                            console.log('result:: ', result);
                             console.log('localElectoralAreas:: ', localElectoralAreas);
                         }
                         else {
-                            console.error('Expected an array, but received:', result.data);
+                            console.error('Expected an array, but received:', result);
                             setLocalElectoralAreas([]);
                         }
                         return [3 /*break*/, 3];
@@ -106,7 +108,8 @@ var FrmElectoralArea = function () {
                     return [4 /*yield*/, dispatch(fetchElectoralAreas()).unwrap()];
                 case 3:
                     result = _a.sent();
-                    setLocalElectoralAreas(result.data);
+                    setLocalElectoralAreas(result);
+                    navigate('/main');
                     return [3 /*break*/, 5];
                 case 4:
                     error_2 = _a.sent();

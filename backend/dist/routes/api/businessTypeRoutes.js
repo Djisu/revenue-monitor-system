@@ -41,7 +41,7 @@ router.get('/all', async (req, res) => {
     console.log('Fetching all businessType records');
     try {
         const [rows] = await connection.execute('SELECT * FROM tb_BusinessType');
-        res.status(200).json({ success: true, data: rows });
+        res.status(200).json(rows);
     }
     catch (error) {
         console.error(error);
