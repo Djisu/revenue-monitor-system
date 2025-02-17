@@ -42,16 +42,17 @@ import busPaymentsRoutes from './routes/api/busPaymentsRoutes.js';
 // Load environment variables from .env file
 const environment = process.env.NODE_ENV || 'development';
 dotenv.config(); // Load .env file from the default location
-console.log(colors.green(`Environment: ${environment}`));
 
-console.log(colors.green(`DB_HOST: ${process.env.DB_HOST}`));
-console.log(colors.green(`DB_USER: ${process.env.DB_USER}`));
-console.log(colors.green(`DB_PASSWORD: ${process.env.DB_PASSWORD}`));
-console.log(colors.green(`DB_NAME: ${process.env.DB_NAME}`));
+// console.log(colors.green(`Environment: ${environment}`));
 
-console.log('Email User:', process.env.EMAIL_USER);
-console.log('App Password:', process.env.APP_PASSWORD);
-console.log('MongoDB URI:', process.env.MONGODB_URI);
+// console.log(colors.green(`DB_HOST: ${process.env.DB_HOST}`));
+// console.log(colors.green(`DB_USER: ${process.env.DB_USER}`));
+// console.log(colors.green(`DB_PASSWORD: ${process.env.DB_PASSWORD}`));
+// console.log(colors.green(`DB_NAME: ${process.env.DB_NAME}`));
+
+// console.log('Email User:', process.env.EMAIL_USER);
+// console.log('App Password:', process.env.APP_PASSWORD);
+// console.log('MongoDB URI:', process.env.MONGODB_URI);
 
 // Initialize the Express application
 const app = express();

@@ -7,6 +7,10 @@ import { generatePdf } from '../../generatePdf.js'
 import fs from 'fs';
 import path from 'path';
 
+import PDFDocument from 'pdfkit';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
 const router = Router();
 
 dotenv.config(); // Load .env file from the default location
@@ -97,6 +101,47 @@ function sanitizeBusinessData(data: any) {
         serialNo: Number(data.serialNo) || 0
     };
 }
+
+ // Ensure the receipts directory exists
+ const __filename = fileURLToPath(import.meta.url);
+ const __dirname = dirname(__filename);
+ const permitDir = path.join(__dirname, 'permits');
+
+ const fsPromises = fs.promises;
+
+ async function ensurePermitDirIsEmpty() {
+    try {
+        // Check if the directory exists
+        await fsPromises.access(permitDir);
+        console.log('Permits directory already exists:', permitDir);
+
+        // Read all files and subdirectories in the directory
+        const files = await fsPromises.readdir(permitDir);
+
+        // Remove all files and subdirectories
+        for (const file of files) {
+            const filePath = path.join(permitDir, file);
+            const stat = await fsPromises.lstat(filePath);
+            if (stat.isDirectory()) {
+                // Recursively remove subdirectories
+                await fsPromises.rm(filePath, { recursive: true, force: true });
+            } else {
+                // Remove files
+                await fsPromises.unlink(filePath);
+            }
+        }
+        console.log('Permits directory emptied:', permitDir);
+    } catch (err: any) {
+        if (err.code === 'ENOENT') {
+            // Directory does not exist, create it
+            await fsPromises.mkdir(permitDir, { recursive: true });
+            console.log('Created permits directory:', permitDir);
+        } else {
+            console.error('Error accessing permits directory:', err);
+        }
+    }
+}
+
 
 // Implement a type guard to check if results is of type ResultSetHeader
 // function isResultSetHeader(obj: any): obj is mysql.ResultSetHeader {
@@ -237,6 +282,20 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
                 sanitizedData.serialNo
             ]
         );
+         // call addRecord function to add new record to tb_BussCurrBalance table HERE
+          // Call addRecord function to add new record to tb_BussCurrBalance table
+          const addRecordSuccess = await addRecord(
+            sanitizedData.buss_no, 
+            new Date(), 
+            sanitizedData.balance, 
+            sanitizedData.current_rate, 
+            sanitizedData.property_rate, 
+            sanitizedData.electroral_area
+        );
+
+        if (!addRecordSuccess) {
+            throw new Error('Failed to add record to tb_BussCurrBalance');
+        }
 
         res.status(200).json({ success: true, message: 'Business record updated successfully', BUSS_NO: sanitizedData.buss_no });
     } catch (error: any) {
@@ -247,6 +306,53 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     }
 });
 
+// Function to add record to tb_BussCurrBalance
+async function addRecord(txtBussNo: (number | null), dtTransdate: Date, txtBalanceBF: number, txtCurrentRate: number, txtRate: number, cboElectoralArea: string): Promise<boolean> {
+    const connection = await mysql.createConnection(dbConfig);
+
+    try {
+        // Get current year and previous fiscal year
+        const currentYear = new Date().getFullYear();
+        const varFiscalYear = dtTransdate.getFullYear();
+        const varPrevFiscalYear = varFiscalYear - 1;
+
+        // Find previous fiscal year balance
+        const findPreviousFiscalYearQuery = `
+            SET dateformat = 'dmy';
+            SELECT balancebf 
+            FROM tb_BussCurrBalance 
+            WHERE buss_no = ? AND fiscalyear = ?;
+        `;
+
+        const [prevResults] = await connection.execute(findPreviousFiscalYearQuery, [txtBussNo, varPrevFiscalYear]);
+
+        let varBalanceBF: number = 0;
+        if (prevResults.length > 0) {
+            varBalanceBF = (prevResults[0] as any).balancebf;
+        }
+
+        // Insert or update record in tb_BussCurrBalance
+        const insertNewRecordQuery = `
+            SET dateformat = 'dmy';
+            INSERT INTO tb_BussCurrBalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
+            VALUES (?, ?, ?, ?, ?, ?, ?) 
+            ON DUPLICATE KEY UPDATE balancebf = VALUES(balancebf), current_balance = VALUES(current_balance), totalAmountDue = VALUES(totalAmountDue), transdate = VALUES(transdate), electoralarea = VALUES(electoralarea);
+        `;
+
+        const insertValues = [
+            txtBussNo, varFiscalYear, varBalanceBF, txtCurrentRate, (varBalanceBF + txtCurrentRate), dtTransdate, cboElectoralArea
+        ];
+
+        await connection.execute(insertNewRecordQuery, insertValues);
+
+        await connection.end();
+        return true;
+    } catch (error) {
+        console.error('Error in adding a record:', error);
+        await connection.end();
+        return false;
+    }
+}
 
 
 // Read all businesses
@@ -257,7 +363,7 @@ router.get('/all', async (req: Request, res: Response) => {
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
-        console.log('rows:::', rows);
+       // console.log('rows are here:::', rows);
 
         res.status(200).json(rows);
     } catch (error: any) {
@@ -553,13 +659,22 @@ router.delete('/delete/:buss_no', async (req: Request, res: Response) => {
 
 // Process business operating permits for a fiscal year
 router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req: Request, res: Response) => {
-     const {electoralarea, fiscalyear} = req.params;
+     console.log('in router.post(/processOperatingPermits/:electoral_area/:fiscal_year', req.params)
+     try {
+     
+
+      // Ensure the permits directory is empty
+     await ensurePermitDirIsEmpty();
+
+     const {electoral_area, fiscal_year} = req.params;
+
+     console.log('electoralarea:', electoral_area, 'fiscalyear:', fiscal_year)
 
      const connection = await mysql.createConnection(dbConfig);
 
      let [businessRows] = await connection.execute(
-        'SELECT * FROM tb_business WHERE electoral_area = ?', 
-        [electoralarea]
+        'SELECT * FROM tb_business WHERE electroral_area = ?', 
+        [electoral_area]
      );
 
      if (Array.isArray(businessRows) && businessRows.length == 0) {
@@ -567,46 +682,76 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
         return;
      }
 
+   // console.log('businessRows:::', businessRows)
+
      // Update balancebf in tb_bussCurrBalance table for all businesses in the electoral area for the given fiscal year
      for (let i = 0; i < businessRows.length; i++) {
         const {buss_no} = businessRows[i]
        
         let varCurrentRate = 0
-        let varBalance = findBusinessBalance(buss_no)
+        let varBalance =  await findBusinessBalance(buss_no)
+
+        console.log( 'about to update tb_BussCurrBalance table')
 
         // Update tb_bussCurrBalance table with current balance and fiscal year
-        const [updateResult] = await connection.execute(
-            'UPDATE` tb_bussCurrBalance  SET balancebf = ?,  WHERE buss_no = ?  AND fiscalyear = ?',
-            [varBalance, buss_no, fiscalyear]
+        await connection.execute(
+            'UPDATE tb_BussCurrBalance  SET balancebf = ?  WHERE buss_no = ?  AND fiscalyear = ?',
+            [varBalance, buss_no, fiscal_year]
         );
+        console.log( 'after updating tb_BussCurrBalance table')
      } 
 
-     for (let i = 0; i < businessRows.length; i++) {
-         const { buss_no: varRecno} = businessRows[i].buss_no
+     
 
-         let [busiUpdateRow] = await connection.execute('SELECT * FROM tb_bussCurrBalance WHERE buss_no = ? AND fiscalyear = ?', 
-         [varRecno, fiscalyear]);
+     for (let i = 0; i < businessRows.length; i++) {
+        // console.log('businessRows[i].buss_no: ', businessRows[i].buss_no, 'fiscal_year: ', fiscal_year)
+
+         if (!businessRows[i].buss_no){
+             console.log('buss_no is missing')
+             continue
+         }
+
+         console.log('about to SELECT * FROM tb_BussCurrBalance WHERE buss_no')
+         console.log('=======================================================')
+         console.log('businessRows[i].buss_no: ', businessRows[i].buss_no, 'fiscal_year: ', fiscal_year)
+
+         let [busiUpdateRow] = await connection.execute('SELECT * FROM tb_BussCurrBalance WHERE buss_no = ? AND fiscalyear = ?', 
+         [businessRows[i].buss_no, fiscal_year]);
 
          if (Array.isArray(busiUpdateRow) && busiUpdateRow.length == 0) {
             res.status(404).json({ message: 'No current balance found for the business' });
             return;
          }
+         console.log('after SELECT * FROM tb_BussCurrBalance WHERE buss_no')
 
          if (busiUpdateRow.length > 0) {
-            await connection.execute(
-                'UPDATE tb_business SET current_rate = ? WHERE buss_no = ?',
-                [busiUpdateRow[0].current_rate, busiUpdateRow[0].buss_no]
-            );
+            for (let j = 0; j < busiUpdateRow.length; j++) {
+                 console.log('in for loop:  for (let j = 0;')
+                // console.log('=============================')
+                // console.log('busiUpdateRow[j].buss_no: ', busiUpdateRow[j].buss_no, 'busiUpdateRow[j].current_rate: ', busiUpdateRow[j].current_rate)
 
-            let varBalBf = findBusinessBalance(busiUpdateRow[0].buss_no)
-            let varYear = new Date().getFullYear()
+                // await connection.execute(
+                //     'UPDATE tb_business SET current_rate = ? WHERE buss_no = ?',
+                //     [busiUpdateRow[j].current_rate, busiUpdateRow[j].buss_no]
+                // );
 
-            await connection.execute(
-                'UPDATE tb_business SET balancenew = ? WHERE buss_no = ?',
-                [varBalBf, busiUpdateRow[0].buss_no]
-            );
+                // console.log('after UPDATE tb_business SET current_rate = ? WHERE buss_no = ?')
+
+                let varBalBf = await findBusinessBalance(busiUpdateRow[j].buss_no)
+                //let varYear = new Date().getFullYear()
+
+                await connection.execute(
+                    'UPDATE tb_business SET BALANCENEW = ? WHERE buss_no = ?',
+                    [varBalBf, busiUpdateRow[j].buss_no]
+                );
+                console.log('after UPDATE tb_business SET BALANCENEW = ? WHERE buss_no = ?')
+            }
+         } else {
+            console.log('No current balance found for the business')
          }
      } 
+ console.log('after updating tb_business ')
+
 
      // Delete from tmp_business
      await connection.execute('DELETE FROM tmp_business');
@@ -614,10 +759,10 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
      // Delete from tmp_BussCurrBalance
      await connection.execute('DELETE FROM tmp_BussCurrBalance');
 
-     if (electoralarea){
+     if (electoral_area){
         const [electoralAreaResult] = await connection.execute(
-            'SELECT * FROM tb_electoral_area WHERE electoral_area = ?',
-            [electoralarea]
+            'SELECT * FROM tb_electoralarea WHERE electoral_area = ?',
+            [electoral_area]
         );
      } else {
         const [electoralAreaResult] = await connection.execute(
@@ -625,20 +770,23 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
         );
      }
 
+     console.log('about to insert into tmp_business')
+
      // Insert into tmp_business
      await connection.execute(
         `INSERT INTO tmp_business 
         SELECT * FROM tb_business 
-        WHERE electoral_area = ? 
+        WHERE electroral_area = ? 
         AND current_rate > 0 
         AND status = "Active" 
-        AND balance > 0 
         ORDER BY buss_name ASC`, 
-        [electoralarea]
+        [electoral_area]
     );
 
-    const [recReport] = await connection.execute(`SELECT DISTINCT * FROM tb_BussCurrBalance WHERE fiscalyear = ? AND electoral_area = ?`,
-       [fiscalyear, electoralarea]
+    console.log('after insert into tmp_business')
+
+    const [recReport] = await connection.execute(`SELECT DISTINCT * FROM tb_BussCurrBalance WHERE fiscalyear = ? AND electoralarea = ?`,
+       [fiscal_year, electoral_area]
     )
 
     if (recReport.length == 0){
@@ -647,10 +795,10 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
     }
 
     const [tmpBussCurrBalanceRows] = await connection.execute(
-        `INSERT INTO tmp_BussCurrBalance SELECT * FROM tb_BussCurrBalance WHERE fiscalyear = ? AND electoral_area = ?`,
-        [fiscalyear, electoralarea]
+        `INSERT INTO tmp_BussCurrBalance SELECT * FROM tb_BussCurrBalance WHERE fiscalyear = ? AND electoralarea = ?`,
+        [fiscal_year, electoral_area]
     )
-
+    console.log('after INSERT INTO tmp_BussCurrBalance SELECT * FROM tb_BussCurrBalance')
     // Add serial numbers
     let [recBusiness] = await connection.execute(
         `SELECT * FROM tmp_business ORDER BY buss_no`
@@ -667,37 +815,56 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
         )
         permitNo++;
     }
+    console.log('after serial number generation')
+
+    // Check if there are any bills in tmp_business
+    let [recBills] = await connection.execute(`SELECT * FROM tmp_business ORDER BY buss_name ASC`);
+    if (recBills.length === 0) {
+        res.status(404).json({ message: 'No bills found for the electoral area' });
+        return;
+    }
+
+    console.log('ABOUT TO GENERATE PDFs')
 
     // Produce Bills now
-     try {
-        const [recBills] = await connection.execute(`SELECT * FROM tmp_business ORDER BY buss_name ASC`);
-        for (const bill of recBills) {
-            try {
-                const pdfBuffer = await generatePdf(bill);
-                // Save the PDF to a file or handle it as needed
-                fs.writeFileSync(path.join(__dirname, `bill_${bill.buss_no}.pdf`), pdfBuffer);
-            } catch (error) {
-                console.error('Error generating PDF for bill:', bill, error);
-            }
+    for (const bill of recBills) {
+        console.log('Generating PDF for bill:', bill.buss_no);
+
+        try {
+            const pdfBuffer = await generatePdf(bill);
+            // Save the PDF to a file or handle it as needed
+            fs.writeFileSync(path.join(__dirname, 'permits', `permit_${bill.buss_no}.pdf`), pdfBuffer);
+        } catch (error: any) {
+            console.error('Error generating PDF for bill:', bill, error);
+            res.status(500).json({ message: `Error generating PDF for bill ${bill.buss_no}: ${error.message}` });
+            return;
         }
-        res.status(200).json({ message: 'Bills generated successfully' });
-    } catch (error) {
+    }
+
+    res.status(200).json({ message: 'Bills generated successfully' });
+    } catch (error: any) {
         console.error('Error executing SQL query:', error);
     }
-})
+}) ;
 
 // Function to find business balance
 async function findBusinessBalance(bussNo: number): Promise<number> {
+    //console.log('in findBusinessBalance', bussNo)
+    
     const connection = await mysql.createConnection(dbConfig);
 
     try {
         // Get current year and previous fiscal year
         const currentYear = new Date().getFullYear();
-        const prevFiscalYear = currentYear - 1;
+        
+        
+        // Log the values to ensure they're correct //
+        //console.log('bussNo:', bussNo, 'currentYear:', currentYear);
+
 
         // Find all payments
         const [prevPaymentsResult] = await connection.execute(
-            'SELECT SUM(paidAmount) AS totsum FROM tb_busPayments WHERE buss_no = ? AND fiscal_year < ?',
+            'SELECT SUM(paidAmount) AS totsum FROM tb_buspayments WHERE buss_no = ? AND fiscal_year < ?',
             [bussNo, currentYear]
         );
 
@@ -705,7 +872,7 @@ async function findBusinessBalance(bussNo: number): Promise<number> {
 
         // Find all billings
         const [prevBalancesResult] = await connection.execute(
-            'SELECT SUM(current_balance) AS totPrevBal FROM tb_bussCurrBalance WHERE buss_no = ? AND fiscalyear < ?',
+            'SELECT SUM(current_balance) AS totPrevBal FROM tb_BussCurrBalance WHERE buss_no = ? AND fiscalyear < ?',
             [bussNo, currentYear]
         );
 
@@ -720,6 +887,8 @@ async function findBusinessBalance(bussNo: number): Promise<number> {
         connection.end();
     }
 }
+
+
 
 export default router;
 

@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "concurrently --kill-others-on-fail \"npm run build\" \"node -r dotenv/config dist/server.js\" \"wait-on http://localhost:3000 && npm run frontend\"",
+    "dev": "concurrently --kill-others-on-fail --quiet \"npm run build\" \"node -r dotenv/config dist/server.js\" \"wait-on http://localhost:3000 && npm run frontend\"",
     "frontend": "cd ../frontendNew/frontend && npm run dev -- --debug",
     "test-concurrently": "concurrently \"echo Backend running\" \"echo Frontend running\"",
     "docs": "typedoc",
