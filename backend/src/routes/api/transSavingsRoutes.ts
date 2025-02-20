@@ -2,20 +2,21 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-import mysql, { ResultSetHeader } from 'mysql2/promise';
+import { Pool, PoolClient, QueryResult } from 'pg';
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
 
-// MySQL connection configuration
-const dbConfig = {
+// PostgreSQL connection pool configuration
+const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'revmonitor',
-};
+    port: parseInt(process.env.DB_PORT || '5432'), // PostgreSQL default port is 5432
+});
 
 // Transaction Savings data interface
 interface TransSavingsData {
@@ -34,22 +35,24 @@ interface TransSavingsData {
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const transSavingsData: TransSavingsData = req.body;
 
-    const connection = await mysql.createConnection(dbConfig);
-    
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_transSavings WHERE buss_no = ?  AND transdate = ?', 
-        [transSavingsData.buss_no, transSavingsData.transdate]);
+        const client = await pool.connect();
+        const rows = await client.query<QueryResult>(
+            'SELECT * FROM tb_transSavings WHERE buss_no = $1 AND transdate = $2',
+            [transSavingsData.buss_no, transSavingsData.transdate]
+        );
 
-        if (Array.isArray(rows) && rows.length > 0) {
-            res.status(404).json({ message: 'Transaction Savings record not found' });
-           return
+        if (rows.rowCount as number > 0) {
+            res.status(409).json({ message: 'Transaction Savings record already exists' });
+            client.release();
+            return;
         }
 
         // Insert the new transaction savings data
-        const [result] = await connection.execute<ResultSetHeader>(
-            `INSERT INTO tb_transSavings 
+        await client.query(
+            `INSERT INTO transsavings 
             (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
             [
                 transSavingsData.buss_no,
                 transSavingsData.transdate,
@@ -63,72 +66,73 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
             ]
         );
 
-        res.status(201).json({ message: 'Transaction Savings record created successfully'});
+        res.status(201).json({ message: 'Transaction Savings record created successfully' });
+        client.release();
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating Transaction Savings record', error });
-    } finally {
-        connection.end();
+        res.status(500).json({ message: 'Error creating Transaction Savings record', error: (error as Error).message });
     }
 });
 
 // Read all transaction savings records
 router.get('/', async (req: Request, res: Response) => {
-    const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_transSavings');
-        res.json(rows);
+        const client = await pool.connect();
+        const rows = await client.query<QueryResult>('SELECT * FROM transsavings');
+        res.json(rows.rows);
+        client.release();
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching Transaction Savings records', error });
-    } finally {
-        connection.end();
+        res.status(500).json({ message: 'Error fetching Transaction Savings records', error: (error as Error).message });
     }
 });
 
-// Read a single transaction savings record by buss_no
+// Read a single transaction savings record by buss_no and transdate
 router.get('/:buss_no/:transdate', async (req: Request, res: Response) => {
     const { buss_no, transdate } = req.params;
 
-    const connection = await mysql.createConnection(dbConfig);
-
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_transSavings WHERE buss_no = ?  AND transdate = ?', 
-        [buss_no, transdate]);
+        const client = await pool.connect();
+        const rows = await client.query<QueryResult>(
+            'SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2',
+            [buss_no, transdate]
+        );
 
-        if (Array.isArray(rows) && rows.length == 0) {
+        if (rows.rowCount as number > 0) {
+            res.json(rows.rows[0]); // Return the first row
+        } else {
             res.status(404).json({ message: 'Transaction Savings record not found' });
-           return
         }
+        client.release();
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching Transaction Savings record', error });
-        return
-    } finally {
-        connection.end();
+        res.status(500).json({ message: 'Error fetching Transaction Savings record', error: (error as Error).message });
     }
 });
 
 // Update a transaction savings record
 router.put('/:buss_no/:transdate', async (req: Request, res: Response): Promise<void> => {
-    const { buss_no } = req.params;
+    const { buss_no, transdate } = req.params;
     const transSavingsData: TransSavingsData = req.body;
 
-    const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_transSavings WHERE buss_no = ?  AND transdate = ?', 
-        [transSavingsData.buss_no, transSavingsData.transdate]);
+        const client = await pool.connect();
+        const rows = await client.query<QueryResult>(
+            'SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2',
+            [buss_no, transdate]
+        );
 
-        if (Array.isArray(rows) && rows.length > 0) {
+        if (rows.rowCount == 0) {
             res.status(404).json({ message: 'Transaction Savings record not found' });
-           return
+            client.release();
+            return;
         }
 
         // Update the transaction savings data
-        const [result] = await connection.execute(
-            `UPDATE tb_transSavings 
-            SET transdate = ?, details = ?, debit = ?, credit = ?, balance = ?, userid = ?, yearx = ?, term = ? 
-            WHERE buss_no = ?`,
+        await client.query(
+            `UPDATE transsavings 
+            SET transdate = $1, details = $2, debit = $3, credit = $4, balance = $5, userid = $6, yearx = $7, term = $8 
+            WHERE buss_no = $9`,
             [
                 transSavingsData.transdate,
                 transSavingsData.details,
@@ -142,14 +146,11 @@ router.put('/:buss_no/:transdate', async (req: Request, res: Response): Promise<
             ]
         );
 
-       
         res.status(200).json({ message: 'Transaction Savings record updated successfully' });
-        return
+        client.release();
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating Transaction Savings record', error });
-    } finally {
-        connection.end();
+        res.status(500).json({ message: 'Error updating Transaction Savings record', error: (error as Error).message });
     }
 });
 
@@ -157,22 +158,212 @@ router.put('/:buss_no/:transdate', async (req: Request, res: Response): Promise<
 router.delete('/:buss_no/:transdate', async (req: Request, res: Response) => {
     const { buss_no, transdate } = req.params;
 
-    const connection = await mysql.createConnection(dbConfig);
-
     try {
+        const client = await pool.connect();
+        const rows = await client.query<QueryResult>(
+            'SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2',
+            [buss_no, transdate]
+        );
+
+        if (rows.rowCount == 0) {
+            res.status(404).json({ message: 'Transaction Savings record not found' });
+            client.release();
+            return;
+        }
+
         // Delete the transaction savings record
-        const [result] = await connection.execute('DELETE FROM tb_transSavings WHERE buss_no = ? AND transdate = ?', 
+        await client.query('DELETE FROM transsavings WHERE buss_no = $1 AND transdate = $2', 
             [buss_no, transdate]
         );
 
         res.status(200).json({ message: 'Transaction Savings record deleted successfully' });
-        return
+        client.release();
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error deleting Transaction Savings record', error });
-    } finally {
-        connection.end();
+        res.status(500).json({ message: 'Error deleting Transaction Savings record', error: (error as Error).message });
     }
 });
 
 export default router;
+
+
+
+
+// // backend/src/routes/api/transSavingsRoutes.ts
+// import express from 'express';
+// import * as dotenv from 'dotenv';
+// import { Router, Request, Response } from 'express';
+// import mysql, { ResultSetHeader } from 'mysql2/promise';
+
+// const router = Router();
+
+// // Load environment variables from .env file
+// dotenv.config();
+
+// // MySQL connection configuration
+// const dbConfig = {
+//     host: process.env.DB_HOST || 'localhost',
+//     user: process.env.DB_USER || 'root',
+//     password: process.env.DB_PASSWORD || '',
+//     database: process.env.DB_NAME || 'revmonitor',
+// };
+
+// // Transaction Savings data interface
+// interface TransSavingsData {
+//     buss_no: string;
+//     transdate: string; // Adjust based on your date format
+//     details: string;
+//     debit: number;
+//     credit: number;
+//     balance: number;
+//     userid: string;
+//     yearx: number;
+//     term: string;
+// }
+
+// // Create a new transaction savings record
+// router.post('/', async (req: Request, res: Response): Promise<void> => {
+//     const transSavingsData: TransSavingsData = req.body;
+
+//     const connection = await mysql.createConnection(dbConfig);
+    
+//     try {
+//         const [rows] = await connection.execute('SELECT * FROM transsavings WHERE buss_no = ?  AND transdate = ?', 
+//         [transSavingsData.buss_no, transSavingsData.transdate]);
+
+//         if (Array.isArray(rows) && rows.length > 0) {
+//             res.status(404).json({ message: 'Transaction Savings record not found' });
+//            return
+//         }
+
+//         // Insert the new transaction savings data
+//         const [result] = await connection.execute<ResultSetHeader>(
+//             `INSERT INTO tb_transSavings 
+//             (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) 
+//             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+//             [
+//                 transSavingsData.buss_no,
+//                 transSavingsData.transdate,
+//                 transSavingsData.details,
+//                 transSavingsData.debit,
+//                 transSavingsData.credit,
+//                 transSavingsData.balance,
+//                 transSavingsData.userid,
+//                 transSavingsData.yearx,
+//                 transSavingsData.term,
+//             ]
+//         );
+
+//         res.status(201).json({ message: 'Transaction Savings record created successfully'});
+//     } catch (error) {
+//         console.error('Error:', error);
+//         res.status(500).json({ message: 'Error creating Transaction Savings record', error });
+//     } finally {
+//         connection.end();
+//     }
+// });
+
+// // Read all transaction savings records
+// router.get('/', async (req: Request, res: Response) => {
+//     const connection = await mysql.createConnection(dbConfig);
+//     try {
+//         const [rows] = await connection.execute('SELECT * FROM tb_transSavings');
+//         res.json(rows);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Error fetching Transaction Savings records', error });
+//     } finally {
+//         connection.end();
+//     }
+// });
+
+// // Read a single transaction savings record by buss_no
+// router.get('/:buss_no/:transdate', async (req: Request, res: Response) => {
+//     const { buss_no, transdate } = req.params;
+
+//     const connection = await mysql.createConnection(dbConfig);
+
+//     try {
+//         const [rows] = await connection.execute('SELECT * FROM tb_transSavings WHERE buss_no = ?  AND transdate = ?', 
+//         [buss_no, transdate]);
+
+//         if (Array.isArray(rows) && rows.length == 0) {
+//             res.status(404).json({ message: 'Transaction Savings record not found' });
+//            return
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Error fetching Transaction Savings record', error });
+//         return
+//     } finally {
+//         connection.end();
+//     }
+// });
+
+// // Update a transaction savings record
+// router.put('/:buss_no/:transdate', async (req: Request, res: Response): Promise<void> => {
+//     const { buss_no } = req.params;
+//     const transSavingsData: TransSavingsData = req.body;
+
+//     const connection = await mysql.createConnection(dbConfig);
+//     try {
+//         const [rows] = await connection.execute('SELECT * FROM tb_transSavings WHERE buss_no = ?  AND transdate = ?', 
+//         [transSavingsData.buss_no, transSavingsData.transdate]);
+
+//         if (Array.isArray(rows) && rows.length > 0) {
+//             res.status(404).json({ message: 'Transaction Savings record not found' });
+//            return
+//         }
+
+//         // Update the transaction savings data
+//         const [result] = await connection.execute(
+//             `UPDATE tb_transSavings 
+//             SET transdate = ?, details = ?, debit = ?, credit = ?, balance = ?, userid = ?, yearx = ?, term = ? 
+//             WHERE buss_no = ?`,
+//             [
+//                 transSavingsData.transdate,
+//                 transSavingsData.details,
+//                 transSavingsData.debit,
+//                 transSavingsData.credit,
+//                 transSavingsData.balance,
+//                 transSavingsData.userid,
+//                 transSavingsData.yearx,
+//                 transSavingsData.term,
+//                 buss_no
+//             ]
+//         );
+
+       
+//         res.status(200).json({ message: 'Transaction Savings record updated successfully' });
+//         return
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Error updating Transaction Savings record', error });
+//     } finally {
+//         connection.end();
+//     }
+// });
+
+// // Delete a transaction savings record
+// router.delete('/:buss_no/:transdate', async (req: Request, res: Response) => {
+//     const { buss_no, transdate } = req.params;
+
+//     const connection = await mysql.createConnection(dbConfig);
+
+//     try {
+//         // Delete the transaction savings record
+//         const [result] = await connection.execute('DELETE FROM tb_transSavings WHERE buss_no = ? AND transdate = ?', 
+//             [buss_no, transdate]
+//         );
+
+//         res.status(200).json({ message: 'Transaction Savings record deleted successfully' });
+//         return
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Error deleting Transaction Savings record', error });
+//     } finally {
+//         connection.end();
+//     }
+// });
+
+// export default router;

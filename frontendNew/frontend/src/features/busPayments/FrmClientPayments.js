@@ -40,11 +40,12 @@ import { Row, Col, Form, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAppDispatch } from '../../app/store';
 import { fetchBusinessById } from '../../features/business/businessSlice';
-import { createBusPayment } from '../busPayments/busPaymentsSlice';
+import { createBusPayment, fetchBilledAmount } from '../busPayments/busPaymentsSlice';
+import { useAppSelector } from '../../hooks';
 var FrmClientPayments = function () {
     var _a = useState(0), businessNo = _a[0], setBusinessNo = _a[1];
-    var _b = useState(''), officerNo = _b[0], setOfficerNo = _b[1];
-    var _c = useState(0), billedAmount = _c[0], setBilledAmount = _c[1];
+    var _b = useState(null), billedAmount = _b[0], setBilledAmount = _b[1];
+    var _c = useState(''), officerNo = _c[0], setOfficerNo = _c[1];
     var _d = useState(0), paidAmount = _d[0], setPaidAmount = _d[1];
     var _e = useState(''), monthPaid = _e[0], setMonthPaid = _e[1];
     var transDate = new Date().toISOString().split('T')[0];
@@ -55,35 +56,63 @@ var FrmClientPayments = function () {
     var _k = useState(''), errorMessage = _k[0], setErrorMessage = _k[1];
     var _l = useState(''), businessName = _l[0], setBusinessName = _l[1];
     var dispatch = useAppDispatch();
+    var billedAmountData = useAppSelector(function (state) { return state.busPayments.billedAmount; });
+    console.log('billedAmountData:', billedAmountData);
     useEffect(function () {
-        var currentMonthNumber = new Date().getMonth(); // + 1;
+        var currentMonthNumber = new Date().getMonth();
         setMonthPaid(setMonthString(currentMonthNumber));
     }, []);
+    useEffect(function () {
+        // This effect will run every time the component is mounted or businessNo changes
+        console.log('billedAmountData:', billedAmountData);
+        // Update the component's billedAmount state when Redux state changes
+        if (billedAmountData !== undefined) {
+            setBilledAmount(billedAmountData);
+        }
+    }, [billedAmountData]); // Dependency array includes billedAmountData
+    useEffect(function () {
+        // This effect will run every time businessNo changes
+        if (businessNo > 0) {
+            getBusiness(businessNo.toString());
+        }
+    }, [businessNo]);
     var getBusiness = function (businessNo) { return __awaiter(void 0, void 0, void 0, function () {
-        var response;
+        var response, uniqueReceiptNo, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, dispatch(fetchBusinessById(Number(businessNo))).unwrap()];
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, dispatch(fetchBusinessById(Number(businessNo))).unwrap()];
                 case 1:
                     response = _a.sent();
-                    console.log('after  dispatch(fetchBusinessById(id)).unwrap(); response:');
-                    // Check if response is an array or an object
+                    //dispatch(busPaymentsFulfilled({ billedAmount: response.billedAmount }));
                     if (Array.isArray(response)) {
                         console.log('Response is an array:', response[0]);
-                        // set response fields to the following state variables
+                        // Set response fields to the following state variables
                         setOfficerNo(response[0].assessmentby);
                         setElectoralArea(response[0].electroral_area);
                         setEmail(response[0].emailaddress);
-                        businessName = response[0].buss_name;
-                        setBusinessName(businessName);
+                        setBusinessName(response[0].buss_name);
                         setFiscalYear(new Date().getFullYear().toString());
-                        billedAmount = Number(response[0].current_rate) + Number(response[0].property_rate);
-                        setBilledAmount(billedAmount);
-                        receiptNo = generateUniqueNumber();
-                        setReceiptNo(receiptNo);
+                        dispatch(fetchBilledAmount(response[0].buss_no));
+                        if (fetchBilledAmount.fulfilled.match(response)) {
+                            console.log('Billed Amount:', response.payload.billedAmount);
+                            setBilledAmount(response.payload.billedAmount);
+                        }
+                        else {
+                            console.log('Billed Amount not found in response');
+                        }
+                        uniqueReceiptNo = generateUniqueNumber();
+                        setReceiptNo(uniqueReceiptNo);
                     }
-                    ;
-                    return [2 /*return*/];
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_1 = _a.sent();
+                    console.error('Error fetching business:', error_1);
+                    errorMessage = 'Error fetching business. Please try again.';
+                    setErrorMessage(errorMessage);
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
             }
         });
     }); };
@@ -92,76 +121,56 @@ var FrmClientPayments = function () {
         var salt = Math.random().toString(36).substring(2, 15); // Generates a random string as a salt
         return "".concat(randomNumber, "-").concat(salt);
     };
-    //   const uniqueNumber = generateUniqueNumber();
-    //   console.log(uniqueNumber)
     var setMonthString = function (monthNumber) {
         var monthNames = [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December"
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
         ];
         return monthNames[monthNumber];
     };
     var handleSubmit = function (e) { return __awaiter(void 0, void 0, void 0, function () {
-        var busPayment, response, error_1;
+        var busPayment, response, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log('in handleSubmit');
                     e.preventDefault();
+                    console.log('in handleSubmit');
                     // Validation checks
                     if (businessNo <= 0) {
                         errorMessage = 'Business Number is required';
-                        setErrorMessage(errorMessage);
+                        setErrorMessage(errorMessage || "");
                         return [2 /*return*/];
                     }
                     if (!officerNo) {
-                        errorMessage = 'Officer Number is required';
-                        setErrorMessage(errorMessage);
+                        setErrorMessage('Officer Number is required');
                         return [2 /*return*/];
                     }
                     if (paidAmount <= 0) {
-                        errorMessage = 'Amount is required';
-                        setErrorMessage(errorMessage);
+                        setErrorMessage('Amount is required');
                         return [2 /*return*/];
                     }
                     if (!monthPaid) {
-                        errorMessage = 'Month Paid is required';
-                        setErrorMessage(errorMessage);
+                        setErrorMessage('Month Paid is required');
                         return [2 /*return*/];
                     }
                     if (!transDate) {
-                        errorMessage = 'Transaction Date is required';
-                        setErrorMessage(errorMessage);
+                        setErrorMessage('Transaction Date is required');
                         return [2 /*return*/];
                     }
                     if (!fiscalYear) {
-                        errorMessage = 'Fiscal Year is required';
-                        setErrorMessage(errorMessage);
+                        setErrorMessage('Fiscal Year is required');
                         return [2 /*return*/];
                     }
                     if (!receiptNo) {
-                        errorMessage = 'Receipt Number is required';
-                        setErrorMessage(errorMessage);
+                        setErrorMessage('Receipt Number is required');
                         return [2 /*return*/];
                     }
                     if (!email) {
-                        errorMessage = 'Email is required';
-                        setErrorMessage(errorMessage);
+                        setErrorMessage('Email is required');
                         return [2 /*return*/];
                     }
                     if (!electoralArea) {
-                        errorMessage = 'Electoral Area is required';
-                        setErrorMessage(errorMessage);
+                        setErrorMessage('Electoral Area is required');
                         return [2 /*return*/];
                     }
                     busPayment = {
@@ -198,16 +207,16 @@ var FrmClientPayments = function () {
                     }
                     return [3 /*break*/, 4];
                 case 3:
-                    error_1 = _a.sent();
+                    error_2 = _a.sent();
                     // Handle error, e.g., show error message
                     setErrorMessage('Failed to create payment. Please try again.');
-                    console.error('Error creating payment:', error_1);
+                    console.error('Error creating payment:', error_2);
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
         });
     }); };
-    return (_jsx("div", { className: "container", style: { backgroundColor: '#add8e6' }, children: _jsxs("div", { children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h4", { className: "text-primary", children: "Business Client Payment" }) }) }), _jsxs(Form, { onSubmit: handleSubmit, children: [_jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Business Number: ", businessName] }), _jsx(Form.Control, { type: "number", value: businessNo, onChange: function (e) { return setBusinessNo(Number(e.target.value)); }, onBlur: function (e) { return getBusiness(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Officer Number:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: function (e) { return setOfficerNo(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h5", { className: "text-primary", children: "Billed Amount: " }) }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Billed Amount: ", billedAmount] }), _jsx(Form.Control, { type: "number", value: paidAmount, onChange: function (e) { return setPaidAmount(Number(e.target.value)); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Month Paid:" }), _jsx(Form.Control, { value: monthPaid, readOnly // If you want it to be read-only
+    return (_jsx("div", { className: "container", style: { backgroundColor: '#add8e6' }, children: _jsxs("div", { children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h4", { className: "text-primary", children: "Collector's Payments Entry" }) }) }), _jsxs(Form, { onSubmit: handleSubmit, children: [_jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Business Number: ", businessName] }), _jsx(Form.Control, { type: "number", value: businessNo, onChange: function (e) { return setBusinessNo(Number(e.target.value)); }, onBlur: function (e) { return getBusiness(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Officer Number:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: function (e) { return setOfficerNo(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Amount Payable: ", billedAmount] }), _jsx(Form.Control, { type: "number", value: paidAmount, onChange: function (e) { return setPaidAmount(Number(e.target.value)); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Month Paid:" }), _jsx(Form.Control, { value: monthPaid, readOnly // If you want it to be read-only
                                         : true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Transaction Date:" }), _jsx(Form.Control, { value: transDate, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Fiscal Year:" }), _jsx(Form.Control, { value: fiscalYear, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Receipt Number:" }), _jsx(Form.Control, { type: "text", value: receiptNo, onChange: function (e) { return setReceiptNo(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Email:" }), _jsx(Form.Control, { value: email, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Electoral Area:" }), _jsx(Form.Control, { value: electoralArea, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx(Button, { type: "submit", variant: "primary", children: "Click to pay" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", style: { textDecoration: "none" }, children: "Go Back" }) }) })] })] }) }));
 };
 export default FrmClientPayments;

@@ -42,6 +42,7 @@ var initialState = {
     busPayments: [],
     loading: false,
     error: null,
+    billedAmount: 0,
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
@@ -94,6 +95,28 @@ export var createBusPayment = createAsyncThunk('busPayments/createBusPayment', f
     });
 }); });
 // Async thunk to fetch a single BusPayments record by buss_no
+export var fetchBilledAmount = createAsyncThunk('busPayments/fetchBilledAmount', function (buss_no) { return __awaiter(void 0, void 0, void 0, function () {
+    var response;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log('in fetchBilledAmount slice', buss_no);
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/billedAmount/").concat(buss_no))];
+            case 1:
+                response = _a.sent();
+                console.log('response data', response.data);
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('busPayments fulfilled::: ', response.data.billedAmount);
+                    return [2 /*return*/, response.data.billedAmount || 0];
+                }
+                else {
+                    throw new Error("Error fetching bus payment. Status: ".concat(response.status, " - Error: ").concat(response.statusText));
+                }
+                return [2 /*return*/];
+        }
+    });
+}); });
+// Async thunk to fetch a single BusPayments record by buss_no
 export var fetchBusPaymentByBussNo = createAsyncThunk('busPayments/fetchBusPaymentByBussNo', function (buss_no) { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
@@ -101,7 +124,15 @@ export var fetchBusPaymentByBussNo = createAsyncThunk('busPayments/fetchBusPayme
             case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/").concat(buss_no))];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('busPayments fulfilled::: ', response.data);
+                    // Ensure response.data is an array
+                    return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //        
+                }
+                else {
+                    throw new Error("Error fetching bus payment. Status: ".concat(response.status, " - Error: ").concat(response.statusText));
+                }
+                return [2 /*return*/];
         }
     });
 }); });
@@ -186,11 +217,24 @@ var busPaymentsSlice = createSlice({
         setError: function (state, action) {
             state.error = action.payload;
         },
+        setBilledAmount: function (state, action) {
+            state.billedAmount = action.payload;
+        },
     },
     extraReducers: function (builder) {
         builder
-            .addCase(fetchBusPayments.pending, function (state) {
+            .addCase(fetchBilledAmount.pending, function (state) {
             state.loading = true;
+            state.error = null;
+        })
+            .addCase(fetchBilledAmount.fulfilled, function (state, action) {
+            state.loading = false;
+            state.billedAmount = action.payload;
+            state.error = null;
+        })
+            .addCase(fetchBilledAmount.rejected, function (state) {
+            state.loading = false;
+            state.error = null;
         })
             .addCase(fetchBusPayments.fulfilled, function (state, action) {
             state.loading = false;
@@ -219,7 +263,7 @@ var busPaymentsSlice = createSlice({
         })
             .addCase(fetchBusPaymentByBussNo.fulfilled, function (state, action) {
             state.loading = false;
-            state.busPayments.push(action.payload); // Add the new BusPayments record
+            action.payload.forEach(function (payment) { return state.busPayments.push(payment); }); // Add each BusPayments record
             state.error = null;
         })
             .addCase(fetchBusPaymentByBussNo.rejected, function (state, action) {

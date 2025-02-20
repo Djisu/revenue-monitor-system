@@ -20,6 +20,7 @@
         "batchno",
         "Billa",
         "billamount",
+        "billedamount",
         "blockdivision",
         "blocklayout",
         "Boadu",

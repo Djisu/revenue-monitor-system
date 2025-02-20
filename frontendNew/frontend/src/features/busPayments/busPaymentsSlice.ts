@@ -20,12 +20,14 @@ interface BusPaymentsState {
     busPayments: BusPaymentsData[];
     loading: boolean;
     error: string | null;
+    billedAmount: number;
 }
 
 const initialState: BusPaymentsState = {
     busPayments: [],
     loading: false,
     error: null,
+    billedAmount: 0,
 };
 
 
@@ -72,10 +74,36 @@ export const createBusPayment = createAsyncThunk('busPayments/createBusPayment',
     }
 });
 
+
 // Async thunk to fetch a single BusPayments record by buss_no
-export const fetchBusPaymentByBussNo = createAsyncThunk('busPayments/fetchBusPaymentByBussNo', async (buss_no: string) => {
+export const fetchBilledAmount = createAsyncThunk('busPayments/fetchBilledAmount', async (buss_no: string) => {
+    console.log('in fetchBilledAmount slice', buss_no);
+    
+    const response = await axios.get(`${BASE_URL}/api/busPayments/billedAmount/${buss_no}`);
+    console.log('response data', response.data);
+
+    if (response.status >= 200 && response.status < 300) {
+        console.log('busPayments fulfilled::: ', response.data.billedAmount)    ;
+       
+        return response.data.billedAmount || 0;   
+    }else {
+        throw new Error(`Error fetching bus payment. Status: ${response.status} - Error: ${response.statusText}`);
+    }    
+});
+
+// Async thunk to fetch a single BusPayments record by buss_no
+export const fetchBusPaymentByBussNo = createAsyncThunk('busPayments/fetchBusPaymentByBussNo', 
+async (buss_no: string) => {
+   
     const response = await axios.get(`${BASE_URL}/api/busPayments/${buss_no}`);
-    return response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+        console.log('busPayments fulfilled::: ', response.data);
+        // Ensure response.data is an array
+        return Array.isArray(response.data) ? response.data : []; //        
+    } else {
+        throw new Error(`Error fetching bus payment. Status: ${response.status} - Error: ${response.statusText}`);
+    }
 });
 
 // Async thunk to fetch a single BusPayments record by buss_no
@@ -132,11 +160,24 @@ const busPaymentsSlice = createSlice({
         setError: (state, action: PayloadAction<string | null>) => {
             state.error = action.payload;
         },
+        setBilledAmount: (state, action) => {
+            state.billedAmount = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
-            .addCase(fetchBusPayments.pending, (state) => {
+            .addCase(fetchBilledAmount.pending, (state) => {
                 state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchBilledAmount.fulfilled, (state, action) => {
+                state.loading = false;
+                state.billedAmount = action.payload;
+                state.error = null;
+            })
+            .addCase(fetchBilledAmount.rejected, (state) => {
+                state.loading = false;
+                state.error = null;
             })
             .addCase(fetchBusPayments.fulfilled, (state, action) => {
                 state.loading = false;
@@ -164,7 +205,7 @@ const busPaymentsSlice = createSlice({
             })
             .addCase(fetchBusPaymentByBussNo.fulfilled, (state, action) => {
                 state.loading = false;
-                state.busPayments.push(action.payload); // Add the new BusPayments record
+                action.payload.forEach(payment => state.busPayments.push(payment)); // Add each BusPayments record
                 state.error = null;
             })
             .addCase(fetchBusPaymentByBussNo.rejected, (state, action) => {
