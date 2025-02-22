@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -31,7 +32,7 @@ router.post('/create', async (req, res) => {
     try {
         client = await pool.connect();
         const { property_Class, fiscalyear, rate, registrationrate } = propertyRateData;
-        const queryText = 'SELECT * FROM tb_propertyrate WHERE property_class = $1 AND fiscalyear = $2';
+        const queryText = 'SELECT * FROM propertyrate WHERE property_class = $1 AND fiscalyear = $2';
         const values = [property_Class.toLowerCase(), fiscalyear];
         const result = await client.query(queryText, values); // Convert property_class to lowercase
         if (result.rows.length > 0) {
@@ -41,7 +42,7 @@ router.post('/create', async (req, res) => {
         console.log('before insert');
         // Insert the new property rate data
         const insertQueryText = `
-            INSERT INTO tb_propertyrate 
+            INSERT INTO propertyrate 
             (property_class, fiscalyear, rate, registrationrate) 
             VALUES ($1, $2, $3, $4)
             RETURNING property_class, rate`;
@@ -83,7 +84,7 @@ router.get('/', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_propertyrate');
+        const result = await client.query('SELECT * FROM propertyrate');
         res.json(result.rows);
     }
     catch (error) {
@@ -103,7 +104,7 @@ router.get('/:property_Class/:fiscalyear', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const queryText = 'SELECT * FROM tb_propertyrate WHERE property_class = $1 AND fiscalyear = $2';
+        const queryText = 'SELECT * FROM propertyrate WHERE property_class = $1 AND fiscalyear = $2';
         const values = [property_Class, fiscalyear];
         const result = await client.query(queryText, values);
         if (result.rows.length > 0) {
@@ -133,7 +134,7 @@ router.put('/:property_Class/:fiscalyear', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const queryText = 'SELECT * FROM tb_propertyrate WHERE property_class = $1 AND fiscalyear = $2';
+        const queryText = 'SELECT * FROM propertyrate WHERE property_class = $1 AND fiscalyear = $2';
         const values = [propertyRateData.property_Class, propertyRateData.fiscalyear];
         const result = await client.query(queryText, values);
         if (result.rows.length === 0) {
@@ -142,7 +143,7 @@ router.put('/:property_Class/:fiscalyear', async (req, res) => {
         }
         // Update the property rate data
         const updateQueryText = `
-            UPDATE tb_propertyrate 
+            UPDATE propertyrate 
             SET rate = $1, registrationrate = $2 
             WHERE property_class = $3 AND fiscalyear = $4`;
         const updateValues = [
@@ -170,7 +171,7 @@ router.delete('/:property_Class/:fiscalyear', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const queryText = 'SELECT * FROM tb_propertyrate WHERE property_class = $1 AND fiscalyear = $2';
+        const queryText = 'SELECT * FROM propertyrate WHERE property_class = $1 AND fiscalyear = $2';
         const values = [property_Class, fiscalyear];
         const result = await client.query(queryText, values);
         if (result.rows.length === 0) {
@@ -178,7 +179,7 @@ router.delete('/:property_Class/:fiscalyear', async (req, res) => {
             return;
         }
         // Delete the property rate record
-        const deleteQueryText = 'DELETE FROM tb_propertyrate WHERE property_class = $1 AND fiscalyear = $2';
+        const deleteQueryText = 'DELETE FROM propertyrate WHERE property_class = $1 AND fiscalyear = $2';
         const deleteValues = [property_Class, fiscalyear];
         await client.query(deleteQueryText, deleteValues);
         res.status(200).json({ message: 'Property rate record deleted successfully' });
@@ -245,7 +246,7 @@ export default router;
 //     console.log('after validation: ')
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_propertyrate WHERE property_class = ? AND fiscalyear = ?', 
+//         const [rows] = await connection.execute('SELECT * FROM propertyrate WHERE property_class = ? AND fiscalyear = ?', 
 //         [propertyRateData.property_Class.toLowerCase(), propertyRateData.fiscalyear]); // Convert property_class to lowercase
 //         if (Array.isArray(rows) && rows.length > 0) {
 //             res.status(409).json({ success: false, message: 'Property rate record already exists' });

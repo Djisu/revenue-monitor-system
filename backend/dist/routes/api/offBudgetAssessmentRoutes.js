@@ -1,7 +1,8 @@
 // backend/src/routes/api/offBudgetAssessmentRoutes.ts
 import { Router } from 'express';
 import * as dotenv from 'dotenv';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -68,7 +69,7 @@ router.post('/', async (req, res) => {
     try {
         client = await pool.connect();
         // Insert the new OffBudgetAssessment data
-        const result = await client.query(`INSERT INTO tb_offbudgetassessment 
+        const result = await client.query(`INSERT INTO offbudgetassessment 
             (officer_name, january_amount, january_budget, february_amount, february_budget, 
             march_amount, march_budget, april_amount, april_budget, may_amount, may_budget, 
             june_amount, june_budget, july_amount, july_budget, august_amount, august_budget, 
@@ -118,7 +119,7 @@ router.get('/', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_offbudgetassessment');
+        const result = await client.query('SELECT * FROM offbudgetassessment');
         res.json(result.rows);
     }
     catch (error) {
@@ -137,7 +138,7 @@ router.get('/:officer_name', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_offbudgetassessment WHERE officer_name = $1', [officer_name]);
+        const result = await client.query('SELECT * FROM offbudgetassessment WHERE officer_name = $1', [officer_name]);
         if (Array.isArray(result.rows) && result.rows.length > 0) {
             res.json(result.rows[0]); // Return the first row
         }
@@ -163,7 +164,7 @@ router.put('/:officer_name', async (req, res) => {
     try {
         client = await pool.connect();
         // Update the OffBudgetAssessment data
-        await client.query(`UPDATE tb_offbudgetassessment SET 
+        await client.query(`UPDATE offbudgetassessment SET 
             january_amount = $1, january_budget = $2, february_amount = $3, february_budget = $4, 
             march_amount = $5, march_budget = $6, april_amount = $7, april_budget = $8, 
             may_amount = $9, may_budget = $10, june_amount = $11, june_budget = $12, 
@@ -216,7 +217,7 @@ router.delete('/:officer_name', async (req, res) => {
     try {
         client = await pool.connect();
         // Delete the OffBudgetAssessment record
-        await client.query('DELETE FROM tb_offbudgetassessment WHERE officer_name = $1', [officer_name]);
+        await client.query('DELETE FROM offbudgetassessment WHERE officer_name = $1', [officer_name]);
         res.status(200).json({ message: 'OffBudgetAssessment record deleted successfully' });
     }
     catch (error) {
@@ -467,7 +468,7 @@ export default router;
 //     try {
 //         // Insert the new OffBudgetAssessment data
 //         const [result] = await connection.execute<ResultSetHeader>(
-//             `INSERT INTO tb_OffBudgetAssessment 
+//             `INSERT INTO offbudgetassessment 
 //             (officer_name, JanuaryAmount, JanuaryBudget, FebruaryAmount, FebruaryBudget, 
 //             MarchAmount, MarchBudget, AprilAmount, AprilBudget, MayAmount, MayBudget, 
 //             JuneAmount, JuneBudget, JulyAmount, JulyBudget, AugustAmount, AugustBudget, 

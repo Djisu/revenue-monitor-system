@@ -2,7 +2,11 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-import { Client, QueryResult } from 'pg';
+
+import pkg from 'pg';
+import type { PoolClient } from 'pg';
+const { Pool, Client } = pkg;
+import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 const router = Router();
 

@@ -1,7 +1,8 @@
 // backend/src/routes/api/operatorRoutes.ts
 import express from 'express';
 import * as dotenv from 'dotenv';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import bcrypt from 'bcrypt';
 const router = express.Router();
 // Load environment variables from .env file
@@ -15,7 +16,7 @@ const pool = new Pool({
     port: parseInt(process.env.DB_PORT || '5432'),
 });
 // Create a new operator record
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
     console.log('in operator definition router.post');
     const operatorData = req.body;
     console.log('operatorData:', operatorData);
@@ -31,19 +32,19 @@ router.post('/', async (req, res) => {
         }
         client = await pool.connect();
         // Check if an operator with the same OperatorID already exists
-        const existingOperatorByOperatorID = await client.query('SELECT * FROM Operator_definition WHERE OperatorID = $1', [operatorData.OperatorID]);
+        const existingOperatorByOperatorID = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [operatorData.OperatorID]);
         if (existingOperatorByOperatorID.rows.length > 0) {
             res.status(409).json({ message: 'Operator with this OperatorID already exists.' });
             return;
         }
         // Check if an operator with the same OperatorName already exists
-        const existingOperatorByOperatorName = await client.query('SELECT * FROM Operator_definition WHERE OperatorName = $1', [operatorData.OperatorName]);
+        const existingOperatorByOperatorName = await client.query('SELECT * FROM operatordefinition WHERE OperatorName = $1', [operatorData.OperatorName]);
         if (existingOperatorByOperatorName.rows.length > 0) {
             res.status(409).json({ message: 'Operator with this OperatorName already exists.' });
             return;
         }
         // Check if an operator with the same firstname and lastname already exists
-        const existingOperatorByFirstnameLastname = await client.query('SELECT * FROM Operator_definition WHERE firstname = $1 AND lastname = $2', [operatorData.firstname, operatorData.lastname]);
+        const existingOperatorByFirstnameLastname = await client.query('SELECT * FROM operatordefinition WHERE firstname = $1 AND lastname = $2', [operatorData.firstname, operatorData.lastname]);
         if (existingOperatorByFirstnameLastname.rows.length > 0) {
             res.status(409).json({ message: 'Operator with this firstname and lastname already exists.' });
             return;
@@ -74,7 +75,7 @@ router.post('/', async (req, res) => {
         const hashedPassword = await bcrypt.hash(operatorData.password, salt);
         operatorData.password = hashedPassword;
         // Insert the new operator data
-        await client.query(`INSERT INTO Operator_definition (OperatorID, OperatorName, password, firstname, lastname, email) 
+        await client.query(`INSERT INTO operatordefinition (OperatorID, OperatorName, password, firstname, lastname, email) 
             VALUES ($1, $2, $3, $4, $5, $6)`, [
             operatorData.OperatorID,
             operatorData.OperatorName,
@@ -100,7 +101,7 @@ router.get('/', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const rows = await client.query('SELECT * FROM Operator_definition');
+        const rows = await client.query('SELECT * FROM operatordefinition');
         res.json(rows.rows);
     }
     catch (error) {
@@ -119,7 +120,7 @@ router.get('/:OperatorID', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM Operator_definition WHERE OperatorID = $1', [OperatorID]);
+        const result = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [OperatorID]);
         if (result.rows.length == 0) {
             res.status(404).json({ message: 'Operator with this OperatorID does not exist.' });
             return;
@@ -145,13 +146,13 @@ router.put('/:OperatorID', async (req, res) => {
     try {
         client = await pool.connect();
         // Check if an operator with the same OperatorID already exists
-        const result = await client.query('SELECT * FROM Operator_definition WHERE OperatorID = $1', [OperatorID]);
+        const result = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [OperatorID]);
         if (result.rows.length == 0) {
             res.status(404).json({ message: 'Operator with this OperatorID does not exist.' });
             return;
         }
         // Update the operator data
-        await client.query(`UPDATE Operator_definition SET OperatorName = $1, password = $2, firstname = $3, lastname = $4 
+        await client.query(`UPDATE operatordefinition SET OperatorName = $1, password = $2, firstname = $3, lastname = $4 
             WHERE OperatorID = $5`, [
             operatorData.OperatorName,
             operatorData.password,
@@ -180,13 +181,13 @@ router.delete('/:OperatorID', async (req, res) => {
     try {
         client = await pool.connect();
         // Check if an operator with the same OperatorID already exists
-        const result = await client.query('SELECT * FROM Operator_definition WHERE OperatorID = $1', [OperatorID]);
+        const result = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [OperatorID]);
         if (result.rows.length == 0) {
             res.status(404).json({ message: 'Operator with this OperatorID does not exist.' });
             return;
         }
         // Delete the operator record
-        await client.query('DELETE FROM Operator_definition WHERE OperatorID = $1', [OperatorID]);
+        await client.query('DELETE FROM operatordefinition WHERE OperatorID = $1', [OperatorID]);
         res.status(200).json({ message: 'Operator deleted successfully' });
     }
     catch (error) {
@@ -242,7 +243,7 @@ export default router;
 //         }
 //         // Check if an operator with the same OperatorID already exists
 //         let [existingOperator] = await connection.execute(
-//             'SELECT * FROM Operator_definition WHERE OperatorID = ?', 
+//             'SELECT * FROM operatordefinition WHERE OperatorID = ?', 
 //             [operatorData.OperatorID]
 //         );
 //         if ((existingOperator as any).length > 0) {

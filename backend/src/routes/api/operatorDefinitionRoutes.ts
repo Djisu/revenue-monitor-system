@@ -2,7 +2,10 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-import { Pool, PoolClient, QueryResult } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
+import type { QueryResult } from 'pg';  // Import QueryResult as a type
+
 import bcrypt from 'bcrypt';
 
 const router: Router = express.Router();
@@ -30,14 +33,14 @@ export interface OperatorDefinition {
 }
 
 // Create a new operator record
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/create', async (req: Request, res: Response): Promise<void> => {
     console.log('in operator definition router.post');
     
     const operatorData: OperatorDefinition = req.body;
 
     console.log('operatorData:', operatorData);
 
-    let client: PoolClient | null = null;
+    let client = null;
 
     try {
         // Validate required fields
@@ -136,7 +139,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
 // Read all operators
 router.get('/', async (req: Request, res: Response) => {
-    let client: PoolClient | null = null;
+    let client = null;
 
     try {
         client = await pool.connect();
@@ -157,7 +160,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:OperatorID', async (req: Request, res: Response) => {
     const { OperatorID } = req.params;
 
-    let client: PoolClient | null = null;
+    let client = null;
 
     try {
         client = await pool.connect();
@@ -188,7 +191,7 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
     const { OperatorID } = req.params;
     const operatorData: OperatorDefinition = req.body;
 
-    let client: PoolClient | null = null;
+    let client = null;
 
     try {
         client = await pool.connect();
@@ -234,7 +237,7 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
 router.delete('/:OperatorID', async (req: Request, res: Response): Promise<void> => {
     const { OperatorID } = req.params;
 
-    let client: PoolClient | null = null;
+    let client = null;
 
     try {
         client = await pool.connect();

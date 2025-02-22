@@ -29,7 +29,8 @@ export const fetchElectoralAreas = createAsyncThunk('electoralArea/fetchElectora
     const response = await axios.get(`${BASE_URL}/api/electoralArea/all`);
 
     if (response.status >= 200 && response.status < 300) {
-       // console.log('fetchElectoralAreas response:', response.data)
+        console.log('fetchElectoralAreas response:', response.data)
+        
         return Array.isArray(response.data) ? response.data : []; //
         //return await response.data // This data will be available as `action.payload`
     } else {

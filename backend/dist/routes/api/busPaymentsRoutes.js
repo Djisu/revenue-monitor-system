@@ -103,7 +103,7 @@ router.post('/create', async (req, res) => {
     const connection = await mysql.createConnection(dbConfig);
     try {
         // Insert the new BusPayments data
-        const [result] = await connection.execute(`INSERT INTO tb_buspayments (buss_no, officer_no, paidAmount, monthpaid, transdate, 
+        const [result] = await connection.execute(`INSERT INTO buspayments (buss_no, officer_no, paidAmount, monthpaid, transdate, 
                 fiscal_year, ReceiptNo, email, electroral_area) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
             busPaymentsData.buss_no,
@@ -181,7 +181,7 @@ router.post('/sendEmail', async (req, res) => {
 router.get('/all', async (req, res) => {
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_buspayments');
+        const [rows] = await connection.execute('SELECT * FROM buspayments');
         res.json(rows);
     }
     catch (error) {
@@ -197,7 +197,7 @@ router.get('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_buspayments WHERE buss_no = ?', [buss_no]);
+        const [rows] = await connection.execute('SELECT * FROM buspayments WHERE buss_no = ?', [buss_no]);
         if (Array.isArray(rows) && rows.length == 0) {
             res.status(404).json({ message: 'Business Payments record not found' });
             return;
@@ -218,7 +218,7 @@ router.get('/billedAmount/:buss_no', async (req, res) => {
     console.log('router.get(/billedAmount/:buss_no buss_no:', buss_no);
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_business WHERE buss_no = ?', [buss_no]);
+        const [rows] = await connection.execute('SELECT * FROM business WHERE buss_no = ?', [buss_no]);
         if (Array.isArray(rows) && rows.length == 0) {
             res.status(404).json({ amount: 0, message: 'Business not found' });
             return;
@@ -253,7 +253,7 @@ router.get('/:electoralarea', async (req, res) => {
     const { electoralarea } = req.params;
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_buspayments WHERE electroral_area = ?', [electoralarea]);
+        const [rows] = await connection.execute('SELECT * FROM buspayments WHERE electroral_area = ?', [electoralarea]);
         if (Array.isArray(rows) && rows.length == 0) {
             res.status(404).json({ message: 'Business Payments record not found' });
             return;
@@ -273,7 +273,7 @@ router.get('/:date', async (req, res) => {
     const { transdate } = req.params;
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_buspayments WHERE transdate = ?', [transdate]);
+        const [rows] = await connection.execute('SELECT * FROM buspayments WHERE transdate = ?', [transdate]);
         if (Array.isArray(rows) && rows.length == 0) {
             res.status(404).json({ message: 'Business Payments record not found' });
             return;
@@ -293,7 +293,7 @@ router.get('/:firstdate/:lastdate', async (req, res) => {
     const { firstdate, lastdate } = req.params;
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_buspayments WHERE transdate BETWEEN ? AND ?', [firstdate, lastdate]);
+        const [rows] = await connection.execute('SELECT * FROM buspayments WHERE transdate BETWEEN ? AND ?', [firstdate, lastdate]);
         if (Array.isArray(rows) && rows.length == 0) {
             res.status(404).json({ message: 'Business Payments record not found' });
             return;
@@ -316,13 +316,13 @@ router.put('/:buss_no', async (req, res) => {
     const mysqlDate = isoDate.toISOString().split('T')[0]; // Convert to YYYY-MM-DD
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [rows] = await connection.execute('SELECT * FROM tb_buspayments WHERE buss_no = ?', [buss_no]);
+        const [rows] = await connection.execute('SELECT * FROM buspayments WHERE buss_no = ?', [buss_no]);
         if (Array.isArray(rows) && rows.length > 0) {
             res.status(404).json({ message: 'BusPayments record exists' });
             return;
         }
         // Update the BusPayments data
-        const [result] = await connection.execute(`UPDATE tb_buspayments SET officer_no = ?, amount = ?, monthpaid = ?, transdate = ?, 
+        const [result] = await connection.execute(`UPDATE buspayments SET officer_no = ?, amount = ?, monthpaid = ?, transdate = ?, 
              fiscal_year = ?, ReceiptNo = ? 
             WHERE buss_no = ?`, [
             busPaymentsData.officer_no,
@@ -350,13 +350,13 @@ router.delete('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
     const connection = await mysql.createConnection(dbConfig);
     try {
-        const [row] = await connection.execute('SELECT * FROM tb_buspayments WHERE buss_no = ?', [buss_no]);
+        const [row] = await connection.execute('SELECT * FROM buspayments WHERE buss_no = ?', [buss_no]);
         if (Array.isArray(row) && row.length == 0) {
             res.status(404).json({ message: 'BusPayments record does not exist' });
             return;
         }
         // Delete the BusPayments record
-        const [result] = await connection.execute('DELETE FROM tb_buspayments WHERE buss_no = ?', [buss_no]);
+        const [result] = await connection.execute('DELETE FROM buspayments WHERE buss_no = ?', [buss_no]);
         res.status(200).json({ message: 'BusPayments record deleted successfully' });
         return;
     }
@@ -375,10 +375,10 @@ async function findPreviousBalance(bussNo) {
         const currentYear = new Date().getFullYear();
         // const prevYear = currentYear - 1
         // Find previous payments
-        const [prevPaymentsResult] = await connection.execute('SELECT SUM(paidAmount) AS totsum FROM tb_buspayments WHERE buss_no = ? AND fiscal_year < ?', [bussNo, currentYear]);
+        const [prevPaymentsResult] = await connection.execute('SELECT SUM(paidAmount) AS totsum FROM buspayments WHERE buss_no = ? AND fiscal_year < ?', [bussNo, currentYear]);
         const prevPayments = prevPaymentsResult[0]?.totsum ?? 0;
         // Find previous billings
-        const [prevBalancesResult] = await connection.execute('SELECT current_balance FROM tb_BussCurrBalance WHERE buss_no = ? AND fiscalyear < ?', [bussNo, currentYear]);
+        const [prevBalancesResult] = await connection.execute('SELECT current_balance FROM busscurrbalance WHERE buss_no = ? AND fiscalyear < ?', [bussNo, currentYear]);
         const prevBalances = prevBalancesResult[0]?.current_balance ?? 0;
         // Calculate balance
         return prevBalances - prevPayments;
@@ -396,7 +396,7 @@ async function updateOfficerBudget(params) {
     console.log('in updateOfficerBudget');
     try {
         // Update officer's collection plan
-        let varSQL = `UPDATE tb_officerbudget SET `;
+        let varSQL = `UPDATE officerbudget SET `;
         const monthColumns = {
             January: 'January_Actual',
             February: 'February_Actual',
@@ -425,13 +425,13 @@ async function updateOfficerBudget(params) {
             params.fiscalYear
         ]);
         // Update outstanding
-        let outstandingSQL = `UPDATE tb_officerbudget SET outstanding = annual_budget - Actual_total WHERE officer_no = ? AND fiscal_year = ?`;
+        let outstandingSQL = `UPDATE officerbudget SET outstanding = annual_budget - Actual_total WHERE officer_no = ? AND fiscal_year = ?`;
         await connection.execute(outstandingSQL, [
             params.officerNo,
             params.fiscalYear
         ]);
         // Insert into client payment trans table
-        let insertSQL = `INSERT INTO tb_receipt(buss_no, receiptno, description, transdate, amount, buss_name) VALUES (?, ?, 'PAYMENT RECEIPT', ?, ?, NULL)`;
+        let insertSQL = `INSERT INTO receipt(buss_no, receiptno, description, transdate, amount, buss_name) VALUES (?, ?, 'PAYMENT RECEIPT', ?, ?, NULL)`;
         await connection.execute(insertSQL, [
             params.busNo,
             params.receiptNo,
@@ -439,13 +439,13 @@ async function updateOfficerBudget(params) {
             params.amount
         ]);
         // Update client's balance
-        let updateBalanceSQL = `UPDATE tb_business SET balance = balance + ? WHERE buss_no = ?`;
+        let updateBalanceSQL = `UPDATE business SET balance = balance + ? WHERE buss_no = ?`;
         await connection.execute(updateBalanceSQL, [
             params.currentBalance,
             params.busNo
         ]);
         // Delete from var_buspayments
-        let deleteSQL = `DELETE FROM var_buspayments WHERE buss_no = ? AND officer_no = ? AND fiscal_year = ? AND monthpaid = ? AND receiptno = ?`;
+        let deleteSQL = `DELETE FROM varbuspayments WHERE buss_no = ? AND officer_no = ? AND fiscal_year = ? AND monthpaid = ? AND receiptno = ?`;
         await connection.execute(deleteSQL, [
             params.busNo,
             params.officerNo,
@@ -582,7 +582,7 @@ export default router;
 //     try { 
 //         // Insert the new BusPayments data
 //         const [result] = await connection.execute<ResultSetHeader>(
-//             `INSERT INTO tb_buspayments (buss_no, officer_no, paidAmount, monthpaid, transdate, 
+//             `INSERT INTO buspayments (buss_no, officer_no, paidAmount, monthpaid, transdate, 
 //                 fiscal_year, ReceiptNo, email, electroral_area) 
 //             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 //             [

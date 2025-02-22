@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -16,13 +17,13 @@ router.post('/', async (req, res) => {
     const propertyData = req.body;
     const client = await pool.connect();
     try {
-        const { rowCount } = await client.query('SELECT * FROM tb_Property WHERE house_no = $1', [propertyData.house_no]);
+        const { rowCount } = await client.query('SELECT * FROM property WHERE house_no = $1', [propertyData.house_no]);
         if (rowCount > 0) {
             res.status(409).json({ message: 'Property record already exists' });
             return;
         }
         // Insert the new property data
-        const result = await client.query(`INSERT INTO tb_Property 
+        const result = await client.query(`INSERT INTO property 
             (house_no, owner, tenant, propertyuse, propertytype, propertyclass, 
             electroral_area, landmark, street_name, lattitude, longitude, 
             code, elevation, rate, Assessmentby, balance, 
@@ -63,7 +64,7 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     const client = await pool.connect();
     try {
-        const result = await client.query('SELECT * FROM tb_Property');
+        const result = await client.query('SELECT * FROM property');
         res.json(result.rows);
     }
     catch (error) {
@@ -79,7 +80,7 @@ router.get('/:house_no', async (req, res) => {
     const { house_no } = req.params;
     const client = await pool.connect();
     try {
-        const result = await client.query('SELECT * FROM tb_Property WHERE house_no = $1', [house_no]);
+        const result = await client.query('SELECT * FROM property WHERE house_no = $1', [house_no]);
         if (result.rows.length > 0) {
             res.json(result.rows[0]); // Return the first row
         }
@@ -101,13 +102,13 @@ router.put('/:house_no', async (req, res) => {
     const propertyData = req.body;
     const client = await pool.connect();
     try {
-        const { rowCount } = await client.query('SELECT * FROM tb_Property WHERE house_no = $1', [propertyData.house_no]);
+        const { rowCount } = await client.query('SELECT * FROM property WHERE house_no = $1', [propertyData.house_no]);
         if (rowCount == 0) {
             res.status(409).json({ message: 'Property record does not exist' });
             return;
         }
         // Update the property data
-        const result = await client.query(`UPDATE tb_Property 
+        const result = await client.query(`UPDATE property 
             SET owner = $1, tenant = $2, propertyuse = $3, propertytype = $4, 
             propertyclass = $5, electroral_area = $6, landmark = $7, 
             street_name = $8, lattitude = $9, longitude = $10, 
@@ -152,13 +153,13 @@ router.delete('/:house_no', async (req, res) => {
     const { house_no } = req.params;
     const client = await pool.connect();
     try {
-        const { rowCount } = await client.query('SELECT * FROM tb_Property WHERE house_no = $1', [house_no]);
+        const { rowCount } = await client.query('SELECT * FROM property WHERE house_no = $1', [house_no]);
         if (rowCount == 0) {
             res.status(409).json({ message: 'Property record does not exist' });
             return;
         }
         // Delete the property record
-        const result = await client.query('DELETE FROM tb_Property WHERE house_no = $1', [house_no]);
+        const result = await client.query('DELETE FROM property WHERE house_no = $1', [house_no]);
         res.status(200).json({ message: 'Property record deleted successfully' });
         return;
     }

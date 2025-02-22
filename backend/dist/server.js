@@ -6,38 +6,39 @@ import swaggerUi from 'swagger-ui-express';
 import multer, { diskStorage } from 'multer';
 import colors from 'colors';
 import morgan from 'morgan';
-import { Pool } from 'pg'; // Switched to pg for PostgreSQL
+import pg from 'pg';
+const { Pool } = pg;
 import swaggerJSDoc from 'swagger-jsdoc';
-import businessRoutes from './routes/api/businessRoutes';
-import accReceiptRoutes from './routes/api/accReceiptRoutes';
-import authRoutes from './routes/api/authRoutes';
-import balanceRoutes from './routes/api/balanceRoutes';
-import budgetAssessRoutes from './routes/api/budgetAssessRoutes';
-import bussCurrBalanceRoutes from './routes/api/bussCurrBalanceRoutes';
-import electoralAreaRoutes from './routes/api/electoralArea';
-import gradeFeesRoutes from './routes/api/gradeFeesRoutes';
-import gradeRateRoutes from './routes/api/gradeRateRoutes';
-import offBudgetAssessmentRoutes from './routes/api/offBudgetAssessmentRoutes';
-import officerAssessmentRoutes from './routes/api/officerAssessmentRoutes';
-import officerBudgetWeeklyRoutes from './routes/api/officerBudgetWeeklyRoutes';
-import officerRoutes from './routes/api/officerRoutes';
-import operatorDefinitionRoutes from './routes/api/operatorDefinitionRoutes';
-import operatorPermissionRoutes from './routes/api/operatorPermissionRoutes';
-import paymentReportRoutes from './routes/api/paymentReportRoutes';
-import propertyBalanceRoutes from './routes/api/propertyBalanceRoutes';
-import propertyClassRoutes from './routes/api/propertyClassRoutes';
-import propertyCollectorElectoralareaRoutes from './routes/api/propertyCollectorElectoralareaRoutes';
-import propertyOfficerAssessmentRoutes from './routes/api/propertyOfficerAssessmentRoutes';
-import propertyOfficerBudgetRoutes from './routes/api/propertyOfficerBudgetRoutes';
-import propertyOfficerRoutes from './routes/api/propertyOfficerRoutes';
-import propertyRateRoutes from './routes/api/propertyRateRoutes';
-import propertyTypeRoutes from './routes/api/propertyTypeRoutes';
-import propertyUseRoutes from './routes/api/propertyUseRoutes';
-import receiptRoutes from './routes/api/receiptRoutes';
-import transSavingsRoutes from './routes/api/transSavingsRoutes';
-import photosRoute from './routes/api/photosRoutes';
-import businessTypeRoute from './routes/api/businessTypeRoutes';
-import busPaymentsRoutes from './routes/api/busPaymentsRoutes';
+import businessRoutes from './routes/api/businessRoutes.js';
+import accReceiptRoutes from './routes/api/accReceiptRoutes.js';
+import authRoutes from './routes/api/authRoutes.js';
+import balanceRoutes from './routes/api/balanceRoutes.js';
+import budgetAssessRoutes from './routes/api/budgetAssessRoutes.js';
+import bussCurrBalanceRoutes from './routes/api/bussCurrBalanceRoutes.js';
+import electoralAreaRoutes from './routes/api/electoralArea.js';
+import gradeFeesRoutes from './routes/api/gradeFeesRoutes.js';
+import gradeRateRoutes from './routes/api/gradeRateRoutes.js';
+import offBudgetAssessmentRoutes from './routes/api/offBudgetAssessmentRoutes.js';
+import officerAssessmentRoutes from './routes/api/officerAssessmentRoutes.js';
+import officerBudgetWeeklyRoutes from './routes/api/officerBudgetWeeklyRoutes.js';
+import officerRoutes from './routes/api/officerRoutes.js';
+import operatorDefinitionRoutes from './routes/api/operatorDefinitionRoutes.js';
+import operatorPermissionRoutes from './routes/api/operatorPermissionRoutes.js';
+import paymentReportRoutes from './routes/api/paymentReportRoutes.js';
+import propertyBalanceRoutes from './routes/api/propertyBalanceRoutes.js';
+import propertyClassRoutes from './routes/api/propertyClassRoutes.js';
+import propertyCollectorElectoralareaRoutes from './routes/api/propertyCollectorElectoralareaRoutes.js';
+import propertyOfficerAssessmentRoutes from './routes/api/propertyOfficerAssessmentRoutes.js';
+import propertyOfficerBudgetRoutes from './routes/api/propertyOfficerBudgetRoutes.js';
+import propertyOfficerRoutes from './routes/api/propertyOfficerRoutes.js';
+import propertyRateRoutes from './routes/api/propertyRateRoutes.js';
+import propertyTypeRoutes from './routes/api/propertyTypeRoutes.js';
+import propertyUseRoutes from './routes/api/propertyUseRoutes.js';
+import receiptRoutes from './routes/api/receiptRoutes.js';
+import transSavingsRoutes from './routes/api/transSavingsRoutes.js';
+import photosRoute from './routes/api/photosRoutes.js';
+import businessTypeRoute from './routes/api/businessTypeRoutes.js';
+import busPaymentsRoutes from './routes/api/busPaymentsRoutes.js';
 // Load environment variables from .env file
 const environment = process.env.NODE_ENV || 'development';
 dotenv.config(); // Load .env file from the default location
@@ -56,7 +57,9 @@ const dbConfig = {
     port: parseInt(process.env.DB_PORT || '5432'), // Default PostgreSQL port
 };
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
+//let pool: Pool | undefined;
 let pool;
+//const pool = new Pool()
 // Create PostgreSQL connection
 const connectDB = async () => {
     try {
@@ -183,7 +186,7 @@ export default app;
 // import multer, { diskStorage, StorageEngine } from 'multer';
 // import colors from 'colors';
 // import morgan from 'morgan';
-// import mysql from 'mysql2/promise'; 
+// import mysql from 'mysql2/promise.js'; 
 // import swaggerJSDoc from 'swagger-jsdoc';
 // import businessRoutes from './routes/api/businessRoutes.js';  
 // import accReceiptRoutes from './routes/api/accReceiptRoutes.js'; 

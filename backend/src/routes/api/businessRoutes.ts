@@ -1,7 +1,12 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-import { Pool, PoolClient } from 'pg';
+//import { Pool, PoolClient } from 'pg';
+import { QueryResult, PoolClient } from 'pg';
+
+import pkg from 'pg';
+const { Pool } = pkg;
+
 import { generatePdf } from '../../generatePdf.js';
 import fs from 'fs';
 import path from 'path';
@@ -571,22 +576,34 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
         // Ensure the permits directory is empty
         await ensurePermitDirIsEmpty();
 
+        console.log('after ensurePermitDirIsEmpty()')
+
         const { electoral_area, fiscal_year } = req.params;
 
         console.log('electoral_area:', electoral_area, 'fiscal_year:', fiscal_year);
 
         const client: PoolClient = await pool.connect();
 
+        console.log('before SELECT * FROM business WHERE electroral_area = $1')
+
         let businessRows = await client.query('SELECT * FROM business WHERE electroral_area = $1', [electoral_area]);
+
+       //console.log('after SELECT * FROM business WHERE electroral_area = $1')
+
+       console.log('businessRows.rows.length === 0: ', businessRows.rows.length === 0)
 
         if (businessRows.rows.length === 0) {
             res.status(404).json({ message: 'No businesses found for the electoral area' });
             return;
         }
 
+        console.log('after SELECT * FROM business WHERE electroral_area = $1')
+
         // Update balancebf in busscurrbalance table for all businesses in the electoral area for the given fiscal year
         for (let i = 0; i < businessRows.rows.length; i++) {
             const { buss_no } = businessRows.rows[i];
+
+            console.log('in the update busscurrbalance table loop')
 
             let varCurrentRate = 0;
             let varBalance = await findBusinessBalance(buss_no);
@@ -620,6 +637,9 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
 
         const recReport = await client.query('SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2', [fiscal_year, electoral_area]);
 
+        console.log('after SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2');
+        console.log('recReport.rows.length:', recReport.rows.length);
+
         if (recReport.rows.length === 0) {
             res.status(404).json({ message: 'No paid bills found for the electoral area' });
             return;
@@ -630,18 +650,19 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
         console.log('after INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance');
 
         // Add serial numbers
-        let recBusiness = await client.query('SELECT * FROM tmp_business ORDER BY buss_no');
+        let recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
 
         let permitNo = 1;
 
         for (let i = 0; i < recBusiness.rows.length; i++) {
             const varSerialNo = permitNo.toString().padStart(10, '0');
-
-            await client.query('UPDATE tmpbusiness SET serialNo = $1 WHERE buss_no = $2', [varSerialNo, recBusiness.rows[i].buss_no]);
-
+    
+            console.log(`Updating buss_no: ${recBusiness.rows[i].buss_no}, Serial No: ${varSerialNo}`);
+    
+            await client.query('UPDATE tmpbusiness SET serialno = $1 WHERE buss_no = $2', [varSerialNo, recBusiness.rows[i].buss_no]);
+    
             permitNo++;
         }
-
         console.log('after serial number generation');
 
         // Check if there are any bills in tmp_business

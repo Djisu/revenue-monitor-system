@@ -1,6 +1,11 @@
 import * as dotenv from 'dotenv';
 import express, { Router, Request, Response } from 'express';
-import { Pool, PoolClient, QueryResult } from 'pg';
+
+
+import pkg from 'pg';
+const { Pool } = pkg;
+import type { QueryResult } from 'pg';  // Import QueryResult as a type
+
 import multer from 'multer';
 
 const router: Router = express.Router();
@@ -40,7 +45,7 @@ router.use(express.json());
 router.post('/create', upload.single('photo'), async (req: CustomRequest, res: Response): Promise<void> => {
     const officerData: OfficerData = req.body;
 
-    let client: PoolClient | null = null;
+    let client = null;
 
     try {
         client = await pool.connect();
@@ -78,9 +83,10 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
     const { officer_no } = req.params;
     const officerData: OfficerData = req.body;
 
-    let client: PoolClient | null = null;
+    let client = null;
 
     try {
+        
         client = await pool.connect();
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
 
@@ -115,7 +121,7 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
 router.delete('/delete/:officer_no', async (req: Request, res: Response): Promise<void> => {
     const { officer_no } = req.params;
 
-    let client: PoolClient | null = null;
+    let client = null;
 
     try {
         client = await pool.connect();
@@ -141,14 +147,34 @@ router.delete('/delete/:officer_no', async (req: Request, res: Response): Promis
 });
 
 // Read all officer records
-router.get('/retrieve', async (req: Request, res: Response) => {
-    let client: PoolClient | null = null;
+router.get('/all', async (req: Request, res: Response) => {
+    console.log('router.get(/all XXXXXXXXX');
+
+    let client = null;
 
     try {
         client = await pool.connect();
-        const result: QueryResult = await client.query('SELECT * FROM officer')
 
-        res.json(result.rows);
+        const result: QueryResult = await client.query(`
+            SELECT o.*, p.photo_buffer, p.photo_name, p.photo_type 
+            FROM officer o
+            LEFT JOIN photos p ON o.officer_no = p.officer_no::int
+        `);
+
+        const officers = result.rows.map(row => {
+            const photoBuffer = row.photo_buffer ? Buffer.from(row.photo_buffer) : null;
+            const photoBlob = photoBuffer ? new Blob([photoBuffer], { type: row.photo_type }) : null; // Convert Buffer to Blob
+
+            return {
+                ...row,
+                photo: photoBlob, // Blob object
+                photoUrl: photoBlob ? URL.createObjectURL(photoBlob) : null // Create Blob URL
+            };
+        });
+
+        console.log('Fetched officers:', result.rows);
+
+        res.status(200).json(officers);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error getting officer records', error });
@@ -163,7 +189,9 @@ router.get('/retrieve', async (req: Request, res: Response) => {
 router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
     const { officer_no } = req.params;
 
-    let client: PoolClient | null = null;
+    console.log('in router.get(/retrieve/:officer_no: ', officer_no)
+
+    let client = null;
 
     try {
         client = await pool.connect();
@@ -174,7 +202,15 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
             return;
         }
 
-        res.json(result.rows);
+        const photo = result.rows[0];
+        const photoBuffer = photo.photo_buffer;
+
+        // Set the appropriate content type
+        res.setHeader('Content-Type', photo.photo_type);
+        res.setHeader('Content-Disposition', `attachment; filename=${photo.photo_name}`);
+
+        // Send the binary photo data
+        res.send(photoBuffer);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error getting officer record', error });
@@ -189,7 +225,7 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
 router.get('/retrieveByName/:officer_name', async (req: Request, res: Response) => {
     const { officer_name } = req.params;
 
-    let client: PoolClient | null = null;
+    let client = null;
 
     try {
         client = await pool.connect();

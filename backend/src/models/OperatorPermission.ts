@@ -1,5 +1,5 @@
 export interface OperatorPermission {
-    OperatorID: string;
-    Menus: string;
+    operatorid: string;
+    menus: string;
     password: string;
 }

@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg'; // Import Pool for PostgreSQL
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -16,13 +17,13 @@ const pool = new Pool({
 router.post('/', async (req, res) => {
     const budgetAssessData = req.body;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_BudgetAssess WHERE month = $1 AND fiscalyear = $2', [budgetAssessData.month, budgetAssessData.fiscalyear]);
+        const { rows } = await pool.query('SELECT * FROM budgetassess WHERE month = $1 AND fiscalyear = $2', [budgetAssessData.month, budgetAssessData.fiscalyear]);
         if (rows.length > 0) {
             res.status(409).json({ message: 'Budget Assess record with this month and fiscal year already exists.' });
             return;
         }
         // Insert the new BudgetAssess data
-        await pool.query(`INSERT INTO tb_BudgetAssess (month, budget, amount, variance, fiscalyear, assessmentby) 
+        await pool.query(`INSERT INTO budgetassess (month, budget, amount, variance, fiscalyear, assessmentby) 
             VALUES ($1, $2, $3, $4, $5, $6)`, [
             budgetAssessData.month,
             budgetAssessData.budget,
@@ -41,7 +42,7 @@ router.post('/', async (req, res) => {
 // Read all BudgetAssess records
 router.get('/', async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_BudgetAssess');
+        const { rows } = await pool.query('SELECT * FROM budgetassess');
         res.json(rows);
     }
     catch (error) {
@@ -53,7 +54,7 @@ router.get('/', async (req, res) => {
 router.get('/:month/:fiscalyear', async (req, res) => {
     const { month, fiscalyear } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_BudgetAssess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
+        const { rows } = await pool.query('SELECT * FROM budgetassess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
         if (rows.length > 0) {
             res.json(rows[0]); // Return the first row
         }
@@ -71,12 +72,12 @@ router.put('/:month/:fiscalyear', async (req, res) => {
     const { month, fiscalyear } = req.params;
     const budgetAssessData = req.body;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_BudgetAssess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
+        const { rows } = await pool.query('SELECT * FROM budgetassess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
         if (rows.length === 0) {
             res.status(404).json({ message: 'BudgetAssess record not found' });
             return;
         }
-        await pool.query(`UPDATE tb_BudgetAssess SET budget = $1, amount = $2, variance = $3, assessmentby = $4 
+        await pool.query(`UPDATE budgetassess SET budget = $1, amount = $2, variance = $3, assessmentby = $4 
             WHERE month = $5 AND fiscalyear = $6`, [
             budgetAssessData.budget,
             budgetAssessData.amount,
@@ -96,13 +97,13 @@ router.put('/:month/:fiscalyear', async (req, res) => {
 router.delete('/:month/:fiscalyear', async (req, res) => {
     const { month, fiscalyear } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_BudgetAssess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
+        const { rows } = await pool.query('SELECT * FROM budgetassess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
         if (rows.length === 0) {
             res.status(404).json({ message: 'BudgetAssess record not found' });
             return;
         }
         // Delete the BudgetAssess record
-        await pool.query('DELETE FROM tb_BudgetAssess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
+        await pool.query('DELETE FROM budgetassess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
         res.status(200).json({ message: 'BudgetAssess record deleted successfully' });
     }
     catch (error) {

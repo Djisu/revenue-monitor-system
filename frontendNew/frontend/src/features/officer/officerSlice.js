@@ -1,3 +1,14 @@
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -42,6 +53,7 @@ var initialState = {
     officers: [],
     loading: false,
     error: null,
+    currentOfficer: null,
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
@@ -50,13 +62,17 @@ export var fetchOfficers = createAsyncThunk('officer/fetchOfficers', function ()
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/retrieve"))];
+            case 0:
+                console.log('in fetchOfficers thunk');
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/all"), {
+                        responseType: 'json' // Ensure we expect JSON response
+                    })];
             case 1:
                 response = _a.sent();
                 if (response.status >= 200 && response.status < 300) {
-                    // console.log('officeSlicer.ts: officers fetched successfully');
-                    // console.log('response.data:', response.data);
-                    // console.log('response.data.officers:', response.data.officers);
+                    console.log('officeSlicer.ts: officers fetched successfully');
+                    console.log('response.data:', response.data);
+                    // Each officer already includes the photoUrl and photo Blob
                     return [2 /*return*/, response.data]; // This data will be available as `action.payload`
                 }
                 else {
@@ -68,13 +84,22 @@ export var fetchOfficers = createAsyncThunk('officer/fetchOfficers', function ()
 }); });
 // Async thunk to fetch a single officer by officer_no
 export var fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', function (officer_no) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
+    var officerResponse, photoResponse, photoUrl;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/retrieve/").concat(officer_no))];
+            case 0:
+                console.log('Fetching officer by id:', officer_no);
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/retrieve/").concat(officer_no))];
             case 1:
-                response = _a.sent();
-                return [2 /*return*/, response.data];
+                officerResponse = _a.sent();
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/photos/retrieve/").concat(officer_no), {
+                        responseType: 'blob', // Ensure we get the photo as a Blob
+                    })];
+            case 2:
+                photoResponse = _a.sent();
+                photoUrl = URL.createObjectURL(photoResponse.data);
+                // Return officer data along with the photo URL
+                return [2 /*return*/, __assign(__assign({}, officerResponse.data), { photoUrl: photoUrl })];
         }
     });
 }); });
@@ -159,11 +184,11 @@ var officerSlice = createSlice({
         })
             .addCase(fetchOfficerById.pending, function (state) {
             state.loading = true;
-            state;
         })
             .addCase(fetchOfficerById.fulfilled, function (state, action) {
             state.loading = false;
-            state.officers = action.payload;
+            // Assuming you want to store a single officer in state
+            state.currentOfficer = action.payload; // Store the fetched officer data
             state.error = null;
         })
             .addCase(fetchOfficerById.rejected, function (state, action) {

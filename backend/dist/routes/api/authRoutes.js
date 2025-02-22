@@ -1,6 +1,7 @@
 // backend/src/routes/api/loginRoutes.ts
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import { sendResetEmailUser } from '../../utils/emailUser.js';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
@@ -35,19 +36,25 @@ router.post('/login', async (req, res) => {
         res.status(400).json({ json: '', user: [], message: 'username and password cannot be blank!' });
         return;
     }
+    console.log('I AM HERE');
     let client = null;
     try {
         client = await pool.connect();
         // Check if an operator with the same username exists
-        const { rows: operators } = await client.query('SELECT * FROM Operator_definition WHERE OperatorName = $1', [username]);
+        const { rows: operators } = await client.query('SELECT * FROM operatordefinition WHERE operatorname = $1', [username]);
+        console.log('operators: ', operators);
         // Check if user exists
         if (operators.length === 0) {
             console.log('no user found, Invalid login parameters');
             res.json({ json: '', user: [], message: 'Invalid login parameters' });
             return;
         }
+        console.log('I AM HERE 2');
+        console.log('operators[0].password: ', operators[0].password);
+        console.log('password: ', password);
         // Compare the plain-text password with the hashed password
         const isPasswordMatch = await bcrypt.compare(password, operators[0].password);
+        console.log('isPasswordMatch: ', isPasswordMatch);
         if (!isPasswordMatch) {
             res.json({ json: '', user: [], message: 'Invalid login parameters' });
             return;
@@ -55,21 +62,24 @@ router.post('/login', async (req, res) => {
         // Log the login attempt
         const now = new Date();
         const formattedDateTime = now.toISOString().slice(0, 19).replace('T', ' ');
-        await client.query('INSERT INTO USERLOG (datex, User, time_in, time_out) VALUES ($1, $2, $3, $4)', [now, username, formattedDateTime, null]);
+        await client.query('INSERT INTO userlog (datex, userx, time_in) VALUES ($1, $2, $3)', [now, username, formattedDateTime]);
+        console.log('I AM HERE 3');
         // Check permissions
-        const { rows: permissions } = await client.query('SELECT Menus FROM operator_permission WHERE OperatorID = $1', [operators[0].OperatorID]);
+        const { rows: permissions } = await client.query('SELECT menus FROM operatorpermission WHERE operatorid = $1', [operators[0].operatorid]);
         if (!permissions || permissions.length === 0) {
             res.status(500).json({ json: '', user: [], message: `No permissions found for user ${username}` });
             return;
         }
-        const existingPermissions = permissions[0].Menus.split(',');
+        const existingPermissions = permissions[0].menus.split(',');
         const user = {
             firstname: operators[0].firstname,
             lastname: operators[0].lastname,
             existingPermissions
         };
+        console.log('I AM HERE 4');
         // Generate JWT token
         const token = jwt.sign({ user }, config.jwtSecret, { expiresIn: '1h' });
+        console.log('I AM HERE 5', token);
         // Send back response
         res.json({ token, user });
     }
@@ -91,14 +101,14 @@ router.post('/request-password-reset', async (req, res) => {
     try {
         client = await pool.connect();
         // Check if an operator with the same OperatorName exists
-        const { rows: user } = await client.query('SELECT * FROM Operator_definition WHERE email = $1', [email]);
+        const { rows: user } = await client.query('SELECT * FROM operatordefinition WHERE email = $1', [email]);
         if (user.length === 0) {
             res.status(404).json({ message: 'User email not found.' });
             return;
         }
         const token = crypto.randomBytes(32).toString('hex'); // Generate token
         // Update the operator record with the new token
-        await client.query('UPDATE Operator_definition SET resetToken = $1, resetTokenExpiration = $2 WHERE email = $3', [token, new Date(Date.now() + 25200000), email]);
+        await client.query('UPDATE operatordefinition SET resetToken = $1, resettokenexpiration = $2 WHERE email = $3', [token, new Date(Date.now() + 25200000), email]);
         console.log('after user token reset');
         await sendResetEmailUser(email, token); // Function to send email
         res.status(200).json({ message: 'Password reset email sent.' });
@@ -125,7 +135,7 @@ router.post('/reset-password', async (req, res) => {
     try {
         client = await pool.connect();
         // Fetch the user with the given resetToken
-        const { rows } = await client.query('SELECT * FROM Operator_definition WHERE resetToken = $1', [token]);
+        const { rows } = await client.query('SELECT * FROM operatordefinition WHERE resettoken = $1', [token]);
         // Check if the query returned any rows
         if (rows.length === 0) {
             res.status(400).json({ message: 'Token not found.' });
@@ -139,7 +149,7 @@ router.post('/reset-password', async (req, res) => {
             return;
         }
         // Check if the token is expired
-        if (!user.resetTokenExpiration || user.resetTokenExpiration.getTime() < Date.now()) {
+        if (!user.resettokenexpiration || user.resettokenexpiration.getTime() < Date.now()) {
             res.status(400).json({ message: 'Invalid or expired token.' });
             return;
         }
@@ -147,7 +157,7 @@ router.post('/reset-password', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
         // Update the operator record with the new password and clear the token and expiration
-        await client.query('UPDATE Operator_definition SET password = $1, resetToken = $2, resetTokenExpiration = $3 WHERE resetToken = $4', [hashedPassword, undefined, undefined, token]);
+        await client.query('UPDATE operatordefinition SET password = $1, resettoken = $2, resettokenexpiration = $3 WHERE resettoken = $4', [hashedPassword, undefined, undefined, token]);
         res.status(200).json({ message: 'Password has been reset successfully.' });
     }
     catch (error) {
@@ -179,7 +189,7 @@ export default router;
 // import jwt from 'jsonwebtoken';
 // import dotenv from 'dotenv';
 // interface OperatorDefinition {
-//     OperatorID: string;
+//     operatorid: string;
 //     OperatorName: string;
 //     password: string;
 //     firstname: string;

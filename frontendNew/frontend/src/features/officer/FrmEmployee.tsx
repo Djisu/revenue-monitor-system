@@ -13,7 +13,7 @@ interface Officer {
   photoUrl?: string;
 }
 
-const EmployeeForm: React.FC = () => {
+const frmEmployee: React.FC = () => {
   const [officerNo, setOfficerNo] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [photo, setPhoto] = useState<string | Blob>('');
@@ -36,36 +36,45 @@ console.log('Photo URL from state:', selectedPhotoUrl);
 
   const fetchOfficerList = async () => {
     try {
-      console.log('Fetching officers...');
-
-      const response = await dispatch(fetchOfficers()).unwrap();
-      console.log('Fetched officers:', response); // Log the result
-
-      // Check if result is an array
-      if (Array.isArray(response)) {
-        const officersWithUrls = response.map((officer: Officer) => {
-          if (officer.photo instanceof Blob) {
-            return {
-              ...officer,
-              photoUrl: URL.createObjectURL(officer.photo)
-            };
-          } else {
-            return {
-              ...officer,
-              photoUrl: officer.photo // Assuming photo is a URL string
-            };
-          }
-        });
-        setOfficerList(officersWithUrls);
-      } else {
-        console.error('Expected an array, but received:', response);
-        setOfficerList([]);
-      }
+        console.log('Fetching officers...');
+        const response = await dispatch(fetchOfficers()).unwrap();
+        console.log('Fetched officers:', response);
+        if (Array.isArray(response)) {
+            const officersWithUrls = await Promise.all(response.map(async (officer) => {
+                if (officer.photo instanceof Blob) {
+                    const base64 = await blobToBase64(officer.photo);
+                    return {
+                        ...officer,
+                        photoUrl: base64
+                    };
+                } else {
+                    console.warn('Photo is not a valid Blob:', officer.photo);
+                    return {
+                        ...officer,
+                        photoUrl: ''
+                    };
+                }
+            }));
+            setOfficerList(officersWithUrls);
+        } else {
+            console.error('Expected an array, but received:', response);
+            setOfficerList([]);
+        }
     } catch (error) {
-      console.error(error);
-      setError('Error fetching officers');
+        console.error(error);
+        setError('Error fetching officers');
     }
-  };
+};
+
+// Helper function to convert Blob to Base64
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string); // Ensure result is treated as a string
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+  });
+};
 
   const handleOfficerNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setOfficerNo(e.target.value);
@@ -256,30 +265,6 @@ console.log('Photo URL from state:', selectedPhotoUrl);
   
  // const [photoUrlFromState, setPhotoUrlFromState] = useState<string>(''); // State to store the photo URL from Redux
 
- useEffect(() => {
-  const fetchOfficers = async () => {
-    try {
-      const response = await fetch('/api/officers'); // Fetch the response
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const officers = await response.json(); // Convert the response to JSON
-      setOfficerList(officers); // Set the officer list with the JSON data
-    } catch (error) {
-      console.error('Failed to fetch officers:', error);
-    }
-  };
-
-  fetchOfficers();
-
-  // return () => {
-  //   officerList.forEach((officer) => {
-  //     if (officer.photoUrl) {
-  //       URL.revokeObjectURL(officer.photoUrl);
-  //     }
-  //   });
-  // };
-}, [officerList]);
 
   return (
     <Container>
@@ -382,7 +367,7 @@ console.log('Photo URL from state:', selectedPhotoUrl);
   );
 };
 
-export default EmployeeForm;
+export default frmEmployee;
 
 
 

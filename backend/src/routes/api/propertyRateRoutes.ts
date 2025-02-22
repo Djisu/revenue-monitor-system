@@ -2,7 +2,9 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-import { Pool, PoolClient, QueryResult } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
+import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 const router = Router();
 
@@ -47,7 +49,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
     console.log('after validation: ')
 
-    let client: PoolClient | null = null;
+    let client= null;
 
     try {
         client = await pool.connect();
@@ -106,7 +108,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
 // Read all property rate records
 router.get('/', async (req: Request, res: Response) => {
-    let client: PoolClient | null = null;
+    let client= null;
 
     try {
         client = await pool.connect();
@@ -127,7 +129,7 @@ router.get('/:property_Class/:fiscalyear', async (req: Request, res: Response) =
     console.log('in get property rate: ', req.params)
 
     const { property_Class, fiscalyear } = req.params;
-    let client: PoolClient | null = null;
+    let client= null;
 
     try {
         client = await pool.connect();
@@ -158,7 +160,7 @@ router.get('/:property_Class/:fiscalyear', async (req: Request, res: Response) =
 router.put('/:property_Class/:fiscalyear', async (req: Request, res: Response): Promise<void> => {
     const { property_Class, fiscalyear } = req.params;
     const propertyRateData: PropertyRateData = req.body;
-    let client: PoolClient | null = null;
+    let client= null;
 
     try {
         client = await pool.connect();
@@ -200,7 +202,7 @@ router.put('/:property_Class/:fiscalyear', async (req: Request, res: Response): 
 // Delete a property rate record
 router.delete('/:property_Class/:fiscalyear', async (req: Request, res: Response) => {
     const { property_Class, fiscalyear } = req.params;
-    let client: PoolClient | null = null;
+    let client= null;
 
     try {
         client = await pool.connect();

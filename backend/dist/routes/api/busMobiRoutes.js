@@ -1,7 +1,8 @@
 // backend/src/routes/api/busMobiRoutes.ts
 import { Router } from 'express';
 import * as dotenv from 'dotenv';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -84,13 +85,13 @@ router.post('/', async (req, res) => {
     try {
         client = await pool.connect();
         // Check if a BusMobi record with the same buss_no and fiscal_year already exists
-        const existingResult = await client.query('SELECT * FROM tb_busmobi WHERE buss_no = $1 AND fiscal_year = $2', [busMobiData.buss_no, busMobiData.fiscal_year]);
+        const existingResult = await client.query('SELECT * FROM busmobi WHERE buss_no = $1 AND fiscal_year = $2', [busMobiData.buss_no, busMobiData.fiscal_year]);
         if (existingResult.rows.length > 0) {
             res.status(409).json({ message: 'BusMobi record with this business number and fiscal year already exists.' });
             return;
         }
         // Insert the new BusMobi data
-        const insertResult = await client.query(`INSERT INTO tb_busmobi (buss_no, fiscal_year, dateofbilling, buss_type, balancebf, currentPayable, 
+        const insertResult = await client.query(`INSERT INTO busmobi (buss_no, fiscal_year, dateofbilling, buss_type, balancebf, currentPayable, 
             totalAmount, firstD, secondE, outstanding, firstPaymentDate, secondPaymentDate, 
             firstreceiptno, secondreceiptno, remarks, officer_no) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`, [
@@ -128,7 +129,7 @@ router.get('/', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_busmobi');
+        const result = await client.query('SELECT * FROM busmobi');
         res.json(result.rows);
     }
     catch (error) {
@@ -147,7 +148,7 @@ router.get('/:buss_no', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_busmobi WHERE buss_no = $1', [buss_no]);
+        const result = await client.query('SELECT * FROM busmobi WHERE buss_no = $1', [buss_no]);
         if (result.rows.length > 0) {
             res.json(result.rows[0]); // Return the first row
         }
@@ -173,13 +174,13 @@ router.put('/:buss_no', async (req, res) => {
     try {
         client = await pool.connect();
         // Check if a BusMobi record with the same buss_no already exists
-        const result = await client.query('SELECT * FROM tb_busmobi WHERE buss_no = $1', [buss_no]);
+        const result = await client.query('SELECT * FROM busmobi WHERE buss_no = $1', [buss_no]);
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'BusMobi record not found' });
             return;
         }
         // Update the BusMobi data
-        const updateResult = await client.query(`UPDATE tb_busmobi SET fiscal_year = $1, dateofbilling = $2, buss_type = $3, balancebf = $4, 
+        const updateResult = await client.query(`UPDATE busmobi SET fiscal_year = $1, dateofbilling = $2, buss_type = $3, balancebf = $4, 
             currentPayable = $5, totalAmount = $6, firstD = $7, secondE = $8, outstanding = $9, 
             firstPaymentDate = $10, secondPaymentDate = $11, firstreceiptno = $12, 
             secondreceiptno = $13, remarks = $14, officer_no = $15 
@@ -220,13 +221,13 @@ router.delete('/:buss_no', async (req, res) => {
     try {
         client = await pool.connect();
         // Check if a BusMobi record with the same buss_no already exists
-        const result = await client.query('SELECT * FROM tb_busmobi WHERE buss_no = $1', [buss_no]);
+        const result = await client.query('SELECT * FROM busmobi WHERE buss_no = $1', [buss_no]);
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'BusMobi record not found' });
             return;
         }
         // Delete the BusMobi record
-        await client.query('DELETE FROM tb_busmobi WHERE buss_no = $1', [buss_no]);
+        await client.query('DELETE FROM busmobi WHERE buss_no = $1', [buss_no]);
         res.status(200).json({ message: 'BusMobi record deleted successfully' });
     }
     catch (error) {
@@ -281,7 +282,7 @@ export default router;
 //     try {
 //         // Insert the new BusMobi data
 //         const [result] = await connection.execute<ResultSetHeader>(
-//             `INSERT INTO tb_busmobi (buss_no, fiscal_year, dateofbilling, buss_type, balancebf, currentPayable, 
+//             `INSERT INTO busmobi (buss_no, fiscal_year, dateofbilling, buss_type, balancebf, currentPayable, 
 //             totalAmount, firstD, secondE, outstanding, firstPaymentDate, secondPaymentDate, 
 //             firstreceiptno, secondreceiptno, remarks, officer_no) 
 //             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,

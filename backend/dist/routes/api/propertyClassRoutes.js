@@ -1,7 +1,8 @@
 // backend/src/routes/api/propertyClassRoutes.ts
 import { Router } from 'express';
 import * as dotenv from 'dotenv';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -23,13 +24,13 @@ router.post('/create', async (req, res) => {
         return;
     }
     try {
-        const result = await pool.query('SELECT * FROM tb_propertyclass WHERE property_class = $1', [property_class]);
+        const result = await pool.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
         if (result.rows.length > 0) {
             res.status(409).json({ message: 'Property class record already exists' });
             return;
         }
         // Insert the new property class data
-        await pool.query(`INSERT INTO tb_propertyclass (property_class, rate) 
+        await pool.query(`INSERT INTO propertyclass (property_class, rate) 
             VALUES ($1, $2)`, [property_class, rate]);
         res.status(201).json({ success: true, message: 'Property class record created successfully' });
     }
@@ -41,7 +42,7 @@ router.post('/create', async (req, res) => {
 // Read all property class records
 router.get('/all', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM tb_propertyclass');
+        const result = await pool.query('SELECT * FROM propertyclass');
         res.status(200).json({ success: true, data: result.rows });
     }
     catch (error) {
@@ -53,7 +54,7 @@ router.get('/all', async (req, res) => {
 router.get('/:property_class', async (req, res) => {
     const { property_class } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM tb_propertyclass WHERE property_class = $1', [property_class]);
+        const result = await pool.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
         if (result.rows.length > 0) {
             res.status(200).json({ success: true, data: result.rows[0] });
         }
@@ -71,13 +72,13 @@ router.put('/:property_class', async (req, res) => {
     const { property_class } = req.params;
     const propertyClassData = req.body;
     try {
-        const result = await pool.query('SELECT * FROM tb_propertyclass WHERE property_class = $1', [property_class]);
+        const result = await pool.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
         if (result.rows.length === 0) {
             res.status(404).json({ success: false, message: 'Property class record not found' });
             return;
         }
         // Update the property class data
-        await pool.query(`UPDATE tb_propertyclass 
+        await pool.query(`UPDATE propertyclass 
             SET rate = $1 
             WHERE property_class = $2`, [propertyClassData.rate, property_class]);
         res.status(200).json({ success: true, message: 'Property class record updated successfully' });
@@ -91,13 +92,13 @@ router.put('/:property_class', async (req, res) => {
 router.delete('/delete/:property_class', async (req, res) => {
     const { property_class } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM tb_propertyclass WHERE property_class = $1', [property_class]);
+        const result = await pool.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
         if (result.rows.length === 0) {
             res.status(404).json({ success: false, message: 'Property class record not found' });
             return;
         }
         // Delete the property class record
-        await pool.query('DELETE FROM tb_propertyclass WHERE property_class = $1', [property_class]);
+        await pool.query('DELETE FROM propertyclass WHERE property_class = $1', [property_class]);
         res.status(200).json({ success: true, message: 'Property class record deleted successfully' });
     }
     catch (error) {

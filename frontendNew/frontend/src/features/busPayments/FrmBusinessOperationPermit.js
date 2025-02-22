@@ -48,28 +48,29 @@ var frmBusinessOperatingPermit = function () {
     var _b = useState(''), electoralArea = _b[0], setElectoralArea = _b[1];
     var _c = useState([]), electoralAreas = _c[0], setElectoralAreas = _c[1];
     var dispatch = useAppDispatch();
+    // Fetch businesses and electoral areas when the component mounts
     useEffect(function () {
         dispatch(fetchBusinesses());
         dispatch(fetchElectoralAreas()); // Ensure the action creator is called
-    }, []);
+    }, [dispatch]);
+    // Update electoralAreas state when ElectoralAreasData changes
     useEffect(function () {
         if (ElectoralAreasData && Array.isArray(ElectoralAreasData)) {
             setElectoralAreas(ElectoralAreasData.map(function (area) { return area.electoral_area; }));
-            console.log('electoralAreasData:', ElectoralAreasData); // Debugging statement
-            console.log('electoralAreas:', electoralAreas);
+            console.log('Electoral Areas Data:', ElectoralAreasData); // Debugging statement
         }
         else {
             console.error('Expected ElectoralAreasData to be an array but got:', ElectoralAreasData);
         }
-    }, [ElectoralAreasData]); // Only listen to changes in ElectoralAreasData
+    }, [ElectoralAreasData]);
     var handleElectoralAreaChange = function (event) {
         var target = event.target; //as HTMLSelectElement;
         var selectedElectoralArea = target.value;
         setElectoralArea(selectedElectoralArea);
     };
     var handleFiscalYearChange = function (event) {
-        console.log('handleFiscalYearChange:', event.target.value);
-        setFiscalYear(parseInt(event.target.value, 10));
+        var selectedFiscalYear = parseInt(event.target.value, 10);
+        setFiscalYear(selectedFiscalYear);
     };
     var handlePreviewDemandNotices = function () { return __awaiter(void 0, void 0, void 0, function () {
         var response, error_1;
@@ -103,6 +104,6 @@ var frmBusinessOperatingPermit = function () {
             }
         });
     }); };
-    return (_jsx(Container, { children: _jsxs("div", { children: [_jsx(Row, { children: _jsxs(Col, { className: "text-center mt-3", children: [_jsx("h2", { className: "text-primary", children: "Business Operating Permit Demand Notice" }), _jsx("h4", { className: "text-info", children: "MARCORY MUNICIPAL ASSEMBLY" })] }) }), _jsxs("div", { children: [_jsx(Row, { className: "mt-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { className: "font-weight-bold", children: "Electoral Area:" }), _jsxs(Form.Control, { as: "select", value: electoralArea, onChange: handleElectoralAreaChange, children: [_jsx("option", { value: "", children: "Select..." }), electoralAreas.map(function (area) { return (_jsx("option", { value: area, children: area }, area)); })] })] }) }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { className: "mt-3", children: [_jsx(Form.Label, { className: "font-weight-bold", children: "Fiscal Year:" }), _jsx(Form.Control, { type: "number", value: fiscalYear.toString(), onChange: handleFiscalYearChange })] }) })] }), _jsxs("div", { children: [_jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "primary", onClick: handlePreviewDemandNotices, children: "Produce Demand Notices" }) }) }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { children: [_jsx("h3", { className: "font-weight-bold", children: "List of Properties" }), _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "BUSS NO" }), _jsx("th", { children: "BUSS NAME" })] }) }), _jsx("tbody", { children: BusinessesData.map(function (property) { return (_jsxs("tr", { children: [_jsx("td", { children: property.buss_no }), _jsx("td", { children: property.buss_name })] }, property.buss_no)); }) })] })] }) })] }), _jsx("div", { children: _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) }) })] }) }));
+    return (_jsxs(Container, { children: [_jsxs("div", { children: [_jsx(Row, { children: _jsxs(Col, { className: "text-center mt-3", children: [_jsx("h2", { className: "text-primary", children: "Produce Permits" }), _jsx("h4", { className: "text-info", children: "MARCORY MUNICIPAL ASSEMBLY" })] }) }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { className: "font-weight-bold", children: "Electoral Area:" }), _jsxs(Form.Control, { as: "select", value: electoralArea, onChange: handleElectoralAreaChange, children: [_jsx("option", { value: "", children: "Select..." }), electoralAreas.map(function (area) { return (_jsx("option", { value: area, children: area }, area)); })] })] }) }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { className: "mt-3", children: [_jsx(Form.Label, { className: "font-weight-bold", children: "Fiscal Year:" }), _jsx(Form.Control, { type: "number", value: fiscalYear.toString(), onChange: handleFiscalYearChange })] }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "primary", onClick: handlePreviewDemandNotices, children: "Produce Demand Notices" }) }) }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { children: [_jsx("h3", { className: "font-weight-bold", children: "List of Properties" }), _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "BUSS NO" }), _jsx("th", { children: "BUSS NAME" })] }) }), _jsx("tbody", { children: BusinessesData.map(function (property) { return (_jsxs("tr", { children: [_jsx("td", { children: property.buss_no }), _jsx("td", { children: property.buss_name })] }, property.buss_no)); }) })] })] }) })] }), _jsx("div", { children: _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) }) })] }));
 };
 export default frmBusinessOperatingPermit;

@@ -48,12 +48,12 @@ export const generateBusinessData = (startNumber, count) => {
             businessOperatingPeriod + competitorsAvailable + strategicLocation);
         const bussData = {
             buss_no: i,
-            buss_name: `${generateRandomEnumValue(['Kwame', 'Akwasi', 'Kofi', 'Yaa', 'Ama', 'Esi', 'Kwabena', 'Akosua', 'Yaw', 'Ghana'])}'s ${generateRandomEnumValue(['Shop', 'Market', 'Institution', 'Company'])}`,
+            buss_name: `${generateRandomEnumValue(['Kwame', 'Akwasi', 'Kofi', 'Yaa', 'Ama', 'Esi', 'Kwabena', 'Akosua', 'Yaw', 'Ghana'])}'s ${generateRandomEnumValue(['Shop', 'Market', 'Institution', 'Company', 'Enterprise', 'Venture', 'Centre', 'Boutique', 'Mall', 'Factory', 'Agency', 'Association', 'Society', 'Club', 'Syndicate', 'Group', 'Network', 'Union'])}`,
             buss_address: `P O Box ${generateRandomNumberInRange(1, 1000)}, ${town}`,
             buss_type: generateRandomEnumValue(businessTypes),
             buss_town: town,
-            street_name: `Africa ${generateRandomEnumValue(['Street', 'Avenue', 'Road', 'Lane'])}`,
-            landmark: `adjacent to ${generateRandomEnumValue(['Main Market', 'Church', 'Hospital', 'School', 'Government Building'])}`,
+            street_name: `Africa ${generateRandomEnumValue(['Street', 'Avenue', 'Road', 'Lane', 'Cresent', 'Place', 'Park'])}`,
+            landmark: `adjacent to ${generateRandomEnumValue(['Main Market', 'Church', 'Hospital', 'School', 'Government Building', 'Close to School'])}`,
             electroral_area: generateRandomEnumValue(towns.filter(area => area !== town)),
             property_class: propertyClass,
             ceo: generateRandomAfricanName(),

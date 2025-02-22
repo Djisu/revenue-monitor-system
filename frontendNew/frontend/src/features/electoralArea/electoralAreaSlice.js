@@ -53,7 +53,7 @@ export var fetchElectoralAreas = createAsyncThunk('electoralArea/fetchElectoralA
             case 1:
                 response = _a.sent();
                 if (response.status >= 200 && response.status < 300) {
-                    // console.log('fetchElectoralAreas response:', response.data)
+                    console.log('fetchElectoralAreas response:', response.data);
                     return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //
                     //return await response.data // This data will be available as `action.payload`
                 }

@@ -62,13 +62,15 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
                 return rejectWithValue({ message: response.data.message || 'Invalid credentials' });
             }
 
+            //console.log('Token:', response.data.token);
+
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.user));
 
             console.log(response.data.user.firstname +  ' ' + response.data.user.lastname)
             localStorage.setItem('operatorId', JSON.stringify(response.data.user.firstname +  ' ' + response.data.user.lastname));
 
-            console.log('User:', response.data.user);
+            //console.log('User:', response.data.user);
 
             // Assuming existingPermissions is an array
             const permissions = response.data.user.existingPermissions; 

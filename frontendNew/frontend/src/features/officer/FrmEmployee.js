@@ -53,7 +53,7 @@ import { FaUpload } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { fetchOfficers, createOfficer, updateOfficer, deleteOfficer } from './officerSlice';
 import { storePhotoAsync } from '../photos/photosSlice';
-var EmployeeForm = function () {
+var frmEmployee = function () {
     var _a = useState(''), officerNo = _a[0], setOfficerNo = _a[1];
     var _b = useState(''), name = _b[0], setName = _b[1];
     var _c = useState(''), photo = _c[0], setPhoto = _c[1];
@@ -74,39 +74,56 @@ var EmployeeForm = function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
+                    _a.trys.push([0, 5, , 6]);
                     console.log('Fetching officers...');
                     return [4 /*yield*/, dispatch(fetchOfficers()).unwrap()];
                 case 1:
                     response = _a.sent();
-                    console.log('Fetched officers:', response); // Log the result
-                    // Check if result is an array
-                    if (Array.isArray(response)) {
-                        officersWithUrls = response.map(function (officer) {
-                            if (officer.photo instanceof Blob) {
-                                return __assign(__assign({}, officer), { photoUrl: URL.createObjectURL(officer.photo) });
-                            }
-                            else {
-                                return __assign(__assign({}, officer), { photoUrl: officer.photo // Assuming photo is a URL string
-                                 });
-                            }
-                        });
-                        setOfficerList(officersWithUrls);
-                    }
-                    else {
-                        console.error('Expected an array, but received:', response);
-                        setOfficerList([]);
-                    }
-                    return [3 /*break*/, 3];
+                    console.log('Fetched officers:', response);
+                    if (!Array.isArray(response)) return [3 /*break*/, 3];
+                    return [4 /*yield*/, Promise.all(response.map(function (officer) { return __awaiter(void 0, void 0, void 0, function () {
+                            var base64;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        if (!(officer.photo instanceof Blob)) return [3 /*break*/, 2];
+                                        return [4 /*yield*/, blobToBase64(officer.photo)];
+                                    case 1:
+                                        base64 = _a.sent();
+                                        return [2 /*return*/, __assign(__assign({}, officer), { photoUrl: base64 })];
+                                    case 2:
+                                        console.warn('Photo is not a valid Blob:', officer.photo);
+                                        return [2 /*return*/, __assign(__assign({}, officer), { photoUrl: '' })];
+                                }
+                            });
+                        }); }))];
                 case 2:
+                    officersWithUrls = _a.sent();
+                    setOfficerList(officersWithUrls);
+                    return [3 /*break*/, 4];
+                case 3:
+                    console.error('Expected an array, but received:', response);
+                    setOfficerList([]);
+                    _a.label = 4;
+                case 4: return [3 /*break*/, 6];
+                case 5:
                     error_1 = _a.sent();
                     console.error(error_1);
                     setError('Error fetching officers');
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
             }
         });
     }); };
+    // Helper function to convert Blob to Base64
+    var blobToBase64 = function (blob) {
+        return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onloadend = function () { return resolve(reader.result); }; // Ensure result is treated as a string
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    };
     var handleOfficerNoChange = function (e) {
         setOfficerNo(e.target.value);
     };
@@ -318,41 +335,6 @@ var EmployeeForm = function () {
         setPhotoUrlFromState((_a = officer.photoUrl) !== null && _a !== void 0 ? _a : ''); // Use the nullish coalescing operator
     };
     // const [photoUrlFromState, setPhotoUrlFromState] = useState<string>(''); // State to store the photo URL from Redux
-    useEffect(function () {
-        var fetchOfficers = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var response, officers, error_6;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, fetch('/api/officers')];
-                    case 1:
-                        response = _a.sent();
-                        if (!response.ok) {
-                            throw new Error("HTTP error! status: ".concat(response.status));
-                        }
-                        return [4 /*yield*/, response.json()];
-                    case 2:
-                        officers = _a.sent();
-                        setOfficerList(officers); // Set the officer list with the JSON data
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_6 = _a.sent();
-                        console.error('Failed to fetch officers:', error_6);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        }); };
-        fetchOfficers();
-        // return () => {
-        //   officerList.forEach((officer) => {
-        //     if (officer.photoUrl) {
-        //       URL.revokeObjectURL(officer.photoUrl);
-        //     }
-        //   });
-        // };
-    }, [officerList]);
     return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formOfficerno", children: [_jsx(Form.Label, { children: "Employee ID:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: handleOfficerNoChange, maxLength: 10, required: true })] }), _jsxs(Form.Group, { controlId: "formName", children: [_jsx(Form.Label, { children: "Name:" }), _jsx(Form.Control, { type: "text", value: name, onChange: handleNameChange, maxLength: 50, required: true })] }), _jsxs(Form.Group, { controlId: "formPhoto", children: [_jsx(Form.Label, { children: "Photo:" }), _jsx(Form.Control, { type: "text", value: typeof photo === 'string' ? photo : photoName, readOnly: true }), _jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs(Button, { variant: "secondary", onClick: function () { var _a; return (_a = document.getElementById('photoInput')) === null || _a === void 0 ? void 0 : _a.click(); }, children: [_jsx(FaUpload, {}), " Upload Photo"] }), _jsx("input", { id: "photoInput", type: "file", accept: "image/*", onChange: handlePhotoChange, style: { display: 'none' } })] })] }), _jsx("div", { style: { marginTop: '10px' }, children: _jsxs(ButtonGroup, { children: [_jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add" }), _jsx(Button, { variant: "success", onClick: handleEditClick, style: { marginLeft: '10px' }, children: "Edit" }), _jsx(Button, { variant: "danger", onClick: handleDeleteClick, style: { marginLeft: '10px' }, children: "Delete" }), _jsx(Link, { to: "/main", className: "btn btn-secondary m-3", children: "Go Back" })] }) })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Employee ID" }), _jsx("th", { children: "Name" }), _jsx("th", { children: "Photo" })] }) }), _jsx("tbody", { children: officerList.map(function (officer) { return (_jsxs("tr", { onClick: function () { return handleItemClick(officer); }, children: [_jsx("td", { children: officer.officer_no }), _jsx("td", { children: officer.officer_name }), _jsx("td", { children: officer.photoUrl && officer.photoUrl !== 'xx' ? (_jsx(Image, { src: officer.photoUrl, alt: officer.officer_name, style: { width: '100px', height: '100px' } })) : ('No Photo') })] }, officer.officer_no)); }) })] }), photoUrlFromState && photoUrlFromState !== 'xx' && (_jsxs("div", { className: "mt-4", children: [_jsx("h4", { children: "Photo Preview" }), _jsx(Image, { src: photoUrlFromState, alt: "Employee Photo", style: { width: '200px', height: '200px' } })] }))] }));
 };
-export default EmployeeForm;
+export default frmEmployee;

@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import { generatePdf } from '../../generatePdf.js';
 import fs from 'fs';
 import path from 'path';
@@ -102,7 +103,7 @@ async function addRecord(txtBussNo, dtTransdate, txtBalanceBF, txtCurrentRate, t
         // Find previous fiscal year balance
         const findPreviousFiscalYearQuery = `
             SELECT balancebf 
-            FROM tb_BussCurrBalance 
+            FROM busscurrbalance 
             WHERE buss_no = $1 AND fiscalyear = $2;
         `;
         const prevResults = await client.query(findPreviousFiscalYearQuery, [txtBussNo, varPrevFiscalYear]);
@@ -112,7 +113,7 @@ async function addRecord(txtBussNo, dtTransdate, txtBalanceBF, txtCurrentRate, t
         }
         // Insert or update record in tb_BussCurrBalance
         const insertNewRecordQuery = `
-            INSERT INTO tb_BussCurrBalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
+            INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
             VALUES ($1, $2, $3, $4, $5, $6, $7) 
             ON CONFLICT (buss_no, fiscalyear) DO UPDATE 
             SET balancebf = EXCLUDED.balancebf, 
@@ -139,7 +140,7 @@ async function addRecord(txtBussNo, dtTransdate, txtBalanceBF, txtCurrentRate, t
 router.get('/all', async (req, res) => {
     try {
         const client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_business');
+        const result = await client.query('SELECT * FROM business');
         client.release();
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
@@ -156,7 +157,7 @@ router.get('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
     try {
         const client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_business WHERE buss_no = $1', [buss_no]);
+        const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
         client.release();
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found' });
@@ -174,7 +175,7 @@ router.get('/:buss_no', async (req, res) => {
 router.get('/electoralAreas', async (req, res) => {
     try {
         const client = await pool.connect();
-        const result = await client.query('SELECT DISTINCT electroral_area FROM tb_business');
+        const result = await client.query('SELECT DISTINCT electroral_area FROM business');
         client.release();
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'No electoral areas found' });
@@ -193,7 +194,7 @@ router.get('/electoral/:electoral_area', async (req, res) => {
     const { electoral_area } = req.params;
     try {
         const client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_business WHERE electroral_area = $1', [electoral_area]);
+        const result = await client.query('SELECT * FROM business WHERE electroral_area = $1', [electoral_area]);
         client.release();
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'No businesses found for the electoral area' });
@@ -212,7 +213,7 @@ router.get('/name/:buss_name', async (req, res) => {
     const { buss_name } = req.params;
     try {
         const client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_business WHERE buss_name = $1', [buss_name]);
+        const result = await client.query('SELECT * FROM business WHERE buss_name = $1', [buss_name]);
         client.release();
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found' });
@@ -235,7 +236,7 @@ router.post('/create', async (req, res) => {
     try {
         const client = await pool.connect();
         // Check if a business with the same buss_no already exists
-        const existingBusinessResult = await client.query('SELECT * FROM tb_business WHERE buss_no = $1', [sanitizedData.buss_no]);
+        const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [sanitizedData.buss_no]);
         if (existingBusinessResult.rows.length > 0) {
             res.status(409).json({ success: false, message: 'Business record already exists', BALANCENEW: 0 });
             return;
@@ -251,7 +252,7 @@ router.post('/create', async (req, res) => {
         }
         // Insert the new business data
         const insertBusinessQuery = `
-            INSERT INTO tb_business (
+            INSERT INTO business (
                 buss_no, buss_name, buss_address, buss_type, buss_town, 
                 street_name, landmark, electroral_area, property_class,
                 tot_grade, ceo, telno, strategiclocation, productvariety, 
@@ -297,10 +298,10 @@ router.post('/create', async (req, res) => {
             sanitizedData.serialNo
         ];
         await client.query(insertBusinessQuery, insertValues);
-        // Call addRecord function to add new record to tb_BussCurrBalance table
+        // Call addRecord function to add new record to busscurrbalance table
         const addRecordSuccess = await addRecord(sanitizedData.buss_no, sanitizedData.transdate, sanitizedData.balance, sanitizedData.current_rate, sanitizedData.property_rate, sanitizedData.electroral_area);
         if (!addRecordSuccess) {
-            throw new Error('Failed to add record to tb_BussCurrBalance');
+            throw new Error('Failed to add record to busscurrbalance');
         }
         res.status(201).json({ success: true, message: 'Business record created successfully', BUSS_NO: sanitizedData.buss_no });
     }
@@ -357,7 +358,7 @@ router.put('/update/:buss_no', async (req, res) => {
     try {
         const client = await pool.connect();
         // Check if a business with the same buss_no already exists
-        const existingBusinessResult = await client.query('SELECT * FROM tb_business WHERE buss_no = $1', [buss_no]);
+        const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
         if (existingBusinessResult.rows.length === 0) {
             res.status(404).json({ success: false, message: 'Business record not found' });
             return;
@@ -365,7 +366,7 @@ router.put('/update/:buss_no', async (req, res) => {
         const mysqlDate = sanitizedData.transdate.toISOString().split('T')[0]; // Convert to YYYY-MM-DD
         // Update the business data
         const updateBusinessQuery = `
-            UPDATE tb_business SET 
+            UPDATE business SET 
                 buss_name = $1, 
                 buss_address = $2, 
                 buss_type = $3, 
@@ -454,13 +455,13 @@ router.delete('/delete/:buss_no', async (req, res) => {
     try {
         const client = await pool.connect();
         // Check if a business with the same buss_no already exists
-        const existingBusinessResult = await client.query('SELECT * FROM tb_business WHERE buss_no = $1', [buss_no]);
+        const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
         if (existingBusinessResult.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found' });
             return;
         }
         // Delete the business record
-        await client.query('DELETE FROM tb_business WHERE buss_no = $1', [buss_no]);
+        await client.query('DELETE FROM business WHERE buss_no = $1', [buss_no]);
         res.status(200).json({ message: 'Business deleted successfully' });
     }
     catch (error) {
@@ -474,57 +475,66 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req,
     try {
         // Ensure the permits directory is empty
         await ensurePermitDirIsEmpty();
+        console.log('after ensurePermitDirIsEmpty()');
         const { electoral_area, fiscal_year } = req.params;
         console.log('electoral_area:', electoral_area, 'fiscal_year:', fiscal_year);
         const client = await pool.connect();
-        let businessRows = await client.query('SELECT * FROM tb_business WHERE electroral_area = $1', [electoral_area]);
+        console.log('before SELECT * FROM business WHERE electroral_area = $1');
+        let businessRows = await client.query('SELECT * FROM business WHERE electroral_area = $1', [electoral_area]);
+        //console.log('after SELECT * FROM business WHERE electroral_area = $1')
+        console.log('businessRows.rows.length === 0: ', businessRows.rows.length === 0);
         if (businessRows.rows.length === 0) {
             res.status(404).json({ message: 'No businesses found for the electoral area' });
             return;
         }
-        // Update balancebf in tb_BussCurrBalance table for all businesses in the electoral area for the given fiscal year
+        console.log('after SELECT * FROM business WHERE electroral_area = $1');
+        // Update balancebf in busscurrbalance table for all businesses in the electoral area for the given fiscal year
         for (let i = 0; i < businessRows.rows.length; i++) {
             const { buss_no } = businessRows.rows[i];
+            console.log('in the update busscurrbalance table loop');
             let varCurrentRate = 0;
             let varBalance = await findBusinessBalance(buss_no);
-            console.log('about to update tb_BussCurrBalance table');
-            // Update tb_BussCurrBalance table with current balance and fiscal year
-            await client.query('UPDATE tb_BussCurrBalance SET balancebf = $1 WHERE buss_no = $2 AND fiscalyear = $3', [varBalance, buss_no, fiscal_year]);
-            console.log('after updating tb_BussCurrBalance table');
+            console.log('about to update busscurrbalance table');
+            // Update busscurrbalance table with current balance and fiscal year
+            await client.query('UPDATE busscurrbalance SET balancebf = $1 WHERE buss_no = $2 AND fiscalyear = $3', [varBalance, buss_no, fiscal_year]);
+            console.log('after updating busscurrbalance table');
         }
         // Delete from tmp_business
-        await client.query('DELETE FROM tmp_business');
+        await client.query('DELETE FROM tmpbusiness');
         // Delete from tmp_BussCurrBalance
-        await client.query('DELETE FROM tmp_BussCurrBalance');
+        await client.query('DELETE FROM tmpbusscurrbalance');
         // Insert into tmp_business
         let tmpBusinessRows = await client.query(`
-            INSERT INTO tmp_business 
-            SELECT * FROM tb_business 
+            INSERT INTO tmpbusiness 
+            SELECT * FROM business 
             WHERE electroral_area = $1 
               AND current_rate > 0 
               AND status = 'Active' 
             ORDER BY buss_name ASC 
             RETURNING *;
         `, [electoral_area]);
-        console.log('after insert into tmp_business');
-        const recReport = await client.query('SELECT DISTINCT * FROM tb_BussCurrBalance WHERE fiscalyear = $1 AND electoralarea = $2', [fiscal_year, electoral_area]);
+        console.log('after insert into tmpbusiness');
+        const recReport = await client.query('SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2', [fiscal_year, electoral_area]);
+        console.log('after SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2');
+        console.log('recReport.rows.length:', recReport.rows.length);
         if (recReport.rows.length === 0) {
             res.status(404).json({ message: 'No paid bills found for the electoral area' });
             return;
         }
-        await client.query('INSERT INTO tmp_BussCurrBalance SELECT * FROM tb_BussCurrBalance WHERE fiscalyear = $1 AND electoralarea = $2', [fiscal_year, electoral_area]);
-        console.log('after INSERT INTO tmp_BussCurrBalance SELECT * FROM tb_BussCurrBalance');
+        await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2', [fiscal_year, electoral_area]);
+        console.log('after INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance');
         // Add serial numbers
-        let recBusiness = await client.query('SELECT * FROM tmp_business ORDER BY buss_no');
+        let recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
         let permitNo = 1;
         for (let i = 0; i < recBusiness.rows.length; i++) {
             const varSerialNo = permitNo.toString().padStart(10, '0');
-            await client.query('UPDATE tmp_business SET serialNo = $1 WHERE buss_no = $2', [varSerialNo, recBusiness.rows[i].buss_no]);
+            console.log(`Updating buss_no: ${recBusiness.rows[i].buss_no}, Serial No: ${varSerialNo}`);
+            await client.query('UPDATE tmpbusiness SET serialno = $1 WHERE buss_no = $2', [varSerialNo, recBusiness.rows[i].buss_no]);
             permitNo++;
         }
         console.log('after serial number generation');
         // Check if there are any bills in tmp_business
-        let recBills = await client.query('SELECT * FROM tmp_business ORDER BY buss_name ASC');
+        let recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_name ASC');
         if (recBills.rows.length === 0) {
             res.status(404).json({ message: 'No bills found for the electoral area' });
             return;
@@ -559,10 +569,10 @@ async function findBusinessBalance(bussNo) {
         // Get current year and previous fiscal year
         const currentYear = new Date().getFullYear();
         // Find all payments
-        const prevPaymentsResult = await client.query('SELECT SUM(paidAmount) AS totsum FROM tb_buspayments WHERE buss_no = $1 AND fiscal_year < $2', [bussNo, currentYear]);
+        const prevPaymentsResult = await client.query('SELECT SUM(paidAmount) AS totsum FROM buspayments WHERE buss_no = $1 AND fiscal_year < $2', [bussNo, currentYear]);
         const prevPayments = prevPaymentsResult.rows[0]?.totsum ?? 0;
         // Find all billings
-        const prevBalancesResult = await client.query('SELECT SUM(current_balance) AS totPrevBal FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear < $2', [bussNo, currentYear]);
+        const prevBalancesResult = await client.query('SELECT SUM(current_balance) AS totPrevBal FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear < $2', [bussNo, currentYear]);
         const prevBalances = prevBalancesResult.rows[0]?.totPrevBal ?? 0;
         // Calculate balance
         return prevBalances - prevPayments;
@@ -584,7 +594,7 @@ export async function findTotalPayable(txtBussNo) {
         // Prepare the SQL query
         const query = `
             SELECT SUM(current_balance) AS totsum
-            FROM tb_bussCurrBalance
+            FROM busscurrbalance
             WHERE buss_no = $1;
         `;
         // Execute the query with the business number
@@ -607,7 +617,7 @@ export async function findCurrentRate(txtBussNo) {
         // Query to find the current rate
         const query = `
             SELECT current_balance 
-            FROM tb_bussCurrBalance 
+            FROM busscurrbalance 
             WHERE buss_no = $1 
               AND fiscalyear = $2;
         `;
@@ -766,7 +776,7 @@ export default router;
 // // }
 // // Seeding endpoint
 // // router.post('/seed', async (req: Request, res: Response): Promise<void> => {
-// //     console.log('Seeding the tb_business table');
+// //     console.log('Seeding the business table');
 // //     const connection = await mysql.createConnection(dbConfig);
 // //     console.log("typeof businessData: ", typeof businessData)
 // //     try {
@@ -883,7 +893,7 @@ export default router;
 //                 sanitizedData.serialNo
 //             ]
 //         );
-//          // call addRecord function to add new record to tb_BussCurrBalance table HERE
+//          // call addRecord function to add new record to busscurrbalance table HERE
 //           // Call addRecord function to add new record to tb_BussCurrBalance table
 //           const addRecordSuccess = await addRecord(
 //             sanitizedData.buss_no, 
@@ -1278,8 +1288,8 @@ export default router;
 //  console.log('after updating tb_business ')
 //      // Delete from tmp_business
 //      await connection.execute('DELETE FROM tmp_business');
-//      // Delete from tmp_BussCurrBalance
-//      await connection.execute('DELETE FROM tmp_BussCurrBalance');
+//      // Delete from tmpbusscurrbalance
+//      await connection.execute('DELETE FROM tmpbusscurrbalance');
 //      if (electoral_area){
 //         const [electoralAreaResult] = await connection.execute(
 //             'SELECT * FROM tb_electoralarea WHERE electoral_area = ?',

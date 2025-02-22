@@ -60,7 +60,7 @@ export var storePhotoAsync = createAsyncThunk('photos/store', function (_a, _b) 
         switch (_k.label) {
             case 0:
                 _k.trys.push([0, 3, , 4]);
-                console.log('in storePhotoAsync');
+                console.log('in storePhotoAsync thunk');
                 console.log('photo.name:', photo.name);
                 console.log('officer_no:', officer_no);
                 if (!photo || !photo.name || !officer_no) {

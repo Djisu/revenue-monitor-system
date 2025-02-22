@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -21,13 +22,13 @@ router.post('/create', async (req, res) => {
         return;
     }
     try {
-        const result = await pool.query('SELECT * FROM tb_gradefees WHERE buss_type = $1 AND grade = $2', [gradeFeesData.buss_type, gradeFeesData.grade]);
+        const result = await pool.query('SELECT * FROM gradefees WHERE buss_type = $1 AND grade = $2', [gradeFeesData.buss_type, gradeFeesData.grade]);
         if (result.rows.length > 0) {
             res.status(409).json({ success: true, message: 'GradeFees record already exists', fees: 0 });
             return;
         }
         // Insert the new GradeFees data
-        const insertResult = await pool.query(`INSERT INTO tb_gradefees (buss_type, grade, description, fees) 
+        const insertResult = await pool.query(`INSERT INTO gradefees (buss_type, grade, description, fees) 
             VALUES ($1, $2, $3, $4) RETURNING *`, [
             gradeFeesData.buss_type,
             gradeFeesData.grade,
@@ -44,7 +45,7 @@ router.post('/create', async (req, res) => {
 // Read all GradeFees records
 router.get('/all', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM tb_gradefees');
+        const result = await pool.query('SELECT * FROM gradefees');
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
@@ -59,7 +60,7 @@ router.get('/all', async (req, res) => {
 router.get('/:buss_type/:grade', async (req, res) => {
     const { buss_type, grade } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM tb_gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
+        const result = await pool.query('SELECT * FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
         if (result.rows.length === 0) {
             res.status(404).json({ success: false, message: 'Grade Fees record not found' });
         }
@@ -77,13 +78,13 @@ router.put('/:buss_type/:grade', async (req, res) => {
     const { buss_type, grade } = req.params;
     const gradeFeesData = req.body;
     try {
-        const result = await pool.query('SELECT * FROM tb_gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
+        const result = await pool.query('SELECT * FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
         if (result.rows.length > 0) {
             res.status(409).json({ message: 'GradeFees record already exists' });
             return;
         }
         // Update the GradeFees data
-        await pool.query(`UPDATE tb_gradefees SET description = $1, fees = $2 
+        await pool.query(`UPDATE gradefees SET description = $1, fees = $2 
             WHERE buss_type = $3 AND grade = $4`, [
             gradeFeesData.description,
             gradeFeesData.fees,
@@ -101,13 +102,13 @@ router.put('/:buss_type/:grade', async (req, res) => {
 router.delete('/:buss_type/:grade', async (req, res) => {
     const { buss_type, grade } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM tb_gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
+        const result = await pool.query('SELECT * FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
         if (result.rows.length === 0) {
             res.status(409).json({ message: 'GradeFees record does not exist' });
             return;
         }
         // Delete the GradeFees record
-        await pool.query('DELETE FROM tb_gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
+        await pool.query('DELETE FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
         res.status(200).json({ message: 'GradeFees record deleted successfully' });
     }
     catch (error) {
@@ -148,7 +149,7 @@ export default router;
 //     }
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_gradefees WHERE buss_type = ? AND grade = ?', 
+//         const [rows] = await connection.execute('SELECT * FROM gradefees WHERE buss_type = ? AND grade = ?', 
 //         [gradeFeesData.buss_type, gradeFeesData.grade]);
 //         if (Array.isArray(rows) && rows.length > 0) {
 //             res.status(409).json({ success: true, message: 'GradeFees record already exists', fees: 0});

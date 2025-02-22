@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -15,12 +16,12 @@ const pool = new Pool({
 router.post('/', async (req, res) => {
     const paymentReportData = req.body;
     try {
-        const result = await pool.query('SELECT * FROM tb_PaymentReport WHERE buss_no = $1 AND fiscalyear = $2', [paymentReportData.buss_no, paymentReportData.fiscalyear]);
+        const result = await pool.query('SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', [paymentReportData.buss_no, paymentReportData.fiscalyear]);
         if (result.rows.length > 0) {
             res.status(409).json({ message: 'Payment report record already exists' });
             return;
         }
-        await pool.query(`INSERT INTO tb_PaymentReport 
+        await pool.query(`INSERT INTO paymentreport 
             (transdate, buss_name, amount, receiptno, fiscalyear, officer_no, buss_no) 
             VALUES ($1, $2, $3, $4, $5, $6, $7)`, [
             paymentReportData.transdate,
@@ -41,7 +42,7 @@ router.post('/', async (req, res) => {
 // Read all payment report records
 router.get('/', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM tb_PaymentReport');
+        const result = await pool.query('SELECT * FROM paymentreport');
         res.json(result.rows);
     }
     catch (error) {
@@ -53,7 +54,7 @@ router.get('/', async (req, res) => {
 router.get('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no, fiscalyear } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM tb_PaymentReport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
+        const result = await pool.query('SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         if (result.rows.length > 0) {
             res.json(result.rows[0]); // Return the first row
         }
@@ -71,12 +72,12 @@ router.put('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no, fiscalyear } = req.params;
     const paymentReportData = req.body;
     try {
-        const result = await pool.query('SELECT * FROM tb_PaymentReport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
+        const result = await pool.query('SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         if (result.rows.length === 0) {
             res.status(409).json({ message: 'Payment report record does not exist' });
             return;
         }
-        await pool.query(`UPDATE tb_PaymentReport 
+        await pool.query(`UPDATE paymentreport 
             SET transdate = $1, buss_name = $2, amount = $3, receiptno = $4, fiscalyear = $5, officer_no = $6 
             WHERE buss_no = $7`, [
             paymentReportData.transdate,
@@ -98,12 +99,12 @@ router.put('/:buss_no/:fiscalyear', async (req, res) => {
 router.delete('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no, fiscalyear } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM tb_PaymentReport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
+        const result = await pool.query('SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         if (result.rows.length === 0) {
             res.status(409).json({ message: 'Payment report record does not exist' });
             return;
         }
-        await pool.query('DELETE FROM tb_PaymentReport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
+        await pool.query('DELETE FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         res.status(200).json({ message: 'Payment report record deleted successfully' });
     }
     catch (error) {

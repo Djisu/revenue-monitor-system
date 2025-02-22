@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as dotenv from 'dotenv';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -19,13 +20,13 @@ router.post('/', async (req, res) => {
     try {
         client = await pool.connect();
         // Check if a balance record with the same business number already exists
-        const result = await client.query('SELECT * FROM tb_balance WHERE buss_no = $1', [balanceData.buss_no]);
+        const result = await client.query('SELECT * FROM balance WHERE buss_no = $1', [balanceData.buss_no]);
         if (result.rows.length > 0) {
             res.status(409).json({ message: 'Balance record with this business number already exists.' });
             return;
         }
         // Insert the new balance data
-        const insertResult = await client.query(`INSERT INTO tb_balance (buss_no, buss_name, billamount, paidamount, balance, electroral_area, street_name) 
+        const insertResult = await client.query(`INSERT INTO balance (buss_no, buss_name, billamount, paidamount, balance, electroral_area, street_name) 
             VALUES ($1, $2, $3, $4, $5, $6, $7)`, [
             balanceData.buss_no,
             balanceData.buss_name,
@@ -52,7 +53,7 @@ router.get('/', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_balance');
+        const result = await client.query('SELECT * FROM balance');
         res.json(result.rows);
     }
     catch (error) {
@@ -71,7 +72,7 @@ router.get('/:buss_no', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_balance WHERE buss_no = $1', [buss_no]);
+        const result = await client.query('SELECT * FROM balance WHERE buss_no = $1', [buss_no]);
         if (result.rows.length > 0) {
             res.json(result.rows[0]); // Return the first row
         }
@@ -97,13 +98,13 @@ router.put('/:buss_no', async (req, res) => {
     try {
         client = await pool.connect();
         // Check if a balance record with the same business number exists
-        const result = await client.query('SELECT * FROM tb_balance WHERE buss_no = $1', [balanceData.buss_no]);
+        const result = await client.query('SELECT * FROM balance WHERE buss_no = $1', [balanceData.buss_no]);
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Balance record with this business number not found.' });
             return;
         }
         // Update the balance data
-        const updateResult = await client.query(`UPDATE tb_balance SET buss_name = $1, billamount = $2, paidamount = $3, balance = $4, electroral_area = $5, street_name = $6 
+        const updateResult = await client.query(`UPDATE balance SET buss_name = $1, billamount = $2, paidamount = $3, balance = $4, electroral_area = $5, street_name = $6 
             WHERE buss_no = $7`, [
             balanceData.buss_name,
             balanceData.billamount,
@@ -132,13 +133,13 @@ router.delete('/:buss_no', async (req, res) => {
     try {
         client = await pool.connect();
         // Check if a balance record with the same business number exists
-        const result = await client.query('SELECT * FROM tb_balance WHERE buss_no = $1', [buss_no]);
+        const result = await client.query('SELECT * FROM balance WHERE buss_no = $1', [buss_no]);
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Balance record with this business number not found.' });
             return;
         }
         // Delete the balance record
-        const deleteResult = await client.query('DELETE FROM tb_balance WHERE buss_no = $1', [buss_no]);
+        const deleteResult = await client.query('DELETE FROM balance WHERE buss_no = $1', [buss_no]);
         res.status(200).json({ message: 'Balance record deleted successfully' });
     }
     catch (error) {
@@ -183,7 +184,7 @@ export default router;
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
 //         let [existingBalance] = await connection.execute(
-//             'SELECT * FROM tb_balance WHERE buss_no = ?', 
+//             'SELECT * FROM balance WHERE buss_no = ?', 
 //             [balanceData.buss_no]
 //         );
 //         if (Array.isArray(existingBalance) && existingBalance.length > 0) {

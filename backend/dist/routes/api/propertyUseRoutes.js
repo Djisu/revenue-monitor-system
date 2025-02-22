@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Client } from 'pg';
+import pkg from 'pg';
+const { Pool, Client } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -17,13 +18,13 @@ router.post('/', async (req, res) => {
     const client = new Client(dbConfig);
     await client.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM tb_PropertyUse WHERE PropertyUse = $1', [propertyUseData.PropertyUse]);
+        const { rows } = await client.query('SELECT * FROM propertyuse WHERE PropertyUse = $1', [propertyUseData.PropertyUse]);
         if (rows.length > 0) {
             res.status(409).json({ message: 'Property use record already exists' });
             return;
         }
         // Insert the new property use data
-        const result = await client.query('INSERT INTO tb_PropertyUse (PropertyUse, Propertyrate) VALUES ($1, $2) RETURNING *', [
+        const result = await client.query('INSERT INTO propertyuse (PropertyUse, Propertyrate) VALUES ($1, $2) RETURNING *', [
             propertyUseData.PropertyUse,
             propertyUseData.Propertyrate,
         ]);
@@ -42,7 +43,7 @@ router.get('/', async (req, res) => {
     const client = new Client(dbConfig);
     await client.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM tb_PropertyUse');
+        const { rows } = await client.query('SELECT * FROM propertyuse');
         res.json(rows);
     }
     catch (error) {
@@ -59,7 +60,7 @@ router.get('/:PropertyUse', async (req, res) => {
     const client = new Client(dbConfig);
     await client.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM tb_PropertyUse WHERE PropertyUse = $1', [PropertyUse]);
+        const { rows } = await client.query('SELECT * FROM propertyuse WHERE PropertyUse = $1', [PropertyUse]);
         if (rows.length > 0) {
             res.json(rows[0]); // Return the first row
         }
@@ -82,13 +83,13 @@ router.put('/:PropertyUse', async (req, res) => {
     const client = new Client(dbConfig);
     await client.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM tb_PropertyUse WHERE PropertyUse = $1', [PropertyUse]);
+        const { rows } = await client.query('SELECT * FROM propertyuse WHERE PropertyUse = $1', [PropertyUse]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'Property use record not found' });
             return;
         }
         // Update the property use data
-        const result = await client.query('UPDATE tb_PropertyUse SET Propertyrate = $1 WHERE PropertyUse = $2 RETURNING *', [
+        const result = await client.query('UPDATE propertyuse SET Propertyrate = $1 WHERE PropertyUse = $2 RETURNING *', [
             propertyUseData.Propertyrate,
             PropertyUse
         ]);
@@ -108,13 +109,13 @@ router.delete('/:PropertyUse', async (req, res) => {
     const client = new Client(dbConfig);
     await client.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM tb_PropertyUse WHERE PropertyUse = $1', [PropertyUse]);
+        const { rows } = await client.query('SELECT * FROM propertyuse WHERE PropertyUse = $1', [PropertyUse]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'Property use record not found' });
             return;
         }
         // Delete the property use record
-        await client.query('DELETE FROM tb_PropertyUse WHERE PropertyUse = $1', [PropertyUse]);
+        await client.query('DELETE FROM propertyuse WHERE PropertyUse = $1', [PropertyUse]);
         res.status(200).json({ message: 'Property use record deleted successfully' });
     }
     catch (error) {

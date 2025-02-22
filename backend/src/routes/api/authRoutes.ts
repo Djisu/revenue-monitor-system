@@ -1,6 +1,10 @@
 // backend/src/routes/api/loginRoutes.ts
 import express, { Router, Request, Response } from 'express';
-import { Pool, PoolClient, QueryResult } from 'pg';
+
+import { QueryResult, PoolClient } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
+
 import { sendResetEmailUser } from '../../utils/emailUser.js';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
@@ -8,14 +12,14 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 interface OperatorDefinition {
-    OperatorID: string;
-    OperatorName: string;
+    operatorid: string;
+    operatorname: string;
     password: string;
     firstname: string;
     lastname: string;
     email: string;
-    resetToken?: string; // Optional because it may not always be set
-    resetTokenExpiration?: Date; // Optional
+    resettoken?: string; // Optional because it may not always be set
+    resettokenexpiration?: Date; // Optional
 }
 
 interface LoginResponse {
@@ -66,6 +70,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
+    console.log('I AM HERE')
     let client: PoolClient | null = null;
 
     try {
@@ -73,9 +78,11 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
         // Check if an operator with the same username exists
         const { rows: operators } = await client.query<OperatorDefinition>(
-            'SELECT * FROM operatordefinition WHERE OperatorName = $1', 
+            'SELECT * FROM operatordefinition WHERE operatorname = $1', 
             [username]
         );
+
+        console.log('operators: ', operators)
 
         // Check if user exists
         if (operators.length === 0) {
@@ -83,9 +90,15 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             res.json({ json: '', user: [], message: 'Invalid login parameters' });
             return;
         }
-
+        
+    console.log('I AM HERE 2')
+    console.log('operators[0].password: ', operators[0].password)
+    console.log('password: ', password)
+    
         // Compare the plain-text password with the hashed password
         const isPasswordMatch = await bcrypt.compare(password, operators[0].password);
+
+        console.log('isPasswordMatch: ', isPasswordMatch)
         if (!isPasswordMatch) {
             res.json({ json: '', user: [], message: 'Invalid login parameters' });
             return;
@@ -96,14 +109,15 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         const formattedDateTime = now.toISOString().slice(0, 19).replace('T', ' ');
 
         await client.query(
-            'INSERT INTO userlog (datex, User, time_in, time_out) VALUES ($1, $2, $3, $4)',
-            [now, username, formattedDateTime, null]
+            'INSERT INTO userlog (datex, userx, time_in) VALUES ($1, $2, $3)',
+            [now, username, formattedDateTime]
         );
 
+        console.log('I AM HERE 3')
         // Check permissions
-        const { rows: permissions } = await client.query<{ Menus: string }>(
-            'SELECT Menus FROM operatorpermission WHERE OperatorID = $1', 
-            [operators[0].OperatorID]
+        const { rows: permissions } = await client.query<{ menus: string }>(
+            'SELECT menus FROM operatorpermission WHERE operatorid = $1', 
+            [operators[0].operatorid]
         );
 
         if (!permissions || permissions.length === 0) {
@@ -111,7 +125,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const existingPermissions = permissions[0].Menus.split(',');
+        const existingPermissions = permissions[0].menus.split(',');
 
         const user = {           
             firstname: operators[0].firstname, 
@@ -119,8 +133,11 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             existingPermissions 
         };
 
+        console.log('I AM HERE 4')
+
         // Generate JWT token
         const token = jwt.sign({ user }, config.jwtSecret as string, { expiresIn: '1h' });
+        console.log('I AM HERE 5', token)
 
         // Send back response
         res.json({ token, user });
@@ -160,7 +177,7 @@ router.post('/request-password-reset', async (req: Request, res: Response) => {
 
         // Update the operator record with the new token
         await client.query(
-            'UPDATE operatordefinition SET resetToken = $1, resetTokenExpiration = $2 WHERE email = $3', 
+            'UPDATE operatordefinition SET resetToken = $1, resettokenexpiration = $2 WHERE email = $3', 
             [token, new Date(Date.now() + 25200000), email]
         );
 
@@ -196,7 +213,7 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
 
         // Fetch the user with the given resetToken
         const { rows } = await client.query<OperatorDefinition>(
-            'SELECT * FROM operatordefinition WHERE resetToken = $1', 
+            'SELECT * FROM operatordefinition WHERE resettoken = $1', 
             [token]
         );
 
@@ -216,7 +233,7 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
         }
 
         // Check if the token is expired
-        if (!user.resetTokenExpiration || user.resetTokenExpiration.getTime() < Date.now()) {
+        if (!user.resettokenexpiration || user.resettokenexpiration.getTime() < Date.now()) {
             res.status(400).json({ message: 'Invalid or expired token.' });
             return;
         }
@@ -227,7 +244,7 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
 
         // Update the operator record with the new password and clear the token and expiration
         await client.query(
-            'UPDATE operatordefinition SET password = $1, resetToken = $2, resetTokenExpiration = $3 WHERE resetToken = $4', 
+            'UPDATE operatordefinition SET password = $1, resettoken = $2, resettokenexpiration = $3 WHERE resettoken = $4', 
             [hashedPassword, undefined, undefined, token]
         );
 
@@ -268,7 +285,7 @@ export default router;
 // import dotenv from 'dotenv';
 
 // interface OperatorDefinition {
-//     OperatorID: string;
+//     operatorid: string;
 //     OperatorName: string;
 //     password: string;
 //     firstname: string;

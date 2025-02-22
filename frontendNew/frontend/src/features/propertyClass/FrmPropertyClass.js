@@ -92,7 +92,7 @@ var FrmPropertyClass = function () {
                     console.log('in handleAdd Property class:', propertyClass);
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 4, , 5]);
+                    _a.trys.push([1, 6, , 7]);
                     if (!propertyClass.property_class) {
                         throw new Error('Enter the property class');
                     }
@@ -103,7 +103,8 @@ var FrmPropertyClass = function () {
                     return [4 /*yield*/, dispatch(createPropertyClass(propertyClass)).unwrap()];
                 case 2:
                     response = _a.sent();
-                    setAddFlag(response.data.message);
+                    if (!createPropertyClass.fulfilled.match(response.payload.message)) return [3 /*break*/, 4];
+                    setAddFlag(response.payload.message);
                     setPropertyClass({ property_class: '', rate: 0 });
                     console.log(response);
                     alert('Record successfully added'); // Assuming response is successful
@@ -112,12 +113,14 @@ var FrmPropertyClass = function () {
                     result = _a.sent();
                     setLocalPropertyClasses(result.data);
                     return [3 /*break*/, 5];
-                case 4:
+                case 4: throw new Error(response.error.message);
+                case 5: return [3 /*break*/, 7];
+                case 6:
                     error_1 = _a.sent();
                     console.error('Error adding property class:', error_1);
                     setAddFlag('Error in adding a record');
-                    return [3 /*break*/, 5];
-                case 5: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     }); };

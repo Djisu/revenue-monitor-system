@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg'; // Import the PostgreSQL client
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -16,13 +17,13 @@ const pool = new Pool({
 router.post('/', async (req, res) => {
     const receiptData = req.body;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_receipt WHERE buss_no = $1 AND receiptno = $2', [receiptData.buss_no, receiptData.receiptno]);
+        const { rows } = await pool.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2', [receiptData.buss_no, receiptData.receiptno]);
         if (rows.length > 0) {
             res.status(409).json({ message: 'Receipt record already exists' });
             return;
         }
         // Insert the new receipt data
-        await pool.query(`INSERT INTO tb_receipt 
+        await pool.query(`INSERT INTO receipt 
             (buss_no, receiptno, description, transdate, amount, buss_name) 
             VALUES ($1, $2, $3, $4, $5, $6)`, [
             receiptData.buss_no,
@@ -42,7 +43,7 @@ router.post('/', async (req, res) => {
 // Read all receipt records
 router.get('/', async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_receipt');
+        const { rows } = await pool.query('SELECT * FROM receipt');
         res.json(rows);
     }
     catch (error) {
@@ -54,7 +55,7 @@ router.get('/', async (req, res) => {
 router.get('/:buss_no/:receiptno', async (req, res) => {
     const { buss_no, receiptno } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_receipt WHERE buss_no = $1 AND receiptno = $2', [buss_no, receiptno]);
+        const { rows } = await pool.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2', [buss_no, receiptno]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'Receipt record not found' });
             return;
@@ -71,13 +72,13 @@ router.put('/:buss_no/:receiptno', async (req, res) => {
     const { receiptno } = req.params;
     const receiptData = req.body;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_receipt WHERE buss_no = $1 AND receiptno = $2', [receiptData.buss_no, receiptno]);
+        const { rows } = await pool.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2', [receiptData.buss_no, receiptno]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'Receipt record not found' });
             return;
         }
         // Update the receipt data
-        await pool.query(`UPDATE tb_receipt 
+        await pool.query(`UPDATE receipt 
             SET buss_no = $1, description = $2, transdate = $3, amount = $4, buss_name = $5 
             WHERE receiptno = $6`, [
             receiptData.buss_no,
@@ -98,13 +99,13 @@ router.put('/:buss_no/:receiptno', async (req, res) => {
 router.delete('/:buss_no/:receiptno', async (req, res) => {
     const { receiptno, buss_no } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_receipt WHERE buss_no = $1 AND receiptno = $2', [buss_no, receiptno]);
+        const { rows } = await pool.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2', [buss_no, receiptno]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'Receipt record not found' });
             return;
         }
         // Delete the receipt record
-        await pool.query('DELETE FROM tb_receipt WHERE receiptno = $1', [receiptno]);
+        await pool.query('DELETE FROM receipt WHERE receiptno = $1', [receiptno]);
         res.status(200).json({ message: 'Receipt record deleted successfully' });
     }
     catch (error) {

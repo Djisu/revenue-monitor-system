@@ -1,7 +1,12 @@
 // backend/src/routes/api/busMobiRoutes.ts
 import express, { Router, Request, Response } from 'express';
 import * as dotenv from 'dotenv';
-import { Pool, PoolClient } from 'pg';
+//import { Pool, PoolClient } from 'pg';
+import { QueryResult, PoolClient } from 'pg';
+
+import pkg from 'pg';
+const { Pool } = pkg;
+
 import fs from 'fs';
 import path from 'path';
 import PDFDocument from 'pdfkit';

@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -16,13 +17,13 @@ const pool = new Pool({
 router.post('/', async (req, res) => {
     const propertyTypeData = req.body;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_Propertytype WHERE property_type = $1', [propertyTypeData.property_type]);
+        const { rows } = await pool.query('SELECT * FROM propertytype WHERE property_type = $1', [propertyTypeData.property_type]);
         if (rows.length > 0) {
             res.json(rows[0]); // Return the first row
             return;
         }
         // Insert the new property type data
-        const result = await pool.query(`INSERT INTO tb_Propertytype 
+        const result = await pool.query(`INSERT INTO propertytype 
             (property_type, rate) 
             VALUES ($1, $2)`, [
             propertyTypeData.property_type,
@@ -38,7 +39,7 @@ router.post('/', async (req, res) => {
 // Read all property type records
 router.get('/', async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_Propertytype');
+        const { rows } = await pool.query('SELECT * FROM propertytype');
         res.json(rows);
     }
     catch (error) {
@@ -50,7 +51,7 @@ router.get('/', async (req, res) => {
 router.get('/:property_type', async (req, res) => {
     const { property_type } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_Propertytype WHERE property_type = $1', [property_type]);
+        const { rows } = await pool.query('SELECT * FROM propertytype WHERE property_type = $1', [property_type]);
         if (rows.length > 0) {
             res.json(rows[0]); // Return the first row
         }
@@ -68,13 +69,13 @@ router.put('/:property_type', async (req, res) => {
     const { property_type } = req.params;
     const propertyTypeData = req.body;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_Propertytype WHERE property_type = $1', [property_type]);
+        const { rows } = await pool.query('SELECT * FROM propertytype WHERE property_type = $1', [property_type]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'Property type record not found' });
             return;
         }
         // Update the property type data
-        await pool.query(`UPDATE tb_Propertytype 
+        await pool.query(`UPDATE propertytype 
             SET rate = $1 
             WHERE property_type = $2`, [
             propertyTypeData.rate,
@@ -91,13 +92,13 @@ router.put('/:property_type', async (req, res) => {
 router.delete('/:property_type', async (req, res) => {
     const { property_type } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_Propertytype WHERE property_type = $1', [property_type]);
+        const { rows } = await pool.query('SELECT * FROM propertytype WHERE property_type = $1', [property_type]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'Property type record not found' });
             return;
         }
         // Delete the property type record
-        await pool.query('DELETE FROM tb_Propertytype WHERE property_type = $1', [property_type]);
+        await pool.query('DELETE FROM propertytype WHERE property_type = $1', [property_type]);
         res.status(200).json({ message: 'Property type record deleted successfully' });
     }
     catch (error) {

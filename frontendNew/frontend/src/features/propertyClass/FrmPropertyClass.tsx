@@ -69,15 +69,21 @@ useEffect(() => {
 
       const response = await dispatch(createPropertyClass(propertyClass)).unwrap();
 
-      setAddFlag(response.data.message);
-      setPropertyClass({ property_class: '', rate: 0 });
+      if (createPropertyClass.fulfilled.match(response.payload.message)) {
+        setAddFlag(response.payload.message);
+        setPropertyClass({ property_class: '', rate: 0 });
+  
+        console.log(response);
+  
+        alert('Record successfully added'); // Assuming response is successful
+  
+        const result = await dispatch(fetchPropertyClasses()).unwrap() as FetchPropertyClassesResponse;
+        setLocalPropertyClasses(result.data);
+      } else {
+        throw new Error(response.error.message);
+      }
 
-      console.log(response);
-
-      alert('Record successfully added'); // Assuming response is successful
-
-      const result = await dispatch(fetchPropertyClasses()).unwrap() as FetchPropertyClassesResponse;
-      setLocalPropertyClasses(result.data);
+    
     } catch (error) {
       console.error('Error adding property class:', error);
       setAddFlag('Error in adding a record');

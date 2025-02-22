@@ -1,7 +1,9 @@
 // backend/src/routes/api/offBudgetAssessmentRoutes.ts
 import express, { Request, Response, Router } from 'express';
 import * as dotenv from 'dotenv';
-import { Pool, PoolClient, QueryResult } from 'pg';
+
+import pkg from 'pg';
+const { Pool } = pkg;
 
 const router = Router();
 
@@ -133,7 +135,7 @@ router.post('/budgetAssess', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const assessmentData: OffBudgetAssessmentData = req.body;
 
-    let client: PoolClient | null = null;
+    let client = null
 
     try {
         client = await pool.connect();
@@ -188,7 +190,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
 // Read all OffBudgetAssessment records
 router.get('/', async (req: Request, res: Response) => {
-    let client: PoolClient | null = null;
+    let client = null
 
     try {
         client = await pool.connect();
@@ -208,7 +210,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:officer_name', async (req: Request, res: Response) => {
     const { officer_name } = req.params;
 
-    let client: PoolClient | null = null;
+    let client = null
 
     try {
         client = await pool.connect();
@@ -234,7 +236,7 @@ router.put('/:officer_name', async (req: Request, res: Response): Promise<void> 
     const { officer_name } = req.params;
     const assessmentData: OffBudgetAssessmentData = req.body;
 
-    let client: PoolClient | null = null;
+    let client = null
 
     try {
         client = await pool.connect();
@@ -292,7 +294,7 @@ router.put('/:officer_name', async (req: Request, res: Response): Promise<void> 
 router.delete('/:officer_name', async (req: Request, res: Response) => {
     const { officer_name } = req.params;
 
-    let client: PoolClient | null = null;
+    let client = null
 
     try {
         client = await pool.connect();
@@ -311,7 +313,7 @@ router.delete('/:officer_name', async (req: Request, res: Response) => {
 
 // Fetch fiscal years from tb_officerbudget
 async function getFiscalYears(): Promise<number[]> {
-    let client: PoolClient | null = null;
+    let client = null
 
     try {
         client = await pool.connect();
@@ -330,8 +332,7 @@ async function getFiscalYears(): Promise<number[]> {
 
 // Fetch all officers from tb_officer
 async function getOfficers(): Promise<{ officer_no: string; officer_name: string }[]> {
-    let client: PoolClient | null = null;
-
+    let client = null
     try {
         client = await pool.connect();
         const result = await client.query('SELECT * FROM tb_officer');
@@ -349,7 +350,7 @@ async function getOfficers(): Promise<{ officer_no: string; officer_name: string
 
 // Get officer budget from tb_buspayments
 async function getOfficerBudget(fiscalYear: number, officerNo: string): Promise<OfficerBudget[]> {
-    let client: PoolClient | null = null;
+    let client = null
 
     try {
         client = await pool.connect();
@@ -387,7 +388,7 @@ async function getOfficerBudget(fiscalYear: number, officerNo: string): Promise<
 
 // Delete all records from tb_BudgetAssess
 async function deleteBudgetAssess() {
-    let client: PoolClient | null = null;
+    let client = null
 
     try {
         client = await pool.connect();
@@ -404,7 +405,7 @@ async function deleteBudgetAssess() {
 
 // // Insert records into tb_BudgetAssess
 async function insertBudgetAssess(data: AssessmentData[]) {
-    let client: PoolClient | null = null;
+    let client = null
 
     try {
         client = await pool.connect();

@@ -1,7 +1,8 @@
 // backend/src/routes/api/propertyCollectorElectoralareaRoutes.ts
 import { Router } from 'express';
 import * as dotenv from 'dotenv';
-import { Pool } from 'pg'; // Import pg Pool for PostgreSQL
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -19,7 +20,7 @@ router.post('/', async (req, res) => {
     const propertyCollectorData = req.body;
     try {
         // Insert the new property collector electoral area data
-        const result = await pool.query(`INSERT INTO tb_PropertyCollectorElectoralarea 
+        const result = await pool.query(`INSERT INTO propertycollectorelectoralarea 
             (officer_no, electoralarea) 
             VALUES ($1, $2)`, [
             propertyCollectorData.officer_no,
@@ -35,7 +36,7 @@ router.post('/', async (req, res) => {
 // Read all property collector electoral area records
 router.get('/', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM tb_PropertyCollectorElectoralarea');
+        const result = await pool.query('SELECT * FROM propertycollectorelectoralarea');
         res.json(result.rows);
     }
     catch (error) {
@@ -47,7 +48,7 @@ router.get('/', async (req, res) => {
 router.get('/:officer_no/:electoralarea', async (req, res) => {
     const { officer_no, electoralarea } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM tb_PropertyCollectorElectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
+        const result = await pool.query('SELECT * FROM propertycollectorelectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
         if (result.rowCount > 0) {
             res.json(result.rows[0]); // Return the first row
         }
@@ -65,13 +66,13 @@ router.put('/:officer_no/:electoralarea', async (req, res) => {
     const { officer_no, electoralarea } = req.params;
     const propertyCollectorData = req.body;
     try {
-        const result = await pool.query('SELECT * FROM tb_PropertyCollectorElectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
+        const result = await pool.query('SELECT * FROM propertycollectorelectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
         if (result.rowCount === 0) {
             res.status(404).json({ message: 'Property collector electoral area record not found' });
             return;
         }
         // Update the property collector electoral area data
-        await pool.query(`UPDATE tb_PropertyCollectorElectoralarea 
+        await pool.query(`UPDATE propertycollectorelectoralarea 
             SET electoralarea = $1 
             WHERE officer_no = $2`, [
             propertyCollectorData.electoralarea,
@@ -88,13 +89,13 @@ router.put('/:officer_no/:electoralarea', async (req, res) => {
 router.delete('/:officer_no/:electoralarea', async (req, res) => {
     const { officer_no, electoralarea } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM tb_PropertyCollectorElectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
+        const result = await pool.query('SELECT * FROM propertycollectorelectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
         if (result.rowCount === 0) {
             res.status(404).json({ message: 'Property collector electoral area record not found' });
             return;
         }
         // Delete the property collector electoral area record
-        await pool.query('DELETE FROM tb_PropertyCollectorElectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
+        await pool.query('DELETE FROM propertycollectorelectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
         res.status(200).json({ message: 'Property collector electoral area record deleted successfully' });
     }
     catch (error) {

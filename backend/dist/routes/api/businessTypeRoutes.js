@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import fs from 'fs';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -28,13 +29,13 @@ router.post('/create', async (req, res) => {
     const businessTypeData = sanitizeBusinessTypeData(req.body);
     const client = await pool.connect();
     try {
-        const result = await client.query('SELECT * FROM tb_BusinessType WHERE Business_Type = $1', [businessTypeData.Business_Type]);
+        const result = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [businessTypeData.Business_Type]);
         if (Array.isArray(result.rows) && result.rows.length > 0) {
             res.status(409).json({ message: 'Business Type record already exists.' });
             return;
         }
         // Insert the new BusinessType data
-        await client.query('INSERT INTO tb_BusinessType (Business_Type) VALUES ($1)', [businessTypeData.Business_Type]);
+        await client.query('INSERT INTO businesstype (Business_Type) VALUES ($1)', [businessTypeData.Business_Type]);
         res.status(201).json({ success: true, message: 'BusinessType record created successfully' });
     }
     catch (error) {
@@ -50,7 +51,7 @@ router.get('/all', async (req, res) => {
     console.log('Fetching all businessType records');
     const client = await pool.connect();
     try {
-        const result = await client.query('SELECT * FROM tb_BusinessType');
+        const result = await client.query('SELECT * FROM businesstype');
         res.status(200).json(result.rows);
     }
     catch (error) {
@@ -66,7 +67,7 @@ router.get('/:Business_Type', async (req, res) => {
     const { Business_Type } = req.params;
     const client = await pool.connect();
     try {
-        const result = await client.query('SELECT * FROM tb_BusinessType WHERE Business_Type = $1', [Business_Type]);
+        const result = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [Business_Type]);
         if (Array.isArray(result.rows) && result.rows.length > 0) {
             res.status(200).json({ success: true, data: result.rows[0] }); // Return the first row
         }
@@ -88,13 +89,13 @@ router.put('/:Business_Type', async (req, res) => {
     const businessTypeData = sanitizeBusinessTypeData(req.body);
     const client = await pool.connect();
     try {
-        const result = await client.query('SELECT * FROM tb_BusinessType WHERE Business_Type = $1', [businessTypeData.Business_Type]);
+        const result = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [businessTypeData.Business_Type]);
         if (Array.isArray(result.rows) && result.rows.length > 0) {
             res.status(409).json({ success: false, message: 'Business Type record already exists.' });
             return;
         }
         // Update the BusinessType data
-        await client.query('UPDATE tb_BusinessType SET Business_Type = $1 WHERE Business_Type = $2', [businessTypeData.Business_Type, Business_Type]);
+        await client.query('UPDATE businesstype SET Business_Type = $1 WHERE Business_Type = $2', [businessTypeData.Business_Type, Business_Type]);
         res.status(200).json({ success: true, message: 'BusinessType record updated successfully' });
     }
     catch (error) {
@@ -111,13 +112,13 @@ router.delete('/:Business_Type', async (req, res) => {
     console.log('Deleting BusinessType record:', Business_Type);
     const client = await pool.connect();
     try {
-        const result = await client.query('SELECT * FROM tb_BusinessType WHERE Business_Type = $1', [Business_Type]);
+        const result = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [Business_Type]);
         if (Array.isArray(result.rows) && result.rows.length === 0) {
             res.status(409).json({ success: true, message: 'Business Type record does not exist.' });
             return;
         }
         // Delete the BusinessType record
-        await client.query('DELETE FROM tb_BusinessType WHERE Business_Type = $1', [Business_Type]);
+        await client.query('DELETE FROM businesstype WHERE Business_Type = $1', [Business_Type]);
         res.status(200).json({ success: true, message: 'BusinessType record deleted successfully' });
     }
     catch (error) {
@@ -173,10 +174,10 @@ async function findBusinessBalance(bussNo) {
         // Get current year and previous fiscal year
         const currentYear = new Date().getFullYear();
         // Find all payments
-        const prevPaymentsResult = await client.query('SELECT SUM(paidAmount) AS totsum FROM tb_buspayments WHERE buss_no = $1 AND fiscal_year < $2', [bussNo, currentYear]);
+        const prevPaymentsResult = await client.query('SELECT SUM(paidAmount) AS totsum FROM buspayments WHERE buss_no = $1 AND fiscal_year < $2', [bussNo, currentYear]);
         const prevPayments = prevPaymentsResult.rows[0]?.totsum ?? 0;
         // Find all billings
-        const prevBalancesResult = await client.query('SELECT SUM(current_balance) AS totPrevBal FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear < $2', [bussNo, currentYear]);
+        const prevBalancesResult = await client.query('SELECT SUM(current_balance) AS totPrevBal FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear < $2', [bussNo, currentYear]);
         const prevBalances = prevBalancesResult.rows[0]?.totPrevBal ?? 0;
         // Calculate balance
         return prevBalances - prevPayments;
@@ -196,7 +197,7 @@ export async function findTotalPayable(txtBussNo) {
         // Prepare the SQL query
         const query = `
             SELECT SUM(current_balance) AS totsum
-            FROM tb_BussCurrBalance
+            FROM busscurrbalance
             WHERE buss_no = $1;
         `;
         // Execute the query with the business number
@@ -221,7 +222,7 @@ export async function findCurrentRate(txtBussNo) {
         // Query to find the current rate
         const query = `
             SELECT current_balance 
-            FROM tb_BussCurrBalance 
+            FROM busscurrbalance 
             WHERE buss_no = $1 
               AND fiscalyear = $2
         `;
@@ -338,7 +339,7 @@ export default router;
 //     const businessTypeData: BusinessTypeData = req.body;
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_BusinessType WHERE Business_Type = ?', 
+//         const [rows] = await connection.execute('SELECT * FROM businesstype WHERE Business_Type = ?', 
 //         [businessTypeData.Business_Type]
 //         );
 //         if (Array.isArray(rows) && rows.length > 0) {          

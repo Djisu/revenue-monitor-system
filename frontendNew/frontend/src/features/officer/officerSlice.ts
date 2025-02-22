@@ -14,12 +14,14 @@ interface OfficerState {
     officers: OfficerData[];
     loading: boolean;
     error: string | null;
+    currentOfficer: OfficerData | null;
 }
 
 const initialState: OfficerState = {
     officers: [],
     loading: false,
     error: null,
+    currentOfficer: null,
 };
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
@@ -29,14 +31,17 @@ const BASE_URL = import.meta.env.VITE_BASE_URL ||
 
 // Async thunk to fetch all officers
 export const fetchOfficers = createAsyncThunk('officer/fetchOfficers', async () => {
-    //console.log('officeSlicer.ts: fetching officers');
+    console.log('in fetchOfficers thunk');
 
-    const response = await axios.get(`${BASE_URL}/api/officer/retrieve`);
+    const response = await axios.get(`${BASE_URL}/api/officer/all`, {
+        responseType: 'json' // Ensure we expect JSON response
+    });
 
-     if (response.status >= 200 && response.status < 300) {
-        // console.log('officeSlicer.ts: officers fetched successfully');
-        // console.log('response.data:', response.data);
-        // console.log('response.data.officers:', response.data.officers);
+    if (response.status >= 200 && response.status < 300) {
+        console.log('officeSlicer.ts: officers fetched successfully');
+        console.log('response.data:', response.data);
+
+        // Each officer already includes the photoUrl and photo Blob
         return response.data; // This data will be available as `action.payload`
     } else {
         throw new Error(`Error fetching officers: ${response.statusText}`);
@@ -45,10 +50,24 @@ export const fetchOfficers = createAsyncThunk('officer/fetchOfficers', async () 
 
 // Async thunk to fetch a single officer by officer_no
 export const fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', async (officer_no: string) => {
-    //console.log('fetching officer by id:', officer_no);
-    const response = await axios.get(`${BASE_URL}/api/officer/retrieve/${officer_no}`);
+    console.log('Fetching officer by id:', officer_no);
+    
+    // Fetch the officer details
+    const officerResponse = await axios.get(`${BASE_URL}/api/officer/retrieve/${officer_no}`);
 
-    return response.data;
+    // Fetch the officer's photo as a Blob
+    const photoResponse = await axios.get(`${BASE_URL}/api/photos/retrieve/${officer_no}`, {
+        responseType: 'blob', // Ensure we get the photo as a Blob
+    });
+
+    // Create a URL for the Blob
+    const photoUrl = URL.createObjectURL(photoResponse.data);
+
+    // Return officer data along with the photo URL
+    return {
+        ...officerResponse.data,
+        photoUrl: photoUrl,
+    };
 });
 
 // Async thunk to create a new officer
@@ -119,11 +138,11 @@ const officerSlice = createSlice({
             })
             .addCase(fetchOfficerById.pending, (state) => {
                 state.loading = true;
-                state
             })
             .addCase(fetchOfficerById.fulfilled, (state, action) => {
                 state.loading = false;
-                state.officers = action.payload;
+                // Assuming you want to store a single officer in state
+                state.currentOfficer = action.payload; // Store the fetched officer data
                 state.error = null;
             })
             .addCase(fetchOfficerById.rejected, (state, action) => {

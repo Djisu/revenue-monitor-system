@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg'; // Import PostgreSQL client
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -16,14 +17,14 @@ router.post('/', async (req, res) => {
     const propertyCollectorData = req.body;
     try {
         // Check if an operator permission with the same OperatorID already exists
-        const existingPermissionQuery = 'SELECT * FROM tb_PropertyCollectorElectoralarea WHERE officer_no = $1 AND electoralarea = $2';
+        const existingPermissionQuery = 'SELECT * FROM propertycollectorelectoralarea WHERE officer_no = $1 AND electoralarea = $2';
         const existingPermissionResult = await pool.query(existingPermissionQuery, [propertyCollectorData.officer_no, propertyCollectorData.electoralarea]);
         if (existingPermissionResult.rows.length > 0) {
             res.status(409).json({ message: 'Property collector electoral area record already exists' });
             return;
         }
         // Insert the new property collector electoral area data
-        const insertQuery = `INSERT INTO tb_PropertyCollectorElectoralarea (officer_no, electoralarea) VALUES ($1, $2)`;
+        const insertQuery = `INSERT INTO propertycollectorelectoralarea (officer_no, electoralarea) VALUES ($1, $2)`;
         await pool.query(insertQuery, [propertyCollectorData.officer_no, propertyCollectorData.electoralarea]);
         res.status(201).json({ message: 'Property collector electoral area record created successfully' });
     }
@@ -35,7 +36,7 @@ router.post('/', async (req, res) => {
 // Read all property collector electoral area records
 router.get('/', async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_PropertyCollectorElectoralarea');
+        const { rows } = await pool.query('SELECT * FROM propertycollectorelectoralarea');
         res.json(rows);
     }
     catch (error) {
@@ -47,7 +48,7 @@ router.get('/', async (req, res) => {
 router.get('/:officer_no/:electoralarea', async (req, res) => {
     const { officer_no, electoralarea } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_PropertyCollectorElectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
+        const { rows } = await pool.query('SELECT * FROM propertycollectorelectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
         if (rows.length > 0) {
             res.json(rows[0]); // Return the first row
         }
@@ -65,13 +66,13 @@ router.put('/:officer_no/:electoralarea', async (req, res) => {
     const { officer_no, electoralarea } = req.params;
     const propertyCollectorData = req.body;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_PropertyCollectorElectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
+        const { rows } = await pool.query('SELECT * FROM propertycollectorelectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
         if (rows.length === 0) {
             res.status(404).json({ message: 'Property collector electoral area record not found' });
             return;
         }
         // Update the property collector electoral area data
-        const updateQuery = `UPDATE tb_PropertyCollectorElectoralarea SET electoralarea = $1 WHERE officer_no = $2`;
+        const updateQuery = `UPDATE propertycollectorelectoralarea SET electoralarea = $1 WHERE officer_no = $2`;
         await pool.query(updateQuery, [propertyCollectorData.electoralarea, officer_no]);
         res.status(200).json({ message: 'Property collector electoral area record updated successfully' });
     }
@@ -84,13 +85,13 @@ router.put('/:officer_no/:electoralarea', async (req, res) => {
 router.delete('/:officer_no/:electoralarea', async (req, res) => {
     const { officer_no, electoralarea } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_PropertyCollectorElectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
+        const { rows } = await pool.query('SELECT * FROM propertycollectorelectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
         if (rows.length === 0) {
             res.status(404).json({ message: 'Property collector electoral area record not found' });
             return;
         }
         // Delete the property collector electoral area record
-        await pool.query('DELETE FROM tb_PropertyCollectorElectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
+        await pool.query('DELETE FROM propertycollectorelectoralarea WHERE officer_no = $1 AND electoralarea = $2', [officer_no, electoralarea]);
         res.status(200).json({ message: 'Property collector electoral area record deleted successfully' });
     }
     catch (error) {

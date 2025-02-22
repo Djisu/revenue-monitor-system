@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import express from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import multer from 'multer';
 const router = express.Router();
 // Load environment variables from .env file
@@ -24,13 +25,13 @@ router.post('/create', upload.single('photo'), async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const existingOfficer = (await client.query('SELECT * FROM tb_officer WHERE officer_no = $1', [officerData.officer_no])).rows;
+        const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officerData.officer_no])).rows;
         if (existingOfficer.length > 0) {
             res.status(409).json({ message: 'Officer record already exists' });
             return;
         }
         // Insert the new officer data
-        await client.query(`INSERT INTO tb_officer (officer_no, officer_name, photo) 
+        await client.query(`INSERT INTO officer (officer_no, officer_name, photo) 
             VALUES ($1, $2, $3)`, [
             officerData.officer_no,
             officerData.officer_name,
@@ -55,13 +56,13 @@ router.put('/update/:officer_no', upload.single('photo'), async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const existingOfficer = (await client.query('SELECT * FROM tb_officer WHERE officer_no = $1', [officer_no])).rows;
+        const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
         if (existingOfficer.length == 0) {
             res.status(409).json({ message: 'Officer record does not exist' });
             return;
         }
         // Update the officer data
-        await client.query(`UPDATE tb_officer SET officer_name = $1, photo = $2 
+        await client.query(`UPDATE officer SET officer_name = $1, photo = $2 
             WHERE officer_no = $3`, [
             officerData.officer_name,
             officerData.photo,
@@ -85,13 +86,13 @@ router.delete('/delete/:officer_no', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const existingOfficer = (await client.query('SELECT * FROM tb_officer WHERE officer_no = $1', [officer_no])).rows;
+        const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
         if (existingOfficer.length == 0) {
             res.status(409).json({ message: 'Officer record does not exist' });
             return;
         }
         // Delete the officer record
-        await client.query('DELETE FROM tb_officer WHERE officer_no = $1', [officer_no]);
+        await client.query('DELETE FROM officer WHERE officer_no = $1', [officer_no]);
         res.status(200).json({ message: 'Officer record deleted successfully' });
     }
     catch (error) {
@@ -105,12 +106,27 @@ router.delete('/delete/:officer_no', async (req, res) => {
     }
 });
 // Read all officer records
-router.get('/retrieve', async (req, res) => {
+router.get('/all', async (req, res) => {
+    console.log('router.get(/all XXXXXXXXX');
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_officer');
-        res.json(result.rows);
+        const result = await client.query(`
+            SELECT o.*, p.photo_buffer, p.photo_name, p.photo_type 
+            FROM officer o
+            LEFT JOIN photos p ON o.officer_no = p.officer_no::int
+        `);
+        const officers = result.rows.map(row => {
+            const photoBuffer = row.photo_buffer ? Buffer.from(row.photo_buffer) : null;
+            const photoBlob = photoBuffer ? new Blob([photoBuffer], { type: row.photo_type }) : null; // Convert Buffer to Blob
+            return {
+                ...row,
+                photo: photoBlob,
+                photoUrl: photoBlob ? URL.createObjectURL(photoBlob) : null // Create Blob URL
+            };
+        });
+        console.log('Fetched officers:', result.rows);
+        res.status(200).json(officers);
     }
     catch (error) {
         console.error(error);
@@ -125,15 +141,22 @@ router.get('/retrieve', async (req, res) => {
 // Read a single officer record by officer_no
 router.get('/retrieve/:officer_no', async (req, res) => {
     const { officer_no } = req.params;
+    console.log('in router.get(/retrieve/:officer_no: ', officer_no);
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_officer WHERE officer_no = $1', [officer_no]);
+        const result = await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no]);
         if (result.rows.length == 0) {
             res.status(404).json({ message: 'Officer record not found' });
             return;
         }
-        res.json(result.rows);
+        const photo = result.rows[0];
+        const photoBuffer = photo.photo_buffer;
+        // Set the appropriate content type
+        res.setHeader('Content-Type', photo.photo_type);
+        res.setHeader('Content-Disposition', `attachment; filename=${photo.photo_name}`);
+        // Send the binary photo data
+        res.send(photoBuffer);
     }
     catch (error) {
         console.error(error);
@@ -151,7 +174,7 @@ router.get('/retrieveByName/:officer_name', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_officer WHERE officer_name = $1', [officer_name]);
+        const result = await client.query('SELECT * FROM officer WHERE officer_name = $1', [officer_name]);
         if (result.rows.length == 0) {
             res.status(404).json({ message: 'Officer record not found' });
             return;
@@ -219,7 +242,7 @@ export default router;
 //     const officerData: OfficerData = req.body;
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_officer WHERE officer_no = ?', [officerData.officer_no]);
+//         const [rows] = await connection.execute('SELECT * FROM officer WHERE officer_no = ?', [officerData.officer_no]);
 //         if (Array.isArray(rows) && rows.length > 0) {
 //             res.status(409).json({ message: 'Officer record already exists' });
 //             return;

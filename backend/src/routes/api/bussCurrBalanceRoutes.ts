@@ -1,195 +1,185 @@
+// backend/src/routes/api/bussCurrBalanceRoutes.ts
 import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-import { Pool } from 'pg'; // Import PostgreSQL client
-import PDFDocument from 'pdfkit';
-import nodemailer, { SendMailOptions } from 'nodemailer';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import pg from 'pg'
+const { Pool } = pg
+import {PoolClient} from 'pg'
+
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
 
-const emailUser = process.env.EMAIL_USER;
-const emailPassword = process.env.APP_PASSWORD;
-const port = process.env.PORT || 3001;
-
-// PostgreSQL connection configuration
+// PostgreSQL connection pool configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'postgres', // Assuming PostgreSQL user
+    user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'revmonitor',
-    port: parseInt(process.env.DB_PORT || "5432"), // Default PostgreSQL port
+    port: parseInt(process.env.DB_PORT || '5432'), // PostgreSQL default port is 5432
 });
 
-// BusPayments data interface
-interface BusPaymentsData {
+// BussCurrBalance data interface
+interface BussCurrBalanceData {
     buss_no: string;
-    officer_no: string;
-    paidAmount: number;
-    monthpaid: string;
+    fiscalyear: string;
+    balancebf: number;
+    current_balance: number;
+    totalAmountDue: number;
     transdate: string;
-    fiscal_year: string;
-    ReceiptNo: string;
-    email: string;
-    electoral_area: string;
+    electoralarea: string;
 }
 
-// Nodemailer transporter setup
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: emailUser,
-        pass: emailPassword
-    }
-});
+// Create a new BussCurrBalance record
+router.post('/', async (req: Request, res: Response): Promise<void> => {
+    const bussCurrBalanceData: BussCurrBalanceData = req.body;
 
-// Function to generate PDF
-async function generatePDF(receiptData: BusPaymentsData, receiptsDir: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const doc = new PDFDocument();
-        const receiptPath = path.join(receiptsDir, `receipt_${receiptData.ReceiptNo}.pdf`);
-        const writeStream = fs.createWriteStream(receiptPath); // Save to file
-
-        writeStream.on('finish', () => {
-            console.log('Receipt saved to file:', receiptPath);
-            resolve(receiptPath);
-        });
-
-        writeStream.on('error', (err) => {
-            console.error('Error writing receipt file:', err);
-            reject(err);
-        });
-
-        doc.pipe(writeStream);
-
-        // Add content to the PDF
-        doc.fontSize(25).text('Receipt', { align: 'center' });
-        doc.text(`Receipt No: ${receiptData.ReceiptNo}`);
-        doc.text(`Bus Number: ${receiptData.buss_no}`);
-        doc.text(`Officer No: ${receiptData.officer_no}`);
-        doc.text(`Amount: $${receiptData.paidAmount}`);
-        doc.text(`Month Paid: ${receiptData.monthpaid}`);
-        doc.text(`Transaction Date: ${receiptData.transdate}`);
-        doc.text(`Fiscal Year: ${receiptData.fiscal_year}`);
-        doc.text(`Email: ${receiptData.email}`);
-        doc.text(`Electoral Area: ${receiptData.electoral_area}`);
-        doc.end();
-    });
-}
-
-// Function to send email
-async function sendEmail(receiptPath: string, busPaymentsData: BusPaymentsData): Promise<void> {
-    const mailOptions: SendMailOptions = {
-        from: emailUser,
-        to: busPaymentsData.email, // client email from request body
-        subject: 'Your Payment Receipt',
-        text: 'Please find attached your payment receipt.',
-        attachments: [
-            {
-                contentType: 'application/pdf',
-                filename: path.basename(receiptPath),
-                path: receiptPath,
-            },
-        ],
-    };
-
+    const client: PoolClient = await pool.connect();
+    
     try {
-        await transporter.sendMail(mailOptions);
-        console.log('Receipt email sent successfully');
-    } catch (emailError) {
-        console.error('Error sending email:', emailError);
-        throw emailError;
-    }
-}
+        const { rows } = await client.query('SELECT * FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear = $2',
+         [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]
+        );
 
-router.post('/create', async (req: Request, res: Response): Promise<void> => {
-    const busPaymentsData: BusPaymentsData = req.body;
+        if (rows.length > 0) {
+            res.status(404).json({ message: 'BussCurrBalance record exists' });
+            return;
+        }
 
-    // Ensure the receipts directory exists
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const receiptsDir = path.join(__dirname, 'receipts');
-    if (!fs.existsSync(receiptsDir)) {
-        fs.mkdirSync(receiptsDir, { recursive: true });
-        console.log('Created receipts directory:', receiptsDir);
-    } else {
-        console.log('Receipts directory already exists:', receiptsDir);
-    }
-
-    try {
-        // Insert the new BusPayments data
-        const result = await pool.query(
-            `INSERT INTO buspayments (buss_no, officer_no, paidAmount, monthpaid, transdate, 
-                fiscal_year, ReceiptNo, email, electoral_area) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        // Insert the new BussCurrBalance data
+        const result = await client.query(
+            `INSERT INTO tb_BussCurrBalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [
-                busPaymentsData.buss_no,
-                busPaymentsData.officer_no,
-                busPaymentsData.paidAmount,
-                busPaymentsData.monthpaid,
-                busPaymentsData.transdate,
-                busPaymentsData.fiscal_year,
-                busPaymentsData.ReceiptNo,
-                busPaymentsData.email,
-                busPaymentsData.electoral_area
+                bussCurrBalanceData.buss_no,
+                bussCurrBalanceData.fiscalyear,
+                bussCurrBalanceData.balancebf,
+                bussCurrBalanceData.current_balance,
+                bussCurrBalanceData.totalAmountDue,
+                bussCurrBalanceData.transdate,
+                bussCurrBalanceData.electoralarea,
             ]
         );
 
-        // Generate the PDF receipt
-        const receiptPath = await generatePDF(busPaymentsData, receiptsDir);
-        
-        // Send the email with the PDF attachment
-        await sendEmail(receiptPath, busPaymentsData);
-       
-        res.status(200).json({
-            message: 'BusPayments record created successfully and email sent.',
-            receiptUrl: receiptPath,
-        });
-
+        res.status(201).json({ message: 'BussCurrBalance record created successfully' });
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating BusPayments record or sending email', error });
+        res.status(500).json({ message: 'Error creating BussCurrBalance record', error });
+    } finally {
+        client.release();
     }
 });
 
-// Read all BusPayments records
-router.get('/all', async (req: Request, res: Response) => {
+// Read all BussCurrBalance records
+router.get('/', async (req: Request, res: Response) => {
+    const client: PoolClient = await pool.connect();
     try {
-        const { rows } = await pool.query('SELECT * FROM buspayments');
+        const { rows } = await client.query('SELECT * FROM tb_BussCurrBalance');
         res.json(rows);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching BusPayments records', error });
+        res.status(500).json({ message: 'Error fetching BussCurrBalance records', error });
+    } finally {
+        client.release();
     }
 });
 
-// Read a single BusPayments record by buss_no
-router.get('/:buss_no', async (req: Request, res: Response) => {
-    const { buss_no } = req.params;
+// Read a single BussCurrBalance record by buss_no and fiscalyear
+router.get('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
+    const { buss_no, fiscalyear } = req.params;
+
+    const client: PoolClient = await pool.connect();
 
     try {
-        const { rows } = await pool.query('SELECT * FROM buspayments WHERE buss_no = $1', [buss_no]);
+        const { rows } = await client.query('SELECT * FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
 
-        if (rows.length === 0) {
-            res.status(404).json({ message: 'Business Payments record not found' });
-            return;
+        if (rows.length > 0) {
+            res.json(rows[0]); // Return the first row
+        } else {
+            res.status(404).json({ message: 'BussCurrBalance record not found' });
         }
-        res.json(rows[0]);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching BusPayments record', error });
+        res.status(500).json({ message: 'Error fetching BussCurrBalance record', error });
+    } finally {
+        client.release();
     }
 });
 
-// Additional route implementations with similar structure...
+// Update a BussCurrBalance record
+router.put('/:buss_no/:fiscalyear', async (req: Request, res: Response): Promise<void> => {
+    const { buss_no } = req.params;
+    const bussCurrBalanceData: BussCurrBalanceData = req.body;
+
+    const client: PoolClient = await pool.connect();
+    try {
+        const { rows } = await client.query('SELECT * FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear = $2',
+         [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]
+        );
+
+        if (rows.length == 0) {
+            res.status(404).json({ message: 'BussCurrBalance record not exist' });
+            return;
+        }
+
+        // Update the BussCurrBalance data
+        const result = await client.query(
+            `UPDATE tb_BussCurrBalance SET fiscalyear = $1, balancebf = $2, current_balance = $3, totalAmountDue = $4, 
+            transdate = $5, electoralarea = $6 
+            WHERE buss_no = $7 AND fiscalyear = $8`,
+            [
+                bussCurrBalanceData.fiscalyear,
+                bussCurrBalanceData.balancebf,
+                bussCurrBalanceData.current_balance,
+                bussCurrBalanceData.totalAmountDue,
+                bussCurrBalanceData.transdate,
+                bussCurrBalanceData.electoralarea,
+                buss_no,
+                bussCurrBalanceData.fiscalyear
+            ]
+        );
+
+        res.status(200).json({ message: 'BussCurrBalance record updated successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error updating BussCurrBalance record', error });
+    } finally {
+        client.release();
+    }
+});
+
+// Delete a BussCurrBalance record
+router.delete('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
+    const { buss_no, fiscalyear } = req.params;
+
+    const client: PoolClient = await pool.connect();
+
+    try {
+        const { rows } = await client.query('SELECT * FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear = $2',
+         [buss_no, fiscalyear]
+        );
+
+        if (rows.length == 0) {
+            res.status(404).json({ message: 'BussCurrBalance record not exist' });
+            return;
+        }
+
+        // Delete the BussCurrBalance record
+        const result = await client.query('DELETE FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
+
+        res.status(200).json({ message: 'BussCurrBalance record deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error deleting BussCurrBalance record', error });
+    } finally {
+        client.release();
+    }
+});
 
 export default router;
+
 
 
 

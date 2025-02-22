@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -18,13 +19,13 @@ router.post('/', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_PropertyOfficerbudget WHERE officer_no = $1 AND fiscal_year = $2', [propertyOfficerBudgetData.officer_no, propertyOfficerBudgetData.fiscal_year]);
+        const result = await client.query('SELECT * FROM propertyofficerbudget WHERE officer_no = $1 AND fiscal_year = $2', [propertyOfficerBudgetData.officer_no, propertyOfficerBudgetData.fiscal_year]);
         if (result.rows.length > 0) {
             res.status(409).json({ message: 'Property officer budget record already exists' });
             return;
         }
         // Insert the new property officer budget data
-        await client.query(`INSERT INTO tb_PropertyOfficerbudget 
+        await client.query(`INSERT INTO propertyofficerbudget 
             (officer_no, officer_name, fiscal_year, annual_budget, monthly_budget, 
             January_budget, January_Actual, February_budget, February_Actual, 
             March_budget, March_Actual, April_budget, April_Actual, May_budget, 
@@ -83,7 +84,7 @@ router.get('/', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_PropertyOfficerbudget');
+        const result = await client.query('SELECT * FROM propertyofficerbudget');
         res.json(result.rows);
     }
     catch (error) {
@@ -102,7 +103,7 @@ router.get('/:officer_no/:fiscal_year', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_PropertyOfficerbudget WHERE officer_no = $1 AND fiscal_year = $2', [officer_no, fiscal_year]);
+        const result = await client.query('SELECT * FROM propertyofficerbudget WHERE officer_no = $1 AND fiscal_year = $2', [officer_no, fiscal_year]);
         if (result.rows.length > 0) {
             res.json(result.rows[0]); // Return the first row
         }
@@ -127,13 +128,13 @@ router.put('/:officer_no/:fiscal_year', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_PropertyOfficerbudget WHERE officer_no = $1 AND fiscal_year = $2', [propertyOfficerBudgetData.officer_no, propertyOfficerBudgetData.fiscal_year]);
+        const result = await client.query('SELECT * FROM propertyofficerbudget WHERE officer_no = $1 AND fiscal_year = $2', [propertyOfficerBudgetData.officer_no, propertyOfficerBudgetData.fiscal_year]);
         if (result.rows.length > 0) {
             res.status(409).json({ message: 'Property officer budget record already exists' });
             return;
         }
         // Update the property officer budget data
-        await client.query(`UPDATE tb_PropertyOfficerbudget 
+        await client.query(`UPDATE propertyofficerbudget 
             SET officer_name = $1, fiscal_year = $2, annual_budget = $3, monthly_budget = $4, 
             January_budget = $5, January_Actual = $6, February_budget = $7, February_Actual = $8, 
             March_budget = $9, March_Actual = $10, April_budget = $11, April_Actual = $12, 
@@ -194,7 +195,7 @@ router.delete('/:officer_no/:fiscal_year', async (req, res) => {
     const { officer_no, fiscal_year } = req.params;
     const client = await pool.connect();
     try {
-        await client.query('SELECT * FROM tb_PropertyOfficerbudget WHERE officer_no = $1 AND fiscal_year = $2', [officer_no, fiscal_year]);
+        await client.query('SELECT * FROM propertyofficerbudget WHERE officer_no = $1 AND fiscal_year = $2', [officer_no, fiscal_year]);
         res.status(200).json({ message: 'Property officer budget record deleted successfully' });
     }
     catch (error) {

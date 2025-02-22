@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -16,13 +17,13 @@ const pool = new Pool({
 router.post('create/', async (req, res) => {
     const propertyBalanceData = req.body;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_PropertyBalance WHERE house_no = $1', [propertyBalanceData.house_no]);
+        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [propertyBalanceData.house_no]);
         if (rows.length > 0) {
             res.status(409).json({ message: 'Property balance record already exists' });
             return;
         }
         // Insert the new property balance data
-        const result = await pool.query(`INSERT INTO tb_PropertyBalance 
+        const result = await pool.query(`INSERT INTO propertybalance 
             (house_no, billamount, paidamount, balance) 
             VALUES ($1, $2, $3, $4)`, [
             propertyBalanceData.house_no,
@@ -40,7 +41,7 @@ router.post('create/', async (req, res) => {
 // Read all property balance records
 router.get('/', async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_PropertyBalance');
+        const { rows } = await pool.query('SELECT * FROM propertybalance');
         res.json(rows);
     }
     catch (error) {
@@ -52,7 +53,7 @@ router.get('/', async (req, res) => {
 router.get('/:house_no', async (req, res) => {
     const { house_no } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_PropertyBalance WHERE house_no = $1', [house_no]);
+        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
         if (rows.length > 0) {
             res.json(rows[0]); // Return the first row
         }
@@ -70,13 +71,13 @@ router.put('update/:house_no', async (req, res) => {
     const { house_no } = req.params;
     const propertyBalanceData = req.body;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_PropertyBalance WHERE house_no = $1', [house_no]);
+        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'Property balance record not found' });
             return;
         }
         // Update the property balance data
-        await pool.query(`UPDATE tb_PropertyBalance 
+        await pool.query(`UPDATE propertybalance 
             SET billamount = $1, paidamount = $2, balance = $3 
             WHERE house_no = $4`, [
             propertyBalanceData.billamount,
@@ -95,13 +96,13 @@ router.put('update/:house_no', async (req, res) => {
 router.delete('/delete/:house_no', async (req, res) => {
     const { house_no } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM tb_PropertyBalance WHERE house_no = $1', [house_no]);
+        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'Property balance record not found' });
             return;
         }
         // Delete the property balance record
-        await pool.query('DELETE FROM tb_PropertyBalance WHERE house_no = $1', [house_no]);
+        await pool.query('DELETE FROM propertybalance WHERE house_no = $1', [house_no]);
         res.status(200).json({ message: 'Property balance record deleted successfully' });
     }
     catch (error) {
@@ -137,7 +138,7 @@ export default router;
 //     const propertyBalanceData: PropertyBalanceData = req.body;
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_PropertyBalance WHERE house_no = ?', [propertyBalanceData.house_no]);
+//         const [rows] = await connection.execute('SELECT * FROM propertybalance WHERE house_no = ?', [propertyBalanceData.house_no]);
 //         if (Array.isArray(rows) && rows.length > 0) {
 //             res.status(409).json({ message: 'Property balance record already exists' });
 //             return

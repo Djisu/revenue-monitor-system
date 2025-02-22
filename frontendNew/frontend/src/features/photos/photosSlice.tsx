@@ -68,7 +68,7 @@ export const storePhotoAsync = createAsyncThunk<
     'photos/store',
     async ({ photo, officer_no }, { rejectWithValue }) => {
         try {
-            console.log('in storePhotoAsync');
+            console.log('in storePhotoAsync thunk');
 
             console.log('photo.name:', photo.name);
             console.log('officer_no:', officer_no);

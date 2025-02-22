@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -18,13 +19,13 @@ router.post('/', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const existingRecord = await client.query(`SELECT * FROM tb_officerbudgetWeekly WHERE officer_no = $1 AND fiscal_year = $2`, [officerBudgetWeeklyData.officer_no, officerBudgetWeeklyData.fiscal_year]);
+        const existingRecord = await client.query(`SELECT * FROM officerbudgetweekly WHERE officer_no = $1 AND fiscal_year = $2`, [officerBudgetWeeklyData.officer_no, officerBudgetWeeklyData.fiscal_year]);
         if (existingRecord.rows.length > 0) {
             res.status(409).json({ message: 'Officer budget weekly record already exists' });
             return;
         }
         // Insert the new officer budget weekly data
-        await client.query(`INSERT INTO tb_officerbudgetWeekly 
+        await client.query(`INSERT INTO officerbudgetweekly 
             (officer_no, officer_name, fiscal_year, annual_budget, weekly_budget, 
             January_budget_WEEK1, January_budget_WEEK2, January_budget_WEEK3, January_budget_WEEK4, 
             January_Actual_WEEK1, January_Actual_WEEK2, January_Actual_WEEK3, January_Actual_WEEK4,
@@ -174,7 +175,7 @@ router.get('/', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_officerbudgetWeekly');
+        const result = await client.query('SELECT * FROM officerbudgetweekly');
         res.json(result.rows);
     }
     catch (error) {
@@ -193,7 +194,7 @@ router.get('/:id/:fiscal_year', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_officerbudgetWeekly WHERE id = $1 AND fiscal_year = $2', [id, fiscal_year]);
+        const result = await client.query('SELECT * FROM officerbudgetweekly WHERE id = $1 AND fiscal_year = $2', [id, fiscal_year]);
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Officer budget weekly record not found' });
             return;
@@ -217,13 +218,13 @@ router.put('/:id/:fiscal_year', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_officerbudgetWeekly WHERE id = $1 AND fiscal_year = $2', [id, fiscal_year]);
+        const result = await client.query('SELECT * FROM officerbudgetweekly WHERE id = $1 AND fiscal_year = $2', [id, fiscal_year]);
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Officer budget weekly record not found' });
             return;
         }
         // Update the officer budget weekly data
-        await client.query(`UPDATE tb_officerbudgetWeekly SET 
+        await client.query(`UPDATE officerbudgetweekly SET 
             officer_no = $1, officer_name = $2, fiscal_year = $3, annual_budget = $4, weekly_budget = $5, 
             January_budget_WEEK1 = $6, January_budget_WEEK2 = $7, January_budget_WEEK3 = $8, January_budget_WEEK4 = $9, 
             January_Actual_WEEK1 = $10, January_Actual_WEEK2 = $11, January_Actual_WEEK3 = $12, January_Actual_WEEK4 = $13,
@@ -375,13 +376,13 @@ router.delete('/:id/:fiscal_year', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_officerbudgetWeekly WHERE id = $1 AND fiscal_year = $2', [id, fiscal_year]);
+        const result = await client.query('SELECT * FROM officerbudgetweekly WHERE id = $1 AND fiscal_year = $2', [id, fiscal_year]);
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Officer budget weekly record not found' });
             return;
         }
         // Delete the officer budget weekly record
-        await client.query('DELETE FROM tb_officerbudgetWeekly WHERE id = $1', [id]);
+        await client.query('DELETE FROM officerbudgetweekly WHERE id = $1', [id]);
         res.json({ message: 'Officer budget weekly record deleted successfully' });
     }
     catch (error) {
@@ -399,7 +400,7 @@ async function getFiscalYears() {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT DISTINCT fiscal_year FROM tb_busPayments ORDER BY fiscal_year');
+        const result = await client.query('SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year');
         return result.rows.map(row => row.fiscal_year);
     }
     catch (err) {
@@ -417,7 +418,7 @@ async function getOfficers() {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT officer_no, officer_name FROM tb_officer');
+        const result = await client.query('SELECT officer_no, officer_name FROM officer');
         return result.rows;
     }
     catch (err) {
@@ -437,7 +438,7 @@ async function getAmountByOfficerAndMonth(officerNo, fiscalYear, monthPaid) {
         client = await pool.connect();
         const result = await client.query(`SELECT 
                 SUM(amount) AS totsum 
-            FROM tb_buspayments 
+            FROM buspayments 
             WHERE officer_no = $1 
               AND fiscal_year = $2 
               AND (monthpaid = $3 OR monthpaid = $4::INTEGER)`, [officerNo, fiscalYear, monthPaid, monthPaid]);
@@ -458,7 +459,7 @@ async function deleteOfficerMonthAssess() {
     let client = null;
     try {
         client = await pool.connect();
-        await client.query('DELETE FROM tb_officerMonthAssess');
+        await client.query('DELETE FROM officermonthassess');
     }
     catch (err) {
         console.error('Error deleting officer month assess:', err);
@@ -476,7 +477,7 @@ async function insertOfficerMonthAssess(data) {
     try {
         client = await pool.connect();
         const insertQuery = `
-            INSERT INTO tb_officerMonthAssess (officer_name, month, amount, fiscalyear) 
+            INSERT INTO officermonthassess (officer_name, month, amount, fiscalyear) 
             VALUES ($1, $2, $3, $4)
         `;
         for (let item of data) {
@@ -673,7 +674,7 @@ export default router;
 //     const officerBudgetWeeklyData: OfficerBudgetWeeklyData = req.body;
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.query('SELECT * FROM tb_officerbudgetWeekly WHERE officer_no = ? AND fiscal_year = ?',
+//         const [rows] = await connection.query('SELECT * FROM officerbudgetWeekly WHERE officer_no = ? AND fiscal_year = ?',
 //            [officerBudgetWeeklyData.officer_no, officerBudgetWeeklyData.fiscal_year]
 //         );
 //         if (rows.length > 0) {

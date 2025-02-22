@@ -2,7 +2,11 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
 import { Request, Response } from 'express';
-import { Pool } from 'pg';
+
+import pg from 'pg'
+const { Pool } = pg
+import {PoolClient} from 'pg'
+
 import { generateBusinessData } from './seedDataGenerator.js';
 
 // PostgreSQL connection configuration
@@ -18,7 +22,7 @@ const pool = new Pool(dbConfig);
 
 // Function to add record to tb_BussCurrBalance
 async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalanceBF: number, txtCurrentRate: number, txtRate: number, cboElectoralArea: string): Promise<boolean> {
-    console.log('in addRecord');
+    console.log('in addRecord XXXXXXXXXXXXXXX');
 
     try {
         // Get current year and previous fiscal year
@@ -29,7 +33,7 @@ async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalance
         // Find previous fiscal year balance
         const findPreviousFiscalYearQuery = `
             SELECT balancebf 
-            FROM tb_BussCurrBalance 
+            FROM busscurrbalance 
             WHERE buss_no = $1 AND fiscalyear = $2;
         `;
 
@@ -42,7 +46,7 @@ async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalance
 
         // Insert or update record in tb_BussCurrBalance
         const insertNewRecordQuery = `
-            INSERT INTO tb_BussCurrBalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
+            INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
             VALUES ($1, $2, $3, $4, $5, $6, $7) 
             ON CONFLICT (buss_no, fiscalyear) DO UPDATE SET 
                 balancebf = EXCLUDED.balancebf, 
@@ -85,31 +89,39 @@ async function seedDatabase() {
         // Insert each business into the tb_business table
         for (const business of businesses) {
             const query = `
-                INSERT INTO tb_business (
-                    buss_no, buss_name, buss_address, buss_type, buss_town, street_name, landmark,
-                    electroral_area, property_class, tot_grade, ceo, telno, strategiclocation,
-                    productvariety, businesspopularity, businessenvironment, sizeofbusiness,
-                    numberofworkingdays, businessoperatingperiod, competitorsavailable, assessmentby,
-                    transdate, balance, status, current_rate, property_rate, totalmarks, emailaddress,
-                    noofemployees, noofbranches, BALANCENEW, gps_address
+                INSERT INTO business (
+                    buss_no, buss_name, buss_address, 
+                    buss_type, buss_town, street_name, 
+                    landmark, electroral_area, property_class, 
+                    tot_grade, ceo, telno, 
+                    strategiclocation, productvariety, businesspopularity, 
+                    businessenvironment, sizeofbusiness, numberofworkingdays, 
+                    businessoperatingperiod, competitorsavailable, assessmentby,
+                    transdate, balance, status, 
+                    current_rate, property_rate, totalmarks, 
+                    emailaddress, noofemployees, noofbranches,
+                     BALANCENEW, gps_address
                 ) VALUES (
                     $1, $2, $3, $4, $5, $6, $7,
                     $8, $9, $10, $11, $12,
                     $13, $14, $15, $16, $17,
                     $18, $19, $20, $21, $22,
                     $23, $24, $25, $26, $27, $28, $29,
-                    $30, $31
+                    $30, $31, $32
                 );
             `;
             const values = [
-                business.buss_no, business.buss_name, business.buss_address, business.buss_type,
-                business.buss_town, business.street_name, business.landmark, business.electroral_area,
-                business.property_class, business.tot_grade, business.ceo, business.telno,
-                business.strategiclocation, business.productvariety, business.businesspopularity, business.businessenvironment,
-                business.sizeofbusiness, business.numberofworkingdays, business.businessoperatingperiod, business.competitorsavailable,
-                business.assessmentby, business.transdate, business.balance, business.status,
-                business.current_rate, business.property_rate, business.totalmarks, business.emailaddress,
-                business.noofemployees, business.noofbranches, business.BALANCENEW, business.gps_address
+                business.buss_no, business.buss_name, business.buss_address,
+                business.buss_type, business.buss_town, business.street_name, 
+                business.landmark, business.electroral_area, business.property_class, 
+                business.tot_grade, business.ceo, business.telno,
+                business.strategiclocation, business.productvariety, business.businesspopularity, 
+                business.businessenvironment, business.sizeofbusiness, business.numberofworkingdays, 
+                business.businessoperatingperiod, business.competitorsavailable, business.assessmentby, 
+                business.transdate, business.balance, business.status,
+                business.current_rate, business.property_rate, business.totalmarks, 
+                business.emailaddress, business.noofemployees, business.noofbranches, 
+                business.BALANCENEW, business.gps_address
             ];
 
             // Execute the query
@@ -136,9 +148,9 @@ async function seedDatabase() {
             );
 
             if (addRecordResult) {
-                console.log(`Added/Updated record in tb_BussCurrBalance for buss_no: ${business.buss_no}`);
+                console.log(`Added/Updated record in BussCurrBalance for buss_no: ${business.buss_no}`);
             } else {
-                console.log(`Failed to add/update record in tb_BussCurrBalance for buss_no: ${business.buss_no}`);
+                console.log(`Failed to add/update record in BussCurrBalance for buss_no: ${business.buss_no}`);
             }
 
             // Check if the insert was successful

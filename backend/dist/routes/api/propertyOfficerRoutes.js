@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -18,13 +19,13 @@ router.post('/create', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_PropertyOfficer WHERE officer_no = $1', [propertyOfficerData.officer_no]);
+        const result = await client.query('SELECT * FROM propertyofficer WHERE officer_no = $1', [propertyOfficerData.officer_no]);
         if (result.rows.length > 0) {
             res.status(409).json({ message: 'Property officer record already exists' });
             return;
         }
         // Insert the new property officer data
-        const insertResult = await client.query(`INSERT INTO tb_PropertyOfficer 
+        const insertResult = await client.query(`INSERT INTO propertyofficer 
             (officer_no, officer_name, photo) 
             VALUES ($1, $2, $3)`, [
             propertyOfficerData.officer_no,
@@ -48,7 +49,7 @@ router.get('/', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_PropertyOfficer');
+        const result = await client.query('SELECT * FROM propertyofficer');
         res.json(result.rows);
     }
     catch (error) {
@@ -67,7 +68,7 @@ router.get('/:officer_no', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_PropertyOfficer WHERE officer_no = $1', [officer_no]);
+        const result = await client.query('SELECT * FROM propertyofficer WHERE officer_no = $1', [officer_no]);
         if (result.rows.length > 0) {
             res.json(result.rows[0]); // Return the first row
         }
@@ -92,13 +93,13 @@ router.put('/update/:officer_no', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_PropertyOfficer WHERE officer_no = $1', [propertyOfficerData.officer_no]);
+        const result = await client.query('SELECT * FROM propertyofficer WHERE officer_no = $1', [propertyOfficerData.officer_no]);
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Property officer record not found' });
             return;
         }
         // Update the property officer data
-        const updateResult = await client.query(`UPDATE tb_PropertyOfficer 
+        const updateResult = await client.query(`UPDATE propertyofficer 
             SET officer_name = $2, photo = $3 
             WHERE officer_no = $1`, [
             officer_no,
@@ -123,13 +124,13 @@ router.delete('/delete/:officer_no', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM tb_PropertyOfficer WHERE officer_no = $1', [officer_no]);
+        const result = await client.query('SELECT * FROM propertyofficer WHERE officer_no = $1', [officer_no]);
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Property officer record not found' });
             return;
         }
         // Delete the property officer record
-        const deleteResult = await client.query('DELETE FROM tb_PropertyOfficer WHERE officer_no = $1', [officer_no]);
+        const deleteResult = await client.query('DELETE FROM propertyofficer WHERE officer_no = $1', [officer_no]);
         res.status(200).json({ message: 'Property officer record deleted successfully' });
     }
     catch (error) {

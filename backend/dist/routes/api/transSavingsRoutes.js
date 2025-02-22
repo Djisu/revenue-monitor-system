@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -24,7 +25,7 @@ router.post('/', async (req, res) => {
             return;
         }
         // Insert the new transaction savings data
-        await client.query(`INSERT INTO tb_transSavings 
+        await client.query(`INSERT INTO transsavings 
             (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [
             transSavingsData.buss_no,
@@ -49,7 +50,7 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const client = await pool.connect();
-        const rows = await client.query('SELECT * FROM tb_transSavings');
+        const rows = await client.query('SELECT * FROM transsavings');
         res.json(rows.rows);
         client.release();
     }
@@ -63,7 +64,7 @@ router.get('/:buss_no/:transdate', async (req, res) => {
     const { buss_no, transdate } = req.params;
     try {
         const client = await pool.connect();
-        const rows = await client.query('SELECT * FROM tb_transSavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
+        const rows = await client.query('SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         if (rows.rowCount > 0) {
             res.json(rows.rows[0]); // Return the first row
         }
@@ -83,14 +84,14 @@ router.put('/:buss_no/:transdate', async (req, res) => {
     const transSavingsData = req.body;
     try {
         const client = await pool.connect();
-        const rows = await client.query('SELECT * FROM tb_transSavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
+        const rows = await client.query('SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         if (rows.rowCount == 0) {
             res.status(404).json({ message: 'Transaction Savings record not found' });
             client.release();
             return;
         }
         // Update the transaction savings data
-        await client.query(`UPDATE tb_transSavings 
+        await client.query(`UPDATE transsavings 
             SET transdate = $1, details = $2, debit = $3, credit = $4, balance = $5, userid = $6, yearx = $7, term = $8 
             WHERE buss_no = $9`, [
             transSavingsData.transdate,
@@ -116,14 +117,14 @@ router.delete('/:buss_no/:transdate', async (req, res) => {
     const { buss_no, transdate } = req.params;
     try {
         const client = await pool.connect();
-        const rows = await client.query('SELECT * FROM tb_transSavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
+        const rows = await client.query('SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         if (rows.rowCount == 0) {
             res.status(404).json({ message: 'Transaction Savings record not found' });
             client.release();
             return;
         }
         // Delete the transaction savings record
-        await client.query('DELETE FROM tb_transSavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
+        await client.query('DELETE FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         res.status(200).json({ message: 'Transaction Savings record deleted successfully' });
         client.release();
     }
@@ -165,7 +166,7 @@ export default router;
 //     const transSavingsData: TransSavingsData = req.body;
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_transSavings WHERE buss_no = ?  AND transdate = ?', 
+//         const [rows] = await connection.execute('SELECT * FROM transsavings WHERE buss_no = ?  AND transdate = ?', 
 //         [transSavingsData.buss_no, transSavingsData.transdate]);
 //         if (Array.isArray(rows) && rows.length > 0) {
 //             res.status(404).json({ message: 'Transaction Savings record not found' });
