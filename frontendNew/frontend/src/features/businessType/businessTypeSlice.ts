@@ -3,21 +3,23 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the type for BusinessType data// Define the type for BusinessType data
-interface BusinessTypeData {
+export interface BusinessTypeData {
     Business_Type: string; // Updated to match API response
 }
 
 // Define the initial state for the slice
-interface BusinessTypeState {
+export interface BusinessTypeState {
     businessTypes: BusinessTypeData[];
     loading: boolean;
     error: string | null;
+    bussTypesData: any;
 }
 
 const initialState: BusinessTypeState = {
     businessTypes: [] as BusinessTypeData[],
     loading: false,
     error: null,
+    bussTypesData: null,
 };
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
@@ -25,13 +27,13 @@ const BASE_URL = import.meta.env.VITE_BASE_URL ||
 
 // Async thunk to fetch all BusinessType records
 export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTypes', async () => {
-    //console.log('inside fetchBusinessTypes thunk');
+    console.log('inside fetchBusinessTypes thunk');
     const response = await axios.get(`${BASE_URL}/api/businessType/all`);
 
-    //console.log('after fetchBusinessTypes thunk, Response data:', response.data)
+    console.log('after fetchBusinessTypes thunk, Response data:', response.data)
 
     if (response.status >= 200 && response.status < 300) {
-       // console.log('fetchBusinessTypes thunk, response data:', response.data);
+        console.log('fetchBusinessTypes thunk, response data:', response.data);
 
         return await response.data; // This data will be available as `action.payload`
     } else {

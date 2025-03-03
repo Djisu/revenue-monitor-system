@@ -13,7 +13,9 @@ import FrmElectoralArea from './features/electoralArea/FrmElectoralArea';
 import FrmGradeRate from './features/gradeRate/FrmGradeRate';
 import FrmGradeFees from './features/gradeFees/FrmGradeFees';
 import FrmEmployee from './features/officer/FrmEmployee';
-import FrmCollectorElectoralArea from './features/officer/FrmCollectorElectoralArea';
+
+import FrmCollectorElectoralarea from './features/collectorElectoralarea/frmCollectorElectoralarea';
+
 import FrmOperatorDef from './features/operatorDefinition/FrmOperatorDef';
 import FrmOperatorPermissions from './features/operatorPermission/FrmOperatorPermissions';
 import FrmBusinessType from './features/businessType/FrmBusinessType';
@@ -40,6 +42,7 @@ import FrmMonthlyPercent from './features/offBudgetAssessment/FrmMonthlyPercent'
 import FrmCompareTwoYears from './features/busPayments/FrmCompareTwoYears';
 import FrmBusinessTypesReport from './features/businessType/FrmBusinessTypesReport';
 import FrmCollectorsBusinessesReport from './features/officer/FrmCollectorsBusinessesReport';
+
 
 import FrmPropertyClass from './features/propertyClass/FrmPropertyClass';
 import FrmPropertyUse from './features/propertyUse/FrmPropertyUse';
@@ -73,11 +76,6 @@ const App: React.FC = () => {
         console.log('Submenu clicked!');
     };
 
-    // const checkAccess = () => {
-    //     // Your access check logic here
-    //     return true; // or false based on the check
-    // };
-
     return (
         <AuthProvider>
             <Router>
@@ -92,7 +90,7 @@ const App: React.FC = () => {
                     <Route path="/SetupGradeRates" element={<ProtectedRoute element={<FrmGradeRate />} />} />
                     <Route path="/SetupGradeFees" element={<ProtectedRoute element={<FrmGradeFees />} />} />
                     <Route path="/SetupOfficer" element={<ProtectedRoute element={<FrmEmployee />} />} />
-                    <Route path="/AssignCollectorToElectoralArea" element={<ProtectedRoute element={<FrmCollectorElectoralArea />} />} />
+                    <Route path="/AssignCollectorToElectoralArea" element={<ProtectedRoute element={<FrmCollectorElectoralarea />} />} />
                     <Route path="/OperatorDefinition" element={<ProtectedRoute element={<FrmOperatorDef />} />} />
                     <Route path="/OperatorPermission" element={<ProtectedRoute element={<FrmOperatorPermissions />} />} />
                     <Route path="/SetupBusinessType" element={<ProtectedRoute element={<FrmBusinessType />} />} />
@@ -118,8 +116,9 @@ const App: React.FC = () => {
                     <Route path="/OneMonthPerformanceGraphPercentage" element={<ProtectedRoute element={<FrmMonthlyPercent />} />} />
                     <Route path="/CompareTwoYearsPaymentPeriods" element={<ProtectedRoute element={<FrmCompareTwoYears />} />} />
                     <Route path="/BusinessTypesReport" element={<ProtectedRoute element={<FrmBusinessTypesReport />} />} />
+                   
                     <Route path="/CollectorsBusinessesReport" element={<ProtectedRoute element={<FrmCollectorsBusinessesReport />} />} />
-
+                   
                     {/* Routes for property forms */}
                     <Route path="/PropertyClass" element={<ProtectedRoute element={<FrmPropertyClass />} />} />
                     <Route path="/PropertyUse" element={<ProtectedRoute element={<FrmPropertyUse />} />} />

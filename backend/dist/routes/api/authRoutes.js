@@ -36,25 +36,25 @@ router.post('/login', async (req, res) => {
         res.status(400).json({ json: '', user: [], message: 'username and password cannot be blank!' });
         return;
     }
-    console.log('I AM HERE');
+    //console.log('I AM HERE')
     let client = null;
     try {
         client = await pool.connect();
         // Check if an operator with the same username exists
         const { rows: operators } = await client.query('SELECT * FROM operatordefinition WHERE operatorname = $1', [username]);
-        console.log('operators: ', operators);
+        //console.log('operators: ', operators)
         // Check if user exists
         if (operators.length === 0) {
             console.log('no user found, Invalid login parameters');
             res.json({ json: '', user: [], message: 'Invalid login parameters' });
             return;
         }
-        console.log('I AM HERE 2');
-        console.log('operators[0].password: ', operators[0].password);
-        console.log('password: ', password);
+        // console.log('I AM HERE 2')
+        // console.log('operators[0].password: ', operators[0].password)
+        // console.log('password: ', password)
         // Compare the plain-text password with the hashed password
         const isPasswordMatch = await bcrypt.compare(password, operators[0].password);
-        console.log('isPasswordMatch: ', isPasswordMatch);
+        // console.log('isPasswordMatch: ', isPasswordMatch)
         if (!isPasswordMatch) {
             res.json({ json: '', user: [], message: 'Invalid login parameters' });
             return;
@@ -63,7 +63,7 @@ router.post('/login', async (req, res) => {
         const now = new Date();
         const formattedDateTime = now.toISOString().slice(0, 19).replace('T', ' ');
         await client.query('INSERT INTO userlog (datex, userx, time_in) VALUES ($1, $2, $3)', [now, username, formattedDateTime]);
-        console.log('I AM HERE 3');
+        // console.log('I AM HERE 3')
         // Check permissions
         const { rows: permissions } = await client.query('SELECT menus FROM operatorpermission WHERE operatorid = $1', [operators[0].operatorid]);
         if (!permissions || permissions.length === 0) {
@@ -76,10 +76,10 @@ router.post('/login', async (req, res) => {
             lastname: operators[0].lastname,
             existingPermissions
         };
-        console.log('I AM HERE 4');
+        //console.log('I AM HERE 4')
         // Generate JWT token
         const token = jwt.sign({ user }, config.jwtSecret, { expiresIn: '1h' });
-        console.log('I AM HERE 5', token);
+        //console.log('I AM HERE 5', token)
         // Send back response
         res.json({ token, user });
     }

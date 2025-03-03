@@ -52,6 +52,7 @@ router.get('/all', async (req, res) => {
     const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM businesstype');
+        console.log('result.rows: ', result.rows);
         res.status(200).json(result.rows);
     }
     catch (error) {
@@ -127,6 +128,38 @@ router.delete('/:Business_Type', async (req, res) => {
     }
     finally {
         client.release();
+    }
+});
+router.post('/billallbusinesses', async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const result = await client.query('SELECT * FROM gradefees ORDER BY buss_type ASC, grade ASC');
+        if (Array.isArray(result.rows) && result.rows.length === 0) {
+            res.status(409).json({ success: true, message: 'No records found' });
+            return;
+        }
+        // Loop through all businesses and bill each business type and grade
+        for (let i = 0; i < result.rows.length; i++) {
+            let ansRow = await client.query('UPDATE business SET current_balance = $1 WHERE buss_type = $2 AND tot_grade = $3', [result.rows[i].fees, result.rows[i].buss_type, result.rows[i].grade]);
+        }
+        // Select all businesses
+        const businessesResult = await client.query('SELECT * FROM business');
+        // Insert into busscurrbalance
+        for (let i = 0; i < businessesResult.rows.length; i++) {
+            await client.query('INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea) SELECT $1, $2, $3, $4, $5, $6, $7 FROM business WHERE buss_no = $1', [
+                businessesResult.rows[i].buss_no,
+                new Date().getFullYear(),
+                0,
+                businessesResult.rows[i].current_balance,
+                0,
+                new Date(),
+                businessesResult.rows[i].electoralarea
+            ]);
+        }
+        return res.status(200).json({ success: true, message: 'All businesses billed successfully' });
+    }
+    catch (error) {
+        return res.status(500).json({ success: false, message: 'Error billing all businesses', error });
     }
 });
 // Ensure the permits directory exists

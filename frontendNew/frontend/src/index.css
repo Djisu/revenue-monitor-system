@@ -83,3 +83,11 @@ button:focus-visible {
 .selected {
   background-color: #f0f0f0; /* Change this to your desired selection color */
 }
+.red-button {
+  background-color: red;
+  color: white; /* Optional: Change text color to white for better readability */
+}
+.green-button {
+  background-color: green;
+  color: white; /* Optional: Change text color to white for better readability */
+}

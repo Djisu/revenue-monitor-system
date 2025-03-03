@@ -37,6 +37,8 @@ export const fetchGradeFees = createAsyncThunk('gradeFees/fetchgradeFees', async
 
     console.log(`after axios.get, response.data: ${JSON.stringify(response.data)}`);
 
+    console.log('in gradeFeesSlice  response: ', response)
+
     if (response.status >= 200 && response.status < 300) {
         //console.log('fetchGradeFees fulfilled::: ', response.data);
         // Ensure response.data is an array
@@ -49,6 +51,9 @@ export const fetchGradeFees = createAsyncThunk('gradeFees/fetchgradeFees', async
 
 export const createGradeFee = createAsyncThunk('gradeFees/createGradeFee', async (gradeFeesData: GradeFeesData) => {
     try {
+
+        console.log('createGradeFee slice called')
+
         const response = await axios.post(
             `${BASE_URL}/api/gradeFees/create`,
             gradeFeesData,
@@ -56,7 +61,7 @@ export const createGradeFee = createAsyncThunk('gradeFees/createGradeFee', async
                 headers: { 'Content-Type': 'application/json' },
         });
 
-        //console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
+        console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
         return response.data;
     } catch (error: any) {
         if (axios.isAxiosError(error) && error.response) {

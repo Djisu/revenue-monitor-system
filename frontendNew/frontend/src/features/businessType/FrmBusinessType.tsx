@@ -101,7 +101,8 @@ const handleDeleteClick = async () => {
         setBusinessTypeList([bussType.Business_Type]);
     };
 
-    //console.log("Current localBusinessTypes:", localBusinessTypes); // Debugging statement
+
+
 
     return (
         <Container fluid>
@@ -161,6 +162,7 @@ const handleDeleteClick = async () => {
                     </Table>
                 </Col>
             </Row>
+           
             <Row className="mt-3">
                 <Col>
                     <Link to="/main" className="primary m-3">

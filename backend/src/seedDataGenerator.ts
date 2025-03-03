@@ -34,6 +34,7 @@ export interface BusinessData {
     noofbranches?: number;
     BALANCENEW?: number;
     gps_address?: string; 
+    buss_location?: string; 
 }
 
 export const generateBusinessData = (startNumber: number, count: number): BusinessData[] => {
@@ -134,7 +135,8 @@ export const generateBusinessData = (startNumber: number, count: number): Busine
             noofemployees: generateRandomNumberInRange(1, 4),
             noofbranches: generateRandomNumberInRange(1, 4),
             BALANCENEW:0, // Ensure BALANCENEW is always a number
-            gps_address: generateRandomGPSAddress()
+            gps_address: generateRandomGPSAddress(),
+            buss_location: generateRandomEnumValue(['Concrete Building', 'Container', 'Kiosk']),
         };
 
         bussData.totalmarks = calculateTotalMarks(bussData);

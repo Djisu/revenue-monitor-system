@@ -42,6 +42,7 @@ var initialState = {
     businessTypes: [],
     loading: false,
     error: null,
+    bussTypesData: null,
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
@@ -50,14 +51,16 @@ export var fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessType
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/businessType/all"))];
+            case 0:
+                console.log('inside fetchBusinessTypes thunk');
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/businessType/all"))];
             case 1:
                 response = _a.sent();
+                console.log('after fetchBusinessTypes thunk, Response data:', response.data);
                 if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
+                console.log('fetchBusinessTypes thunk, response data:', response.data);
                 return [4 /*yield*/, response.data];
-            case 2: 
-            // console.log('fetchBusinessTypes thunk, response data:', response.data);
-            return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
+            case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
             case 3: throw new Error("Error fetching business types: ".concat(response.statusText));
         }
     });

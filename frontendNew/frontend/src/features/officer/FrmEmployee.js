@@ -82,18 +82,31 @@ var frmEmployee = function () {
                     console.log('Fetched officers:', response);
                     if (!Array.isArray(response)) return [3 /*break*/, 3];
                     return [4 /*yield*/, Promise.all(response.map(function (officer) { return __awaiter(void 0, void 0, void 0, function () {
-                            var base64;
+                            var byteArray, blob, base64;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
-                                        if (!(officer.photo instanceof Blob)) return [3 /*break*/, 2];
-                                        return [4 /*yield*/, blobToBase64(officer.photo)];
+                                        console.log('officer.photo:', officer.photo);
+                                        console.log('officer.photo_buffer:', officer.photo_buffer);
+                                        if (!(officer.photo_buffer && officer.photo_buffer.data)) return [3 /*break*/, 2];
+                                        byteArray = new Uint8Array(officer.photo_buffer.data);
+                                        blob = new Blob([byteArray], { type: officer.photo_type });
+                                        return [4 /*yield*/, blobToBase64(blob)];
                                     case 1:
                                         base64 = _a.sent();
                                         return [2 /*return*/, __assign(__assign({}, officer), { photoUrl: base64 })];
                                     case 2:
-                                        console.warn('Photo is not a valid Blob:', officer.photo);
-                                        return [2 /*return*/, __assign(__assign({}, officer), { photoUrl: '' })];
+                                        if (typeof officer.photo === 'string') {
+                                            return [2 /*return*/, __assign(__assign({}, officer), { photoUrl: officer.photo // Use the URL directly
+                                                 })];
+                                        }
+                                        // Handle other cases
+                                        else {
+                                            console.warn('Photo is not a valid Blob or URL:', officer.photo);
+                                            return [2 /*return*/, __assign(__assign({}, officer), { photoUrl: '' })];
+                                        }
+                                        _a.label = 3;
+                                    case 3: return [2 /*return*/];
                                 }
                             });
                         }); }))];
@@ -151,7 +164,7 @@ var frmEmployee = function () {
         }
     };
     var uploadPhoto = function (file) { return __awaiter(void 0, void 0, void 0, function () {
-        var resultAction, photoUrl_1, updatedOfficerList, error_2;
+        var resultAction, photoUrl, uniquePhotoUrl_1, updatedOfficerList, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -162,24 +175,28 @@ var frmEmployee = function () {
                     console.log('about to dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }))');
                     console.log('file:', file);
                     console.log('officerNo:', officerNo);
+                    // Clear the previous photo URL
+                    setPhotoUrlFromState('');
+                    setPhoto('');
                     return [4 /*yield*/, dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }))];
                 case 2:
                     resultAction = _a.sent();
                     console.log('after dispatch(storePhotoAsync(', resultAction);
                     if (storePhotoAsync.fulfilled.match(resultAction)) {
                         console.log('Photo uploaded successfully:', resultAction.payload.photoUrl);
-                        photoUrl_1 = resultAction.payload.photoUrl;
-                        console.log('Photo URL:', photoUrl_1);
+                        photoUrl = resultAction.payload.photoUrl;
+                        console.log('Photo URL:', photoUrl);
+                        uniquePhotoUrl_1 = "".concat(photoUrl, "?").concat(new Date().getTime());
                         updatedOfficerList = officerList.map(function (officer) {
                             if (officer.officer_no === officerNo) {
-                                return __assign(__assign({}, officer), { photoUrl: photoUrl_1 });
+                                return __assign(__assign({}, officer), { photoUrl: uniquePhotoUrl_1 });
                             }
                             return officer;
                         });
                         setOfficerList(updatedOfficerList);
-                        setPhotoUrlFromState(photoUrl_1); // Update the photo URL in state
-                        setPhoto(photoUrl_1); // Update the photo URL in state
-                        console.log('Photo URL:', photoUrl_1);
+                        setPhotoUrlFromState(uniquePhotoUrl_1); // Update the photo URL in state
+                        setPhoto(uniquePhotoUrl_1); // Update the photo URL in state
+                        console.log('Photo URL:', uniquePhotoUrl_1);
                     }
                     else if (storePhotoAsync.rejected.match(resultAction)) {
                         if (resultAction.payload) {
@@ -234,14 +251,16 @@ var frmEmployee = function () {
                         }))];
                 case 2:
                     response = _a.sent();
-                    setSuccessMessage(response.payload.message);
+                    if (response.payload) {
+                        setSuccessMessage(response.payload.message);
+                    }
                     setError('');
                     clearForm();
                     fetchOfficerList();
                     return [3 /*break*/, 4];
                 case 3:
                     error_3 = _a.sent();
-                    console.error(error_3);
+                    console.error('Failed to create officer:', error_3);
                     setError('Error adding record');
                     setSuccessMessage('');
                     return [3 /*break*/, 4];
@@ -335,6 +354,6 @@ var frmEmployee = function () {
         setPhotoUrlFromState((_a = officer.photoUrl) !== null && _a !== void 0 ? _a : ''); // Use the nullish coalescing operator
     };
     // const [photoUrlFromState, setPhotoUrlFromState] = useState<string>(''); // State to store the photo URL from Redux
-    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formOfficerno", children: [_jsx(Form.Label, { children: "Employee ID:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: handleOfficerNoChange, maxLength: 10, required: true })] }), _jsxs(Form.Group, { controlId: "formName", children: [_jsx(Form.Label, { children: "Name:" }), _jsx(Form.Control, { type: "text", value: name, onChange: handleNameChange, maxLength: 50, required: true })] }), _jsxs(Form.Group, { controlId: "formPhoto", children: [_jsx(Form.Label, { children: "Photo:" }), _jsx(Form.Control, { type: "text", value: typeof photo === 'string' ? photo : photoName, readOnly: true }), _jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs(Button, { variant: "secondary", onClick: function () { var _a; return (_a = document.getElementById('photoInput')) === null || _a === void 0 ? void 0 : _a.click(); }, children: [_jsx(FaUpload, {}), " Upload Photo"] }), _jsx("input", { id: "photoInput", type: "file", accept: "image/*", onChange: handlePhotoChange, style: { display: 'none' } })] })] }), _jsx("div", { style: { marginTop: '10px' }, children: _jsxs(ButtonGroup, { children: [_jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add" }), _jsx(Button, { variant: "success", onClick: handleEditClick, style: { marginLeft: '10px' }, children: "Edit" }), _jsx(Button, { variant: "danger", onClick: handleDeleteClick, style: { marginLeft: '10px' }, children: "Delete" }), _jsx(Link, { to: "/main", className: "btn btn-secondary m-3", children: "Go Back" })] }) })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Employee ID" }), _jsx("th", { children: "Name" }), _jsx("th", { children: "Photo" })] }) }), _jsx("tbody", { children: officerList.map(function (officer) { return (_jsxs("tr", { onClick: function () { return handleItemClick(officer); }, children: [_jsx("td", { children: officer.officer_no }), _jsx("td", { children: officer.officer_name }), _jsx("td", { children: officer.photoUrl && officer.photoUrl !== 'xx' ? (_jsx(Image, { src: officer.photoUrl, alt: officer.officer_name, style: { width: '100px', height: '100px' } })) : ('No Photo') })] }, officer.officer_no)); }) })] }), photoUrlFromState && photoUrlFromState !== 'xx' && (_jsxs("div", { className: "mt-4", children: [_jsx("h4", { children: "Photo Preview" }), _jsx(Image, { src: photoUrlFromState, alt: "Employee Photo", style: { width: '200px', height: '200px' } })] }))] }));
+    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs("div", { children: [_jsx("div", { children: _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formOfficerno", children: [_jsx(Form.Label, { children: "Employee ID:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: handleOfficerNoChange, maxLength: 10, required: true })] }), _jsxs(Form.Group, { controlId: "formName", children: [_jsx(Form.Label, { children: "Name:" }), _jsx(Form.Control, { type: "text", value: name, onChange: handleNameChange, maxLength: 50, required: true })] }), _jsxs(Form.Group, { controlId: "formPhoto", children: [_jsxs("div", { style: { marginTop: '10px' }, children: [_jsxs(Button, { variant: "secondary", onClick: function () { var _a; return (_a = document.getElementById('photoInput')) === null || _a === void 0 ? void 0 : _a.click(); }, children: [_jsx(FaUpload, {}), " Upload Photo"] }), _jsx("input", { id: "photoInput", type: "file", accept: "image/*", onChange: handlePhotoChange, style: { display: 'none' } })] }), _jsx(Form.Label, { children: "Photo:" }), _jsx(Form.Control, { type: "text", value: typeof photo === 'string' ? photo : photoName, readOnly: true })] }), _jsx("div", { style: { marginTop: '10px' }, children: _jsxs(ButtonGroup, { children: [_jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add" }), _jsx(Button, { variant: "success", onClick: handleEditClick, style: { marginLeft: '10px' }, children: "Edit" }), _jsx(Button, { variant: "danger", onClick: handleDeleteClick, style: { marginLeft: '10px' }, children: "Delete" }), _jsx(Link, { to: "/main", className: "btn btn-secondary m-3", children: "Go Back" })] }) })] }) }), _jsxs("div", { children: [_jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Employee ID" }), _jsx("th", { children: "Name" }), _jsx("th", { children: "Photo" })] }) }), _jsx("tbody", { children: officerList.map(function (officer, index) { return (_jsxs("tr", { onClick: function () { return handleItemClick(officer); }, children: [_jsx("td", { children: officer.officer_no }), _jsx("td", { children: officer.officer_name }), _jsx("td", { children: officer.photoUrl && officer.photoUrl !== 'xx' ? (_jsx(Image, { src: officer.photoUrl, alt: officer.officer_name, style: { width: '100px', height: '100px' } })) : ('No Photo') })] }, index)); }) })] }), photoUrlFromState && photoUrlFromState !== 'xx' && (_jsxs("div", { className: "mt-4", children: [_jsx("h4", { children: "Photo Preview" }), _jsx(Image, { src: photoUrlFromState, alt: "Employee Photo", style: { width: '200px', height: '200px' } })] }))] })] })] }));
 };
 export default frmEmployee;

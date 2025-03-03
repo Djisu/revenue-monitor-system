@@ -49,7 +49,8 @@ router.post('/create', upload.single('photo'), async (req: CustomRequest, res: R
 
     try {
         client = await pool.connect();
-        const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officerData.officer_no])).rows;
+        const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', 
+        [officerData.officer_no])).rows;
 
         if (existingOfficer.length > 0) {
             res.status(409).json({ message: 'Officer record already exists' });
@@ -66,6 +67,18 @@ router.post('/create', upload.single('photo'), async (req: CustomRequest, res: R
                 officerData.photo,
             ]
         );
+ 
+
+        // Insert the photo data if it exists
+        // if (req.file) {
+        //     await client.query('INSERT INTO photos (officer_no, photo_name, photo_type, photo_buffer) VALUES ($1, $2, $3, $4)',
+        //     [
+        //         officerData.officer_no,
+        //         req.file.originalname,
+        //         req.file.mimetype,
+        //         req.file.buffer
+        //     ]);
+        // }
 
         res.status(201).json({ message: 'Officer record created successfully' });
     } catch (error) {
@@ -135,6 +148,11 @@ router.delete('/delete/:officer_no', async (req: Request, res: Response): Promis
         // Delete the officer record
         await client.query('DELETE FROM officer WHERE officer_no = $1', [officer_no]);
 
+        console.log('About to delete photo as well')
+
+        // Delete photo also
+        await client.query('DELETE FROM photos WHERE officer_no = $1', [officer_no]);
+
         res.status(200).json({ message: 'Officer record deleted successfully' });
     } catch (error) {
         console.error(error);
@@ -170,9 +188,9 @@ router.get('/all', async (req: Request, res: Response) => {
                 photo: photoBlob, // Blob object
                 photoUrl: photoBlob ? URL.createObjectURL(photoBlob) : null // Create Blob URL
             };
-        });
+        })
 
-        console.log('Fetched officers:', result.rows);
+        console.log('Fetched officers:');
 
         res.status(200).json(officers);
     } catch (error) {

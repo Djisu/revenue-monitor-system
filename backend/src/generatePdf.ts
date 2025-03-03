@@ -30,7 +30,7 @@ const varSerialNo = baseSerialNo.toString().padStart(10, '0');
             { text: `Type: ${data.buss_type}` },
             { text: `Property Class: ${data.property_class}` },
             { text: `Landmark: ${data.landmark}` },
-            { text: `Electoral Area: ${data.electoral_area}` },
+            { text: `Electoral Area: ${data.electroral_area}` },
             { text: `Total Grade: ${data.tot_grade}` },
             { text: `Current Rate: ${data.current_rate}` },
             { text: `Property Rate: ${data.property_rate}` },

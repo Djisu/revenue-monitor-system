@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { fetchPropertyRates, createPropertyRate, updatePropertyRate, deletePropertyRate } from './propertyRateSlice';
 import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
 interface PropertyRateData {
-  property_Class: string;
+  property_class: string;
   fiscalyear: number;
   rate: number;
   registrationrate: number;
@@ -65,7 +65,7 @@ const FrmProducePropertyRate: React.FC = () => {
   const handleAddClick = async () => {
     try {
         const propertyRateData: PropertyRateData = {
-          property_Class: propertyClass,
+          property_class: propertyClass,
 
           fiscalyear: parseInt(fiscalYear, 10),
 
@@ -88,7 +88,7 @@ const FrmProducePropertyRate: React.FC = () => {
   const handleEditClick = async () => {
     try {
       const propertyRateData: PropertyRateData = {
-        property_Class: propertyClass,
+        property_class: propertyClass,
         fiscalyear: parseInt(fiscalYear, 10),
         rate: parseFloat(rate), 
         registrationrate: parseFloat(registrationRate),
@@ -214,8 +214,8 @@ const FrmProducePropertyRate: React.FC = () => {
                         </thead>
                         <tbody>
                             {propertyRates.map((rate) => (
-                                <tr key={`${rate.property_Class}-${rate.fiscalyear}`} onClick={() => handleListViewItemClick(rate)}>
-                                    <td>{rate.property_Class}</td>
+                                <tr key={`${rate.property_class}-${rate.fiscalyear}`} onClick={() => handleListViewItemClick(rate)}>
+                                    <td>{rate.property_class}</td>
                                     <td>{rate.fiscalyear}</td>
                                     <td>{rate.rate}</td>
                                     <td>{rate.registrationrate}</td>

@@ -37,6 +37,16 @@ router.post('/create', upload.single('photo'), async (req, res) => {
             officerData.officer_name,
             officerData.photo,
         ]);
+        // Insert the photo data if it exists
+        // if (req.file) {
+        //     await client.query('INSERT INTO photos (officer_no, photo_name, photo_type, photo_buffer) VALUES ($1, $2, $3, $4)',
+        //     [
+        //         officerData.officer_no,
+        //         req.file.originalname,
+        //         req.file.mimetype,
+        //         req.file.buffer
+        //     ]);
+        // }
         res.status(201).json({ message: 'Officer record created successfully' });
     }
     catch (error) {
@@ -93,6 +103,9 @@ router.delete('/delete/:officer_no', async (req, res) => {
         }
         // Delete the officer record
         await client.query('DELETE FROM officer WHERE officer_no = $1', [officer_no]);
+        console.log('About to delete photo as well');
+        // Delete photo also
+        await client.query('DELETE FROM photos WHERE officer_no = $1', [officer_no]);
         res.status(200).json({ message: 'Officer record deleted successfully' });
     }
     catch (error) {
@@ -125,7 +138,7 @@ router.get('/all', async (req, res) => {
                 photoUrl: photoBlob ? URL.createObjectURL(photoBlob) : null // Create Blob URL
             };
         });
-        console.log('Fetched officers:', result.rows);
+        console.log('Fetched officers:');
         res.status(200).json(officers);
     }
     catch (error) {

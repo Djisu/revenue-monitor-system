@@ -158,7 +158,7 @@ var propertyRateSlice = createSlice({
         })
             .addCase(updatePropertyRate.fulfilled, function (state, action) {
             state.loading = false;
-            var index = state.rates.findIndex(function (rate) { return rate.property_Class === action.payload.property_Class && rate.fiscalyear === action.payload.fiscalyear; });
+            var index = state.rates.findIndex(function (rate) { return rate.property_class === action.payload.property_class && rate.fiscalyear === action.payload.fiscalyear; });
             if (index !== -1) {
                 state.rates[index] = action.payload; // Update the property rate
             }
@@ -173,7 +173,7 @@ var propertyRateSlice = createSlice({
         })
             .addCase(deletePropertyRate.fulfilled, function (state, action) {
             state.loading = false;
-            state.rates = state.rates.filter(function (rate) { return !(rate.property_Class === action.meta.arg.property_Class && rate.fiscalyear === action.meta.arg.fiscalyear); });
+            state.rates = state.rates.filter(function (rate) { return !(rate.property_class === action.meta.arg.property_Class && rate.fiscalyear === action.meta.arg.fiscalyear); });
             state.error = null;
         })
             .addCase(deletePropertyRate.rejected, function (state, action) {

@@ -70,7 +70,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
-    console.log('I AM HERE')
+    //console.log('I AM HERE')
     let client: PoolClient | null = null;
 
     try {
@@ -82,7 +82,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             [username]
         );
 
-        console.log('operators: ', operators)
+        //console.log('operators: ', operators)
 
         // Check if user exists
         if (operators.length === 0) {
@@ -91,14 +91,14 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             return;
         }
         
-    console.log('I AM HERE 2')
-    console.log('operators[0].password: ', operators[0].password)
-    console.log('password: ', password)
+        // console.log('I AM HERE 2')
+        // console.log('operators[0].password: ', operators[0].password)
+        // console.log('password: ', password)
     
         // Compare the plain-text password with the hashed password
         const isPasswordMatch = await bcrypt.compare(password, operators[0].password);
 
-        console.log('isPasswordMatch: ', isPasswordMatch)
+      // console.log('isPasswordMatch: ', isPasswordMatch)
         if (!isPasswordMatch) {
             res.json({ json: '', user: [], message: 'Invalid login parameters' });
             return;
@@ -113,7 +113,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             [now, username, formattedDateTime]
         );
 
-        console.log('I AM HERE 3')
+       // console.log('I AM HERE 3')
         // Check permissions
         const { rows: permissions } = await client.query<{ menus: string }>(
             'SELECT menus FROM operatorpermission WHERE operatorid = $1', 
@@ -133,11 +133,11 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             existingPermissions 
         };
 
-        console.log('I AM HERE 4')
+        //console.log('I AM HERE 4')
 
         // Generate JWT token
         const token = jwt.sign({ user }, config.jwtSecret as string, { expiresIn: '1h' });
-        console.log('I AM HERE 5', token)
+        //console.log('I AM HERE 5', token)
 
         // Send back response
         res.json({ token, user });

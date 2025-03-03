@@ -80,7 +80,8 @@ export const generateBusinessData = (startNumber, count) => {
             noofemployees: generateRandomNumberInRange(1, 4),
             noofbranches: generateRandomNumberInRange(1, 4),
             BALANCENEW: 0,
-            gps_address: generateRandomGPSAddress()
+            gps_address: generateRandomGPSAddress(),
+            buss_location: generateRandomEnumValue(['Concrete Building', 'Container', 'Kiosk']),
         };
         bussData.totalmarks = calculateTotalMarks(bussData);
         businessData.push(bussData);

@@ -142,6 +142,24 @@ export const deleteBusPayment = createAsyncThunk('busPayments/deleteBusPayment',
     return response.data;
 });
 
+// Newly added actions
+// Async thunk to fetch all BusinessType records
+export const billAllBusinesses = createAsyncThunk('businessType/billAllBusinesses', async () => {
+    console.log('inside billAllBusinesses thunk');
+
+    const response = await axios.post(`${BASE_URL}/api/busPayments/billallbusinesses`);
+
+    console.log('after billallbusinesses thunk, Response data:', response.data)
+
+    if (response.status >= 200 && response.status < 300) {
+        console.log('billallbusinesses thunk, response data:', response.data);
+
+        return await response.data; // This data will be available as `action.payload`
+    } else {
+        throw new Error(`Error fetching business types: ${response.statusText}`);
+    }
+});
+
 // Create the slice 
 const busPaymentsSlice = createSlice({
     name: 'busPayments',
@@ -166,6 +184,18 @@ const busPaymentsSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(billAllBusinesses.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(billAllBusinesses.fulfilled, (state, action) => {
+                state.loading = false;
+                state.busPayments.push(...action.payload); // Add the new business
+                state.error = null;
+            })
+            .addCase(billAllBusinesses.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to create BusPayments record';
+            })
             .addCase(fetchBilledAmount.pending, (state) => {
                 state.loading = true;
                 state.error = null;

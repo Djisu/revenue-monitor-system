@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/store';
 import { Container, Form, Button, Alert, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { fetchGradeFees,  deleteGradeFee, createGradeFee, setGradeFees } from './gradeFeesSlice';
-import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
+import { fetchGradeFees,  deleteGradeFee, createGradeFee, setGradeFees, updateGradeFee } from './gradeFeesSlice';
+import { fetchBusinessTypes, BusinessTypeState } from '../businessType/businessTypeSlice';
 
+interface BusinessType {
+  business_type: string;
+}
 
 interface GradeFee {
   buss_type: string;
@@ -17,12 +20,17 @@ const GradeFeesForm: React.FC = () => {
   const dispatch = useAppDispatch();
 
   const gradeFees = useAppSelector(state => state.gradeFees.gradeFees);
-  const { businessTypes, loading, error } = useAppSelector((state) => state.businessType);
 
-  // console.log('businessTypes:', businessTypes); // Debugging statement
+
+  const { bussTypesData , loading, error }: BusinessTypeState = useAppSelector((state) => state.businessType);
+
+  console.log('businessTypes:', bussTypesData); // Debugging statement
   console.log('gradeFees:', gradeFees); // Debugging statement
  
   const [businessType, setBusinessType] = useState<string>('');
+
+  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
+
   const [grade, setGrade] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [fees, setFees] = useState<number>(0);
@@ -55,7 +63,9 @@ const GradeFeesForm: React.FC = () => {
       const fetchAndSetBusinessTypes = async () => {
           try {
               const response = await dispatch(fetchBusinessTypes()).unwrap();
-              setBusinessType(response.data.Business_Type);
+
+              console.log('FRONTEND: Fetched business types:', response);
+              setBusinessTypes(response);
           } catch (error: any) {
               console.error("Error fetching business types", error);
               alert("Error in fetching business types");
@@ -144,36 +154,36 @@ const GradeFeesForm: React.FC = () => {
     }
   };
 
-  // const handleEditClick = async () => {
-  //   if (!businessType || !grade || !description || !fees) {
-  //       setErrorFlag('Please fill in all fields');
-  //       return;
-  //   }
+  const handleEditClick = async () => {
+    if (!businessType || !grade || !description || !fees) {
+        setErrorFlag('Please fill in all fields');
+        return;
+    }
 
-  //   const formattedGradeFees = {
-  //     buss_type: businessType, // Renamed from businessType
-  //     grade: grade, 
-  //     data: {
-  //       buss_type: businessType,
-  //       grade: grade, 
-  //       description: description,
-  //       fees: fees
-  //     },
-  //   };
+    const formattedGradeFees = {
+      buss_type: businessType, // Renamed from businessType
+      grade: grade, 
+      data: {
+        buss_type: businessType,
+        grade: grade, 
+        description: description,
+        fees: fees
+      },
+    };
 
-  //   try {
-  //       const response = await dispatch(updateGradeFee(formattedGradeFees)).unwrap();
+    try {
+        const response = await dispatch(updateGradeFee(formattedGradeFees)).unwrap();
 
-  //       setSuccessMessage(`Grade fee record updated successfully: ${JSON.stringify(response)}`);
-  //       fetchGradeFeesList();
-  //       clearForm();
+        setSuccessMessage(`Grade fee record updated successfully: ${JSON.stringify(response)}`);
+        fetchGradeFeesList();
+        clearForm();
        
-  //       setErrorFlag('');
-  //     } catch (error: any) {
-  //       console.error(error);
-  //       setErrorFlag('Error editing record');
-  //     }
-  //   }
+        setErrorFlag('');
+      } catch (error: any) {
+        console.error(error);
+        setErrorFlag('Error editing record');
+      }
+    }
 
     const handleDelete = async (bussType: string | null, grade: string | null) => {
       console.log('Deleting grade fee record')
@@ -254,141 +264,135 @@ const GradeFeesForm: React.FC = () => {
   if (error) {
     return <p>Error: {error}</p>;
   }
-
   return (
     <Container>
-      {/* <p>Grade Fees Entry</p> */}
+      {/* Error and Success Messages */}
       {error && <Alert variant="danger">{error}</Alert>}
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
-      <p className="mt-3" style={{ color: '#C00000' }}>
-        MARCORY MUNICIPAL ASSEMBLY
-      </p>  
-      <Form>
-        <Form.Group controlId="formBusinessType">
-          <Form.Label>Business Type:</Form.Label>
-          <Form.Select value={businessType} onChange={handleBusinessTypeChange} required>
-            <option value="">Select a business type</option>
-            {businessTypes && businessTypes.length > 0 ? (
-                businessTypes.map((businessType, index) => (
-                    <option key={index} value={businessType.Business_Type}>
-                        {businessType.Business_Type}
-                    </option>
+  
+      {/* Data Entry Section */}
+      <div>
+        <Form>
+          <Form.Group controlId="formBusinessType">
+            <Form.Label>Business Type:</Form.Label>
+            <Form.Select value={businessType} onChange={handleBusinessTypeChange} required>
+              <option value="">Select buss type</option>
+              {businessTypes.length > 0 ? (
+                businessTypes.map((typeObj, index) => (
+                  <option key={index} value={typeObj.business_type}>
+                    {typeObj.business_type}
+                  </option>
                 ))
-            ) : (
+              ) : (
                 <option value="" disabled>No Business Types records found</option>
-            )}
-        </Form.Select>
-        </Form.Group>
-
-        <Form.Group controlId="formGrade">
-          <Form.Label>Grade:</Form.Label>
-          <Form.Control
-            type="text"
-            value={grade}
-            onChange={handleGradeChange}
-            maxLength={50}
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formDescription">
-          <Form.Label>Description:</Form.Label>
-          <Form.Control
-            type="text"
-            value={description}
-            onChange={handleDescriptionChange}
-            maxLength={100}
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formFees">
-          <Form.Label>Fees (GHC):</Form.Label>
-          <Form.Control
-            type="number"
-            step="0.01"
-            value={fees}
-            onChange={handleFeesChange}
-          />
-          <Form.Text className="text-muted">
-            GHC
-          </Form.Text>
-        </Form.Group>
-
-        <div>
+              )}
+            </Form.Select>
+          </Form.Group>
+  
+          <Form.Group controlId="formGrade">
+            <Form.Label>Grade:</Form.Label>
+            <Form.Control
+              type="text"
+              value={grade}
+              onChange={handleGradeChange}
+              maxLength={50}
+            />
+          </Form.Group>
+  
+          <Form.Group controlId="formDescription">
+            <Form.Label>Description:</Form.Label>
+            <Form.Control
+              type="text"
+              value={description}
+              onChange={handleDescriptionChange}
+              maxLength={100}
+            />
+          </Form.Group>
+  
+          <Form.Group controlId="formFees">
+            <Form.Label>Fees (GHC):</Form.Label>
+            <Form.Control
+              type="number"
+              step="0.01"
+              value={fees}
+              onChange={handleFeesChange}
+            />
+          </Form.Group>
+  
+          {/* Buttons Section */}
+          <div>
             <Button variant="primary" onClick={handleAddClick} className="uniform-button">
-                Add New Record
+              Add New Record
             </Button>
-            {/* <Button variant="success" onClick={handleEditClick} className="uniform-button">
-                Edit Old Record
-            </Button> */}
-            {/* <Button variant="danger" onClick={handleDelete} className="uniform-button">
-                Delete Old Record
-            </Button> */}
             <Button variant="info" onClick={handleViewClick} className="uniform-button">
-                View Grades
+              View Grades
             </Button>
-            {/* Uncomment the following buttons if needed */}
-            {/* <Button variant="danger" onClick={handleExitClick} className="uniform-button">
-                Exit
-            </Button> */}
-            {/* <Button variant="secondary" onClick={() => window.alert('Report functionality not implemented')} className="uniform-button">
-                Report
-            </Button> */}
-            {/* <Form.Text className="text-danger" style={{ marginTop: '10px', marginLeft: '10px' }}>
-                Change only the fees and description
-            </Form.Text> */}
             <Link to="/main" className="btn btn-primary uniform-button">
-                Go Back
+              Go Back
             </Link>
-        </div>
+          </div>
         </Form>
-        {/* Note: Change only the fees and description */}
-      {/* <h3 className="mt-4">List of Business Types</h3> */}
-      <Table striped bordered hover className="mt-3">
+      </div>
+  
+      {/* Grades Table */}
+      <div>
+        <Table striped bordered hover className="mt-3">
           <thead>
-              <tr>
-                  <th>Business Type</th>
-                  <th>Grade</th>
-                  <th>Description</th>
-                  <th>Fees (GHC)</th>
-              </tr>
+            <tr>
+              <th>Buss Type</th>
+              <th>Grade</th>
+              <th>Description</th>
+              <th>Fees₵</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody>
-  {localGradeFeesList && localGradeFeesList.length > 0 ? (
-    localGradeFeesList.map((gr, index) => (
-      <tr 
-        key={index} 
-        data-buss_type={gr.buss_type} 
-        data-grade={gr.grade} 
-        onClick={() => handleSelectedBusstype(gr.buss_type, gr.grade)}
-        className={selectedBussType === gr.buss_type && selectedGrade === gr.grade ? 'selected' : ''}
-      >
-        <td>{gr.buss_type}</td>
-        <td>{gr.grade}</td>
-        <td>{gr.description}</td>
-        <td>{gr.fees.toString()}</td> 
-        <td>
-          <button 
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent the row click event from firing
-              handleDelete(gr.buss_type, gr.grade);
-            }}
-            className="uniform-button"
-          >
-            Delete
-          </button>
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan={4}>No Grade Fees records found</td>
-    </tr>
-  )}
-</tbody>
-
-      </Table>
+            {localGradeFeesList && localGradeFeesList.length > 0 ? (
+              localGradeFeesList.map((gr, index) => (
+                <tr 
+                  key={index} 
+                  data-buss_type={gr.buss_type} 
+                  data-grade={gr.grade} 
+                  onClick={() => handleSelectedBusstype(gr.buss_type, gr.grade)}
+                  className={selectedBussType === gr.buss_type && selectedGrade === gr.grade ? 'selected' : ''}
+                >
+                  <td>{gr.buss_type}</td>
+                  <td>{gr.grade}</td>
+                  <td>{gr.description}</td>
+                  <td>{gr.fees.toString()}</td> 
+                  <td>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent the row click event from firing
+                        handleEditClick();
+                      }}
+                      className="uniform-button green-button"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent the row click event from firing
+                        handleDelete(gr.buss_type, gr.grade);
+                      }}
+                      className="uniform-button red-button"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5}>No Grade Fees records found</td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </div>
     </Container>
   );
+ 
 };
 
 export default GradeFeesForm;

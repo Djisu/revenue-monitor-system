@@ -56,6 +56,7 @@ export var fetchGradeFees = createAsyncThunk('gradeFees/fetchgradeFees', functio
             case 1:
                 response = _a.sent();
                 console.log("after axios.get, response.data: ".concat(JSON.stringify(response.data)));
+                console.log('in gradeFeesSlice  response: ', response);
                 if (response.status >= 200 && response.status < 300) {
                     //console.log('fetchGradeFees fulfilled::: ', response.data);
                     // Ensure response.data is an array
@@ -75,12 +76,13 @@ export var createGradeFee = createAsyncThunk('gradeFees/createGradeFee', functio
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
+                console.log('createGradeFee slice called');
                 return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/gradeFees/create"), gradeFeesData, {
                         headers: { 'Content-Type': 'application/json' },
                     })];
             case 1:
                 response = _a.sent();
-                //console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
+                console.log("after axios.post, response.data: ".concat(JSON.stringify(response.data)));
                 return [2 /*return*/, response.data];
             case 2:
                 error_1 = _a.sent();

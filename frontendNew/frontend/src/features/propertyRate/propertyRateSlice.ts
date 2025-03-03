@@ -4,7 +4,7 @@ import axios from 'axios';
 
 // Define the type for PropertyRate data
 interface PropertyRateData {
-    property_Class: string;
+    property_class: string;
     fiscalyear: number;
     rate: number;
     registrationrate: number;
@@ -116,7 +116,7 @@ const propertyRateSlice = createSlice({
             })
             .addCase(updatePropertyRate.fulfilled, (state, action) => {
                 state.loading = false;
-                const index = state.rates.findIndex(rate => rate.property_Class === action.payload.property_Class && rate.fiscalyear === action.payload.fiscalyear);
+                const index = state.rates.findIndex(rate => rate.property_class === action.payload.property_class && rate.fiscalyear === action.payload.fiscalyear);
                 if (index !== -1) {
                     state.rates[index] = action.payload; // Update the property rate
                 }
@@ -131,7 +131,7 @@ const propertyRateSlice = createSlice({
             })
             .addCase(deletePropertyRate.fulfilled, (state, action) => {
                 state.loading = false;
-                state.rates = state.rates.filter(rate => !(rate.property_Class === action.meta.arg.property_Class && rate.fiscalyear === action.meta.arg.fiscalyear));
+                state.rates = state.rates.filter(rate => !(rate.property_class === action.meta.arg.property_Class && rate.fiscalyear === action.meta.arg.fiscalyear));
                 state.error = null;
             })
             .addCase(deletePropertyRate.rejected, (state, action) => {

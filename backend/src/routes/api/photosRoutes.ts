@@ -136,7 +136,7 @@ router.get('/retrieve', async (req: Request, res: Response) => {
 // Endpoint to store a photo
 router.post('/store', upload.single('photo'), async (req: Request, res: Response) => {
     try {
-        console.log('in /store post', req.body);
+        console.log('in /store post');
 
         const { officer_no, photo, photo_name, photo_type } = req.body;
 
@@ -155,12 +155,20 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
 
         const client = await pool.connect();
         try {
-            // Check if the photo already exists for the given officer_no
-            const result = await client.query('SELECT * FROM photos WHERE officer_no = $1', [officer_no]);
+            // Check if the photo already exists for the given officer_no and photo_name
+            const result = await client.query('SELECT * FROM photos WHERE officer_no = $1',
+                 [officer_no]
+            );
+           
 
             if (result.rows.length > 0) {
-                console.log(`Photo already exists for officer_no: ${officer_no}`);
-                return res.status(409).json({ message: 'Photo already exists', photoUrl: '' });
+                // update photo with the same officer_no
+                const updateQuery = 'UPDATE photos SET photo_buffer = $1 WHERE officer_no = $2';
+                await client.query(updateQuery, [photoBuffer, officer_no]);
+                console.log(`Photo updated for officer_no: ${officer_no}`);
+
+                const photoUrl = `${BASE_URL}/api/photos/retrieve/${officer_no}`;   
+                return res.status(200).json({ message: 'Photo updated successfully', photoUrl: photoUrl });
             }
 
             // Insert the new photo

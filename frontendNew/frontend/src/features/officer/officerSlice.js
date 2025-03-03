@@ -54,6 +54,7 @@ var initialState = {
     loading: false,
     error: null,
     currentOfficer: null,
+    message: null,
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
@@ -104,25 +105,25 @@ export var fetchOfficerById = createAsyncThunk('officer/fetchOfficerById', funct
     });
 }); });
 // Async thunk to create a new officer
-export var createOfficer = createAsyncThunk('officer/createOfficer', function (officerData) { return __awaiter(void 0, void 0, void 0, function () {
+export var createOfficer = createAsyncThunk('officers/create', function (officerData_1, _a) { return __awaiter(void 0, [officerData_1, _a], void 0, function (officerData, _b) {
     var response, error_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var rejectWithValue = _b.rejectWithValue;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _c.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/officer/create"), officerData, {
                         headers: { 'Content-Type': 'application/json' },
                     })];
             case 1:
-                response = _a.sent();
-                return [2 /*return*/, response.data]; // Assuming this is your success response
+                response = _c.sent();
+                return [2 /*return*/, { message: response.data.message }]; // Ensure this is cast correctly
             case 2:
-                error_1 = _a.sent();
+                error_1 = _c.sent();
                 if (axios.isAxiosError(error_1) && error_1.response) {
-                    // Handle specific error responses
-                    throw new Error(error_1.response.data.message || 'Failed to create officer');
+                    return [2 /*return*/, rejectWithValue({ message: error_1.response.data.message || 'Failed to create officer' })];
                 }
-                throw new Error('Network error or other issue');
+                return [2 /*return*/, rejectWithValue({ message: 'Failed to create officer' })];
             case 3: return [2 /*return*/];
         }
     });
@@ -200,16 +201,19 @@ var officerSlice = createSlice({
         })
             .addCase(createOfficer.fulfilled, function (state, action) {
             state.loading = false;
-            if (action.payload.message === 'Officer record created successfully') {
-                state.officers.push(action.meta.arg); // Add the officer data from the request
-            }
-            else {
-                state.error = action.payload.message;
+            if ('message' in action.payload) {
+                if (action.payload.message === 'Officer record created successfully') {
+                    state.officers.push(action.meta.arg); // Add the officer data from the request
+                }
+                else {
+                    state.error = action.payload.message;
+                }
             }
         })
             .addCase(createOfficer.rejected, function (state, action) {
+            var _a;
             state.loading = false;
-            state.error = action.error.message || 'Failed to create officer';
+            state.error = ((_a = action.payload) === null || _a === void 0 ? void 0 : _a.message) || 'Failed to create officer'; // Safely access message
         })
             .addCase(updateOfficer.pending, function (state) {
             state.loading = true;

@@ -69,7 +69,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 SG_Setup Grade Rates
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('GF', 'SetupGradeFees')}>
-                                GF_Setup Grade Fees
+                                GF_Setup Grade Fees - Fee Fixing Data Entry
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('EM', 'SetupOfficer')}>
                                 EM_Setup Collector

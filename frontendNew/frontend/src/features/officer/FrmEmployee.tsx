@@ -39,22 +39,39 @@ console.log('Photo URL from state:', selectedPhotoUrl);
         console.log('Fetching officers...');
         const response = await dispatch(fetchOfficers()).unwrap();
         console.log('Fetched officers:', response);
+
         if (Array.isArray(response)) {
             const officersWithUrls = await Promise.all(response.map(async (officer) => {
-                if (officer.photo instanceof Blob) {
-                    const base64 = await blobToBase64(officer.photo);
+                console.log('officer.photo:', officer.photo);
+                console.log('officer.photo_buffer:', officer.photo_buffer);
+
+                // Check if officer.photo_buffer is present
+                if (officer.photo_buffer && officer.photo_buffer.data) {
+                    const byteArray = new Uint8Array(officer.photo_buffer.data);
+                    const blob = new Blob([byteArray], { type: officer.photo_type });
+                    const base64 = await blobToBase64(blob);
                     return {
                         ...officer,
                         photoUrl: base64
                     };
-                } else {
-                    console.warn('Photo is not a valid Blob:', officer.photo);
+                } 
+                // If officer.photo is a URL
+                else if (typeof officer.photo === 'string') {
+                    return {
+                        ...officer,
+                        photoUrl: officer.photo // Use the URL directly
+                    };
+                } 
+                // Handle other cases
+                else {
+                    console.warn('Photo is not a valid Blob or URL:', officer.photo);
                     return {
                         ...officer,
                         photoUrl: ''
                     };
                 }
             }));
+
             setOfficerList(officersWithUrls);
         } else {
             console.error('Expected an array, but received:', response);
@@ -111,60 +128,68 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
   };
 
   const uploadPhoto = async (file: File) => {
-    console.log('in uploadPhoto');
+  console.log('in uploadPhoto');
 
-    try {
-      console.log('about to dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }))');
-      console.log('file:', file);
-      console.log('officerNo:', officerNo);
+  try {
+    console.log('about to dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }))');
+    console.log('file:', file);
+    console.log('officerNo:', officerNo);
 
-      // Dispatch the thunk and wait for the response
-      const resultAction = await dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }));
-      console.log('after dispatch(storePhotoAsync(', resultAction);
+    // Clear the previous photo URL
+    setPhotoUrlFromState('');
+    setPhoto('');
 
-      if (storePhotoAsync.fulfilled.match(resultAction)) {
-        console.log('Photo uploaded successfully:', resultAction.payload.photoUrl);
+    // Dispatch the thunk and wait for the response
+    const resultAction = await dispatch(storePhotoAsync({ photo: file, officer_no: officerNo }));
+    console.log('after dispatch(storePhotoAsync(', resultAction);
 
-        const photoUrl: string = resultAction.payload.photoUrl;
-        console.log('Photo URL:', photoUrl);
+    if (storePhotoAsync.fulfilled.match(resultAction)) {
+      console.log('Photo uploaded successfully:', resultAction.payload.photoUrl);
 
-        const updatedOfficerList = officerList.map((officer) => {
-          if (officer.officer_no === officerNo) {
-            return {
-              ...officer,
-              photoUrl: photoUrl
-            };
-          }
-          return officer;
-        });
-        setOfficerList(updatedOfficerList);
+      const photoUrl: string = resultAction.payload.photoUrl;
+      console.log('Photo URL:', photoUrl);
 
-        setPhotoUrlFromState(photoUrl); // Update the photo URL in state
-        setPhoto(photoUrl); // Update the photo URL in state
-        console.log('Photo URL:', photoUrl);
-      } else if (storePhotoAsync.rejected.match(resultAction)) {
-        if (resultAction.payload) {
-          console.error('Error uploading photo XXXXX:', resultAction.payload.error);
-          // Handle specific error, e.g., show error notification
-          if (resultAction.payload.error.includes('Photo already exists')) {
-            // Handle the specific 409 error
-            console.log('Handling 409: Photo already exists');
-            // Show a user-friendly message or notification
-            alert('Photo already exists for this officer.');
-          } else {
-            // Handle other errors
-            alert('Failed to upload photo. Please try again.');
-          }
+      // Add a unique query parameter to prevent caching
+      const uniquePhotoUrl = `${photoUrl}?${new Date().getTime()}`;
+
+      const updatedOfficerList = officerList.map((officer) => {
+        if (officer.officer_no === officerNo) {
+          return {
+            ...officer,
+            photoUrl: uniquePhotoUrl
+          };
+        }
+        return officer;
+      });
+      setOfficerList(updatedOfficerList);
+
+      setPhotoUrlFromState(uniquePhotoUrl); // Update the photo URL in state
+      setPhoto(uniquePhotoUrl); // Update the photo URL in state
+      console.log('Photo URL:', uniquePhotoUrl);
+    } else if (storePhotoAsync.rejected.match(resultAction)) {
+      if (resultAction.payload) {
+        console.error('Error uploading photo XXXXX:', resultAction.payload.error);
+        // Handle specific error, e.g., show error notification
+        if (resultAction.payload.error.includes('Photo already exists')) {
+          // Handle the specific 409 error
+          console.log('Handling 409: Photo already exists');
+          // Show a user-friendly message or notification
+          alert('Photo already exists for this officer.');
         } else {
-          console.error('Error uploading photo: No payload');
+          // Handle other errors
           alert('Failed to upload photo. Please try again.');
         }
+      } else {
+        console.error('Error uploading photo: No payload');
+        alert('Failed to upload photo. Please try again.');
       }
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-      setError('Error uploading photo');
     }
-  };
+  } catch (error) {
+    console.error('Error uploading photo:', error);
+    setError('Error uploading photo');
+  }
+};
+
 
   const handleAddClick = async () => {
     if (!officerNo || !name || !photo) {
@@ -185,12 +210,15 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
         photo: photoUrlFromState//typeof photo === 'string' ? photo : URL.createObjectURL(photo), // Use the photo URL
       }));
 
-      setSuccessMessage(response.payload.message);
+      if(response.payload){
+        setSuccessMessage(response.payload.message);
+      }
+          
       setError('');
       clearForm();
       fetchOfficerList();
     } catch (error) {
-      console.error(error);
+      console.error('Failed to create officer:', error);
       setError('Error adding record');
       setSuccessMessage('');
     }
@@ -270,6 +298,8 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
     <Container>
       {error && <Alert variant="danger">{error}</Alert>}
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
+      <div>
+      <div>
       <Form>
         <Form.Group controlId="formOfficerno">
           <Form.Label>Employee ID:</Form.Label>
@@ -294,12 +324,7 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
         </Form.Group>
 
         <Form.Group controlId="formPhoto">
-          <Form.Label>Photo:</Form.Label>
-          <Form.Control
-            type="text"
-            value={typeof photo === 'string' ? photo : photoName}
-            readOnly
-          />
+         
           <div style={{ marginTop: '10px' }}>
             <Button variant="secondary" onClick={() => document.getElementById('photoInput')?.click()}>
               <FaUpload /> Upload Photo
@@ -312,6 +337,12 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
               style={{ display: 'none' }}
             />
           </div>
+          <Form.Label>Photo:</Form.Label>
+          <Form.Control
+            type="text"
+            value={typeof photo === 'string' ? photo : photoName}
+            readOnly
+          />
         </Form.Group>
 
         <div style={{ marginTop: '10px' }}>
@@ -331,7 +362,8 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
           </ButtonGroup>
         </div>
       </Form>
-
+      </div>
+      <div>
       <Table striped bordered hover className="mt-3">
         <thead>
           <tr>
@@ -341,8 +373,8 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
           </tr>
         </thead>
         <tbody>
-          {officerList.map((officer) => (
-            <tr key={officer.officer_no} onClick={() => handleItemClick(officer)}>
+          {officerList.map((officer, index) => (
+            <tr key={index} onClick={() => handleItemClick(officer)}>
               <td>{officer.officer_no}</td>
               <td>{officer.officer_name}</td>
               <td>
@@ -363,6 +395,8 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
           <Image src={photoUrlFromState} alt="Employee Photo" style={{ width: '200px', height: '200px' }} />
         </div>
       )}
+     </div>
+     </div>
     </Container>
   );
 };

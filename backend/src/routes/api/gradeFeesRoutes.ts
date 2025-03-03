@@ -32,6 +32,8 @@ interface GradeFeesData {
 router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const gradeFeesData: GradeFeesData = req.body;
 
+    console.log('in router.post(/create gradeFeesData: ', gradeFeesData)
+
      // Validate request values
      if (!gradeFeesData.buss_type || !gradeFeesData.grade || !gradeFeesData.description || !gradeFeesData.fees) {
         res.status(400).json({ message: 'Grade Fees data is missing' });
@@ -75,6 +77,8 @@ router.get('/all', async (req: Request, res: Response) => {
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
+
+        console.log('result.rows): ', result.rows);
         res.status(200).json(result.rows);
     } catch (error: any) {
         console.error(error);
