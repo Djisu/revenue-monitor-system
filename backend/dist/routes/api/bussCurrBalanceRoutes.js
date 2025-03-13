@@ -18,13 +18,13 @@ router.post('/', async (req, res) => {
     const bussCurrBalanceData = req.body;
     const client = await pool.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear = $2', [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]);
+        const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]);
         if (rows.length > 0) {
             res.status(404).json({ message: 'BussCurrBalance record exists' });
             return;
         }
         // Insert the new BussCurrBalance data
-        const result = await client.query(`INSERT INTO tb_BussCurrBalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
+        const result = await client.query(`INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
             VALUES ($1, $2, $3, $4, $5, $6, $7)`, [
             bussCurrBalanceData.buss_no,
             bussCurrBalanceData.fiscalyear,
@@ -48,12 +48,12 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     const client = await pool.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM tb_BussCurrBalance');
+        const { rows } = await client.query('SELECT * FROM busscurrbalance');
         res.json(rows);
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching BussCurrBalance records', error });
+        res.status(500).json({ message: 'Error fetching busscurrbalance records', error });
     }
     finally {
         client.release();
@@ -64,17 +64,17 @@ router.get('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no, fiscalyear } = req.params;
     const client = await pool.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
+        const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         if (rows.length > 0) {
             res.json(rows[0]); // Return the first row
         }
         else {
-            res.status(404).json({ message: 'BussCurrBalance record not found' });
+            res.status(404).json({ message: 'busscurrbalance record not found' });
         }
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching BussCurrBalance record', error });
+        res.status(500).json({ message: 'Error fetching busscurrbalance record', error });
     }
     finally {
         client.release();
@@ -86,13 +86,13 @@ router.put('/:buss_no/:fiscalyear', async (req, res) => {
     const bussCurrBalanceData = req.body;
     const client = await pool.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear = $2', [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]);
+        const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'BussCurrBalance record not exist' });
             return;
         }
         // Update the BussCurrBalance data
-        const result = await client.query(`UPDATE tb_BussCurrBalance SET fiscalyear = $1, balancebf = $2, current_balance = $3, totalAmountDue = $4, 
+        const result = await client.query(`UPDATE busscurrbalance SET fiscalyear = $1, balancebf = $2, current_balance = $3, totalAmountDue = $4, 
             transdate = $5, electoralarea = $6 
             WHERE buss_no = $7 AND fiscalyear = $8`, [
             bussCurrBalanceData.fiscalyear,
@@ -119,13 +119,13 @@ router.delete('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no, fiscalyear } = req.params;
     const client = await pool.connect();
     try {
-        const { rows } = await client.query('SELECT * FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
+        const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'BussCurrBalance record not exist' });
             return;
         }
         // Delete the BussCurrBalance record
-        const result = await client.query('DELETE FROM tb_BussCurrBalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
+        const result = await client.query('DELETE FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         res.status(200).json({ message: 'BussCurrBalance record deleted successfully' });
     }
     catch (error) {
@@ -167,7 +167,7 @@ export default router;
 //     const bussCurrBalanceData: BussCurrBalanceData = req.body;
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_BussCurrBalance WHERE buss_no = ? AND fiscalyear = ?',
+//         const [rows] = await connection.execute('SELECT * FROM busscurrbalance WHERE buss_no = ? AND fiscalyear = ?',
 //          [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]
 //         );
 //         if (Array.isArray(rows) && rows.length > 0) {
@@ -176,7 +176,7 @@ export default router;
 //         }
 //         // Insert the new BussCurrBalance data
 //         const [result] = await connection.execute<ResultSetHeader>(
-//             `INSERT INTO tb_BussCurrBalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
+//             `INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
 //             VALUES (?, ?, ?, ?, ?, ?, ?)`,
 //             [
 //                 bussCurrBalanceData.buss_no,
@@ -201,7 +201,7 @@ export default router;
 // router.get('/', async (req: Request, res: Response) => {
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_BussCurrBalance');
+//         const [rows] = await connection.execute('SELECT * FROM busscurrbalance');
 //         res.json(rows);
 //     } catch (error) {
 //         console.error(error);
@@ -215,7 +215,7 @@ export default router;
 //     const { buss_no, fiscalyear } = req.params;
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_BussCurrBalance WHERE buss_no = ? AND fiscalyear = ?', [buss_no, fiscalyear]);
+//         const [rows] = await connection.execute('SELECT * FROM busscurrbalance WHERE buss_no = ? AND fiscalyear = ?', [buss_no, fiscalyear]);
 //         if (Array.isArray(rows) && rows.length > 0) {
 //             res.json(rows[0]); // Return the first row
 //         } else {
@@ -234,7 +234,7 @@ export default router;
 //     const bussCurrBalanceData: BussCurrBalanceData = req.body;
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_BussCurrBalance WHERE buss_no = ? AND fiscalyear = ?',
+//         const [rows] = await connection.execute('SELECT * FROM busscurrbalance WHERE buss_no = ? AND fiscalyear = ?',
 //          [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]
 //         );
 //         if (Array.isArray(rows) && rows.length == 0) {
@@ -243,7 +243,7 @@ export default router;
 //         }
 //         // Update the BussCurrBalance data
 //         const [result] = await connection.execute(
-//             `UPDATE tb_BussCurrBalance SET fiscalyear = ?, balancebf = ?, current_balance = ?, totalAmountDue = ?, 
+//             `UPDATE busscurrbalance SET fiscalyear = ?, balancebf = ?, current_balance = ?, totalAmountDue = ?, 
 //             transdate = ?, electoralarea = ? 
 //             WHERE buss_no = ? AND fiscalyear = ?`,
 //             [
@@ -270,7 +270,7 @@ export default router;
 //     const { buss_no, fiscalyear } = req.params;
 //     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_BussCurrBalance WHERE buss_no = ? AND fiscalyear = ?',
+//         const [rows] = await connection.execute('SELECT * FROM busscurrbalance WHERE buss_no = ? AND fiscalyear = ?',
 //          [buss_no, fiscalyear]
 //         );
 //         if (Array.isArray(rows) && rows.length == 0) {
@@ -278,7 +278,7 @@ export default router;
 //             return
 //         }
 //         // Delete the BussCurrBalance record
-//         const [result] = await connection.execute('DELETE FROM tb_BussCurrBalance WHERE buss_no = ?', [buss_no]);
+//         const [result] = await connection.execute('DELETE FROM busscurrbalance WHERE buss_no = ?', [buss_no]);
 //         res.status(200).json({ message: 'BussCurrBalance record deleted successfully' });
 //        return
 //     } catch (error) {

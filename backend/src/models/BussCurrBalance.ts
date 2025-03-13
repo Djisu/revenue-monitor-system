@@ -6,4 +6,5 @@ export interface BussCurrBalance {
     totalAmountDue: number;
     transdate: Date;
     electoralarea: string;
+    assessmentby: string;
 }

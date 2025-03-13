@@ -33,6 +33,7 @@ export interface BusinessData {
     buss_address?: string;
     buss_type?: string;
     buss_town?: string;
+    buss_permitno?: string;
     street_name?: string;
     landmark?: string;
     electroral_area?: string;
@@ -61,6 +62,7 @@ export interface BusinessData {
     BALANCENEW?: number;
     gps_address?: string; 
     serialNo?: number;
+    buss_location: string;
 }
 
 // Function to sanitize input data
@@ -71,6 +73,7 @@ function sanitizeBusinessData(data: any): BusinessData {
         buss_address: data.buss_address || '',
         buss_type: data.buss_type || '',
         buss_town: data.buss_town || '',
+        buss_permitno: data.buss_permitno || '',
         street_name: data.street_name || '',
         landmark: data.landmark || '',
         electroral_area: data.electroral_area || '',
@@ -98,7 +101,8 @@ function sanitizeBusinessData(data: any): BusinessData {
         noofbranches: Number(data.noofbranches) || 0,
         BALANCENEW: Number(data.BALANCENEW) || 0,
         gps_address: data.gps_address || '',
-        serialNo: Number(data.serialNo) || 0
+        serialNo: Number(data.serialNo) || 0,
+        buss_location: data.buss_location || '',
     };
 }
 
@@ -143,7 +147,7 @@ async function ensurePermitDirIsEmpty() {
 }
 
 // Function to add record to tb_BussCurrBalance
-async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalanceBF: number, txtCurrentRate: number, txtRate: number, cboElectoralArea: string): Promise<boolean> {
+async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalanceBF: number, txtCurrentRate: number, txtRate: number, cboElectoralArea: string, cboAssessmentBy: string): Promise<boolean> {
     const client: PoolClient = await pool.connect();
 
     try {
@@ -168,8 +172,8 @@ async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalance
 
         // Insert or update record in tb_BussCurrBalance
         const insertNewRecordQuery = `
-            INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7) 
+            INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea, assessmentby) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
             ON CONFLICT (buss_no, fiscalyear) DO UPDATE 
             SET balancebf = EXCLUDED.balancebf, 
                 current_balance = EXCLUDED.current_balance, 
@@ -179,7 +183,7 @@ async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalance
         `;
 
         const insertValues = [
-            txtBussNo, varFiscalYear, varBalanceBF, txtCurrentRate, (varBalanceBF + txtCurrentRate), dtTransdate, cboElectoralArea
+            txtBussNo, varFiscalYear, varBalanceBF, txtCurrentRate, (varBalanceBF + txtCurrentRate), dtTransdate, cboElectoralArea, cboAssessmentBy
         ];
 
         await client.query(insertNewRecordQuery, insertValues);
@@ -197,7 +201,7 @@ async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalance
 router.get('/all', async (req: Request, res: Response) => {
     try {
         const client: PoolClient = await pool.connect();
-        const result = await client.query('SELECT * FROM business');
+        const result = await client.query('SELECT * FROM business ORDER BY buss_no ASC');
         client.release();
 
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -215,19 +219,32 @@ router.get('/all', async (req: Request, res: Response) => {
 router.get('/:buss_no', async (req: Request, res: Response) => {
     const { buss_no } = req.params;
 
-    try {
-        const client: PoolClient = await pool.connect();
-        const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
-        client.release();
+    console.log('in router.get(/:buss_no)', req.params); // Debugging output
+
+    // Check if buss_no is undefined or invalid
+    if (!buss_no) {
+        return res.status(400).json({ message: 'Business number is required' });
+    }
+    const client: PoolClient = await pool.connect();
+    
+    try {        
+        // Debugging: Log the query being executed
+        console.log('Executing query for buss_no:', buss_no);
+
+        let newBuss_no = parseInt(buss_no)
+
+        const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [newBuss_no]);
 
         if (result.rows.length === 0) {
-            res.status(404).json({ message: 'Business record not found' });
+            res.status(404).json({ message: 'Business record not found', data: [] });
         } else {
-            res.status(200).json(result.rows[0]);
+            res.status(200).json({ message: 'Business record found', data: result.rows[0] });
         }
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching business', error });
+        console.error('Database query error:', error);
+        res.status(500).json({ message: 'Error fetching business', data: error });
+    } finally {
+        client.release(); // Ensure the client is released
     }
 });
 
@@ -321,55 +338,43 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
         // Insert the new business data
         const insertBusinessQuery = `
-            INSERT INTO business (
-                buss_no, buss_name, buss_address, buss_type, buss_town, 
-                street_name, landmark, electroral_area, property_class,
-                tot_grade, ceo, telno, strategiclocation, productvariety, 
-                businesspopularity, businessenvironment, sizeofbusiness, numberofworkingdays, businessoperatingperiod,
-                competitorsavailable, assessmentby, transdate, balance, status, 
-                current_rate, property_rate, totalmarks, emailaddress,             
-                noofemployees, noofbranches, BALANCENEW, gps_address, serialNo) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32);
-        `;
-
-        const insertValues = [
-            sanitizedData.buss_no,
-            sanitizedData.buss_name,
-            sanitizedData.buss_address,
-            sanitizedData.buss_type,
-            sanitizedData.buss_town,
-            sanitizedData.street_name,
-            sanitizedData.landmark,
-            sanitizedData.electroral_area,
-            sanitizedData.property_class,
-            sanitizedData.tot_grade,
-            sanitizedData.ceo,
-            sanitizedData.telno,
-            sanitizedData.strategiclocation,
-            sanitizedData.productvariety,
-            sanitizedData.businesspopularity,
-            sanitizedData.businessenvironment,
-            sanitizedData.sizeofbusiness,
-            sanitizedData.numberofworkingdays,
-            sanitizedData.businessoperatingperiod,
-            sanitizedData.competitorsavailable,
-            sanitizedData.assessmentby,
-            mysqlDate,
-            sanitizedData.balance,
-            sanitizedData.status,
-            sanitizedData.current_rate,
-            sanitizedData.property_rate,
-            sanitizedData.totalmarks,
-            sanitizedData.emailaddress,            
-            sanitizedData.noofemployees,
-            sanitizedData.noofbranches,              
-            sanitizedData.BALANCENEW,
-            sanitizedData.gps_address,
-            sanitizedData.serialNo
-        ];
-
-        await client.query(insertBusinessQuery, insertValues);
-
+        INSERT INTO business (
+            buss_no, buss_name, buss_address, 
+            buss_type, buss_town, buss_permitno,
+            street_name, landmark, electroral_area,
+            property_class, tot_grade, ceo, 
+            telno, strategiclocation, productvariety, 
+            businesspopularity, businessenvironment, sizeofbusiness, 
+            numberofworkingdays, businessoperatingperiod, competitorsavailable, 
+            assessmentby, transdate, balance, 
+            status, current_rate, property_rate,
+            totalmarks, emailaddress, noofemployees, 
+            noofbranches, balancenew, gps_address, 
+            serialNo, buss_location) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35);
+    `;
+    
+    const insertValues = [
+        sanitizedData.buss_no, sanitizedData.buss_name, sanitizedData.buss_address,
+        sanitizedData.buss_type, sanitizedData.buss_town, sanitizedData.buss_permitno,
+        sanitizedData.street_name, sanitizedData.landmark, sanitizedData.electroral_area,
+        sanitizedData.property_class, sanitizedData.tot_grade, sanitizedData.ceo,
+        sanitizedData.telno, sanitizedData.strategiclocation, sanitizedData.productvariety,
+        sanitizedData.businesspopularity, sanitizedData.businessenvironment, sanitizedData.sizeofbusiness,
+        sanitizedData.numberofworkingdays, sanitizedData.businessoperatingperiod, sanitizedData.competitorsavailable,
+        sanitizedData.assessmentby, mysqlDate, sanitizedData.balance,
+        sanitizedData.status, sanitizedData.current_rate, sanitizedData.property_rate,
+        sanitizedData.totalmarks, sanitizedData.emailaddress, sanitizedData.noofemployees,
+        sanitizedData.noofbranches, sanitizedData.BALANCENEW, sanitizedData.gps_address,
+        sanitizedData.serialNo, sanitizedData.buss_location, 
+    ];
+    
+    // Ensure the number of columns matches the number of values
+    if (insertValues.length !== 35) {
+        throw new Error(`Mismatch in columns and values: expected 34, found ${insertValues.length}`);
+    }
+    
+    await client.query(insertBusinessQuery, insertValues);
         // Call addRecord function to add new record to busscurrbalance table
         const addRecordSuccess = await addRecord(
             sanitizedData.buss_no, 
@@ -377,7 +382,8 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
             sanitizedData.balance as number, 
             sanitizedData.current_rate as number, 
             sanitizedData.property_rate as number, 
-            sanitizedData.electroral_area as string
+            sanitizedData.electroral_area as string,
+            sanitizedData.assessmentby as string,
         );
 
         if (!addRecordSuccess) {
@@ -392,7 +398,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Update a business record
-router.put('/update/:buss_no', async (req: Request, res: Response) => {
+router.put('/:buss_no', async (req: Request, res: Response) => {
     console.log('in router.put(/:buss_no)');
 
     const { buss_no } = req.params;
@@ -409,6 +415,7 @@ router.put('/update/:buss_no', async (req: Request, res: Response) => {
         sanitizedData.buss_address === null || sanitizedData.buss_address === undefined ||
         sanitizedData.buss_type === null || sanitizedData.buss_type === undefined ||
         sanitizedData.buss_town === null || sanitizedData.buss_town === undefined ||
+        sanitizedData.buss_permitno === null || sanitizedData.buss_permitno === undefined ||
         sanitizedData.street_name === null || sanitizedData.street_name === undefined ||
         sanitizedData.landmark === null || sanitizedData.landmark === undefined ||
         sanitizedData.electroral_area === null || sanitizedData.electroral_area === undefined ||
@@ -436,7 +443,8 @@ router.put('/update/:buss_no', async (req: Request, res: Response) => {
         isNaN(sanitizedData.noofbranches as number) ||
         isNaN(sanitizedData.BALANCENEW as number) ||
         sanitizedData.gps_address === null || sanitizedData.gps_address === undefined ||
-        sanitizedData.serialNo === null || sanitizedData.serialNo === undefined
+        sanitizedData.serialNo === null || sanitizedData.serialNo === undefined ||
+        sanitizedData.buss_location === null || sanitizedData.buss_location === undefined
     ) {
         console.log('Invalid or missing input data');
         res.status(400).json({ success: false, message: 'Invalid or missing input data' });
@@ -463,35 +471,37 @@ router.put('/update/:buss_no', async (req: Request, res: Response) => {
                 buss_address = $2, 
                 buss_type = $3, 
                 buss_town = $4, 
-                street_name = $5, 
-                landmark = $6, 
-                electroral_area = $7, 
-                property_class = $8, 
-                tot_grade = $9, 
-                ceo = $10, 
-                telno = $11, 
-                strategiclocation = $12, 
-                productvariety = $13, 
-                businesspopularity = $14, 
-                businessenvironment = $15, 
-                sizeofbusiness = $16, 
-                numberofworkingdays = $17, 
-                businessoperatingperiod = $18, 
-                competitorsavailable = $19, 
-                assessmentby = $20, 
-                transdate = $21, 
-                balance = $22, 
-                status = $23, 
-                current_rate = $24, 
-                property_rate = $25, 
-                totalmarks = $26, 
-                emailaddress = $27, 
-                noofemployees = $28, 
-                noofbranches = $29, 
-                BALANCENEW = $30, 
-                gps_address = $31, 
-                serialNo = $32 
-            WHERE buss_no = $33;
+                buss_permitno = $5,
+                street_name = $6, 
+                landmark = $7, 
+                electroral_area = $8, 
+                property_class = $9, 
+                tot_grade = $10, 
+                ceo = $11, 
+                telno = $12, 
+                strategiclocation = $13, 
+                productvariety = $14, 
+                businesspopularity = $15, 
+                businessenvironment = $16, 
+                sizeofbusiness = $17, 
+                numberofworkingdays = $18, 
+                businessoperatingperiod = $19, 
+                competitorsavailable = $20, 
+                assessmentby = $21, 
+                transdate = $22, 
+                balance = $23, 
+                status = $24, 
+                current_rate = $25, 
+                property_rate = $26, 
+                totalmarks = $27, 
+                emailaddress = $28, 
+                noofemployees = $29, 
+                noofbranches = $30, 
+                BALANCENEW = $31, 
+                gps_address = $32, 
+                serialNo = $33, 
+                buss_location = $34
+            WHERE buss_no = $35;
         `;
 
         const updateValues = [
@@ -499,6 +509,7 @@ router.put('/update/:buss_no', async (req: Request, res: Response) => {
             sanitizedData.buss_address,
             sanitizedData.buss_type,
             sanitizedData.buss_town,
+            sanitizedData.buss_permitno,
             sanitizedData.street_name,
             sanitizedData.landmark,
             sanitizedData.electroral_area,
@@ -527,6 +538,7 @@ router.put('/update/:buss_no', async (req: Request, res: Response) => {
             sanitizedData.BALANCENEW,
             sanitizedData.gps_address,
             sanitizedData.serialNo,
+            sanitizedData.buss_location,
             buss_no
         ];
 
@@ -570,23 +582,46 @@ router.delete('/delete/:buss_no', async (req: Request, res: Response) => {
 
 // Process business operating permits for a fiscal year
 router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req: Request, res: Response) => {
+   
+   
     console.log('in router.post(/processOperatingPermits/:electoral_area/:fiscal_year)', req.params);
 
     try {
         // Ensure the permits directory is empty
         await ensurePermitDirIsEmpty();
 
-        //console.log('after ensurePermitDirIsEmpty()')
+        console.log('after ensurePermitDirIsEmpty()')
 
         const { electoral_area, fiscal_year } = req.params;
 
-        //console.log('electoral_area:', electoral_area, 'fiscal_year:', fiscal_year);
+        console.log('electoral_area:', electoral_area, 'fiscal_year:', fiscal_year);
 
         const client: PoolClient = await pool.connect();
 
         //console.log('before SELECT * FROM business WHERE electroral_area = $1')
         // Delete fiscalyear from busscurrbalance table
-        await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [fiscal_year]);
+        //await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [fiscal_year]);
+         // Select all businesses
+         const businessesResult: QueryResult = await client.query('SELECT * FROM business');
+
+         console.log('ABOUT TO BILL ALL BUSINESSES')
+ 
+         // Insert into busscurrbalance
+        //  for (const businessRow of businessesResult.rows) {
+        //      await client.query(
+        //          'INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea, assessmentby) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        //          [
+        //              businessRow.buss_no,
+        //              new Date().getFullYear(),
+        //              0, // balancebf
+        //              businessRow.current_rate,
+        //              0, // totalamountdue
+        //              new Date().toISOString().split('T')[0], // transdate
+        //              businessRow.electroral_area,
+        //              businessRow.assessmentby // Add the appropriate value for `assessmentby`
+        //          ]
+        //      );
+        //  }
 
         // Select all businesses in the electoral area
         let businessRows = await client.query('SELECT * FROM business WHERE electroral_area = $1', [electoral_area]);
@@ -600,23 +635,23 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
             return;
         }
 
-        //console.log('after SELECT * FROM business WHERE electroral_area = $1')
+        console.log('after SELECT * FROM business WHERE electroral_area = $1')
 
         // Update balancebf in busscurrbalance table for all businesses in the electoral area for the given fiscal year
         for (let i = 0; i < businessRows.rows.length; i++) {
             const { buss_no } = businessRows.rows[i];
 
-            //console.log('in the update busscurrbalance table loop')
+            console.log('in the update busscurrbalance table loop')
 
             let varCurrentRate = 0;
             let varBalance = await findBusinessBalance(buss_no);
 
-            //console.log('about to update busscurrbalance table');
+            console.log('about to update busscurrbalance table');
 
             // Update busscurrbalance table with current balance and fiscal year
             await client.query('UPDATE busscurrbalance SET balancebf = $1 WHERE buss_no = $2 AND fiscalyear = $3', [varBalance, buss_no, fiscal_year]);
 
-            //console.log('after updating busscurrbalance table');
+            console.log('after updating busscurrbalance table');
         }
 
         // Delete from tmp_business
@@ -636,12 +671,12 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
             RETURNING *;
         `, [electoral_area]);
 
-        //console.log('after insert into tmpbusiness');
+        console.log('after insert into tmpbusiness');
 
         const recReport = await client.query('SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2', [fiscal_year, electoral_area]);
 
-        // console.log('after SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2');
-        // console.log('recReport.rows.length:', recReport.rows.length);
+        console.log('after SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2');
+        console.log('recReport.rows.length:', recReport.rows.length);
 
         if (recReport.rows.length === 0) {
             res.status(404).json({ message: 'No paid bills found for the electoral area' });
@@ -650,7 +685,7 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
 
         await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2', [fiscal_year, electoral_area]);
 
-        //console.log('after INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance');
+        console.log('after INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance');
 
         // Add serial numbers
         let recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
@@ -660,13 +695,13 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
         for (let i = 0; i < recBusiness.rows.length; i++) {
             const varSerialNo = permitNo.toString().padStart(10, '0');
     
-            //console.log(`Updating buss_no: ${recBusiness.rows[i].buss_no}, Serial No: ${varSerialNo}`);
+            console.log(`Updating buss_no: ${recBusiness.rows[i].buss_no}, Serial No: ${varSerialNo}`);
     
             await client.query('UPDATE tmpbusiness SET serialno = $1 WHERE buss_no = $2', [varSerialNo, recBusiness.rows[i].buss_no]);
     
             permitNo++;
         }
-        //console.log('after serial number generation');
+        console.log('after serial number generation');
 
         // Check if there are any bills in tmp_business
         let recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_name ASC');
@@ -676,7 +711,7 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
             return;
         }
 
-        //console.log('ABOUT TO GENERATE PDFs');
+        console.log('ABOUT TO GENERATE PDFs');
 
         // Produce Bills now
         for (const bill of recBills.rows) {
@@ -788,6 +823,8 @@ export async function findCurrentRate(txtBussNo: number): Promise<number> {
         return 0;
     } 
 }
+
+
 
 export default router;
 

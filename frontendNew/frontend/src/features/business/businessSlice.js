@@ -152,14 +152,16 @@ export var fetchBusinessById = createAsyncThunk('business/fetchBusinessById', fu
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/business/").concat(buss_no))];
+            case 0:
+                console.log('in fetchBusinessById slice, Fetching a business by buss_no: ');
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/business/").concat(buss_no))];
             case 1:
                 response = _a.sent();
                 if (response.status >= 200 && response.status < 300) {
-                    console.log('fetchGradeFees fulfilled::: ', response.data);
+                    console.log('response.data::: ', response.data);
                     // Ensure response.data is an array
-                    return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //
-                    // return data; // This data will be available as `action.payload`
+                    //return Array.isArray(response.data) ? response.data : []; //
+                    return [2 /*return*/, response.data]; // This data will be available as `action.payload`
                 }
                 else {
                     throw new Error("Error fetching business client. Status: ".concat(response.status, " - Error: ").concat(response.statusText));
@@ -196,7 +198,7 @@ export var updateBusiness = createAsyncThunk('business/updateBusiness', function
         switch (_c.label) {
             case 0:
                 console.log('in updateBusiness slice, Updating a business: ', data);
-                return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/business/update/").concat(buss_no), data, {
+                return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/business/").concat(buss_no), data, {
                         headers: { 'Content-Type': 'application/json' },
                     })];
             case 1:

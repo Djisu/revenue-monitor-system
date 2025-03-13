@@ -56,7 +56,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
     const client: PoolClient = await pool.connect();
     try {
-        const result: QueryResult = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [businessTypeData.Business_Type]);
+        const result: QueryResult = await client.query('SELECT * FROM businesstype WHERE business_type = $1', [businessTypeData.Business_Type]);
 
         if (Array.isArray(result.rows) && result.rows.length > 0) {          
             res.status(409).json({ message: 'Business Type record already exists.' });
@@ -64,7 +64,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Insert the new BusinessType data
-        await client.query('INSERT INTO businesstype (Business_Type) VALUES ($1)', [businessTypeData.Business_Type]);
+        await client.query('INSERT INTO businesstype (business_type) VALUES ($1)', [businessTypeData.Business_Type]);
 
         res.status(201).json({ success: true, message: 'BusinessType record created successfully' });
     } catch (error) {
@@ -77,11 +77,11 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
 // Read all BusinessType records
 router.get('/all', async (req: Request, res: Response) => {
-    console.log('Fetching all businessType records');
+    console.log('in router.get(all Fetching all businessType records');
 
     const client: PoolClient = await pool.connect();
     try {
-        const result: QueryResult = await client.query('SELECT * FROM businesstype');
+        const result: QueryResult = await client.query('SELECT business_type FROM businesstype');
         console.log('result.rows: ', result.rows)
         
         res.status(200).json(result.rows);

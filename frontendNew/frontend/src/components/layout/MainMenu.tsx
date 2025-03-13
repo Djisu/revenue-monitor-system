@@ -50,7 +50,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             {/* <NavDropdown.Item onClick={() => handleMenuClick('PP', 'UpdateBusinessClientsBarometers')}>
                                 PP_Update Business Client's Barometers
                             </NavDropdown.Item> */}
-                            <NavDropdown.Item onClick={() => handleMenuClick('BY', 'BusinessReferences')}>
+                            <NavDropdown.Item onClick={() => handleMenuClick('BY', 'ListOfBusinesses')}>
                                 BY_List of Business 
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('SB', 'SetupBusinessType')}>
@@ -83,16 +83,12 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('VZ', 'OperatorPermission')}>
                                 VZ_User Permission
                             </NavDropdown.Item>
-                            {/* <NavDropdown.Item onClick={() => handleMenuClick('LS', 'LoadSpreadsheet')}>
-                                LS_Load Spreadsheet
-                            </NavDropdown.Item> */}
-                            <NavDropdown.Item onClick={() => handleMenuClick('SB', 'ChangeBusinessType')}>
+
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('SB', 'ChangeBusinessType')}>
                                 SB_Change Old Business Type to a New Business Type
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                             <NavDropdown.Divider />
-                            <NavDropdown.Item onClick={() => handleMenuClick('mnuExit', 'Exit')}>
-                                Exit
-                            </NavDropdown.Item>
+                            
                         </NavDropdown>
 
                         <NavDropdown title="BOP Finances" id="basic-nav-dropdown">
@@ -103,9 +99,9 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 CP_Collector Payment
                             </NavDropdown.Item>
                             {/* Hidden menu items are commented out for now */}
-                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'TemporalCollectorPayment')}>
+                             {/* <NavDropdown.Item onClick={() => handleMenuClick('CP', 'TemporalCollectorPayment')}>
                                 CP_Temporal Collector Payment
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('PB', 'ProcessClientNewBalances')}>
                                 PB_Use this option to bill all businesses for the new fiscal year
                             </NavDropdown.Item>
@@ -124,19 +120,19 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                         </NavDropdown>
 
                         <NavDropdown title="BOP Reports" id="basic-nav-dropdown">
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'BusinessOperatingPermitBusinessNumbers')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('BN', 'BusinessOperatingPermitBusinessNumbers')}>
                                 BN_Produce Business Operating Permits (Business Numbers)
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('BO', 'BusinessOperatingPermit')}>
                                 BO_Produce Business Operating Permits (Electoral Areas)
                             </NavDropdown.Item>
                             {/* Hidden menu items are commented out for now */}
-                            <NavDropdown.Item onClick={() => handleMenuClick('MJ', 'BusinessOperatingPermitBusstypes')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('MJ', 'BusinessOperatingPermitBusstypes')}>
                                 MJ_Produce Business Operating Permits (Buss types)
-                            </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('MJ', 'BusinessOperationgPermitPrintDifferentNumbers')}>
+                            </NavDropdown.Item> */}
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('MJ', 'BusinessOperationgPermitPrintDifferentNumbers')}>
                                 MJ_Produce Business Operationg Permits (Print Different Numbers at the Same)
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('RM', 'RevenueMobilisationRegister')}>
                                 RM_Produce Business Client Statement
                             </NavDropdown.Item>
@@ -153,7 +149,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 FZ_Produce Middle Level Management Report
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BO', 'ExecutiveSummaryReport')}>
-                                BO_ProduceExecutive Summary Report
+                                BO_Produce Executive Summary Report
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProduceClientAnnualBalancesReport')}>
                                 BN_Produce Client Annual Balances Report
@@ -164,12 +160,12 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProduceVarianceAnalysisReport')}>
                                 BN_Produce a Balance Brought Forward Report
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'DefaultersPrepaymentsReport')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('BN', 'DefaultersPrepaymentsReport')}>
                                 BN_Produce Defaulters Report
-                            </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('AT', 'AuditTrail')}>
+                            </NavDropdown.Item> */}
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('AT', 'AuditTrail')}>
                                 AT_Produce Audit Trail
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                         </NavDropdown>
 
                         <NavDropdown title="BOP Collector Reports" id="basic-nav-dropdown">
@@ -192,9 +188,9 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('OB', 'CollectorsBusinessesReport')}>
                                 ZB_Produce Businesses for a  Collector Report-Graph
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('Login', 'Login')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('Login', 'Login')}>
                                 Login
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                         </NavDropdown>
 
                         {/* Hidden menu items are commented out for now */}

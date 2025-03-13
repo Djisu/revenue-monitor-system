@@ -96,12 +96,13 @@ export var createBusPayment = createAsyncThunk('busPayments/createBusPayment', f
 }); });
 // Async thunk to fetch a single BusPayments record by buss_no
 export var fetchBilledAmount = createAsyncThunk('busPayments/fetchBilledAmount', function (buss_no) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
+    var bussNo, response;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 console.log('in fetchBilledAmount slice', buss_no);
-                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/billedAmount/").concat(buss_no))];
+                bussNo = parseInt(buss_no);
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/billedAmount/").concat(bussNo))];
             case 1:
                 response = _a.sent();
                 console.log('response data', response.data);

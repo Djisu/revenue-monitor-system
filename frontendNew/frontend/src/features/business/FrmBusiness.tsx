@@ -17,7 +17,9 @@ import { Link } from 'react-router-dom';
 // }
 
 interface BusinessTypeData {
-  Business_Type: string; // Updated to match API response
+  Business_Type: string; // This matches your API response
+  buss_type?: string; // Optional if it's not always present
+  business_type?: string
 }
 
 type FormData = {
@@ -96,7 +98,7 @@ export const FrmBusiness: React.FC = () => {
   });
 
   const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
-  const [businessTypes, setBusinessTypes] = useState<string[]>([]);
+  const [bussTypes, setBussTypes] = useState<BusinessTypeData[]>([]);
   const [propertyClasses, setPropertyClasses] = useState<string[]>([]);
   const [assessments, setAssessments] = useState<string[]>([]);
   let [busCount, setBusCount] = useState<number>(0);
@@ -132,22 +134,22 @@ useEffect(() => {
   }
 }, [electoralAreaData, setElectoralAreas]);
 
-  const businessType = useAppSelector((state) => state.businessType.businessTypes);
-  useEffect(() => {
-    if (Array.isArray(businessType)) {
-      setBusinessTypes(businessType.map((business: BusinessTypeData) => business.Business_Type));
-    } else {
-      console.error('Expected businessType to be an array but got:', businessType);
-    }
-   
-  }, [businessType]);
+const businessTypes = useAppSelector((state) => state.businessType.businessTypes); // as BusinessTypeData[]
+console.log('businessTypes: ', businessTypes);
+
+useEffect(() => {
+  if (Array.isArray(businessTypes)) {
+    setBussTypes(businessTypes); // Update local state with fetched data
+  }
+}, [businessTypes]); // Dependency array includes businessTypes
+  
 
   const propertyClass = useAppSelector((state) => state.propertyClass.propertyClasses);
   useEffect(() => {
     setPropertyClasses(propertyClass.map((classType: any) => classType.property_class));
   }, [propertyClass]);
 
-  const officer = useAppSelector((state) => state.officer.officers);
+  const officer = useAppSelector((state) => state.officer.officers);``
   useEffect(() => {
     setAssessments(officer.map((officer: any) => `${officer.officer_name}`));
   }, [officer]);
@@ -351,8 +353,10 @@ useEffect(() => {
                 <Label for="buss_type">Business Type:</Label>
                 <Input type="select" name="buss_type" id="buss_type" value={formData.buss_type} onChange={handleChange}>
                   <option>Select...</option>
-                  {businessTypes.map((type, index) => (
-                    <option key={index} value={type}>{type}</option>
+                  {bussTypes.map((businessType, index) => (
+                    <option key={index} value={businessType.business_type}>
+                      {businessType.business_type}
+                    </option>
                   ))}
                 </Input>
               </FormGroup>

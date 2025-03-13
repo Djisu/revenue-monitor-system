@@ -1,58 +1,75 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Form, Button, Alert, Table } from 'react-bootstrap';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Container, Form, Button, Table, Alert, Row, Col } from 'react-bootstrap';
+import { useAppDispatch, useAppSelector } from '../../hooks';
 
-interface Operator {
-  operatorID: string;
-  operatorName: string;
-  password: string;
-  firstname: string;
-  lastname: string;
-}
+import { useNavigate } from 'react-router-dom';
+import { fetchOperators, createOperator, updateOperator, deleteOperator, OperatorData } from './operatorDefinitionSlice';
 
-interface AddRecResponse {
-  message: string;
-}
+// interface OperatorData {
+//   OperatorID: string;
+//   OperatorName: string;
+//   password: string;
+//   firstname: string;
+//   lastname: string;
+//   email: string;
+// }
 
-interface EditRecResponse {
-  message: string;
-}
+// interface AddRecResponse {
+//   message: string;
+// }
 
-interface DeleteRecResponse {
-  message: string;
-}
+// interface EditRecResponse {
+//   message: string;
+// }
+
+// interface DeleteRecResponse {clear
+
+//   message: string;
+// }
 
 const OperatorDefForm: React.FC = () => {
-  const [operatorID, setOperatorID] = useState<string>('');
-  const [operatorName, setOperatorName] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [firstName, setFirstName] = useState<string>('');
-  const [lastName, setLastName] = useState<string>('');
-  const [operatorList, setOperatorList] = useState<Operator[]>([]);
-  const [error, setError] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
+  let [operatorid, setOperatorid] = useState<string>('');
+  let [operatorname, setOperatorname] = useState<string>('');
+  let [password, setPassword] = useState<string>('');
+  let [firstname, setFirstname] = useState<string>('');
+  let [lastname, setLastname] = useState<string>('');
+  let [email, setEmail] = useState<string>('');
+  let [operatorList, setOperatorList] = useState<OperatorData[]>([]);
+  let [error, setError] = useState<string>('');
+  let [successMessage, setSuccessMessage] = useState<string>('');
+
+  let dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  let operatorListFromStore = useAppSelector((state) => state.operatorDefinition.operators);
+
+
 
   useEffect(() => {
     fetchOperatorList();
   }, []);
 
   const fetchOperatorList = async () => {
+    console.log('in fetchOperatorList')
+
     try {
-      const response = await axios.get<Operator[]>('http://your-api-url/operator_definition');
-      setOperatorList(response.data);
+        // Directly use the response as an array of operators
+        const operatorListData = await dispatch(fetchOperators()).unwrap();
+        console.log(operatorListData); // This is now the array of operators
+
+        operatorList = operatorListData
+        setOperatorList(operatorList); // Set the operator list directly
     } catch (error) {
-      console.error(error);
-      setError('Error fetching operators');
+        console.error(error);
+        setError('Error fetching operators');
     }
-  };
+};
 
   const handleOperatorIDChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setOperatorID(e.target.value);
+    setOperatorid(e.target.value);
   };
 
   const handleOperatorNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setOperatorName(e.target.value);
+    setOperatorname(e.target.value);
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,53 +77,74 @@ const OperatorDefForm: React.FC = () => {
   };
 
   const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFirstName(e.target.value);
+    setFirstname(e.target.value);
   };
 
   const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLastName(e.target.value);
+    setLastname(e.target.value);
   };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  };
+
 
   const handleAddClick = async () => {
-    if (!operatorID || !operatorName || !password || !firstName || !lastName) {
-      setError('Please fill in all fields');
-      return;
+    console.log('in handleAddClick');
+
+    if (!operatorid || !operatorname || !password || !firstname || !lastname || !email) {
+        setError('Please fill in all fields');
+        return;
     }
 
     try {
-      const response = await axios.post<AddRecResponse>('http://your-api-url/add_rec', {
-        operatorID,
-        operatorName,
-        password,
-        firstName,
-        lastName,
-      });
+        const resultAction = await dispatch(createOperator({
+          operatorid, // Change 'operatorid' to 'OperatorID'
+          operatorname, // Change 'operatorname' to 'OperatorName'
+            password,
+            firstname,
+            lastname,
+            email
+        }));
 
-      setSuccessMessage(response.data.message);
-      setError('');
-      clearForm();
-      fetchOperatorList();
+        // Now you can check if the action was fulfilled or rejected
+        if (createOperator.fulfilled.match(resultAction)) {
+            const responseMessage = resultAction.payload; // This is the message returned from the API
+            console.log(responseMessage); // Log the success message
+
+            setSuccessMessage(responseMessage);
+            setError('');
+            clearForm();
+            fetchOperatorList();
+        } else {
+            // Handle the error case
+            console.error('Failed to create operator:', resultAction.error);
+        }
     } catch (error) {
-      console.error(error);
-      setError('Error adding record');
-      setSuccessMessage('');
+        console.error(error);
+        setError('Error adding record');
+        setSuccessMessage('');
     }
-  };
+};
 
   const handleEditClick = async () => {
-    if (!operatorID || !operatorName || !password || !firstName || !lastName) {
+    if (!operatorid || !operatorname || !password || !firstname || !lastname || !email) {
       setError('Please fill in all fields');
       return;
     }
 
+    const formData = {
+      operatorid: operatorid,
+      operatorname: operatorname,
+      password: password,
+      firstname: firstname,
+      lastname: lastname,
+      email: email
+  }
+
     try {
-      const response = await axios.put<EditRecResponse>('http://your-api-url/edit_rec', {
-        operatorID,
-        operatorName,
-        password,
-        firstName,
-        lastName,
-      });
+      const response = await dispatch(updateOperator({ OperatorID: operatorid, operatorData: formData })).unwrap();
+      console.log(response.data);
 
       setSuccessMessage(response.data.message);
       setError('');
@@ -120,26 +158,22 @@ const OperatorDefForm: React.FC = () => {
   };
 
   const handleDeleteClick = async () => {
-    if (!operatorID || !password) {
+    if (!operatorid || !password) {
       setError('Operator ID and Password cannot be empty');
       return;
     }
 
     const delResponse = prompt("Enter Y to Delete, N to Not to Delete");
-    if (delResponse?.toUpperCase() !== 'Y') {
+    if (delResponse?.toUpperCase() !== 'Y') { 
       setError('Deletion aborted');
       return;
     }
 
     try {
-      const response = await axios.delete<DeleteRecResponse>('http://your-api-url/delete_rec', {
-        data: {
-          operatorID,
-          password,
-        },
-      });
+      const response = await dispatch(deleteOperator( operatorid )).unwrap();
 
       setSuccessMessage(response.data.message);
+
       setError('');
       clearForm();
       fetchOperatorList();
@@ -150,24 +184,22 @@ const OperatorDefForm: React.FC = () => {
     }
   };
 
-  const handleExitClick = () => {
-    window.location.href = '/'; // Redirect to main page or hide the form
-  };
-
-  const handleItemClick = (operator: Operator) => {
-    setOperatorID(operator.operatorID);
-    setOperatorName(operator.operatorName);
-    setPassword(operator.password);
-    setFirstName(operator.firstname);
-    setLastName(operator.lastname);
+  const handleItemClick = (operator: OperatorData) => {
+    setOperatorid(operator.operatorid || ''); // Default to an empty string if undefined
+    setOperatorname(operator.operatorname || ''); // Default to an empty string if undefined
+    setPassword(operator.password || ''); // Default to an empty string if undefined
+    setFirstname(operator.firstname || ''); // Default to an empty string if undefined
+    setLastname(operator.lastname || ''); // Default to an empty string if undefined
+    setEmail(operator.email || ''); // Default to an empty string if undefined
   };
 
   const clearForm = () => {
-    setOperatorID('');
-    setOperatorName('');
+    setOperatorid('');
+    setOperatorname('');
     setPassword('');
-    setFirstName('');
-    setLastName('');
+    setFirstname('');
+    setLastname('');
+    setEmail('');
   };
 
   // const validateOperatorID = async (operatorID: string) => {
@@ -184,102 +216,118 @@ const OperatorDefForm: React.FC = () => {
 
   return (
     <Container>
-      <h2>Operator Definitions</h2>
+      {/* <h2 className="text-center mb-4">Operator Definitions</h2> */}
+      
       {error && <Alert variant="danger">{error}</Alert>}
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
+      
       <Form>
-        <Form.Group controlId="formOperatorID">
-          <Form.Label>Operator ID:</Form.Label>
-          <Form.Control
-            type="text"
-            value={operatorID}
-            onChange={handleOperatorIDChange}
-            maxLength={10}
-          />
-        </Form.Group>
+        <Row className="mb-3">
+          <Col md={6}>
+            <Form.Group controlId="formOperatorID">
+              <Form.Label>Operator ID:</Form.Label>
+              <Form.Control
+                type="text"
+                value={operatorid}
+                onChange={handleOperatorIDChange}
+                maxLength={10}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+            <Form.Group controlId="formOperatorName">
+              <Form.Label>Operator Name:</Form.Label>
+              <Form.Control
+                type="text"
+                value={operatorname}
+                onChange={handleOperatorNameChange}
+                maxLength={10}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+  
+        <Row className="mb-3">
+          <Col md={6}>
+            <Form.Group controlId="formPassword">
+              <Form.Label>Password:</Form.Label>
+              <Form.Control
+                type="password"
+                value={password}
+                onChange={handlePasswordChange}
+                maxLength={10}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+            <Form.Group controlId="formFirstName">
+              <Form.Label>First Name:</Form.Label>
+              <Form.Control
+                type="text"
+                value={firstname}
+                onChange={handleFirstNameChange}
+                maxLength={5}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+  
+        <Row className="mb-3">
+          <Col md={6}>
+            <Form.Group controlId="formLastName">
+              <Form.Label>Last Name:</Form.Label>
+              <Form.Control
+                type="text"
+                value={lastname}
+                onChange={handleLastNameChange}
+                maxLength={10}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
 
-        <Form.Group controlId="formOperatorName">
-          <Form.Label>Operator Name:</Form.Label>
-          <Form.Control
-            type="text"
-            value={operatorName}
-            onChange={handleOperatorNameChange}
-            maxLength={10}
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formPassword">
-          <Form.Label>Password:</Form.Label>
-          <Form.Control
-            type="password"
-            value={password}
-            onChange={handlePasswordChange}
-            maxLength={10}
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formFirstName">
-          <Form.Label>First Name:</Form.Label>
-          <Form.Control
-            type="text"
-            value={firstName}
-            onChange={handleFirstNameChange}
-            maxLength={5}
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formLastName">
-          <Form.Label>Last Name:</Form.Label>
-          <Form.Control
-            type="text"
-            value={lastName}
-            onChange={handleLastNameChange}
-            maxLength={10}
-          />
-        </Form.Group>
-
-        <Button variant="primary" onClick={handleAddClick} style={{ marginTop: '10px' }}>
-          Add
-        </Button>
-        <Button variant="success" onClick={handleEditClick} style={{ marginLeft: '10px', marginTop: '10px' }}>
-          Edit
-        </Button>
-        <Button variant="danger" onClick={handleDeleteClick} style={{ marginLeft: '10px', marginTop: '10px' }}>
-          Delete
-        </Button>
-        <Button variant="secondary" onClick={handleExitClick} style={{ marginLeft: '10px', marginTop: '10px' }}>
-          Exit
-        </Button>
+        <Row className="mb-3">
+          <Col md={6}>
+            <Form.Group controlId="formEmail">
+              <Form.Label>Email:</Form.Label>
+              <Form.Control
+                type="email"
+                value={email}
+                onChange={handleEmailChange}
+                maxLength={50}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+  
+        <div className="d-flex justify-content-between mb-3">
+          <Button variant="primary" className="flex-fill me-2" onClick={handleAddClick}>Add</Button>
+          <Button variant="success" className="flex-fill me-2" onClick={handleEditClick}>Edit</Button>
+          <Button variant="danger" className="flex-fill me-2" onClick={handleDeleteClick}>Delete</Button>
+          <Button className="primary flex-fill" onClick={() => navigate('/main')}>Go Back</Button>
+        </div>
       </Form>
-
-      <h3 className="mt-4">List Of Operators</h3>
+  
       <Table striped bordered hover className="mt-3">
         <thead>
           <tr>
             <th>Operator ID</th>
-            <th>Name</th>
-            <th>Password</th>
             <th>First Name</th>
             <th>Last Name</th>
           </tr>
         </thead>
         <tbody>
-          {operatorList.map((operator) => (
-            <tr key={operator.operatorID} onClick={() => handleItemClick(operator)}>
-              <td>{operator.operatorID.toUpperCase()}</td>
-              <td>{operator.operatorName.toUpperCase()}</td>
-              <td>{operator.password.toUpperCase()}</td>
-              <td>{operator.firstname.toUpperCase()}</td>
-              <td>{operator.lastname.toUpperCase()}</td>
+          {operatorListFromStore.map((operator: any, index: number) => (
+            <tr key={index} onClick={() => handleItemClick(operator)}>
+              <td>{operator.operatorid}</td>
+              <td>{operator.firstname}</td>
+              <td>{operator.lastname}</td>
             </tr>
           ))}
         </tbody>
       </Table>
-          
-      <Link to="/main" className="primary m-3">
-          Go Back
-      </Link>
-              
+      
+      <Button className="primary m-3" onClick={() => navigate('/main')}>Go Back</Button>
     </Container>
   );
 };

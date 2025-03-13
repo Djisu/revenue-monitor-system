@@ -1,33 +1,36 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
-const { Client } = pkg;
 const { Pool } = pkg;
+//import type { QueryResult } from 'pg';  // Import QueryResult as a type
 import bcrypt from 'bcrypt';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 // PostgreSQL connection configuration
-const dbConfig = {
-    connectionString: process.env.DATABASE_URL || 'postgresql://localhost/revmonitor',
-};
+const pool = new Pool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'revmonitor',
+    port: parseInt(process.env.DB_PORT || '5432'),
+});
 // Create a new operator permission record
 router.post('/create', async (req, res) => {
     const operatorPermissionData = req.body;
-    console.log('Creating new operator permission:', operatorPermissionData.operatorid);
-    const client = new Client(dbConfig);
-    //console.log('Creating new operator permission', operatorPermissionData);
+    console.log('in router.post(/create) permission:', operatorPermissionData.operatorid);
+    let client = null;
     try {
-        await client.connect();
+        client = await pool.connect();
         // Check if an operator permission with the same operatorid already exists
-        const existingPermissionResult = await client.query('SELECT * FROM operatorpermission WHERE "operatorid" = $1', [operatorPermissionData.operatorid]);
-        if (existingPermissionResult.rowCount > 0) {
+        const existingPermissionResult = await client.query('SELECT * FROM operatorpermission WHERE operatorid = $1', [operatorPermissionData.operatorid]);
+        if (existingPermissionResult.rowCount !== null && existingPermissionResult.rowCount > 0) {
             res.status(409).json({ message: 'Operator permission with this operatorid already exists.' });
             return;
         }
         // Find operator definitions password
-        const operatorResult = await client.query('SELECT password FROM operatordefinition WHERE "operatorid" = $1', [operatorPermissionData.operatorid]);
-        if (operatorResult.rowCount === 0) {
+        const operatorResult = await client.query('SELECT password FROM operatordefinition WHERE operatorid = $1', [operatorPermissionData.operatorid]);
+        if (operatorResult.rowCount === 0 || operatorResult === null) {
             res.status(404).json({ message: 'Operator definition with this operatorid does not exist.' });
             return;
         }
@@ -36,7 +39,7 @@ router.post('/create', async (req, res) => {
         const hashedPassword = await bcrypt.hash(operatorPermissionData.password, salt);
         operatorPermissionData.password = hashedPassword;
         // Insert the new operator permission data
-        await client.query(`INSERT INTO operatorpermission ("operatorid", "menus", "password") 
+        await client.query(`INSERT INTO operatorpermission (operatorid, menus, password) 
             VALUES ($1, $2, $3)`, [
             operatorPermissionData.operatorid,
             operatorPermissionData.menus,
@@ -46,100 +49,118 @@ router.post('/create', async (req, res) => {
     }
     catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating operator permission', error });
+        res.status(500).json({ message: 'Error creating operator permission' });
     }
     finally {
-        await client.end();
+        if (client) {
+            client.release();
+        }
     }
 });
 // Read all operator permissions
-router.get('/', async (req, res) => {
-    const client = new Client(dbConfig);
+router.get('/all', async (req, res) => {
+    let client = null;
     try {
-        await client.connect();
+        client = await pool.connect();
         const result = await client.query('SELECT * FROM operatorpermission');
-        res.json(result.rows);
+        if (result.rows.length === 0) {
+            res.status(404).json({ message: 'No records found', data: [] });
+            return; // Add return to prevent fall-through
+        }
+        res.status(200).json({ message: 'Records found', data: result.rows });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching operator permissions', error });
+        res.status(500).json({ message: 'Error fetching operator permissions' });
     }
     finally {
-        await client.end();
+        if (client) {
+            client.release();
+        }
     }
 });
 // Read a single operator permission by OperatorID
 router.get('/:OperatorID', async (req, res) => {
     const { operatorid } = req.params;
-    const client = new Client(dbConfig);
+    let client = null;
     try {
-        await client.connect();
-        const result = await client.query('SELECT * FROM operatorpermission WHERE "operatorid" = $1', [operatorid]);
-        if (result.rowCount > 0) {
-            res.json(result.rows[0]); // Return the first row
+        client = await pool.connect();
+        const result = await client.query('SELECT * FROM operatorpermission WHERE operatorid = $1', [operatorid]);
+        if (result.rowCount === 0) {
+            res.status(404).json({ message: 'Record not found' });
+            return; // Add return to prevent fall-through
         }
-        else {
-            res.status(404).json({ message: 'Operator permission not found' });
-        }
+        res.status(200).json({ message: 'Successfully retrieved', data: result.rows[0] });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching operator permission', error });
+        res.status(500).json({ message: 'Error fetching operator permission' });
     }
     finally {
-        await client.end();
+        if (client) {
+            client.release();
+        }
     }
 });
 // Update an operator permission record
 router.put('/:OperatorID', async (req, res) => {
-    const { operatorid } = req.params;
+    const { OperatorID } = req.params;
     const operatorPermissionData = req.body;
-    const client = new Client(dbConfig);
+    let client = null;
     try {
-        await client.connect();
+        client = await pool.connect();
         // Check if an operator permission with the same OperatorID exists
-        const existingPermissionResult = await client.query('SELECT * FROM operatorpermission WHERE "operatorid" = $1', [operatorid]);
+        const existingPermissionResult = await client.query('SELECT * FROM operatorpermission WHERE operatorid = $1', [OperatorID]);
         if (existingPermissionResult.rowCount === 0) {
-            res.status(404).json({ message: 'Operator permission with this OperatorID does not exist.' });
+            res.status(404).json({ message: 'Operator permission with this operator ID does not exist.' });
             return;
         }
-        await client.query(`UPDATE operatorpermission SET "Menus" = $1, "password" = $2 
-            WHERE "OperatorID" = $3`, [
+        // Hash the password if it's being updated
+        if (operatorPermissionData.password) {
+            const salt = await bcrypt.genSalt(10);
+            operatorPermissionData.password = await bcrypt.hash(operatorPermissionData.password, salt);
+        }
+        await client.query(`UPDATE operatorpermission SET menus = $1, password = $2 
+            WHERE operatorid = $3`, [
             operatorPermissionData.menus,
             operatorPermissionData.password,
-            operatorid
+            OperatorID
         ]);
         res.status(200).json({ message: 'Operator permission updated successfully' });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating operator permission', error });
+        res.status(500).json({ message: 'Error updating operator permission' });
     }
     finally {
-        await client.end();
+        if (client) {
+            client.release();
+        }
     }
 });
 // Delete an operator permission record
-router.delete('/:OperatorID', async (req, res) => {
-    const { operatorid } = req.params;
-    const client = new Client(dbConfig);
+router.delete('/:operatorID', async (req, res) => {
+    const { operatorID } = req.params;
+    let client = null;
     try {
-        await client.connect();
+        client = await pool.connect();
         // Check if an operator permission with the same OperatorID exists
-        const existingPermissionResult = await client.query('SELECT * FROM operatorpermission WHERE "operatorid" = $1', [operatorid]);
+        const existingPermissionResult = await client.query('SELECT * FROM operatorpermission WHERE operatorid = $1', [operatorID]);
         if (existingPermissionResult.rowCount === 0) {
             res.status(404).json({ message: 'Operator permission with this OperatorID does not exist.' });
             return;
         }
-        await client.query('DELETE FROM operatorpermission WHERE "operatorid" = $1', [operatorid]);
+        await client.query('DELETE FROM operatorpermission WHERE operatorid = $1', [operatorID]);
         res.status(200).json({ message: 'Operator permission deleted successfully' });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error deleting operator permission', error });
+        res.status(500).json({ message: 'Error deleting operator permission' });
     }
     finally {
-        await client.end();
+        if (client) {
+            client.release();
+        }
     }
 });
 export default router;

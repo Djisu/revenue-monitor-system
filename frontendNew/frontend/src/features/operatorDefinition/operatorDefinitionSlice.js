@@ -41,17 +41,31 @@ import axios from 'axios';
 var initialState = {
     operators: [],
     loading: false,
-    error: null,
+    error: null
+};
+var BASE_URL = import.meta.env.VITE_BASE_URL ||
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+// Function to get headers
+var getAuthHeaders = function () {
+    var token = localStorage.getItem('token');
+    return {
+        headers: {
+            Authorization: "Bearer ".concat(token),
+        },
+    };
 };
 // Async thunk to fetch all operators
 export var fetchOperators = createAsyncThunk('operator/fetchOperators', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get('/api/operator')];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/operatorDefinition/all"), getAuthHeaders())];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                if (response.status !== 200) {
+                    throw new Error('Failed to fetch operators');
+                }
+                return [2 /*return*/, Array.isArray(response.data) ? response.data : [response.data]];
         }
     });
 }); });
@@ -60,7 +74,7 @@ export var fetchOperatorById = createAsyncThunk('operator/fetchOperatorById', fu
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("/api/operator/".concat(OperatorID))];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/operatorDefinition/").concat(OperatorID), getAuthHeaders())];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -72,10 +86,12 @@ export var createOperator = createAsyncThunk('operator/createOperator', function
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post('/api/operator', operatorData)];
+            case 0:
+                console.log('in createOperator slice');
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/operatorDefinition/create"), operatorData, getAuthHeaders())];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                return [2 /*return*/, response.data.message]; // Return only the message from the response
         }
     });
 }); });
@@ -85,10 +101,10 @@ export var updateOperator = createAsyncThunk('operator/updateOperator', function
     var OperatorID = _b.OperatorID, operatorData = _b.operatorData;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.put("/api/operator/".concat(OperatorID), operatorData)];
+            case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/operatorDefinition/").concat(OperatorID), operatorData, getAuthHeaders())];
             case 1:
                 response = _c.sent();
-                return [2 /*return*/, response.data];
+                return [2 /*return*/, response];
         }
     });
 }); });
@@ -97,10 +113,10 @@ export var deleteOperator = createAsyncThunk('operator/deleteOperator', function
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.delete("/api/operator/".concat(OperatorID))];
+            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/operatorDefinition/").concat(OperatorID), getAuthHeaders())];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                return [2 /*return*/, response];
         }
     });
 }); });
@@ -126,9 +142,9 @@ var operatorDefinitionSlice = createSlice({
             .addCase(fetchOperatorById.pending, function (state) {
             state.loading = true;
         })
-            .addCase(fetchOperatorById.fulfilled, function (state) {
+            .addCase(fetchOperatorById.fulfilled, function (state, action) {
             state.loading = false;
-            // Handle the fetched operator data if needed
+            state.operators.push(action.payload);
             state.error = null;
         })
             .addCase(fetchOperatorById.rejected, function (state, action) {
@@ -140,7 +156,8 @@ var operatorDefinitionSlice = createSlice({
         })
             .addCase(createOperator.fulfilled, function (state, action) {
             state.loading = false;
-            state.operators.push(action.payload); // Add the new operator
+            // Handle the message returned from the API
+            console.log(action.payload); // Log success message
             state.error = null;
         })
             .addCase(createOperator.rejected, function (state, action) {
@@ -152,10 +169,11 @@ var operatorDefinitionSlice = createSlice({
         })
             .addCase(updateOperator.fulfilled, function (state, action) {
             state.loading = false;
-            var index = state.operators.findIndex(function (operator) { return operator.OperatorID === action.payload.OperatorID; });
+            var index = state.operators.findIndex(function (operator) { return operator.operatorid === action.payload.data.operatorid; });
             if (index !== -1) {
-                state.operators[index] = action.payload; // Update the operator
+                state.operators[index] = action.payload.data; // Update the operator
             }
+            console.log(action.payload.data.message); // Log success message
             state.error = null;
         })
             .addCase(updateOperator.rejected, function (state, action) {
@@ -167,8 +185,9 @@ var operatorDefinitionSlice = createSlice({
         })
             .addCase(deleteOperator.fulfilled, function (state, action) {
             state.loading = false;
-            state.operators = state.operators.filter(function (operator) { return operator.OperatorID !== action.meta.arg; });
+            state.operators = state.operators.filter(function (operator) { return operator.operatorid !== action.meta.arg; });
             state.error = null;
+            console.log(action.payload.data.message); // Log success message
         })
             .addCase(deleteOperator.rejected, function (state, action) {
             state.loading = false;
@@ -180,3 +199,137 @@ var operatorDefinitionSlice = createSlice({
 export var _b = _a = operatorDefinitionSlice.actions; // Add any synchronous actions if required
 // Export the reducer
 export default operatorDefinitionSlice.reducer;
+// // src/features/operator/operatorSlice.ts
+// import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+// import axios from 'axios';
+// // Define the type for Operator data
+// interface OperatorData {
+//     OperatorID: string;
+//     OperatorName: string;
+//     password: string;
+//     firstname: string;
+//     lastname: string;
+// }
+// // Define the initial state for the slice
+// interface OperatorState {
+//     operators: OperatorData[];
+//     loading: boolean;
+//     error: string | null;
+// }
+// const initialState: OperatorState = {
+//     operators: [],
+//     loading: false,
+//     error: null,
+// };
+// const BASE_URL = import.meta.env.VITE_BASE_URL || 
+// (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+// // Async thunk to fetch all operators
+// export const fetchOperators = createAsyncThunk('operator/fetchOperators', async () => {
+//     console.log('in fetchOperators slice');
+//     const response = await axios.get(`${BASE_URL}/api/operatorDefinition/all`);
+//     if (response.status!== 200){
+//         throw new Error('Failed to fetch operators');
+//     }
+//     const data = Array.isArray(response.data) ? response.data : [response.data];
+//     return data;
+// });
+// // Async thunk to fetch a single operator by OperatorID
+// export const fetchOperatorById = createAsyncThunk('operator/fetchOperatorById', async (OperatorID: string) => {
+//     const response = await axios.get(`${BASE_URL}/api/operatorDefinition/${OperatorID}`);
+//     console.log(response.data);
+//     return response.data;
+// });
+// // Async thunk to create a new operator
+// export const createOperator = createAsyncThunk('operator/createOperator', async (operatorData: OperatorData) => {
+//     const response = await axios.post(`${BASE_URL}/api/operatorDefinition`, operatorData);
+//     return response.data;
+// });
+// // Async thunk to update an operator
+// export const updateOperator = createAsyncThunk('operator/updateOperator', async (
+//       { OperatorID, operatorData }: { OperatorID: string; operatorData: OperatorData }
+//     ) => {
+//     const response = await axios.put(`${BASE_URL}/api/operatorDefinition/${OperatorID}`, operatorData);
+//     return response.data;
+// });
+// // Async thunk to delete an operator
+// export const deleteOperator = createAsyncThunk('operator/deleteOperator', async (OperatorID: string) => {
+//     const response = await axios.delete(`${BASE_URL}/api/operatorDefinition/${OperatorID}`);
+//     return response.data;
+// });
+// // Create the slice
+// const operatorDefinitionSlice = createSlice({
+//     name: 'operator',
+//     initialState,
+//     reducers: {},
+//     extraReducers: (builder) => {
+//         builder
+//             .addCase(fetchOperators.pending, (state) => {
+//                 state.loading = true;
+//             })
+//             .addCase(fetchOperators.fulfilled, (state, action) => {
+//                 state.loading = false;
+//                 state.operators = action.payload;
+//                 state.error = null;
+//             })
+//             .addCase(fetchOperators.rejected, (state, action) => {
+//                 state.loading = false;
+//                 state.error = action.error.message || 'Failed to fetch operators';
+//             })
+//             .addCase(fetchOperatorById.pending, (state) => {
+//                 state.loading = true;
+//             })
+//             .addCase(fetchOperatorById.fulfilled, (state, action) => {
+//                 state.loading = false;
+//                 // Handle the fetched operator data if needed
+//                 state.operators.push(action.payload); // Add the new operator
+//                 state.error = null;
+//             })
+//             .addCase(fetchOperatorById.rejected, (state, action) => {
+//                 state.loading = false;
+//                 state.error = action.error.message || 'Failed to fetch operator';
+//             })
+//             .addCase(createOperator.pending, (state) => {
+//                 state.loading = true;
+//             })
+//             .addCase(createOperator.fulfilled, (state, action) => {
+//                 state.loading = false;
+//                 state.operators.push(action.payload); // Add the new operator
+//                 state.error = null;
+//             })
+//             .addCase(createOperator.rejected, (state, action) => {
+//                 state.loading = false;
+//                 state.error = action.error.message || 'Failed to create operator';
+//             })
+//             .addCase(updateOperator.pending, (state) => {
+//                 state.loading = true;
+//             })
+//             .addCase(updateOperator.fulfilled, (state, action) => {
+//                 state.loading = false;
+//                 const index = state.operators.findIndex(operator => operator.OperatorID === action.payload.OperatorID);
+//                 if (index !== -1) {
+//                     state.operators[index] = action.payload; // Update the operator
+//                 }
+//                 state.error = null;
+//             })
+//             .addCase(updateOperator.rejected, (state, action) => {
+//                 state.loading = false;
+//                 state.error = action.error.message || 'Failed to update operator';
+//             })
+//             .addCase(deleteOperator.pending, (state) => {
+//                 state.loading = true;
+//             })
+//             .addCase(deleteOperator.fulfilled, (state, action) => {
+//                 state.loading = false;
+//                 state.operators = state.operators.filter(operator => operator.OperatorID !== action.meta.arg);
+//                 state.error = null;
+//             })
+//             .addCase(deleteOperator.rejected, (state, action) => {
+//                 state.loading = false;
+//                 state.error = action.error.message || 'Failed to delete operator';
+//             });
+//     },
+// });
+// // Export the actions if needed
+// export const {} = operatorDefinitionSlice.actions; // Add any synchronous actions if required
+// // Export the reducer
+// export default operatorDefinitionSlice.reducer;

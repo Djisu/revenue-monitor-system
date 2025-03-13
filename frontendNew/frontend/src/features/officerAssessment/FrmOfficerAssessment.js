@@ -36,233 +36,164 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '../../app/store';
 import { Button, Form, Container, Row, Col } from 'react-bootstrap';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
-var OfficerAssessmentForm = function () {
-    var _a = useState(''), fiscalYear = _a[0], setFiscalYear = _a[1];
+import { useNavigate } from 'react-router-dom';
+import { fetchOfficers } from '../officer/officerSlice';
+import { fetchJanuaryAmount, fetchClientsServed, fetchBillsDistributed } from './officerAssessmentSlice';
+import { fetchOfficerBudget } from '../officerBudget/officerBudgetSlice';
+var FrmOfficerAssessment = function () {
+    var dispatch = useAppDispatch();
+    var navigate = useNavigate();
+    var _a = useState(""), firstFiscalYear = _a[0], setFirstFiscalYear = _a[1]; // Initialize as an empty string
     var _b = useState(''), firstOfficer = _b[0], setFirstOfficer = _b[1];
-    var _c = useState([]), officers = _c[0], setOfficers = _c[1];
-    var _d = useState([]), fiscalYears = _d[0], setFiscalYears = _d[1];
+    //let [fiscalYears, setFiscalYears] = useState<FiscalYearsParam[]>([]);
+    //const [selectedOfficerName, setSelectedOfficerName] = useState('');
+    var officersData = useAppSelector(function (state) { return state.officer.officers; });
+    // const fiscalYearsData: FiscalYear[] = useAppSelector((state) => state.officerAssessment.fiscalYears);    //.officerAssessment?.bus_year || []);
+    // console.log("Selected Fiscal Year:", firstFiscalYear);
+    // console.log("Fiscal Years Data:", fiscalYearsData);
+    // useEffect(() => {
+    //   console.log('Officers Data Updated:', officersData); 
+    // }, [fiscalYearsData]);
+    // Use this effect to log the updated state after it changes
+    // useEffect(() => {
+    //   console.log("Updated firstOfficer:", firstOfficer);
+    // }, [firstOfficer]);
     useEffect(function () {
-        // Fetch officers
-        var fetchOfficers = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var response, error_1;
+        var fetchData = function () { return __awaiter(void 0, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, axios.get('/api/officers')];
+                    case 0: return [4 /*yield*/, dispatch(fetchOfficers())];
                     case 1:
-                        response = _a.sent();
-                        setOfficers(response.data);
-                        return [3 /*break*/, 3];
-                    case 2:
-                        error_1 = _a.sent();
-                        console.error("Error fetching officers:", error_1);
-                        alert("No officer details entered yet");
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         }); };
-        // Fetch fiscal years
-        var fetchFiscalYears = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var response, error_2, currentYear;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, axios.get('/api/fiscal-years')];
-                    case 1:
-                        response = _a.sent();
-                        setFiscalYears(response.data);
-                        return [3 /*break*/, 3];
-                    case 2:
-                        error_2 = _a.sent();
-                        console.error("Error fetching fiscal years:", error_2);
-                        currentYear = new Date().getFullYear();
-                        alert("No officer budget details entered FOR the year ".concat(currentYear));
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
-                }
-            });
-        }); };
-        fetchOfficers();
-        fetchFiscalYears();
-        // Show alert on form load
-        alert("Make sure that client payments are correctly updated else you will not get the report");
-    }, []);
-    var handleOfficerChange = function (event) {
+        fetchData();
+    }, [dispatch]);
+    // Fetch fiscal years
+    // const fetchFiscalYearsData = async () => {
+    //   try {
+    //       // Dispatch the thunk
+    //       const resultAction = await dispatch(fetchFiscalYears())  //.unwrap();
+    //       console.log("resultAction:", resultAction)
+    //      // Check if the response indicates that the data exists
+    //           if (resultAction.payload) {
+    //             // Data was successfully fetched
+    //             console.log('resultAction.payload:', resultAction.payload);
+    //             // You can further process the budget data here
+    //           } else {
+    //             // Handle the case where the data doesn't exist
+    //             console.error("No budget data found for the officer:", resultAction);
+    //             alert("No budget data found for the officer.");
+    //           }
+    //   } catch (error) {
+    //       console.error("Error fetching fiscal years:", error);
+    //       const currentYear = new Date().getFullYear();
+    //       alert(`No officer budget details entered FOR the year ${currentYear}`);
+    //   }
+    // };
+    // const handleFirstOfficerChange = (event: React.ChangeEvent<HTMLElement>) => {
+    //   const target = event.target as HTMLSelectElement; 
+    //   console.log("target.value:", target.value);
+    //   setFirstOfficer(target.value.split(' ')[0]);
+    //    console.log("firstOfficer:", firstOfficer);
+    // };
+    // const handleFirstOfficerChange = (event: React.ChangeEvent<HTMLElement>) => {
+    //   const target = event.target as HTMLSelectElement;
+    //   const selectedOfficer = target.value.split(' ')[0];
+    //   setFirstOfficer(selectedOfficer);
+    // };
+    var handleFirstOfficerChange = function (event) {
         var target = event.target;
         var selectedOfficer = target.value.split(' ')[0];
         setFirstOfficer(selectedOfficer);
     };
-    var handleFiscalYearChange = function (event) {
+    var handleFirstFiscalYearChange = function (event) {
         var target = event.target;
-        setFiscalYear(target.value);
+        setFirstFiscalYear(target.value);
     };
     var handlePreviewClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var budgetResponse, assessmentResponse, error_3;
+        var budgetResponse, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!fiscalYear) {
-                        alert("ENTER THE FISCAL YEAR");
+                    console.log('in handlePreviewClick');
+                    if (!firstFiscalYear || !firstOfficer) {
+                        alert("ENTER THE FISCAL YEAR AND OFFICERS");
                         return [2 /*return*/];
                     }
+                    console.log('about to access budgetResponse');
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 5, , 6]);
-                    return [4 /*yield*/, axios.get('/api/officer-budget', {
-                            params: { fiscalYear: fiscalYear }
-                        })];
+                    _a.trys.push([1, 6, , 7]);
+                    return [4 /*yield*/, dispatch(fetchOfficerBudget({ officer_no: firstOfficer, fiscal_year: parseInt(firstFiscalYear, 10) })).unwrap()];
                 case 2:
                     budgetResponse = _a.sent();
-                    if (budgetResponse.data.length === 0) {
-                        alert("You have to set budgets for the collectors before assessing them");
-                        return [2 /*return*/];
-                    }
-                    return [4 /*yield*/, axios.delete('/api/officer-assessment')];
-                case 3:
-                    _a.sent();
-                    return [4 /*yield*/, axios.get('/api/officer-assessment')];
-                case 4:
-                    assessmentResponse = _a.sent();
-                    if (assessmentResponse.data.length > 0) {
-                        window.open('/report/REPORT ON MONITORING AND EVALUATION EXERCISE.rpt', '_blank');
-                        alert("This is the report for ".concat(fiscalYear));
+                    console.log('budgetResponse.data: ', budgetResponse.data);
+                    // Check if the response indicates that the data exists
+                    if (budgetResponse.exists) {
+                        // Data was successfully fetched
+                        console.log('Budget Data:', budgetResponse.data);
+                        // You can further process the budget data here
                     }
                     else {
-                        alert("No records found");
+                        // Handle the case where the data doesn't exist
+                        console.error("No budget data found for the officer:", budgetResponse);
+                        alert("No budget data found for the officer.");
                     }
-                    return [3 /*break*/, 6];
-                case 5:
-                    error_3 = _a.sent();
-                    console.error("Error processing preview:", error_3);
-                    alert("Error processing preview");
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
-            }
-        });
-    }); };
-    var handlePrintClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var budgetResponse, weeklyBudgetResponse, error_4;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (!fiscalYear) {
-                        alert("ENTER THE FISCAL YEAR");
-                        return [2 /*return*/];
-                    }
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 5, , 6]);
-                    return [4 /*yield*/, axios.get('/api/officer-budget-weekly', {
-                            params: { fiscalYear: fiscalYear }
-                        })];
-                case 2:
-                    budgetResponse = _a.sent();
-                    if (budgetResponse.data.length === 0) {
-                        alert("You have to set budgets for the collectors before assessing them");
-                        return [2 /*return*/];
-                    }
-                    return [4 /*yield*/, axios.delete('/api/officer-budget-weekly')];
+                    console.log('about to access variable of createClientsServedParams object');
+                    if (!(budgetResponse && budgetResponse.exists && Array.isArray(budgetResponse.data))) return [3 /*break*/, 4];
+                    return [4 /*yield*/, Promise.all(budgetResponse.data.map(function (officer) { return __awaiter(void 0, void 0, void 0, function () {
+                            var officerNo, officerName, fiscalYearValue, noOfClientsServed, valueOfBillsDistributed, januaryAmount;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        officerNo = officer.officer_no;
+                                        console.log('officerNo: ', officerNo);
+                                        officerName = officer.officer_name;
+                                        console.log('officerName: ', officerName);
+                                        fiscalYearValue = parseInt(firstFiscalYear, 10);
+                                        // Check if fiscalYearValue is a valid number
+                                        if (isNaN(fiscalYearValue)) {
+                                            throw new Error('Invalid fiscalYear: must be a number');
+                                        }
+                                        return [4 /*yield*/, dispatch(fetchClientsServed({ officerNo: officerNo, fiscalYear: fiscalYearValue })).unwrap()];
+                                    case 1:
+                                        noOfClientsServed = _a.sent();
+                                        console.log('noOfClientsServed: ', noOfClientsServed);
+                                        return [4 /*yield*/, dispatch(fetchBillsDistributed({ officerNo: officerNo, fiscalYear: fiscalYearValue })).unwrap()];
+                                    case 2:
+                                        valueOfBillsDistributed = _a.sent();
+                                        console.log('valueOfBillsDistributed: ', valueOfBillsDistributed);
+                                        return [4 /*yield*/, dispatch(fetchJanuaryAmount({ officerNo: officerNo, fiscalYear: fiscalYearValue })).unwrap()];
+                                    case 3:
+                                        januaryAmount = _a.sent();
+                                        console.log('januaryAmount: ', januaryAmount);
+                                        return [2 /*return*/];
+                                }
+                            });
+                        }); }))];
                 case 3:
                     _a.sent();
-                    return [4 /*yield*/, axios.get('/api/officer-budget-weekly')];
+                    return [3 /*break*/, 5];
                 case 4:
-                    weeklyBudgetResponse = _a.sent();
-                    if (weeklyBudgetResponse.data.length > 0) {
-                        window.open('/report/REPORT ON MONITORING AND EVALUATION EXERCISE WEEKLY.rpt', '_blank');
-                        alert("This is the report for ".concat(fiscalYear));
-                    }
-                    else {
-                        alert("No records found");
-                    }
-                    return [3 /*break*/, 6];
-                case 5:
-                    error_4 = _a.sent();
-                    console.error("Error processing print:", error_4);
-                    alert("Error processing print");
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    console.log('No data available or response structure is invalid.');
+                    _a.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
+                    error_1 = _a.sent();
+                    console.error("Error processing preview:", error_1);
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     }); };
     var handleExitClick = function () {
-        // Assuming you have a way to navigate back to the main page
-        window.location.href = '/'; // Redirect to main page or wherever you want
+        navigate('/main');
     };
-    // const findNoOfClientsServed = async (officerNo: string): Promise<number> => {
-    //   try {
-    //     const response = await axios.get('/api/no-of-clients-served', {
-    //       params: { officerNo, fiscalYear }
-    //     });
-    //     return response.data || 0;
-    //   } catch (error) {
-    //     console.error("Error fetching no of clients served:", error);
-    //     return 0;
-    //   }
-    // };
-    // const findValueOfBillsDistributed = async (officerNo: string): Promise<number> => {
-    //   try {
-    //     const response = await axios.get('/api/value-of-bills-distributed', {
-    //       params: { officerNo, fiscalYear }
-    //     });
-    //     return response.data || 0;
-    //   } catch (error) {
-    //     console.error("Error fetching value of bills distributed:", error);
-    //     return 0;
-    //   }
-    // };
-    // const findJanuaryAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '1', 'January');
-    // };
-    // const findFebruaryAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '2', 'February');
-    // };
-    // const findMarchAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '3', 'March');
-    // };
-    // const findAprilAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '4', 'April');
-    // };
-    // const findMayAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '5', 'May');
-    // };
-    // const findJuneAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '6', 'June');
-    // };
-    // const findJulyAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '7', 'July');
-    // };
-    // const findAugustAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '8', 'August');
-    // };
-    // const findSeptemberAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '9', 'September');
-    // };
-    // const findOctoberAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '10', 'October');
-    // };
-    // const findNovemberAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '11', 'November');
-    // };
-    // const findDecemberAmount = async (officerNo: string): Promise<number> => {
-    //   return findMonthlyAmount(officerNo, '12', 'December');
-    // };
-    // const findMonthlyAmount = async (officerNo: string, month: string, monthName: string): Promise<number> => {
-    //   try {
-    //     const response = await axios.get('/api/monthly-amount', {
-    //       params: { officerNo, fiscalYear, month, monthName }
-    //     });
-    //     return response.data || 0;
-    //   } catch (error) {
-    //     console.error(`Error fetching amount for ${monthName}:`, error);
-    //     return 0;
-    //   }
-    // };
-    return (_jsxs(Container, { fluid: true, className: "bg-light", children: [_jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx("h2", { style: { textDecoration: 'underline', color: '#0000C0' }, children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFiscalYear", children: [_jsx(Form.Label, { children: "First Fiscal Year:" }), _jsxs(Form.Control, { as: "select", value: fiscalYear, onChange: handleFiscalYearChange, children: [_jsx("option", { value: "", children: "Select a fiscal year" }), fiscalYears.map(function (year) { return (_jsx("option", { value: year.fiscal_year, children: year.fiscal_year }, year.fiscal_year)); })] })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstOfficer", children: [_jsx(Form.Label, { children: "First Officer:" }), _jsxs(Form.Control, { as: "select", value: firstOfficer, onChange: handleOfficerChange, children: [_jsx("option", { value: "", children: "Select an officer" }), officers.map(function (officer) { return (_jsxs("option", { value: "".concat(officer.officer_no, " ").concat(officer.officer_name), children: [officer.officer_no, " ", officer.officer_name] }, officer.officer_no)); })] })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "primary", onClick: handlePreviewClick, children: "Preview Monitoring Report (Monthly)" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "success", onClick: handlePrintClick, children: "Print Monitoring Report (Weekly)" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "secondary", onClick: handleExitClick, children: "Exit" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) })] }));
+    return (_jsxs(Container, { fluid: true, className: "bg-light", children: [_jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx("p", { style: { textDecoration: 'underline', color: '#0000C0' }, children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstFiscalYear", children: [_jsx(Form.Label, { children: "First Fiscal Year:" }), _jsx(Form.Control, { type: "number", value: firstFiscalYear, onChange: handleFirstFiscalYearChange, placeholder: "Enter a fiscal year" })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstOfficer", children: [_jsxs(Form.Label, { children: ["First Officer:   ", _jsx("p", { style: { textDecoration: 'underline', color: '#0000C0' }, children: firstOfficer })] }), _jsxs(Form.Control, { as: "select", value: firstOfficer, onChange: handleFirstOfficerChange, children: [_jsx("option", { value: "", children: "Select an officer" }), officersData.map(function (officer) { return (_jsxs("option", { value: "".concat(officer.officer_no, " ").concat(officer.officer_name), children: [officer.officer_no, "  ", officer.officer_name] }, officer.officer_no)); })] })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "primary", onClick: handlePreviewClick, children: "Preview Monitoring Report (Monthly)" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Button, { variant: "secondary", onClick: handleExitClick, children: "Exit" }) }) })] }));
 };
-export default OfficerAssessmentForm;
+export default FrmOfficerAssessment;

@@ -4,40 +4,41 @@ import axios from 'axios';
 
 // Define the type for Business data
 interface BusinessData {
-  buss_no: number;
-  buss_name?: string;
-  buss_address?: string;
-  buss_type?: string;
-  buss_town?: string;
-  buss_permitNo?: string;
-  street_name?: string;
-  landmark?: string;
-  electroral_area?: string;
-  property_class?: string;
-  tot_grade?: string;
-  ceo?: string;
-  telno?: string;
-  strategiclocation?: number;
-  productvariety?: number;
-  businesspopularity?: number;
-  businessenvironment?: number;
-  sizeofbusiness?: number;
-  numberofworkingdays?: number;
-  businessoperatingperiod?: number;
-  competitorsavailable?: number;
-  assessmentby?: string;
-  transdate?: Date;
-  balance?: number;
-  status?: string;
-  current_rate?: number;
-  property_rate?: number;
-  totalmarks?: number;
-  emailaddress?: string; 
-  postaladdress?: string;
-  gps_address?: string; 
-  noofemployees?: number;
-  noofbranches?: number;
-  BALANCENEW?: number;
+    buss_no: number;
+    buss_name?: string;
+    buss_address?: string;
+    buss_type?: string;
+    buss_town?: string;
+    buss_permitNo?: string;
+    street_name?: string;
+    landmark?: string;
+    electroral_area?: string;
+    property_class?: string;
+    tot_grade?: string;
+    ceo?: string;
+    telno?: string;
+    strategiclocation?: number;
+    productvariety?: number;
+    businesspopularity?: number;
+    businessenvironment?: number;
+    sizeofbusiness?: number;
+    numberofworkingdays?: number;
+    businessoperatingperiod?: number;
+    competitorsavailable?: number;
+    assessmentby?: string;
+    transdate?: Date;
+    balance?: number;
+    status?: string;
+    current_rate?: number;
+    property_rate?: number;
+    totalmarks?: number;
+    emailaddress?: string;  
+    noofemployees?: number;
+    noofbranches?: number;
+    BALANCENEW?: number;
+    gps_address?: string; 
+    serialNo?: number;
+    buss_location?: string;
 }
 
 // Define the initial state for the slice
@@ -158,13 +159,16 @@ export const createBusiness = createAsyncThunk('business/createBusiness', async 
 
 // Async thunk to fetch a single business by buss_no 
 export const fetchBusinessById = createAsyncThunk('business/fetchBusinessById', async (buss_no: number) => {
+
+    console.log('in fetchBusinessById slice, Fetching a business by buss_no: ')
+
     const response = await axios.get(`${BASE_URL}/api/business/${buss_no}`);
     
     if (response.status >= 200 && response.status < 300) {
-        console.log('fetchGradeFees fulfilled::: ', response.data);
+        console.log('response.data::: ', response.data);
         // Ensure response.data is an array
-        return Array.isArray(response.data) ? response.data : []; //
-        // return data; // This data will be available as `action.payload`
+        //return Array.isArray(response.data) ? response.data : []; //
+        return response.data; // This data will be available as `action.payload`
     } else {
     throw new Error(`Error fetching business client. Status: ${response.status} - Error: ${response.statusText}`);
     }    
@@ -190,7 +194,7 @@ export const updateBusiness = createAsyncThunk(
        console.log('in updateBusiness slice, Updating a business: ', data)
 
         const response = await axios.put(
-            `${BASE_URL}/api/business/update/${buss_no}`,
+            `${BASE_URL}/api/business/${buss_no}`,
             data,
             {
                 headers: { 'Content-Type': 'application/json' },

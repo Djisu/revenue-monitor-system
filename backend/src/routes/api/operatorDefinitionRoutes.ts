@@ -4,7 +4,6 @@ import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
-import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 import bcrypt from 'bcrypt';
 
@@ -138,14 +137,21 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Read all operators
-router.get('/', async (req: Request, res: Response) => {
+router.get('/all', async (req: Request, res: Response) => {
+    console.log('in operator definition router.get(all');
+
     let client = null;
 
     try {
         client = await pool.connect();
 
         const rows = await client.query('SELECT * FROM operatordefinition');
-        res.json(rows.rows);
+        if (rows.rows.length == 0) {
+            res.status(200).json([]);
+            return;
+        }
+
+        res.status(200).json(rows.rows);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching operators', error });
@@ -171,10 +177,10 @@ router.get('/:OperatorID', async (req: Request, res: Response) => {
         );
 
         if (result.rows.length == 0) {
-            res.status(404).json({ message: 'Operator with this OperatorID does not exist.' });
+            res.status(200).json([]);
             return;
         }
-        res.json(result.rows[0]); // Return the first row
+        res.status(200).json(result.rows[0]); // Return the first row
         return;
     } catch (error) {
         console.error(error);

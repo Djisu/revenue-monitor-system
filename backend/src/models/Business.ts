@@ -33,5 +33,6 @@ export interface Business {
     BALANCENEW?: number;
     gps_address?: string; 
     serialNo?: number;
+    buss_location?: string;
 }
 

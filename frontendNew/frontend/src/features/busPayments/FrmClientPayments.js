@@ -81,38 +81,51 @@ var FrmClientPayments = function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, dispatch(fetchBusinessById(Number(businessNo))).unwrap()];
+                    console.log('in getBusiness');
+                    _a.label = 1;
                 case 1:
-                    response = _a.sent();
-                    //dispatch(busPaymentsFulfilled({ billedAmount: response.billedAmount }));
-                    if (Array.isArray(response)) {
-                        console.log('Response is an array:', response[0]);
-                        // Set response fields to the following state variables
-                        setOfficerNo(response[0].assessmentby);
-                        setElectoralArea(response[0].electroral_area);
-                        setEmail(response[0].emailaddress);
-                        setBusinessName(response[0].buss_name);
-                        setFiscalYear(new Date().getFullYear().toString());
-                        dispatch(fetchBilledAmount(response[0].buss_no));
-                        if (fetchBilledAmount.fulfilled.match(response)) {
-                            console.log('Billed Amount:', response.payload.billedAmount);
-                            setBilledAmount(response.payload.billedAmount);
-                        }
-                        else {
-                            console.log('Billed Amount not found in response');
-                        }
-                        uniqueReceiptNo = generateUniqueNumber();
-                        setReceiptNo(uniqueReceiptNo);
-                    }
-                    return [3 /*break*/, 3];
+                    _a.trys.push([1, 6, , 7]);
+                    return [4 /*yield*/, dispatch(fetchBusinessById(Number(businessNo))).unwrap()];
                 case 2:
+                    response = _a.sent();
+                    console.log('Response from slice:', response.data);
+                    if (!response) return [3 /*break*/, 4];
+                    console.log('there is response:', response.data);
+                    // Set response fields to the following state variables
+                    setOfficerNo(response.data.assessmentby);
+                    console.log(officerNo);
+                    setElectoralArea(response.data.electroral_area);
+                    console.log(electoralArea);
+                    setEmail(response.data.emailaddress);
+                    console.log(email);
+                    setBusinessName(response.data.buss_name);
+                    console.log(businessName);
+                    setFiscalYear(new Date().getFullYear().toString());
+                    console.log('response.buss_no: ', response.data.buss_no);
+                    return [4 /*yield*/, dispatch(fetchBilledAmount(response.data.buss_no)).unwrap()];
+                case 3:
+                    _a.sent();
+                    if (fetchBilledAmount.fulfilled.match(response)) {
+                        console.log('Billed Amount:', response.payload.billedAmount);
+                        setBilledAmount(response.payload.billedAmount);
+                    }
+                    else {
+                        console.log('Billed Amount not found in response');
+                    }
+                    uniqueReceiptNo = generateUniqueNumber();
+                    setReceiptNo(uniqueReceiptNo);
+                    return [3 /*break*/, 5];
+                case 4:
+                    console.log('data not found');
+                    _a.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
                     error_1 = _a.sent();
                     console.error('Error fetching business:', error_1);
                     errorMessage = 'Error fetching business. Please try again.';
                     setErrorMessage(errorMessage);
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     }); };
@@ -216,7 +229,8 @@ var FrmClientPayments = function () {
             }
         });
     }); };
-    return (_jsx("div", { className: "container", style: { backgroundColor: '#add8e6' }, children: _jsxs("div", { children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h4", { className: "text-primary", children: "Collector's Payments Entry" }) }) }), _jsxs(Form, { onSubmit: handleSubmit, children: [_jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Business Number: ", businessName] }), _jsx(Form.Control, { type: "number", value: businessNo, onChange: function (e) { return setBusinessNo(Number(e.target.value)); }, onBlur: function (e) { return getBusiness(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Officer Number:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: function (e) { return setOfficerNo(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Amount Payable: ", billedAmount] }), _jsx(Form.Control, { type: "number", value: paidAmount, onChange: function (e) { return setPaidAmount(Number(e.target.value)); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Month Paid:" }), _jsx(Form.Control, { value: monthPaid, readOnly // If you want it to be read-only
-                                        : true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Transaction Date:" }), _jsx(Form.Control, { value: transDate, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Fiscal Year:" }), _jsx(Form.Control, { value: fiscalYear, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Receipt Number:" }), _jsx(Form.Control, { type: "text", value: receiptNo, onChange: function (e) { return setReceiptNo(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Email:" }), _jsx(Form.Control, { value: email, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Electoral Area:" }), _jsx(Form.Control, { value: electoralArea, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx(Button, { type: "submit", variant: "primary", children: "Click to pay" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", style: { textDecoration: "none" }, children: "Go Back" }) }) })] })] }) }));
+    return (_jsx("div", { className: "container", style: { backgroundColor: '#add8e6' }, children: _jsxs("div", { children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h4", { className: "text-primary", children: "Collector's Payments Entry" }) }) }), _jsxs(Form, { onSubmit: handleSubmit, children: [_jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Business Number: ", businessName] }), _jsx(Form.Control, { type: "text", value: businessNo, onChange: function (e) { return setBusinessNo(Number(e.target.value)); }, onBlur: function (e) { return getBusiness(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Amount Payable: ", _jsx("span", { style: { color: 'red', fontWeight: 'bold' }, children: billedAmount })] }), _jsx(Form.Control, { type: "number", value: paidAmount, onChange: function (e) { return setPaidAmount(Number(e.target.value)); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Receipt Number:" }), _jsx(Form.Control, { type: "text", value: receiptNo, onChange: function (e) { return setReceiptNo(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Officer Number:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: function (e) { return setOfficerNo(e.target.value); }, readOnly // Make the input read-only
+                                        : true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Month Paid:" }), _jsx(Form.Control, { value: monthPaid, readOnly // If you want it to be read-only
+                                        : true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Transaction Date:" }), _jsx(Form.Control, { value: transDate, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Fiscal Year:" }), _jsx(Form.Control, { value: fiscalYear, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Email:" }), _jsx(Form.Control, { value: email, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Electoral Area:" }), _jsx(Form.Control, { value: electoralArea, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx(Button, { type: "submit", variant: "primary", children: "Click to pay" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", style: { textDecoration: "none" }, children: "Go Back" }) }) })] })] }) }));
 };
 export default FrmClientPayments;

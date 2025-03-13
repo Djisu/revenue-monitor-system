@@ -36,81 +36,122 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { Container, Form, Button, Alert, Table } from 'react-bootstrap';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Container, Form, Button, Table, Alert, Row, Col } from 'react-bootstrap';
+import { useAppDispatch, useAppSelector } from '../../hooks';
+import { useNavigate } from 'react-router-dom';
+import { fetchOperators, createOperator, updateOperator, deleteOperator } from './operatorDefinitionSlice';
+// interface OperatorData {
+//   OperatorID: string;
+//   OperatorName: string;
+//   password: string;
+//   firstname: string;
+//   lastname: string;
+//   email: string;
+// }
+// interface AddRecResponse {
+//   message: string;
+// }
+// interface EditRecResponse {
+//   message: string;
+// }
+// interface DeleteRecResponse {clear
+//   message: string;
+// }
 var OperatorDefForm = function () {
-    var _a = useState(''), operatorID = _a[0], setOperatorID = _a[1];
-    var _b = useState(''), operatorName = _b[0], setOperatorName = _b[1];
+    var _a = useState(''), operatorid = _a[0], setOperatorid = _a[1];
+    var _b = useState(''), operatorname = _b[0], setOperatorname = _b[1];
     var _c = useState(''), password = _c[0], setPassword = _c[1];
-    var _d = useState(''), firstName = _d[0], setFirstName = _d[1];
-    var _e = useState(''), lastName = _e[0], setLastName = _e[1];
-    var _f = useState([]), operatorList = _f[0], setOperatorList = _f[1];
-    var _g = useState(''), error = _g[0], setError = _g[1];
-    var _h = useState(''), successMessage = _h[0], setSuccessMessage = _h[1];
+    var _d = useState(''), firstname = _d[0], setFirstname = _d[1];
+    var _e = useState(''), lastname = _e[0], setLastname = _e[1];
+    var _f = useState(''), email = _f[0], setEmail = _f[1];
+    var _g = useState([]), operatorList = _g[0], setOperatorList = _g[1];
+    var _h = useState(''), error = _h[0], setError = _h[1];
+    var _j = useState(''), successMessage = _j[0], setSuccessMessage = _j[1];
+    var dispatch = useAppDispatch();
+    var navigate = useNavigate();
+    var operatorListFromStore = useAppSelector(function (state) { return state.operatorDefinition.operators; });
     useEffect(function () {
         fetchOperatorList();
     }, []);
     var fetchOperatorList = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_1;
+        var operatorListData, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('http://your-api-url/operator_definition')];
+                    console.log('in fetchOperatorList');
+                    _a.label = 1;
                 case 1:
-                    response = _a.sent();
-                    setOperatorList(response.data);
-                    return [3 /*break*/, 3];
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, dispatch(fetchOperators()).unwrap()];
                 case 2:
+                    operatorListData = _a.sent();
+                    console.log(operatorListData); // This is now the array of operators
+                    operatorList = operatorListData;
+                    setOperatorList(operatorList); // Set the operator list directly
+                    return [3 /*break*/, 4];
+                case 3:
                     error_1 = _a.sent();
                     console.error(error_1);
                     setError('Error fetching operators');
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     }); };
     var handleOperatorIDChange = function (e) {
-        setOperatorID(e.target.value);
+        setOperatorid(e.target.value);
     };
     var handleOperatorNameChange = function (e) {
-        setOperatorName(e.target.value);
+        setOperatorname(e.target.value);
     };
     var handlePasswordChange = function (e) {
         setPassword(e.target.value);
     };
     var handleFirstNameChange = function (e) {
-        setFirstName(e.target.value);
+        setFirstname(e.target.value);
     };
     var handleLastNameChange = function (e) {
-        setLastName(e.target.value);
+        setLastname(e.target.value);
+    };
+    var handleEmailChange = function (e) {
+        setEmail(e.target.value);
     };
     var handleAddClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_2;
+        var resultAction, responseMessage, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!operatorID || !operatorName || !password || !firstName || !lastName) {
+                    console.log('in handleAddClick');
+                    if (!operatorid || !operatorname || !password || !firstname || !lastname || !email) {
                         setError('Please fill in all fields');
                         return [2 /*return*/];
                     }
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.post('http://your-api-url/add_rec', {
-                            operatorID: operatorID,
-                            operatorName: operatorName,
+                    return [4 /*yield*/, dispatch(createOperator({
+                            operatorid: operatorid, // Change 'operatorid' to 'OperatorID'
+                            operatorname: operatorname, // Change 'operatorname' to 'OperatorName'
                             password: password,
-                            firstName: firstName,
-                            lastName: lastName,
-                        })];
+                            firstname: firstname,
+                            lastname: lastname,
+                            email: email
+                        }))];
                 case 2:
-                    response = _a.sent();
-                    setSuccessMessage(response.data.message);
-                    setError('');
-                    clearForm();
-                    fetchOperatorList();
+                    resultAction = _a.sent();
+                    // Now you can check if the action was fulfilled or rejected
+                    if (createOperator.fulfilled.match(resultAction)) {
+                        responseMessage = resultAction.payload;
+                        console.log(responseMessage); // Log the success message
+                        setSuccessMessage(responseMessage);
+                        setError('');
+                        clearForm();
+                        fetchOperatorList();
+                    }
+                    else {
+                        // Handle the error case
+                        console.error('Failed to create operator:', resultAction.error);
+                    }
                     return [3 /*break*/, 4];
                 case 3:
                     error_2 = _a.sent();
@@ -123,26 +164,29 @@ var OperatorDefForm = function () {
         });
     }); };
     var handleEditClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_3;
+        var formData, response, error_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!operatorID || !operatorName || !password || !firstName || !lastName) {
+                    if (!operatorid || !operatorname || !password || !firstname || !lastname || !email) {
                         setError('Please fill in all fields');
                         return [2 /*return*/];
                     }
+                    formData = {
+                        operatorid: operatorid,
+                        operatorname: operatorname,
+                        password: password,
+                        firstname: firstname,
+                        lastname: lastname,
+                        email: email
+                    };
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.put('http://your-api-url/edit_rec', {
-                            operatorID: operatorID,
-                            operatorName: operatorName,
-                            password: password,
-                            firstName: firstName,
-                            lastName: lastName,
-                        })];
+                    return [4 /*yield*/, dispatch(updateOperator({ OperatorID: operatorid, operatorData: formData })).unwrap()];
                 case 2:
                     response = _a.sent();
+                    console.log(response.data);
                     setSuccessMessage(response.data.message);
                     setError('');
                     clearForm();
@@ -163,7 +207,7 @@ var OperatorDefForm = function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!operatorID || !password) {
+                    if (!operatorid || !password) {
                         setError('Operator ID and Password cannot be empty');
                         return [2 /*return*/];
                     }
@@ -175,12 +219,7 @@ var OperatorDefForm = function () {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.delete('http://your-api-url/delete_rec', {
-                            data: {
-                                operatorID: operatorID,
-                                password: password,
-                            },
-                        })];
+                    return [4 /*yield*/, dispatch(deleteOperator(operatorid)).unwrap()];
                 case 2:
                     response = _a.sent();
                     setSuccessMessage(response.data.message);
@@ -198,22 +237,21 @@ var OperatorDefForm = function () {
             }
         });
     }); };
-    var handleExitClick = function () {
-        window.location.href = '/'; // Redirect to main page or hide the form
-    };
     var handleItemClick = function (operator) {
-        setOperatorID(operator.operatorID);
-        setOperatorName(operator.operatorName);
-        setPassword(operator.password);
-        setFirstName(operator.firstname);
-        setLastName(operator.lastname);
+        setOperatorid(operator.operatorid || ''); // Default to an empty string if undefined
+        setOperatorname(operator.operatorname || ''); // Default to an empty string if undefined
+        setPassword(operator.password || ''); // Default to an empty string if undefined
+        setFirstname(operator.firstname || ''); // Default to an empty string if undefined
+        setLastname(operator.lastname || ''); // Default to an empty string if undefined
+        setEmail(operator.email || ''); // Default to an empty string if undefined
     };
     var clearForm = function () {
-        setOperatorID('');
-        setOperatorName('');
+        setOperatorid('');
+        setOperatorname('');
         setPassword('');
-        setFirstName('');
-        setLastName('');
+        setFirstname('');
+        setLastname('');
+        setEmail('');
     };
     // const validateOperatorID = async (operatorID: string) => {
     //   try {
@@ -226,6 +264,6 @@ var OperatorDefForm = function () {
     //     setError('Record not found');
     //   }
     // };
-    return (_jsxs(Container, { children: [_jsx("h2", { children: "Operator Definitions" }), error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formOperatorID", children: [_jsx(Form.Label, { children: "Operator ID:" }), _jsx(Form.Control, { type: "text", value: operatorID, onChange: handleOperatorIDChange, maxLength: 10 })] }), _jsxs(Form.Group, { controlId: "formOperatorName", children: [_jsx(Form.Label, { children: "Operator Name:" }), _jsx(Form.Control, { type: "text", value: operatorName, onChange: handleOperatorNameChange, maxLength: 10 })] }), _jsxs(Form.Group, { controlId: "formPassword", children: [_jsx(Form.Label, { children: "Password:" }), _jsx(Form.Control, { type: "password", value: password, onChange: handlePasswordChange, maxLength: 10 })] }), _jsxs(Form.Group, { controlId: "formFirstName", children: [_jsx(Form.Label, { children: "First Name:" }), _jsx(Form.Control, { type: "text", value: firstName, onChange: handleFirstNameChange, maxLength: 5 })] }), _jsxs(Form.Group, { controlId: "formLastName", children: [_jsx(Form.Label, { children: "Last Name:" }), _jsx(Form.Control, { type: "text", value: lastName, onChange: handleLastNameChange, maxLength: 10 })] }), _jsx(Button, { variant: "primary", onClick: handleAddClick, style: { marginTop: '10px' }, children: "Add" }), _jsx(Button, { variant: "success", onClick: handleEditClick, style: { marginLeft: '10px', marginTop: '10px' }, children: "Edit" }), _jsx(Button, { variant: "danger", onClick: handleDeleteClick, style: { marginLeft: '10px', marginTop: '10px' }, children: "Delete" }), _jsx(Button, { variant: "secondary", onClick: handleExitClick, style: { marginLeft: '10px', marginTop: '10px' }, children: "Exit" })] }), _jsx("h3", { className: "mt-4", children: "List Of Operators" }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Operator ID" }), _jsx("th", { children: "Name" }), _jsx("th", { children: "Password" }), _jsx("th", { children: "First Name" }), _jsx("th", { children: "Last Name" })] }) }), _jsx("tbody", { children: operatorList.map(function (operator) { return (_jsxs("tr", { onClick: function () { return handleItemClick(operator); }, children: [_jsx("td", { children: operator.operatorID.toUpperCase() }), _jsx("td", { children: operator.operatorName.toUpperCase() }), _jsx("td", { children: operator.password.toUpperCase() }), _jsx("td", { children: operator.firstname.toUpperCase() }), _jsx("td", { children: operator.lastname.toUpperCase() })] }, operator.operatorID)); }) })] }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] }));
+    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs(Form, { children: [_jsxs(Row, { className: "mb-3", children: [_jsx(Col, { md: 6, children: _jsxs(Form.Group, { controlId: "formOperatorID", children: [_jsx(Form.Label, { children: "Operator ID:" }), _jsx(Form.Control, { type: "text", value: operatorid, onChange: handleOperatorIDChange, maxLength: 10 })] }) }), _jsx(Col, { md: 6, children: _jsxs(Form.Group, { controlId: "formOperatorName", children: [_jsx(Form.Label, { children: "Operator Name:" }), _jsx(Form.Control, { type: "text", value: operatorname, onChange: handleOperatorNameChange, maxLength: 10 })] }) })] }), _jsxs(Row, { className: "mb-3", children: [_jsx(Col, { md: 6, children: _jsxs(Form.Group, { controlId: "formPassword", children: [_jsx(Form.Label, { children: "Password:" }), _jsx(Form.Control, { type: "password", value: password, onChange: handlePasswordChange, maxLength: 10 })] }) }), _jsx(Col, { md: 6, children: _jsxs(Form.Group, { controlId: "formFirstName", children: [_jsx(Form.Label, { children: "First Name:" }), _jsx(Form.Control, { type: "text", value: firstname, onChange: handleFirstNameChange, maxLength: 5 })] }) })] }), _jsx(Row, { className: "mb-3", children: _jsx(Col, { md: 6, children: _jsxs(Form.Group, { controlId: "formLastName", children: [_jsx(Form.Label, { children: "Last Name:" }), _jsx(Form.Control, { type: "text", value: lastname, onChange: handleLastNameChange, maxLength: 10 })] }) }) }), _jsx(Row, { className: "mb-3", children: _jsx(Col, { md: 6, children: _jsxs(Form.Group, { controlId: "formEmail", children: [_jsx(Form.Label, { children: "Email:" }), _jsx(Form.Control, { type: "email", value: email, onChange: handleEmailChange, maxLength: 50 })] }) }) }), _jsxs("div", { className: "d-flex justify-content-between mb-3", children: [_jsx(Button, { variant: "primary", className: "flex-fill me-2", onClick: handleAddClick, children: "Add" }), _jsx(Button, { variant: "success", className: "flex-fill me-2", onClick: handleEditClick, children: "Edit" }), _jsx(Button, { variant: "danger", className: "flex-fill me-2", onClick: handleDeleteClick, children: "Delete" }), _jsx(Button, { className: "primary flex-fill", onClick: function () { return navigate('/main'); }, children: "Go Back" })] })] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Operator ID" }), _jsx("th", { children: "First Name" }), _jsx("th", { children: "Last Name" })] }) }), _jsx("tbody", { children: operatorListFromStore.map(function (operator, index) { return (_jsxs("tr", { onClick: function () { return handleItemClick(operator); }, children: [_jsx("td", { children: operator.operatorid }), _jsx("td", { children: operator.firstname }), _jsx("td", { children: operator.lastname })] }, index)); }) })] }), _jsx(Button, { className: "primary m-3", onClick: function () { return navigate('/main'); }, children: "Go Back" })] }));
 };
 export default OperatorDefForm;

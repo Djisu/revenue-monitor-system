@@ -35,7 +35,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var _a;
-// src/features/operatorPermission/operatorPermissionSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 var initialState = {
@@ -43,15 +42,30 @@ var initialState = {
     loading: false,
     error: null,
 };
+var BASE_URL = import.meta.env.VITE_BASE_URL ||
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+// Function to get authorization headers
+var getAuthHeaders = function () {
+    var token = localStorage.getItem('token'); // Retrieve token from localStorage
+    return {
+        headers: {
+            Authorization: token ? "Bearer ".concat(token) : '',
+        },
+    };
+};
 // Async thunk to fetch all operator permissions
-export var fetchOperatorPermissions = createAsyncThunk('operatorPermission/fetchOperatorPermissions', function () { return __awaiter(void 0, void 0, void 0, function () {
+export var fetchOperatorPermissionsThunk = createAsyncThunk('operatorPermission/fetchOperatorPermissions', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get('/api/operatorPermission')];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/operatorPermissions/all"), getAuthHeaders())];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                if (response.status !== 200) {
+                    throw new Error('Failed to fetch operators');
+                }
+                console.log('API Response:', response.data); // Log the response data
+                return [2 /*return*/, response.data.data]; // Access data from the Axios response
         }
     });
 }); });
@@ -60,7 +74,7 @@ export var fetchOperatorPermissionById = createAsyncThunk('operatorPermission/fe
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("/api/operatorPermission/".concat(OperatorID))];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/operatorPermissions/").concat(OperatorID), getAuthHeaders())];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -69,13 +83,24 @@ export var fetchOperatorPermissionById = createAsyncThunk('operatorPermission/fe
 }); });
 // Async thunk to create a new operator permission
 export var createOperatorPermission = createAsyncThunk('operatorPermission/createOperatorPermission', function (operatorPermissionData) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post('/api/operatorPermission', operatorPermissionData)];
+    var response, error_1, message;
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                console.log('in createOperatorPermission thunk');
+                _c.label = 1;
             case 1:
-                response = _a.sent();
-                return [2 /*return*/, response.data];
+                _c.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/operatorPermissions/create"), operatorPermissionData, getAuthHeaders())];
+            case 2:
+                response = _c.sent();
+                return [2 /*return*/, response.data]; // Return the whole response object
+            case 3:
+                error_1 = _c.sent();
+                message = ((_b = (_a = error_1.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.message) || 'Unknown error occurred';
+                throw new Error(message);
+            case 4: return [2 /*return*/];
         }
     });
 }); });
@@ -85,7 +110,7 @@ export var updateOperatorPermission = createAsyncThunk('operatorPermission/updat
     var OperatorID = _b.OperatorID, operatorPermissionData = _b.operatorPermissionData;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.put("/api/operatorPermission/".concat(OperatorID), operatorPermissionData)];
+            case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/operatorPermissions/").concat(OperatorID), operatorPermissionData, getAuthHeaders())];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
@@ -93,11 +118,11 @@ export var updateOperatorPermission = createAsyncThunk('operatorPermission/updat
     });
 }); });
 // Async thunk to delete an operator permission
-export var deleteOperatorPermission = createAsyncThunk('operatorPermission/deleteOperatorPermission', function (OperatorID) { return __awaiter(void 0, void 0, void 0, function () {
+export var deleteOperatorPermission = createAsyncThunk('operatorPermission/deleteOperatorPermission', function (operatorID) { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.delete("/api/operatorPermission/".concat(OperatorID))];
+            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/operatorPermissions/").concat(operatorID), getAuthHeaders())];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -111,15 +136,15 @@ var operatorPermissionSlice = createSlice({
     reducers: {},
     extraReducers: function (builder) {
         builder
-            .addCase(fetchOperatorPermissions.pending, function (state) {
+            .addCase(fetchOperatorPermissionsThunk.pending, function (state) {
             state.loading = true;
         })
-            .addCase(fetchOperatorPermissions.fulfilled, function (state, action) {
+            .addCase(fetchOperatorPermissionsThunk.fulfilled, function (state, action) {
             state.loading = false;
             state.operatorPermissions = action.payload;
             state.error = null;
         })
-            .addCase(fetchOperatorPermissions.rejected, function (state, action) {
+            .addCase(fetchOperatorPermissionsThunk.rejected, function (state, action) {
             state.loading = false;
             state.error = action.error.message || 'Failed to fetch operator permissions';
         })
@@ -140,8 +165,11 @@ var operatorPermissionSlice = createSlice({
         })
             .addCase(createOperatorPermission.fulfilled, function (state, action) {
             state.loading = false;
-            state.operatorPermissions.push(action.payload); // Add the new operator permission
-            state.error = null;
+            // Assuming the action.payload contains the message
+            state.error = null; // Clear error on successful creation
+            // Optionally, you can log or handle the success message
+            console.log(action.payload.message); // Success message from the API
+            // If you want to fetch the updated list of permissions after creation, you could do that here
         })
             .addCase(createOperatorPermission.rejected, function (state, action) {
             state.loading = false;
@@ -152,7 +180,7 @@ var operatorPermissionSlice = createSlice({
         })
             .addCase(updateOperatorPermission.fulfilled, function (state, action) {
             state.loading = false;
-            var index = state.operatorPermissions.findIndex(function (permission) { return permission.OperatorID === action.payload.OperatorID; });
+            var index = state.operatorPermissions.findIndex(function (permission) { return permission.operatorid === action.payload.OperatorID; });
             if (index !== -1) {
                 state.operatorPermissions[index] = action.payload; // Update the operator permission
             }
@@ -167,7 +195,7 @@ var operatorPermissionSlice = createSlice({
         })
             .addCase(deleteOperatorPermission.fulfilled, function (state, action) {
             state.loading = false;
-            state.operatorPermissions = state.operatorPermissions.filter(function (permission) { return permission.OperatorID !== action.meta.arg; });
+            state.operatorPermissions = state.operatorPermissions.filter(function (permission) { return permission.operatorid !== action.meta.arg; });
             state.error = null;
         })
             .addCase(deleteOperatorPermission.rejected, function (state, action) {
@@ -180,3 +208,128 @@ var operatorPermissionSlice = createSlice({
 export var _b = _a = operatorPermissionSlice.actions; // Add any synchronous actions if required
 // Export the reducer
 export default operatorPermissionSlice.reducer;
+// // src/features/operatorPermission/operatorPermissionSlice.ts
+// import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+// import axios from 'axios';
+// // Define the type for OperatorPermission data
+// interface OperatorPermissionData {
+//     OperatorID: string;
+//     Menus: string;
+//     Reports: string;
+//     databasesx: string;
+//     password: string;
+// }
+// // Define the initial state for the slice
+// interface OperatorPermissionState {
+//     operatorPermissions: OperatorPermissionData[];
+//     loading: boolean;
+//     error: string | null;
+// }
+// const initialState: OperatorPermissionState = {
+//     operatorPermissions: [],
+//     loading: false,
+//     error: null,
+// };
+// const BASE_URL = import.meta.env.VITE_BASE_URL || 
+// (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+// // Async thunk to fetch all operator permissions
+// export const fetchOperatorPermissions = createAsyncThunk('operatorPermission/fetchOperatorPermissions', async () => {
+//     const response = await axios.get(`${BASE_URL}/api/operatorPermission`);
+//     return response.data;
+// });
+// // Async thunk to fetch a single operator permission by OperatorID
+// export const fetchOperatorPermissionById = createAsyncThunk('operatorPermission/fetchOperatorPermissionById', async (OperatorID: string) => {
+//     const response = await axios.get(`${BASE_URL}/api/operatorPermission/${OperatorID}`);   
+//     return response.data;
+// });
+// // Async thunk to create a new operator permission
+// export const createOperatorPermission = createAsyncThunk('operatorPermission/createOperatorPermission', async (operatorPermissionData: OperatorPermissionData) => {
+//     const response = await axios.post(`${BASE_URL}/api/operatorPermission`, operatorPermissionData);
+//     return response.data;
+// });
+// // Async thunk to update an operator permission
+// export const updateOperatorPermission = createAsyncThunk('operatorPermission/updateOperatorPermission', async ({ OperatorID, operatorPermissionData }: { OperatorID: string; operatorPermissionData: OperatorPermissionData }) => {
+//     const response = await axios.put(`${BASE_URL}/api/operatorPermission/${OperatorID}`, operatorPermissionData);
+//     return response.data;
+// });
+// // Async thunk to delete an operator permission
+// export const deleteOperatorPermission = createAsyncThunk('operatorPermission/deleteOperatorPermission', async (OperatorID: string) => {
+//     const response = await axios.delete(`${BASE_URL}/api/operatorPermission/${OperatorID}`);
+//     return response.data;
+// });
+// // Create the slice
+// const operatorPermissionSlice = createSlice({
+//     name: 'operatorPermission',
+//     initialState,
+//     reducers: {},
+//     extraReducers: (builder) => {
+//         builder
+//             .addCase(fetchOperatorPermissions.pending, (state) => {
+//                 state.loading = true;
+//             })
+//             .addCase(fetchOperatorPermissions.fulfilled, (state, action) => {
+//                 state.loading = false;
+//                 state.operatorPermissions = action.payload;
+//                 state.error = null;
+//             })
+//             .addCase(fetchOperatorPermissions.rejected, (state, action) => {
+//                 state.loading = false;
+//                 state.error = action.error.message || 'Failed to fetch operator permissions';
+//             })
+//             .addCase(fetchOperatorPermissionById.pending, (state) => {
+//                 state.loading = true;
+//             })
+//             .addCase(fetchOperatorPermissionById.fulfilled, (state) => {
+//                 state.loading = false;
+//                 // Handle the fetched operator permission data if needed
+//                 state.error = null;
+//             })
+//             .addCase(fetchOperatorPermissionById.rejected, (state, action) => {
+//                 state.loading = false;
+//                 state.error = action.error.message || 'Failed to fetch operator permission';
+//             })
+//             .addCase(createOperatorPermission.pending, (state) => {
+//                 state.loading = true;
+//             })
+//             .addCase(createOperatorPermission.fulfilled, (state, action) => {
+//                 state.loading = false;
+//                 state.operatorPermissions.push(action.payload); // Add the new operator permission
+//                 state.error = null;
+//             })
+//             .addCase(createOperatorPermission.rejected, (state, action) => {
+//                 state.loading = false;
+//                 state.error = action.error.message || 'Failed to create operator permission';
+//             })
+//             .addCase(updateOperatorPermission.pending, (state) => {
+//                 state.loading = true;
+//             })
+//             .addCase(updateOperatorPermission.fulfilled, (state, action) => {
+//                 state.loading = false;
+//                 const index = state.operatorPermissions.findIndex(permission => permission.OperatorID === action.payload.OperatorID);
+//                 if (index !== -1) {
+//                     state.operatorPermissions[index] = action.payload; // Update the operator permission
+//                 }
+//                 state.error = null;
+//             })
+//             .addCase(updateOperatorPermission.rejected, (state, action) => {
+//                 state.loading = false;
+//                 state.error = action.error.message || 'Failed to update operator permission';
+//             })
+//             .addCase(deleteOperatorPermission.pending, (state) => {
+//                 state.loading = true;
+//             })
+//             .addCase(deleteOperatorPermission.fulfilled, (state, action) => {
+//                 state.loading = false;
+//                 state.operatorPermissions = state.operatorPermissions.filter(permission => permission.OperatorID !== action.meta.arg);
+//                 state.error = null;
+//             })
+//             .addCase(deleteOperatorPermission.rejected, (state, action) => {
+//                 state.loading = false;
+//                 state.error = action.error.message || 'Failed to delete operator permission';
+//             });
+//     },
+// });
+// // Export the actions if needed
+// export const {} = operatorPermissionSlice.actions; // Add any synchronous actions if required
+// // Export the reducer
+// export default operatorPermissionSlice.reducer;

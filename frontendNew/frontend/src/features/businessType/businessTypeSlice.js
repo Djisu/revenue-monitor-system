@@ -57,11 +57,14 @@ export var fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessType
             case 1:
                 response = _a.sent();
                 console.log('after fetchBusinessTypes thunk, Response data:', response.data);
-                if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
-                console.log('fetchBusinessTypes thunk, response data:', response.data);
-                return [4 /*yield*/, response.data];
-            case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
-            case 3: throw new Error("Error fetching business types: ".concat(response.statusText));
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('fetchBusinessTypes thunk, response data:', response.data);
+                    return [2 /*return*/, response.data]; // This data will be available as `action.payload`
+                }
+                else {
+                    throw new Error("Error fetching business types: ".concat(response.statusText));
+                }
+                return [2 /*return*/];
         }
     });
 }); });
@@ -72,16 +75,16 @@ export var createBusinessType = createAsyncThunk('businessType/createBusinessTyp
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/businessType/create"), { Business_Type: businessType }, {
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/businessType/create"), { Business_Type: businessType }, // Wrapping the string in an object
+                    {
                         headers: { 'Content-Type': 'application/json' },
                     })];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                return [2 /*return*/, response.data]; // Ensure this returns the correct structure
             case 2:
                 error_1 = _a.sent();
                 if (axios.isAxiosError(error_1) && error_1.response) {
-                    // Handle specific error responses
                     throw new Error(error_1.response.data.message || 'Failed to create business type');
                 }
                 throw new Error('Network error or other issue');
@@ -115,7 +118,7 @@ export var deleteBusinessType = createAsyncThunk('businessType/deleteBusinessTyp
             case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/businessType/").concat(Business_Type))];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                return [2 /*return*/, response.data]; // Ensure this returns the correct structure
         }
     });
 }); });
@@ -131,8 +134,9 @@ var businessTypeSlice = createSlice({
             state.error = null;
         })
             .addCase(fetchBusinessTypes.fulfilled, function (state, action) {
+            var _a;
             state.loading = false;
-            state.businessTypes = action.payload;
+            (_a = state.businessTypes).push.apply(_a, action.payload);
             state.error = null;
         })
             .addCase(fetchBusinessTypes.rejected, function (state, action) {

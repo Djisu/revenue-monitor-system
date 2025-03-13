@@ -36,100 +36,78 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/store';
-import { addBudget, updateBudget, resetError, fetchOfficerBudget, resetBudgetState } from './officerBudgetSlice'; // Adjust the path as necessary
-var BudgetForm = function () {
+import { addBudget, resetError, resetBudgetState } from './officerBudgetSlice'; // Adjust the path as necessary
+import { fetchOfficers } from '../officer/officerSlice';
+var FrmOfficerBudget = function () {
     var dispatch = useAppDispatch();
+    var navigate = useNavigate();
     // You may also want to retrieve the loading and error state from the Redux store
     var error = useAppSelector(function (state) { return state.officerBudget; }).error;
     var officers = useAppSelector(function (state) { return state.officer.officers; });
-    var electoralAreas = useAppSelector(function (state) { return state.electoralArea.electoralAreas; });
+    console.log('officers', officers);
     var _a = useState(''), officerNo = _a[0], setOfficerNo = _a[1];
-    var _b = useState(''), fiscalYear = _b[0], setFiscalYear = _b[1];
-    var _c = useState(''), electoralArea = _c[0], setElectoralArea = _c[1];
-    // const [annualBudget, setAnnualBudget] = useState(0);
-    // const [monthlyBudget, setMonthlyBudget] = useState(0);
-    var _d = useState(''), success = _d[0], setSuccess = _d[1];
-    var _e = useState(''), errorData = _e[0], setErrorData = _e[1];
+    var _b = useState(0), fiscalYear = _b[0], setFiscalYear = _b[1];
     // Optionally reset state on unmount
     useEffect(function () {
         return function () {
             dispatch(resetBudgetState());
         };
     }, [dispatch]);
+    useEffect(function () {
+        dispatch(fetchOfficers());
+    }, [dispatch]);
     var handleSubmit = function (e) { return __awaiter(void 0, void 0, void 0, function () {
-        var budgetData, response, result, error_1;
+        var budgetData, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    console.log('handleSubmit');
                     e.preventDefault();
                     if (!officerNo || !fiscalYear) {
-                        errorData = 'Please select both officer and fiscal year.';
-                        setErrorData(errorData);
+                        //errorData = 'Please select both officer and fiscal year.'
+                        alert('Please select both officer and fiscal year.');
                         return [2 /*return*/];
                     }
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 7, , 8]);
+                    _a.trys.push([1, 3, 4, 5]);
                     budgetData = {
                         officer_no: officerNo,
-                        fiscal_year: fiscalYear,
-                        electoral_area: electoralArea,
+                        fiscal_year: fiscalYear
                     };
-                    response = void 0;
-                    return [4 /*yield*/, dispatch(fetchOfficerBudget({ officer_no: officerNo, fiscal_year: Number(fiscalYear), electoral_area: electoralArea })).unwrap()];
+                    return [4 /*yield*/, dispatch(addBudget(budgetData)).unwrap()];
                 case 2:
-                    result = _a.sent();
-                    if (!!fetchOfficerBudget.fulfilled.match(result)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, dispatch(addBudget(budgetData))];
+                    _a.sent(); // Using unwrap to get the resolved value directly;
+                    // Assuming successful response structure from addBudget
+                    alert('Budget record added successfully.');
+                    return [3 /*break*/, 5];
                 case 3:
-                    response = _a.sent();
-                    if (response.payload.status === 'error') {
-                        setErrorData(response.payload.message);
-                    }
-                    else {
-                        alert('Budget record added successfully.');
-                        success = 'Budget record added successfully.';
-                        setSuccess(success);
-                    }
-                    return [3 /*break*/, 6];
-                case 4: return [4 /*yield*/, dispatch(updateBudget(budgetData))];
-                case 5:
-                    response = _a.sent();
-                    if (response.payload.status === 'error') {
-                        setErrorData(response.payload.message);
-                    }
-                    else {
-                        alert('Budget record updated successfully.');
-                        setSuccess(response.payload.message);
-                    }
-                    _a.label = 6;
-                case 6:
-                    setOfficerNo('');
-                    setFiscalYear('');
-                    setErrorData('');
-                    return [3 /*break*/, 8];
-                case 7:
                     error_1 = _a.sent();
                     console.error(error_1);
-                    setErrorData('An error occurred. Please try again later.');
-                    return [3 /*break*/, 8];
-                case 8: return [2 /*return*/];
+                    //errorData = 'Error in create budget record.';
+                    alert('Error in create budget record.');
+                    return [3 /*break*/, 5];
+                case 4:
+                    // Clear the form fields regardless of success or failure
+                    setOfficerNo('');
+                    setFiscalYear(0);
+                    return [7 /*endfinally*/];
+                case 5: return [2 /*return*/];
             }
         });
     }); };
     var handleExit = function () {
         // Logic to exit the form, e.g., reset state or navigate away
         setOfficerNo('');
-        setFiscalYear('');
-        // setAnnualBudget(0);
-        // setMonthlyBudget(0);
-        setErrorData('');
+        setFiscalYear(0);
+        navigate('/main');
     };
     useEffect(function () {
         // Reset error state on component mount
         dispatch(resetError());
     }, [dispatch]);
-    return (_jsxs("div", { children: [_jsx("h2", { children: "Add Budget Record" }), _jsxs("form", { onSubmit: handleSubmit, children: [_jsxs("div", { children: [_jsx("label", { htmlFor: "officer", children: "Officer:" }), _jsxs("select", { id: "officer", value: officerNo, onChange: function (e) { return setOfficerNo(e.target.value); }, children: [_jsx("option", { value: "", children: "Select Officer" }), officers.map(function (officer, index) { return (_jsx("option", { value: officer.officer_no, children: officer.officer_name }, index)); })] })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "officer", children: "Electoral Area:" }), _jsxs("select", { id: "officer", value: electoralArea, onChange: function (e) { return setElectoralArea(e.target.value); }, children: [_jsx("option", { value: "", children: "Select Electoral Area" }), electoralAreas.map(function (electoralArea, index) { return (_jsx("option", { value: electoralArea.electoral_area, children: electoralArea.electoral_area }, index)); })] })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "fiscalYear", children: "Fiscal Year:" }), _jsx("input", { id: "fiscalYear", type: "number", value: fiscalYear, onChange: function (e) { return setFiscalYear(e.target.value); }, placeholder: "Enter Fiscal Year" })] }), error && _jsx("p", { style: { color: 'red' }, children: error }), _jsx("button", { type: "submit", children: "Submit" }), _jsx("button", { type: "button", onClick: handleExit, children: "Exit" })] })] }));
+    return (_jsx("div", { className: "container mt-4", children: _jsxs("form", { onSubmit: handleSubmit, children: [_jsx("p", { className: "mb-4", children: "Create Annual Budget Record" }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "officer", className: "form-label", children: "Officer:" }), _jsxs("select", { id: "officer", className: "form-select", value: officerNo, onChange: function (e) { return setOfficerNo(e.target.value); }, children: [_jsx("option", { value: "", children: "Select Officer" }), officers.map(function (officer, index) { return (_jsx("option", { value: officer.officer_no, children: officer.officer_name }, index)); })] })] }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "fiscalYear", className: "form-label", children: "Fiscal Year:" }), _jsx("input", { id: "fiscalYear", type: "number", className: "form-control", value: fiscalYear, onChange: function (e) { return setFiscalYear(parseInt(e.target.value)); }, placeholder: "Enter Fiscal Year" })] }), error && _jsx("p", { className: "text-danger", children: error }), _jsx("button", { type: "submit", className: "btn btn-primary me-2", children: "Submit" }), _jsx("button", { className: "primary m-3", onClick: handleExit, children: "Go Back" })] }) }));
 };
-export default BudgetForm;
+export default FrmOfficerBudget;

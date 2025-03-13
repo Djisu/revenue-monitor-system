@@ -42,12 +42,22 @@ var initialState = {
     loading: false,
     error: null,
 };
+var BASE_URL = import.meta.env.VITE_BASE_URL ||
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+// Helper function to get the token from local storage
+var getAuthToken = function () {
+    return localStorage.getItem('token');
+};
 // Async thunk to fetch all property rates
 export var fetchPropertyRates = createAsyncThunk('propertyRate/fetchPropertyRates', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get('/api/propertyRate')];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/propertyRate"), {
+                    headers: {
+                        Authorization: "Bearer ".concat(getAuthToken()),
+                    },
+                })];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -62,7 +72,11 @@ export var fetchPropertyRateByPropertyClassAndFiscalyear = createAsyncThunk('pro
         switch (_c.label) {
             case 0:
                 console.log("fetchPropertyRateByPropertyClassAndFiscalyear: ".concat(property_Class, ", fiscalyear: ").concat(fiscalyear));
-                return [4 /*yield*/, axios.get("/api/propertyRate/".concat(property_Class, "/").concat(fiscalyear))];
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/propertyRate/").concat(property_Class, "/").concat(fiscalyear), {
+                        headers: {
+                            Authorization: "Bearer ".concat(getAuthToken()),
+                        },
+                    })];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
@@ -76,7 +90,11 @@ export var createPropertyRate = createAsyncThunk('propertyRate/createPropertyRat
         switch (_a.label) {
             case 0:
                 console.log('createPropertyRate action called with ', propertyRateData);
-                return [4 /*yield*/, axios.post('/api/propertyRate/create', propertyRateData)];
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/propertyRate/create"), propertyRateData, {
+                        headers: {
+                            Authorization: "Bearer ".concat(getAuthToken()),
+                        },
+                    })];
             case 1:
                 response = _a.sent();
                 console.log("after axios.post, response.data: ".concat(JSON.stringify(response.data)));
@@ -90,7 +108,11 @@ export var updatePropertyRate = createAsyncThunk('propertyRate/updatePropertyRat
     var property_Class = _b.property_Class, fiscalyear = _b.fiscalyear, propertyRateData = _b.propertyRateData;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.put("/api/propertyRate/update".concat(property_Class, "/").concat(fiscalyear), propertyRateData)];
+            case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/propertyRate/update/").concat(property_Class, "/").concat(fiscalyear), propertyRateData, {
+                    headers: {
+                        Authorization: "Bearer ".concat(getAuthToken()),
+                    },
+                })];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
@@ -103,7 +125,11 @@ export var deletePropertyRate = createAsyncThunk('propertyRate/deletePropertyRat
     var property_Class = _b.property_Class, fiscalyear = _b.fiscalyear;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.delete("/api/propertyRate/".concat(property_Class, "/").concat(fiscalyear))];
+            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/propertyRate/").concat(property_Class, "/").concat(fiscalyear), {
+                    headers: {
+                        Authorization: "Bearer ".concat(getAuthToken()),
+                    },
+                })];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];

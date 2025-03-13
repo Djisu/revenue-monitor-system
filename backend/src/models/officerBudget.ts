@@ -30,7 +30,6 @@ export interface OfficerBudget {
    December_Actual: number;
    Actual_total: number;
    outstanding: number;
-   electoral_area: string;
 }
 
 

@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the type for BusPayments data
-interface BusPaymentsData {
+export interface BusPaymentsData {
     buss_no: string;
     officer_no: string;
     paidAmount: number;
@@ -78,8 +78,10 @@ export const createBusPayment = createAsyncThunk('busPayments/createBusPayment',
 // Async thunk to fetch a single BusPayments record by buss_no
 export const fetchBilledAmount = createAsyncThunk('busPayments/fetchBilledAmount', async (buss_no: string) => {
     console.log('in fetchBilledAmount slice', buss_no);
+
+    let bussNo = parseInt(buss_no)
     
-    const response = await axios.get(`${BASE_URL}/api/busPayments/billedAmount/${buss_no}`);
+    const response = await axios.get(`${BASE_URL}/api/busPayments/billedAmount/${bussNo}`);
     console.log('response data', response.data);
 
     if (response.status >= 200 && response.status < 300) {

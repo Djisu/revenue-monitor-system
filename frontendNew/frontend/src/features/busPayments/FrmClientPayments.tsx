@@ -3,20 +3,9 @@ import { Row, Col, Form, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAppDispatch } from '../../app/store';
 import { fetchBusinessById } from '../../features/business/businessSlice';
-import { createBusPayment, fetchBilledAmount } from '../busPayments/busPaymentsSlice';
+import { createBusPayment, fetchBilledAmount, BusPaymentsData } from '../busPayments/busPaymentsSlice';
 import { useAppSelector } from '../../hooks';
 
-interface BusPaymentsData {
-    buss_no: string;
-    officer_no: string;
-    paidAmount: number;
-    monthpaid: string;
-    transdate: string;
-    fiscal_year: string;
-    ReceiptNo: string;
-    email: string;
-    electoral_area: string;
-}
 
 const FrmClientPayments = () => {
   let [businessNo, setBusinessNo] = useState<number>(0);
@@ -60,20 +49,35 @@ const FrmClientPayments = () => {
   }, [businessNo]);
 
   const getBusiness = async (businessNo: string) => {
+    console.log('in getBusiness')
+
     try {
       const response = await dispatch(fetchBusinessById(Number(businessNo))).unwrap();
-      //dispatch(busPaymentsFulfilled({ billedAmount: response.billedAmount }));
+      
+      console.log('Response from slice:', response.data)
 
-      if (Array.isArray(response)) {
-        console.log('Response is an array:', response[0]);
+       if ( response) {
+         console.log('there is response:', response.data);
 
         // Set response fields to the following state variables
-        setOfficerNo(response[0].assessmentby);
-        setElectoralArea(response[0].electroral_area);
-        setEmail(response[0].emailaddress);
-        setBusinessName(response[0].buss_name);
+        setOfficerNo(response.data.assessmentby);
+        console.log(officerNo)
+
+        setElectoralArea(response.data.electroral_area);
+        console.log(electoralArea)
+
+        setEmail(response.data.emailaddress);
+        console.log(email)
+
+        setBusinessName(response.data.buss_name);
+        console.log(businessName)
+
         setFiscalYear(new Date().getFullYear().toString());
-        dispatch(fetchBilledAmount(response[0].buss_no));
+
+        console.log('response.buss_no: ', response.data.buss_no)
+
+
+       await  dispatch(fetchBilledAmount(response.data.buss_no)).unwrap();
 
         if (fetchBilledAmount.fulfilled.match(response)){
           console.log('Billed Amount:', response.payload.billedAmount);
@@ -85,7 +89,9 @@ const FrmClientPayments = () => {
         // Generate a unique receipt number
         const uniqueReceiptNo = generateUniqueNumber();
         setReceiptNo(uniqueReceiptNo);
-      }
+     }else{
+      console.log('data not found')
+     }
     } catch (error: any) {
       console.error('Error fetching business:', error);
       errorMessage = 'Error fetching business. Please try again.' 
@@ -204,10 +210,32 @@ const FrmClientPayments = () => {
             <Col>
               <Form.Label>Business Number: {businessName}</Form.Label>
               <Form.Control
-                type="number"
+                type="text"
                 value={businessNo}
                 onChange={(e) => setBusinessNo(Number(e.target.value))}
                 onBlur={(e) => getBusiness(e.target.value)}
+              />
+            </Col>
+          </Row>
+         <Row className="mb-3">
+            <Col>
+              <Form.Label>
+                Amount Payable: <span style={{ color: 'red', fontWeight: 'bold' }}>{billedAmount}</span>
+              </Form.Label>
+              <Form.Control
+                type="number"
+                value={paidAmount}
+                onChange={(e) => setPaidAmount(Number(e.target.value))}
+              />
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col>
+              <Form.Label>Receipt Number:</Form.Label>
+              <Form.Control
+                type="text"
+                value={receiptNo}
+                onChange={(e) => setReceiptNo(e.target.value)}
               />
             </Col>
           </Row>
@@ -218,19 +246,11 @@ const FrmClientPayments = () => {
                 type="text"
                 value={officerNo}
                 onChange={(e) => setOfficerNo(e.target.value)}
+                readOnly // Make the input read-only
               />
             </Col>
           </Row>
-          <Row className="mb-3">
-            <Col>
-              <Form.Label>Amount Payable: {billedAmount}</Form.Label>
-              <Form.Control
-                type="number"
-                value={paidAmount}
-                onChange={(e) => setPaidAmount(Number(e.target.value))}
-              />
-            </Col>
-          </Row>
+          
           <Row className="mb-3">
             <Col>
               <Form.Label>Month Paid:</Form.Label>
@@ -255,16 +275,7 @@ const FrmClientPayments = () => {
               <Form.Control value={fiscalYear} readOnly />
             </Col>
           </Row>
-          <Row className="mb-3">
-            <Col>
-              <Form.Label>Receipt Number:</Form.Label>
-              <Form.Control
-                type="text"
-                value={receiptNo}
-                onChange={(e) => setReceiptNo(e.target.value)}
-              />
-            </Col>
-          </Row>
+          
           <Row className="mb-3">
             <Col>
               <Form.Label>Email:</Form.Label>

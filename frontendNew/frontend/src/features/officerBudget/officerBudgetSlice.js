@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _a;
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import apiClient from '../../utilities/apiClient';
 import axios from 'axios';
 var initialState = {
     data: [],
@@ -48,49 +49,76 @@ var BASE_URL = import.meta.env.VITE_BASE_URL ||
 // Async thunk to fetch officer budget data
 export var fetchOfficerBudget = createAsyncThunk('officerBudget/fetchOfficerBudget', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
     var response;
-    var officer_no = _b.officer_no, fiscal_year = _b.fiscal_year, electoral_area = _b.electoral_area;
+    var officer_no = _b.officer_no, fiscal_year = _b.fiscal_year;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.get("/officerbudget/".concat(officer_no, "/").concat(fiscal_year, "/").concat(electoral_area))];
+            case 0:
+                console.clear();
+                console.log('in fetchOfficerBudget thunk');
+                return [4 /*yield*/, apiClient.get("/api/officerbudget/".concat(officer_no, "/").concat(fiscal_year))];
             case 1:
                 response = _c.sent();
+                console.log('response data: ', response.data);
                 if (response.status !== 200) {
                     throw new Error('Failed to fetch officer budget');
                 }
-                return [2 /*return*/, response]; // Return the data from the response
+                return [2 /*return*/, {
+                        exists: response.data.exists, // Include exists from the API response
+                        data: response.data.data, // Include only the data part
+                        status: response.status,
+                        statusText: response.statusText,
+                    }];
+        }
+    });
+}); });
+// Async thunk to fetch officer budget data
+export var fetchOfficerBudgetAll = createAsyncThunk('officerBudget/fetchOfficerBudgetAll', function () { return __awaiter(void 0, void 0, void 0, function () {
+    var response;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, axios.get('/officerbudget/all')];
+            case 1:
+                response = _a.sent();
+                if (response.status !== 200) {
+                    throw new Error('Failed to fetch officer budgets');
+                }
+                return [2 /*return*/, response.data.data]; // Return the data from the response
         }
     });
 }); });
 // Async thunk to add a budget record
 export var addBudget = createAsyncThunk('budget/addBudget', function (budgetData) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
+    var token, headers, response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post("".concat(BASE_URL, "/addBudget"), budgetData)];
+            case 0:
+                console.log('in addBudget thunk');
+                token = localStorage.getItem('token');
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': "Bearer ".concat(token), // Include the token in the Authorization header
+                };
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/officerbudget/addBudget"), budgetData, { headers: headers })];
             case 1:
                 response = _a.sent();
                 if (response.status !== 200) {
                     throw new Error('Failed to add budget');
                 }
-                return [2 /*return*/, response.data]; // Assuming the server returns a success message
+                return [2 /*return*/, response.data.data]; // Access the new data structure
         }
     });
 }); });
-// Async thunk to update a budget record
-export var updateBudget = createAsyncThunk('budget/updateBudget', function (budgetData) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/updateBudget"), budgetData)];
-            case 1:
-                response = _a.sent();
-                if (response.status !== 200) {
-                    throw new Error('Failed to add budget');
-                }
-                return [2 /*return*/, response.data]; // Assuming the server returns a success message
-        }
-    });
-}); });
+// // Async thunk to update a budget record
+// export const updateBudget = createAsyncThunk(
+//     'budget/updateBudget',
+//     async (budgetData: any) => {
+//         const response = await axios.put(`${BASE_URL}/api/updateBudget`, budgetData);
+//         if (response.status!== 200) {
+//             throw new Error('Failed to add budget');
+//         }
+//         return response.data; // Assuming the server returns a success message
+//     }
+// );
 // Create the budget slice
 var officerBudgetSlice = createSlice({
     name: 'budget',
@@ -126,28 +154,28 @@ var officerBudgetSlice = createSlice({
             .addCase(addBudget.rejected, function (state, action) {
             state.loading = false;
             state.error = action.error.message || 'Failed to add budget';
-        })
-            .addCase(updateBudget.pending, function (state) {
-            state.loading = true;
-            state.error = null;
-        })
-            .addCase(updateBudget.fulfilled, function (state, action) {
-            state.loading = false;
-            state.data = action.payload.data || null; // Set data to the response data
-            state.exists = action.payload.exists; // Set exists based on the response
-            // Update the existing budget in the state
-            // if (state.data) {
-            //     const index = state.data.findIndex(b => b.officer_no === action.payload.officer_no && b.fiscal_year === action.payload.fiscal_year);
-            //     if (index !== -1) {
-            //         state.data[index] = { ...state.data[index], ...action.payload };
-            //     }
-            // }
-        })
-            .addCase(updateBudget.rejected, function (state, action) {
-            state.loading = false;
-            state.error = action.error.message || 'Failed to fetch officer budget';
-            state.exists = false; // Set exists to false on error
         });
+        // .addCase(updateBudget.pending, (state) => {
+        //     state.loading = true;
+        //     state.error = null;
+        // })
+        // .addCase(updateBudget.fulfilled, (state, action) => {
+        //     state.loading = false;
+        //     state.data = action.payload.data || null; // Set data to the response data
+        //     state.exists = action.payload.exists; // Set exists based on the response
+        //     // Update the existing budget in the state
+        //     // if (state.data) {
+        //     //     const index = state.data.findIndex(b => b.officer_no === action.payload.officer_no && b.fiscal_year === action.payload.fiscal_year);
+        //     //     if (index !== -1) {
+        //     //         state.data[index] = { ...state.data[index], ...action.payload };
+        //     //     }
+        //     // }
+        // })
+        // .addCase(updateBudget.rejected, (state, action) => {
+        //     state.loading = false;
+        //     state.error = action.error.message || 'Failed to fetch officer budget';
+        //     state.exists = false; // Set exists to false on error
+        // });
     },
 });
 // Export actions and reducer

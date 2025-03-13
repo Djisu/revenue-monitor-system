@@ -35,7 +35,7 @@ export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTy
     if (response.status >= 200 && response.status < 300) {
         console.log('fetchBusinessTypes thunk, response data:', response.data);
 
-        return await response.data; // This data will be available as `action.payload`
+        return response.data; // This data will be available as `action.payload`
     } else {
         throw new Error(`Error fetching business types: ${response.statusText}`);
     }
@@ -43,27 +43,25 @@ export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTy
 
 // Async thunk to create a new BusinessType record
 export const createBusinessType = createAsyncThunk(
-    'businessType/createBusinessType', 
-    async (businessType: string) => {
-        //console.log('Creating a new business type record:', businessType);
-
+    'businessType/createBusinessType',
+    async (businessType: string) => { // Accepting a string directly
         try {
             const response = await axios.post(
-                `${BASE_URL}/api/businessType/create`, 
-                { Business_Type: businessType },
+                `${BASE_URL}/api/businessType/create`,
+                { Business_Type: businessType }, // Wrapping the string in an object
                 {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-            return response.data;
+            return response.data; // Ensure this returns the correct structure
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-                // Handle specific error responses
                 throw new Error(error.response.data.message || 'Failed to create business type');
             }
             throw new Error('Network error or other issue');
         }
-});
+    }
+);
 
 // Async thunk to fetch a single BusinessType record by Business_Type
 // export const fetchBusinessTypeById = createAsyncThunk('businessType/fetchBusinessTypeById', async (Business_Type: string) => {
@@ -83,9 +81,9 @@ export const updateBusinessType = createAsyncThunk(
 // Async thunk to delete a BusinessType record
 export const deleteBusinessType = createAsyncThunk(
     'businessType/deleteBusinessType',
-    async (Business_Type: string) => {
+    async (Business_Type: string) => { // Accepting a string directly
         const response = await axios.delete(`${BASE_URL}/api/businessType/${Business_Type}`);
-        return response.data;
+        return response.data; // Ensure this returns the correct structure
     }
 );
 
@@ -102,7 +100,7 @@ const businessTypeSlice = createSlice({
             })
             .addCase(fetchBusinessTypes.fulfilled, (state, action) => {
                 state.loading = false;
-                state.businessTypes = action.payload;
+                state.businessTypes.push(...action.payload);
                 state.error = null;
             })
             .addCase(fetchBusinessTypes.rejected, (state, action) => {

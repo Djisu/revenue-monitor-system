@@ -20,7 +20,9 @@ interface ElectoralArea {
 // }
 
 interface BusinessTypeData {
-  Business_Type: string; // Updated to match API response
+  Business_Type: string; // This matches your API response
+  buss_type?: string; // Optional if it's not always present
+  business_type?: string
 }
 
 export interface BusinessData {
@@ -106,7 +108,7 @@ const UpdateClientForm: React.FC = () => {
   // State management for dropdowns
   ////////
   const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
-  let [businessTypes, setBusinessTypes] = useState<string[]>([]);
+  const [bussTypes, setBussTypes] = useState<BusinessTypeData[]>([]);
   const [propertyClasses, setPropertyClasses] = useState<string[]>([]);
   const [assessments, setAssessments] = useState<string[]>([]);
   ///////
@@ -160,16 +162,14 @@ const UpdateClientForm: React.FC = () => {
     }, [electoralAreaResponse]);
 
      // Get business types from the Redux store
-  const businessTypesItems = useAppSelector((state) => state.businessType.businessTypes);
-
-  useEffect(() => {
-    if (Array.isArray(businessTypesItems)) {
-      const types = businessTypesItems.map((business: BusinessTypeData) => business.Business_Type);
-      setBusinessTypes(types);
-    } else {
-      console.error('Expected businessType to be an array but got:', businessTypesItems);
-    }
-  }, [businessTypesItems]); // Dependency should be businessTypesItems, not selectedBusinessType
+     const businessTypes = useAppSelector((state) => state.businessType.businessTypes); // as BusinessTypeData[]
+     console.log('businessTypes: ', businessTypes);
+     
+     useEffect(() => {
+       if (Array.isArray(businessTypes)) {
+         setBussTypes(businessTypes); // Update local state with fetched data
+       }
+     }, [businessTypes]); // Dependency array includes businessTypes
 
 
     // Get property classes from the Redux store
@@ -233,6 +233,7 @@ const UpdateClientForm: React.FC = () => {
   
   const mapToBusinessData = (data: any) => {
     return {
+        buss_no: data.businessNo,
         buss_name: data.businessName,
         ceo: data.ceo,
         buss_address: data.businessAddress,
@@ -266,13 +267,14 @@ const UpdateClientForm: React.FC = () => {
     };
 };
 
-const handleEditClick = () => {
+const handleEditClick = async () => {
     console.log('in handleEditClick Edit record')
     console.log('tot_grade: ', finalGrade)
 
     const updatedBusiness = {
         buss_no: businessNo,
         data: mapToBusinessData({
+            businessNo: businessNo,
             businessName: businessName,
             ceo: ceo,
             businessAddress: businessAddress,
@@ -299,7 +301,7 @@ const handleEditClick = () => {
             noGrade: noGrade,
             busOpeGrade: busOpeGrade,
             comAvaGrade: comAvaGrade,
-            assessment: assessments[0],
+            assessment: assessments,
             transdate: transdate,
             noOfEmployees: noOfEmployees,
             noOfBranches: noOfBranches
@@ -307,7 +309,7 @@ const handleEditClick = () => {
     };
     console.log('THIS IS THE UPDATED gps_address:  ', gpsAddress)
 
-    dispatch(updateBusiness({
+    const response = await dispatch(updateBusiness({
       buss_no: businessNo,
       data:  {
         ...updatedBusiness.data,
@@ -319,8 +321,9 @@ const handleEditClick = () => {
         noofbranches: updatedBusiness.data.noOfBranches || 0,
         gps_address: gpsAddress || '',
       }
-    })); 
-    console.log('Edit record:', updatedBusiness);
+    })).unwrap(); 
+    console.log('response:', response.message);
+    alert(response.message)
 };
 
 
@@ -458,58 +461,60 @@ const handleEditClick = () => {
       // Dispatch the async thunk and unwrap the result
       const response = await dispatch(fetchBusinessById(id)).unwrap();
 
-      console.log('after  dispatch(fetchBusinessById(id)).unwrap(); response:')
+      console.log('after  dispatch(fetchBusinessById(id)).unwrap(); response:', response)
+
+      console.log('typeof response: ', typeof response)
 
       // Check if response is an array or an object
-      if (Array.isArray(response)) {
-        console.log('Response is an array:', response[0]);
+     // if(Array.isArray(response)) {
+        console.log('Response is an array:', response);
 
         // set response fields to the following state variables
-        setBusinessNo(response[0].buss_no);
-        setBusinessName(response[0].buss_name);
-        setBusinessAddress(response[0].buss_address);
+        setBusinessNo(response.buss_no);
+        setBusinessName(response.buss_name);
+        setBusinessAddress(response.buss_address);
 
          // Populate form fields with selected item data
-        setBusinessNo(response[0].buss_no);
-        setBusinessName(response[0].buss_name);
-        setBusinessAddress(response[0].buss_address);
-        setBusinessType(response[0].buss_type);
-        // setSelectedBusinessType(response[0].buss_type);
-        console.log('buss_town:', response[0].BUSS_TOWN)
-        setBussTown(response[0].BUSS_TOWN);
+        setBusinessNo(response.buss_no);
+        setBusinessName(response.buss_name);
+        setBusinessAddress(response.buss_address);
+        setBusinessType(response.buss_type);
+        // setSelectedBusinessType(response.buss_type);
+        console.log('buss_town:', response.buss_town)
+        setBussTown(response.buss_town);
        
-        setStreetName(response[0].street_name);
-        setLandMark(response[0].landmark);
-        setElectoralArea(response[0].electroral_area);
-        setPropertyClass(response[0].property_class);
+        setStreetName(response.street_name);
+        setLandMark(response.landmark);
+        setElectoralArea(response.electroral_area);
+        setPropertyClass(response.property_class);
 
-        getRate(response[0].property_class)
+        getRate(response.property_class)
       
-        setCeo(response[0].ceo);
-        setTelNo(response[0].telno);
-      console.log('response[0].assessmentby:  ', response[0].assessmentby)
-        selectedOfficer = response[0].assessmentby;
-        setSelectedOfficer(response[0].assessmentby);
-        setAssessment(response[0].assessmentby);
+        setCeo(response.ceo);
+        setTelNo(response.telno);
+        console.log('response.assessmentby:  ', response.assessmentby)
+        selectedOfficer = response.assessmentby;
+        setSelectedOfficer(response.assessmentby);
+        setAssessment(response.assessmentby);
 
         console.log('selectedOfficer:  ', selectedOfficer)
         console.log('assessments:  ', assessments)
         console.log('assessment:  ', assessment)
-        setAssessments(response[0].assessmentby);
+        setAssessments(response.assessmentby);
       
-        setTransDate(response[0].transdate);
+        setTransDate(response.transdate);
       
-        setStatus(response[0].status);
+        setStatus(response.status);
         
         
-        setEmailAddress(response[0].emailaddress);
-        setSelectedBusinessType(response[0].buss_type)
+        setEmailAddress(response.emailaddress);
+        setSelectedBusinessType(response.buss_type)
       
-        setGpsAddress(response[0].gps_address);
+        setGpsAddress(response.gps_address);
          // alert("Business found")
-      } else if (response) {
-        console.log('Response is an object:', response);
-      } 
+      // } else if (response) {
+      //   console.log('Response is an object:', response);
+      // } 
     } catch (error: any) {
      
       console.error('Error fetching businesses:', error);
@@ -569,11 +574,11 @@ const handleEditClick = () => {
               <Form.Label>Business Type:</Form.Label>
               <Form.Select value={selectedBusinessType} onChange={(e) => setSelectedBusinessType(e.target.value)}>
                 <option>Select Business Type</option>
-                {businessTypes.map((type, index) => (
-                  <option key={index} value={type}>
-                    {type}
-                  </option>
-                ))}
+                {bussTypes.map((businessType, index) => (
+                    <option key={index} value={businessType.business_type}>
+                      {businessType.business_type}
+                    </option>
+                  ))}
               </Form.Select>
             </Col>
           </Row>

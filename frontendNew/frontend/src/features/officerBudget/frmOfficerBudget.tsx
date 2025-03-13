@@ -1,27 +1,23 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/store';
-import { addBudget, updateBudget, resetError, fetchOfficerBudget, resetBudgetState } from './officerBudgetSlice'; // Adjust the path as necessary
+import { addBudget, resetError, resetBudgetState } from './officerBudgetSlice'; // Adjust the path as necessary
+import { fetchOfficers } from '../officer/officerSlice'; 
 
 
-const BudgetForm = () => {
+const FrmOfficerBudget = () => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+
     // You may also want to retrieve the loading and error state from the Redux store
     const { error } = useAppSelector((state) => state.officerBudget);
 
    const officers = useAppSelector((state) => state.officer.officers);
-   const electoralAreas = useAppSelector((state) => state.electoralArea.electoralAreas);
-   
+   console.log('officers', officers)
 
     const [officerNo, setOfficerNo] = useState('');
-    const [fiscalYear, setFiscalYear] = useState('');
-    const [electoralArea, setElectoralArea] = useState('');
-    
-
-    // const [annualBudget, setAnnualBudget] = useState(0);
-    // const [monthlyBudget, setMonthlyBudget] = useState(0);
-    let [success, setSuccess] = useState('');
-    let [errorData, setErrorData] = useState('');
-
+    const [fiscalYear, setFiscalYear] = useState<number>(0);
+ 
     // Optionally reset state on unmount
     useEffect(() => {
         return () => {
@@ -29,61 +25,47 @@ const BudgetForm = () => {
         };
     }, [dispatch]);
 
+    useEffect(() => {
+        dispatch(fetchOfficers());
+    }, [dispatch]);
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        console.log('handleSubmit');
+
         e.preventDefault();
+
         if (!officerNo || !fiscalYear) {
-            errorData = 'Please select both officer and fiscal year.'
-            setErrorData(errorData);
+            //errorData = 'Please select both officer and fiscal year.'
+            alert('Please select both officer and fiscal year.');
             return;
         }
  
         try {
             const budgetData = {
                 officer_no: officerNo,
-                fiscal_year: fiscalYear,
-                electoral_area: electoralArea,
-            };
+                fiscal_year: fiscalYear
+            };       
+            await dispatch(addBudget(budgetData)).unwrap(); // Using unwrap to get the resolved value directly;
 
-            let response
-            // Dispatch the thunk with the required parameters
-            const result = await dispatch(fetchOfficerBudget({ officer_no: officerNo, fiscal_year: Number(fiscalYear), electoral_area: electoralArea })).unwrap();
-            
-            if (!fetchOfficerBudget.fulfilled.match(result)){
-                response = await dispatch(addBudget(budgetData));
-
-                if (response.payload.status === 'error'){
-                    setErrorData(response.payload.message); 
-                }else{
-                    alert('Budget record added successfully.');
-                    success = 'Budget record added successfully.'
-                    setSuccess(success);           
-                }   
-            } else {
-                response = await dispatch(updateBudget(budgetData));
-                
-                if (response.payload.status === 'error'){
-                    setErrorData(response.payload.message); 
-                }else{
-                    alert('Budget record updated successfully.');
-                    setSuccess(response.payload.message);           
-                }   
-            }
-            setOfficerNo('');
-            setFiscalYear('');
-            setErrorData('');
+            // Assuming successful response structure from addBudget
+            alert('Budget record added successfully.');
+              
         } catch (error) {
             console.error(error);
-            setErrorData('An error occurred. Please try again later.');
+            //errorData = 'Error in create budget record.';
+            alert('Error in create budget record.');
+        } finally {
+            // Clear the form fields regardless of success or failure
+            setOfficerNo('');
+            setFiscalYear(0);         
         }
     };
 
     const handleExit = () => {
         // Logic to exit the form, e.g., reset state or navigate away
         setOfficerNo('');
-        setFiscalYear('');
-        // setAnnualBudget(0);
-        // setMonthlyBudget(0);
-        setErrorData('');
+        setFiscalYear(0);
+        navigate('/main');
     };
 
     useEffect(() => {
@@ -91,48 +73,47 @@ const BudgetForm = () => {
         dispatch(resetError());
     }, [dispatch]);
 
-    return (
-        <div>
-            <h2>Add Budget Record</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="officer">Officer:</label>
-                    <select id="officer" value={officerNo} onChange={(e) => setOfficerNo(e.target.value)}>
-                        <option value="">Select Officer</option>
-                        {officers.map((officer, index) => (
-                            <option key={index} value={officer.officer_no}>
-                                {officer.officer_name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label htmlFor="officer">Electoral Area:</label>
-                    <select id="officer" value={electoralArea} onChange={(e) => setElectoralArea(e.target.value)}>
-                        <option value="">Select Electoral Area</option>
-                        {electoralAreas.map((electoralArea, index) => (
-                            <option key={index} value={electoralArea.electoral_area}>
-                                {electoralArea.electoral_area}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label htmlFor="fiscalYear">Fiscal Year:</label>
-                    <input 
-                        id="fiscalYear" 
-                        type="number" 
-                        value={fiscalYear} 
-                        onChange={(e) => setFiscalYear(e.target.value)} 
-                        placeholder="Enter Fiscal Year" 
-                    />
-                </div>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-                <button type="submit">Submit</button>
-                <button type="button" onClick={handleExit}>Exit</button>
-            </form>
-        </div>
-    );
+   return (
+    <div className="container mt-4">
+       
+        <form onSubmit={handleSubmit}>
+             <p className="mb-4">Create Annual Budget Record</p>
+            <div className="mb-3">
+                <label htmlFor="officer" className="form-label">Officer:</label>
+                <select 
+                    id="officer" 
+                    className="form-select" 
+                    value={officerNo} 
+                    onChange={(e) => setOfficerNo(e.target.value)}
+                >
+                    <option value="">Select Officer</option>
+                    {officers.map((officer, index) => (
+                        <option key={index} value={officer.officer_no}>
+                            {officer.officer_name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+          
+            <div className="mb-3">
+                <label htmlFor="fiscalYear" className="form-label">Fiscal Year:</label>
+                <input 
+                    id="fiscalYear" 
+                    type="number" 
+                    className="form-control" 
+                    value={fiscalYear} 
+                    onChange={(e) => setFiscalYear(parseInt(e.target.value))} 
+                    placeholder="Enter Fiscal Year" 
+                />
+            </div>
+            {error && <p className="text-danger">{error}</p>}
+            <button type="submit" className="btn btn-primary me-2">Submit</button>
+            <button className="primary m-3" onClick={handleExit}>
+                Go Back
+            </button>
+        </form>
+    </div>
+);
 };
 
-export default BudgetForm;
+export default FrmOfficerBudget;

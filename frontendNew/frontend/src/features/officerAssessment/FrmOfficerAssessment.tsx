@@ -1,354 +1,321 @@
 import React, { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '../../app/store';
 import { Button, Form, Container, Row, Col } from 'react-bootstrap';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
 
-interface Officer {
-  officer_no: string;
-  officer_name: string;
+import { useNavigate } from 'react-router-dom';
+import { fetchOfficers } from '../officer/officerSlice'; 
+import { fetchJanuaryAmount, 
+        fetchFebruaryAmount, 
+        fetchMarchAmount, 
+        fetchAprilAmount, 
+        fetchMayAmount, 
+        fetchJuneAmount, 
+        fetchJulyAmount,  
+        fetchAugustAmount, 
+        fetchSeptemberAmount, 
+        fetchOctoberAmount, 
+        fetchNovemberAmount, 
+        fetchDecemberAmount, 
+        fetchClientsServed, 
+        fetchBillsDistributed
+       } from './officerAssessmentSlice'; 
+import {fetchOfficerBudget} from '../officerBudget/officerBudgetSlice';
+
+export interface FetchClientsServedParams {
+  officerNo: string;
+  fiscalYear: FiscalYear; // If you expect an object
 }
 
 interface FiscalYear {
   fiscal_year: number;
 }
 
-const OfficerAssessmentForm: React.FC = () => {
-  const [fiscalYear, setFiscalYear] = useState('');
+export interface Officer {
+  officer_no: number;
+  officer_name: string;
+  photo: Buffer;
+}
+
+interface OfficerBudgetResponse {
+  exists: boolean;
+  data: any[]; // Adjust type as necessary
+  status: number;
+  statusText: string;
+}
+
+export interface CreateClientsServedParams {
+  officerNo: string;
+  fiscalYear: FiscalYear;
+  noOfClientsServed: number;
+  valueOfBillsDistributed: number;
+  januaryAmount: number;
+  februaryAmount: number;
+  marchAmount: number;
+  aprilAmount: number;
+  mayAmount: number;
+  juneAmount: number;
+  julyAmount: number;
+  augustAmount: number;
+  septemberAmount: number;
+  octoberAmount: number;
+  novemberAmount: number;
+  decemberAmount: number;
+  totalReceiptToDate: number;
+  balance: number;
+  remarks: number;
+}
+
+const FrmOfficerAssessment = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const [firstFiscalYear, setFirstFiscalYear] = useState(""); // Initialize as an empty string
   const [firstOfficer, setFirstOfficer] = useState('');
-  const [officers, setOfficers] = useState<Officer[]>([]);
-  const [fiscalYears, setFiscalYears] = useState<FiscalYear[]>([]);
+  //let [fiscalYears, setFiscalYears] = useState<FiscalYearsParam[]>([]);
+  //const [selectedOfficerName, setSelectedOfficerName] = useState('');
 
+
+  let officersData = useAppSelector((state) => state.officer.officers);
+
+  // const fiscalYearsData: FiscalYear[] = useAppSelector((state) => state.officerAssessment.fiscalYears);    //.officerAssessment?.bus_year || []);
+  
+  // console.log("Selected Fiscal Year:", firstFiscalYear);
+  // console.log("Fiscal Years Data:", fiscalYearsData);
+
+  // useEffect(() => {
+  //   console.log('Officers Data Updated:', officersData); 
+  // }, [fiscalYearsData]);
+
+  // Use this effect to log the updated state after it changes
+  // useEffect(() => {
+  //   console.log("Updated firstOfficer:", firstOfficer);
+  // }, [firstOfficer]);
+  
   useEffect(() => {
-    // Fetch officers
-    const fetchOfficers = async () => {
-      try {
-        const response = await axios.get('/api/officers');
-        setOfficers(response.data);
-      } catch (error) {
-        console.error("Error fetching officers:", error);
-        alert("No officer details entered yet");
-      }
+    const fetchData = async () => {
+      await dispatch(fetchOfficers());
     };
 
-    // Fetch fiscal years
-    const fetchFiscalYears = async () => {
-      try {
-        const response = await axios.get('/api/fiscal-years');
-        setFiscalYears(response.data);
-      } catch (error) {
-        console.error("Error fetching fiscal years:", error);
-        const currentYear = new Date().getFullYear();
-        alert(`No officer budget details entered FOR the year ${currentYear}`);
-      }
+    fetchData();
+  }, [dispatch]);
+
+ // Fetch fiscal years
+// const fetchFiscalYearsData = async () => {
+//   try {
+//       // Dispatch the thunk
+//       const resultAction = await dispatch(fetchFiscalYears())  //.unwrap();
+
+//       console.log("resultAction:", resultAction)
+
+
+
+//      // Check if the response indicates that the data exists
+//           if (resultAction.payload) {
+//             // Data was successfully fetched
+//             console.log('resultAction.payload:', resultAction.payload);
+//             // You can further process the budget data here
+//           } else {
+//             // Handle the case where the data doesn't exist
+//             console.error("No budget data found for the officer:", resultAction);
+//             alert("No budget data found for the officer.");
+//           }
+      
+//   } catch (error) {
+//       console.error("Error fetching fiscal years:", error);
+//       const currentYear = new Date().getFullYear();
+//       alert(`No officer budget details entered FOR the year ${currentYear}`);
+//   }
+// };
+
+  // const handleFirstOfficerChange = (event: React.ChangeEvent<HTMLElement>) => {
+  //   const target = event.target as HTMLSelectElement; 
+  //   console.log("target.value:", target.value);
+
+  //   setFirstOfficer(target.value.split(' ')[0]);
+  //    console.log("firstOfficer:", firstOfficer);
+  // };
+
+  // const handleFirstOfficerChange = (event: React.ChangeEvent<HTMLElement>) => {
+  //   const target = event.target as HTMLSelectElement;
+  //   const selectedOfficer = target.value.split(' ')[0];
+  //   setFirstOfficer(selectedOfficer);
+  // };
+
+   const handleFirstOfficerChange = (event: React.ChangeEvent<HTMLElement>) => {
+         const target = event.target as HTMLSelectElement;
+         const selectedOfficer = target.value.split(' ')[0];
+         setFirstOfficer(selectedOfficer);
     };
 
-    fetchOfficers();
-    fetchFiscalYears();
+   
 
-    // Show alert on form load
-    alert("Make sure that client payments are correctly updated else you will not get the report");
 
-  }, []);
-
-  const handleOfficerChange = (event: React.ChangeEvent<HTMLElement>) => {
+  const handleFirstFiscalYearChange = (event: React.ChangeEvent<HTMLElement>) => {
     const target = event.target as HTMLSelectElement;
-    const selectedOfficer = target.value.split(' ')[0];
-    setFirstOfficer(selectedOfficer);
-  };
-
-  const handleFiscalYearChange = (event: React.ChangeEvent<HTMLElement>) => {
-    const target = event.target as HTMLSelectElement;
-    setFiscalYear(target.value);
+    setFirstFiscalYear(target.value);
   };
 
   const handlePreviewClick = async () => {
-    if (!fiscalYear) {
-      alert("ENTER THE FISCAL YEAR");
-      return;
+    console.log('in handlePreviewClick');
+
+    if (!firstFiscalYear || !firstOfficer) {
+        alert("ENTER THE FISCAL YEAR AND OFFICERS");
+        return;
     }
+
+    console.log('about to access budgetResponse');
 
     try {
-      const budgetResponse = await axios.get('/api/officer-budget', {
-        params: { fiscalYear }
-      });
+        const budgetResponse: OfficerBudgetResponse = await dispatch(fetchOfficerBudget({ officer_no: firstOfficer, fiscal_year: parseInt(firstFiscalYear, 10) })).unwrap();
 
-      if (budgetResponse.data.length === 0) {
-        alert("You have to set budgets for the collectors before assessing them");
-        return;
-      }
+        console.log('budgetResponse.data: ', budgetResponse.data);
 
-      await axios.delete('/api/officer-assessment');
+        // Check if the response indicates that the data exists
+        if (budgetResponse.exists) {
+            // Data was successfully fetched
+            console.log('Budget Data:', budgetResponse.data);
+            // You can further process the budget data here
+        } else {
+            // Handle the case where the data doesn't exist
+            console.error("No budget data found for the officer:", budgetResponse);
+            alert("No budget data found for the officer.");
+        }
 
-      // const processedOfficers = await Promise.all(officers.map(async officer => {
-      //   const noOfClientsServed = await findNoOfClientsServed(officer.officer_no);
-      //   const valueOfBillsDistributed = await findValueOfBillsDistributed(officer.officer_no);
+        console.log('about to access variable of createClientsServedParams object');
 
-      //   if (valueOfBillsDistributed === 0) {
-      //     alert("No bills found for the fiscal year. Use a previous year");
-      //     return null;
-      //   }
+        if (budgetResponse && budgetResponse.exists && Array.isArray(budgetResponse.data)) {
+            await Promise.all(budgetResponse.data.map(async officer => {
+                let officerNo = officer.officer_no; // Officer number from your existing data
+                console.log('officerNo: ', officerNo);
 
-      //   const januaryAmount = await findJanuaryAmount(officer.officer_no);
-      //   const februaryAmount = await findFebruaryAmount(officer.officer_no);
-      //   const marchAmount = await findMarchAmount(officer.officer_no);
-      //   const aprilAmount = await findAprilAmount(officer.officer_no);
-      //   const mayAmount = await findMayAmount(officer.officer_no);
-      //   const juneAmount = await findJuneAmount(officer.officer_no);
-      //   const julyAmount = await findJulyAmount(officer.officer_no);
-      //   const augustAmount = await findAugustAmount(officer.officer_no);
-      //   const septemberAmount = await findSeptemberAmount(officer.officer_no);
-      //   const octoberAmount = await findOctoberAmount(officer.officer_no);
-      //   const novemberAmount = await findNovemberAmount(officer.officer_no);
-      //   const decemberAmount = await findDecemberAmount(officer.officer_no);
+                let officerName = officer.officer_name; // Officer name from your existing data
+                console.log('officerName: ', officerName);
 
-      //   const totalReceiptToDate = januaryAmount + februaryAmount + marchAmount + aprilAmount +
-      //                             mayAmount + juneAmount + julyAmount + augustAmount +
-      //                             septemberAmount + octoberAmount + novemberAmount + decemberAmount;
+                // Parse the fiscal year to a number
+                let fiscalYearValue = parseInt(firstFiscalYear, 10);
 
-      //   const balance = valueOfBillsDistributed - totalReceiptToDate;
-      //   const remarks = (totalReceiptToDate / valueOfBillsDistributed) * 100;
+                // Check if fiscalYearValue is a valid number
+                if (isNaN(fiscalYearValue)) {
+                    throw new Error('Invalid fiscalYear: must be a number');
+                }
 
-      //   await axios.post('/api/officer-assessment', {
-      //     officer_no: officer.officer_no,
-      //     officer_name: officer.officer_name,
-      //     Noofclientsserved: noOfClientsServed,
-      //     valueofbillsdistributed: valueOfBillsDistributed,
-      //     bus_year: fiscalYear,
-      //     JanuaryAmount: januaryAmount,
-      //     FebruaryAmount: februaryAmount,
-      //     MarchAmount: marchAmount,
-      //     AprilAmount: aprilAmount,
-      //     MayAmount: mayAmount,
-      //     JuneAmount: juneAmount,
-      //     JulyAmount: julyAmount,
-      //     AugustAmount: augustAmount,
-      //     SeptemberAmount: septemberAmount,
-      //     OctoberAmount: octoberAmount,
-      //     NovemberAmount: novemberAmount,
-      //     DecemberAmount: decemberAmount,
-      //     totalReceiptTodate: totalReceiptToDate,
-      //     balance: balance,
-      //     remarks: remarks
-      //   });
-      // }));
+                // Dispatch the thunk with the necessary parameters
+                let noOfClientsServed = await dispatch(fetchClientsServed({ officerNo, fiscalYear: fiscalYearValue })).unwrap();
+                console.log('noOfClientsServed: ', noOfClientsServed);
 
-      const assessmentResponse = await axios.get('/api/officer-assessment');
+                // Fetch the value of bills distributed
+                let valueOfBillsDistributed = await dispatch(fetchBillsDistributed({ officerNo, fiscalYear: fiscalYearValue })).unwrap();
+                console.log('valueOfBillsDistributed: ', valueOfBillsDistributed);
 
-      if (assessmentResponse.data.length > 0) {
-        window.open('/report/REPORT ON MONITORING AND EVALUATION EXERCISE.rpt', '_blank');
-        alert(`This is the report for ${fiscalYear}`);
-      } else {
-        alert("No records found");
-      }
-    } catch (error) {
-      console.error("Error processing preview:", error);
-      alert("Error processing preview");
+                // // Fetch all monthly amounts
+                let januaryAmount: number = await dispatch(fetchJanuaryAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                console.log('januaryAmount: ', januaryAmount)
+                
+                // let februaryAmount: number = await dispatch(fetchFebruaryAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                // let marchAmount: number = await dispatch(fetchMarchAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                // let aprilAmount: number = await dispatch(fetchAprilAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                // let mayAmount: number = await dispatch(fetchMayAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                // let juneAmount: number = await dispatch(fetchJuneAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                // let julyAmount: number = await dispatch(fetchJulyAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                // let augustAmount: number = await dispatch(fetchAugustAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                // let septemberAmount: number = await dispatch(fetchSeptemberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                // let octoberAmount: number = await dispatch(fetchOctoberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                // let novemberAmount: number = await dispatch(fetchNovemberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                // let decemberAmount: number = await dispatch(fetchDecemberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+
+                // let totalReceiptToDate: number = januaryAmount + februaryAmount + marchAmount + aprilAmount + mayAmount + juneAmount + julyAmount + augustAmount + 
+                // septemberAmount + octoberAmount + novemberAmount + decemberAmount;
+
+                // // Calculate balance and remarks
+                // let balance = valueOfBillsDistributed - totalReceiptToDate;
+                // console.log('balance: ', balance);
+
+                // const remarks = (valueOfBillsDistributed > 0) ? (totalReceiptToDate / valueOfBillsDistributed) * 100 : 0;
+                // console.log('remarks: ', remarks);
+
+                // // Create the object for the thunk
+                // const createClientsServedParams: CreateClientsServedParams = {
+                //     officerNo, // Assumes officerNo is a string defined elsewhere
+                //     fiscalYear, // Ensure firstFiscalYear is a valid string representation of a number
+                //     noOfClientsServed, // Must be defined as a number
+                //     valueOfBillsDistributed, // Must be defined as a number
+                //     januaryAmount, // Must be defined as a number
+                //     februaryAmount, // Must be defined as a number
+                //     marchAmount, // Must be defined as a number
+                //     aprilAmount, // Must be defined as a number
+                //     mayAmount, // Must be defined as a number
+                //     juneAmount, // Must be defined as a number
+                //     julyAmount, // Must be defined as a number
+                //     augustAmount, // Must be defined as a number
+                //     septemberAmount, // Must be defined as a number
+                //     octoberAmount, // Must be defined as a number
+                //     novemberAmount, // Must be defined as a number
+                //     decemberAmount, // Must be defined as a number
+                //     totalReceiptToDate, // Must be defined as a number
+                //     balance, // Must be defined as a number
+                //     remarks, // Should be a string
+                // };
+
+                //console.log('createClientsServedParams processed values: ', createClientsServedParams);
+
+                // Now you can dispatch the thunk with this object
+                // await dispatch(createClientsServed(createClientsServedParams));
+            }));
+        } else {
+            console.log('No data available or response structure is invalid.');
+        }
+
+        // Fetch assessment response
+        // const assessmentResponse = await dispatch(fetchOfficerAssessments()).unwrap();
+
+        // if (assessmentResponse.length > 0) {
+        //     alert(`This is the report for ${firstFiscalYear}`);
+        // } else {
+        //     alert("No records found");
+        // }
+    } catch (error: any) {
+        console.error("Error processing preview:", error);
+        // alert("Error processing preview");
     }
-  };
-
-  const handlePrintClick = async () => {
-    if (!fiscalYear) {
-      alert("ENTER THE FISCAL YEAR");
-      return;
-    }
-
-    try {
-      const budgetResponse = await axios.get('/api/officer-budget-weekly', {
-        params: { fiscalYear }
-      });
-
-      if (budgetResponse.data.length === 0) {
-        alert("You have to set budgets for the collectors before assessing them");
-        return;
-      }
-
-      await axios.delete('/api/officer-budget-weekly');
-
-      // const processedOfficers = await Promise.all(officers.map(async officer => {
-      //   const noOfClientsServed = await findNoOfClientsServed(officer.officer_no);
-      //   const valueOfBillsDistributed = await findValueOfBillsDistributed(officer.officer_no);
-
-      //   if (valueOfBillsDistributed === 0) {
-      //     alert("No bills found for the fiscal year. Use a previous year");
-      //     return null;
-      //   }
-
-      //   const januaryAmount = await findJanuaryAmount(officer.officer_no);
-      //   const februaryAmount = await findFebruaryAmount(officer.officer_no);
-      //   const marchAmount = await findMarchAmount(officer.officer_no);
-      //   const aprilAmount = await findAprilAmount(officer.officer_no);
-      //   const mayAmount = await findMayAmount(officer.officer_no);
-      //   const juneAmount = await findJuneAmount(officer.officer_no);
-      //   const julyAmount = await findJulyAmount(officer.officer_no);
-      //   const augustAmount = await findAugustAmount(officer.officer_no);
-      //   const septemberAmount = await findSeptemberAmount(officer.officer_no);
-      //   const octoberAmount = await findOctoberAmount(officer.officer_no);
-      //   const novemberAmount = await findNovemberAmount(officer.officer_no);
-      //   const decemberAmount = await findDecemberAmount(officer.officer_no);
-
-      //   const totalReceiptToDate = januaryAmount + februaryAmount + marchAmount + aprilAmount +
-      //                             mayAmount + juneAmount + julyAmount + augustAmount +
-      //                             septemberAmount + octoberAmount + novemberAmount + decemberAmount;
-
-      //   const balance = valueOfBillsDistributed - totalReceiptToDate;
-      //   const remarks = (totalReceiptToDate / valueOfBillsDistributed) * 100;
-
-      //   await axios.post('/api/officer-budget-weekly', {
-      //     officer_no: officer.officer_no,
-      //     officer_name: officer.officer_name,
-      //     Noofclientsserved: noOfClientsServed,
-      //     valueofbillsdistributed: valueOfBillsDistributed,
-      //     bus_year: fiscalYear,
-      //     JanuaryAmountweek1: 0, JanuaryAmountweek2: 0, JanuaryAmountweek3: 0, JanuaryAmountweek4: 0,
-      //     FebruaryAmountweek1: 0, FebruaryAmountweek2: 0, FebruaryAmountweek3: 0, FebruaryAmountweek4: 0,
-      //     MarchAmountweek1: 0, MarchAmountweek2: 0, MarchAmountweek3: 0, MarchAmountweek4: 0,
-      //     AprilAmountweek1: 0, AprilAmountweek2: 0, AprilAmountweek3: 0, AprilAmountweek4: 0,
-      //     MayAmountweek1: 0, MayAmountweek2: 0, MayAmountweek3: 0, MayAmountweek4: 0,
-      //     JuneAmountweek1: 0, JuneAmountweek2: 0, JuneAmountweek3: 0, JuneAmountweek4: 0,
-      //     JulyAmountweek1: 0, JulyAmountweek2: 0, JulyAmountweek3: 0, JulyAmountweek4: 0,
-      //     AugustAmountweek1: 0, AugustAmountweek2: 0, AugustAmountweek3: 0, AugustAmountweek4: 0,
-      //     SeptemberAmountweek1: 0, SeptemberAmountweek2: 0, SeptemberAmountweek3: 0, SeptemberAmountweek4: 0,
-      //     OctoberAmountweek1: 0, OctoberAmountweek2: 0, OctoberAmountweek3: 0, OctoberAmountweek4: 0,
-      //     NovemberAmountweek1: 0, NovemberAmountweek2: 0, NovemberAmountweek3: 0, NovemberAmountweek4: 0,
-      //     DecemberAmountweek1: 0, DecemberAmountweek2: 0, DecemberAmountweek3: 0, DecemberAmountweek4: 0,
-      //     totalReceiptTodate: totalReceiptToDate,
-      //     balance: balance,
-      //     remarks: remarks
-      //   });
-      // }));
-
-      const weeklyBudgetResponse = await axios.get('/api/officer-budget-weekly');
-
-      if (weeklyBudgetResponse.data.length > 0) {
-        window.open('/report/REPORT ON MONITORING AND EVALUATION EXERCISE WEEKLY.rpt', '_blank');
-        alert(`This is the report for ${fiscalYear}`);
-      } else {
-        alert("No records found");
-      }
-    } catch (error) {
-      console.error("Error processing print:", error);
-      alert("Error processing print");
-    }
-  };
+};
 
   const handleExitClick = () => {
-    // Assuming you have a way to navigate back to the main page
-    window.location.href = '/'; // Redirect to main page or wherever you want
+    navigate('/main');
   };
-
-  // const findNoOfClientsServed = async (officerNo: string): Promise<number> => {
-  //   try {
-  //     const response = await axios.get('/api/no-of-clients-served', {
-  //       params: { officerNo, fiscalYear }
-  //     });
-  //     return response.data || 0;
-  //   } catch (error) {
-  //     console.error("Error fetching no of clients served:", error);
-  //     return 0;
-  //   }
-  // };
-
-  // const findValueOfBillsDistributed = async (officerNo: string): Promise<number> => {
-  //   try {
-  //     const response = await axios.get('/api/value-of-bills-distributed', {
-  //       params: { officerNo, fiscalYear }
-  //     });
-  //     return response.data || 0;
-  //   } catch (error) {
-  //     console.error("Error fetching value of bills distributed:", error);
-  //     return 0;
-  //   }
-  // };
-
-  // const findJanuaryAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '1', 'January');
-  // };
-
-  // const findFebruaryAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '2', 'February');
-  // };
-
-  // const findMarchAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '3', 'March');
-  // };
-
-  // const findAprilAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '4', 'April');
-  // };
-
-  // const findMayAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '5', 'May');
-  // };
-
-  // const findJuneAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '6', 'June');
-  // };
-
-  // const findJulyAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '7', 'July');
-  // };
-
-  // const findAugustAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '8', 'August');
-  // };
-
-  // const findSeptemberAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '9', 'September');
-  // };
-
-  // const findOctoberAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '10', 'October');
-  // };
-
-  // const findNovemberAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '11', 'November');
-  // };
-
-  // const findDecemberAmount = async (officerNo: string): Promise<number> => {
-  //   return findMonthlyAmount(officerNo, '12', 'December');
-  // };
-
-  // const findMonthlyAmount = async (officerNo: string, month: string, monthName: string): Promise<number> => {
-  //   try {
-  //     const response = await axios.get('/api/monthly-amount', {
-  //       params: { officerNo, fiscalYear, month, monthName }
-  //     });
-  //     return response.data || 0;
-  //   } catch (error) {
-  //     console.error(`Error fetching amount for ${monthName}:`, error);
-  //     return 0;
-  //   }
-  // };
 
   return (
     <Container fluid className="bg-light">
       <Row className="mt-3">
         <Col className="text-center">
-          <h2 style={{ textDecoration: 'underline', color: '#0000C0' }}>MARCORY MUNICIPAL ASSEMBLY</h2>
+          <p style={{ textDecoration: 'underline', color: '#0000C0' }}>MARCORY MUNICIPAL ASSEMBLY</p>
         </Col>
       </Row>
       <Row className="mt-3">
         <Col>
-          <Form.Group controlId="formFiscalYear">
+          <Form.Group controlId="formFirstFiscalYear">
             <Form.Label>First Fiscal Year:</Form.Label>
-            <Form.Control as="select" value={fiscalYear} onChange={handleFiscalYearChange}>
-              <option value="">Select a fiscal year</option>
-              {fiscalYears.map(year => (
-                <option key={year.fiscal_year} value={year.fiscal_year}>{year.fiscal_year}</option>
-              ))}
-            </Form.Control>
+            <Form.Control 
+                type="number" 
+                value={firstFiscalYear} 
+                onChange={handleFirstFiscalYearChange} 
+                placeholder="Enter a fiscal year" 
+            />
           </Form.Group>
         </Col>
       </Row>
       <Row className="mt-3">
-        <Col>
+      <Col>
           <Form.Group controlId="formFirstOfficer">
-            <Form.Label>First Officer:</Form.Label>
-            <Form.Control as="select" value={firstOfficer} onChange={handleOfficerChange}>
+            <Form.Label> 
+             
+                 First Officer:   <p style={{ textDecoration: 'underline', color: '#0000C0' }}>{firstOfficer}</p>
+              
+              </Form.Label>
+            <Form.Control as="select" value={firstOfficer} onChange={handleFirstOfficerChange}>
               <option value="">Select an officer</option>
-              {officers.map(officer => (
+              {officersData.map(officer => (
                 <option key={officer.officer_no} value={`${officer.officer_no} ${officer.officer_name}`}>
-                  {officer.officer_no} {officer.officer_name}
+                 {officer.officer_no}  {officer.officer_name}
                 </option>
               ))}
             </Form.Control>
@@ -362,29 +329,22 @@ const OfficerAssessmentForm: React.FC = () => {
           </Button>
         </Col>
       </Row>
-      <Row className="mt-3">
-        <Col className="text-center">
-          <Button variant="success" onClick={handlePrintClick}>
-            Print Monitoring Report (Weekly)
-          </Button>
-        </Col>
-      </Row>
-      <Row className="mt-3">
+      {/* <Row className="mt-3">
         <Col className="text-center">
           <Button variant="secondary" onClick={handleExitClick}>
             Exit
           </Button>
         </Col>
-      </Row>
+      </Row> */}
       <Row className="mt-3">
-          <Col>
-          <Link to="/main" className="primary m-3">
-              Go Back
-          </Link>
-          </Col>
+        <Col>
+        <Button variant="secondary" onClick={handleExitClick}>
+            Exit
+          </Button>
+        </Col>
       </Row>
     </Container>
   );
 };
 
-export default OfficerAssessmentForm;
+export default FrmOfficerAssessment;

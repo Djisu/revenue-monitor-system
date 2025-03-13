@@ -53,7 +53,7 @@ interface BusPaymentsData {
     fiscal_year: string;
     ReceiptNo: string;
     email: string;
-    electoral_area: string;
+    electroral_area: string;
 }
 
 // Nodemailer transporter setup
@@ -94,7 +94,7 @@ async function generatePDF(receiptData: BusPaymentsData, receiptsDir: string): P
         doc.text(`Transaction Date: ${receiptData.transdate}`);
         doc.text(`Fiscal Year: ${receiptData.fiscal_year}`);
         doc.text(`Email: ${receiptData.email}`);
-        doc.text(`Electoral Area: ${receiptData.electoral_area}`);
+        doc.text(`Electoral Area: ${receiptData.electroral_area}`);
         doc.end();
     });
 }
@@ -141,13 +141,14 @@ router.post('/create', async (req: Request, res: Response) => {
         console.log('Receipts directory already exists:', receiptsDir);
     }
 
+    console.log('about to enter payment into buspayments table')
     const client: PoolClient = await pool.connect();
 
     try {
         // Insert the new BusPayments data
         const result = await client.query(
             `INSERT INTO buspayments (buss_no, officer_no, paidAmount, monthpaid, transdate, 
-                fiscal_year, ReceiptNo, email, electoral_area) 
+                fiscal_year, ReceiptNo, email, electroral_area) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
             [
                 busPaymentsData.buss_no,
@@ -158,7 +159,7 @@ router.post('/create', async (req: Request, res: Response) => {
                 busPaymentsData.fiscal_year,
                 busPaymentsData.ReceiptNo,
                 busPaymentsData.email,
-                busPaymentsData.electoral_area
+                busPaymentsData.electroral_area
             ]
         );
 
@@ -188,7 +189,7 @@ router.post('/create', async (req: Request, res: Response) => {
             fiscal_year: busPaymentsData.fiscal_year,
             ReceiptNo: busPaymentsData.ReceiptNo,
             email: busPaymentsData.email,
-            electoral_area: busPaymentsData.electoral_area
+            electroral_area: busPaymentsData.electroral_area
         };
 
         // Generate the PDF receipt
@@ -230,6 +231,55 @@ router.post('/sendEmail', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error sending email', emailError });
     }
 });
+
+
+router.get('/billedAmount/:bussNo', async (req: Request, res: Response): Promise<void> => {
+    const { bussNo } = req.params;
+
+    console.log('router.get(/billedAmount/:buss_no buss_no:', bussNo);
+
+    let client: PoolClient | null = null;
+
+    try {
+        client = await pool.connect();
+
+        const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [bussNo]);
+
+        if (result.rows.length === 0) {
+            res.status(404).json({ amount: 0, message: 'Business not found' });
+            return;
+        }
+
+        const currentRate = result.rows[0].current_rate;
+        console.log('currentRate:', currentRate);
+
+        const propertyRate = result.rows[0].property_rate;
+        console.log('propertyRate:', propertyRate);
+
+        const prevAmount = await findPreviousBalance(Number(bussNo));
+
+        console.log('prevAmount:', prevAmount);
+        const billedAmount = Number(prevAmount) + Number(currentRate) + Number(propertyRate);
+
+        console.log('billedAmount:', billedAmount);
+
+        if (prevAmount === undefined || prevAmount === null) {
+            res.status(404).json({ billedAmount: 0, message: 'No Previous balance found' });
+            return;
+        } else {
+            res.status(200).json({ billedAmount: billedAmount, message: 'Previous balance found' });
+            return;
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ billedAmount: 0, message: 'Error fetching BusPayments record', error });
+    } finally {
+        if (client) {
+            client.release(); // Release the client back to the pool
+        }
+    }
+});
+
 
 // Read all BusPayments records
 router.get('/all', async (req: Request, res: Response) => {
@@ -433,10 +483,12 @@ router.post('/billallbusinesses', async (req: Request, res: Response) => {
         // Select all businesses
         const businessesResult: QueryResult = await client.query('SELECT * FROM business');
 
+        console.log('ABOUT TO BILL ALL BUSINESSES')
+
         // Insert into busscurrbalance
         for (const businessRow of businessesResult.rows) {
             await client.query(
-                'INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                'INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea, assessmentby) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
                 [
                     businessRow.buss_no,
                     new Date().getFullYear(),
@@ -444,7 +496,8 @@ router.post('/billallbusinesses', async (req: Request, res: Response) => {
                     businessRow.current_rate,
                     0, // totalamountdue
                     new Date().toISOString().split('T')[0], // transdate
-                    businessRow.electroral_area
+                    businessRow.electroral_area,
+                    businessRow.assessmentby // Add the appropriate value for `assessmentby`
                 ]
             );
         }
@@ -458,6 +511,56 @@ router.post('/billallbusinesses', async (req: Request, res: Response) => {
         if (client) {
             client.release();
         }
+    }
+});
+
+// async function findPreviousBalance(bussNo: number): Promise<number> {
+//     const client: PoolClient = await pool.connect();
+
+async function GetOfficerName(officerNo: number): Promise<string>  {
+    const client: PoolClient =await pool.connect();
+
+    const result = await client.query('SELECT officer_name FROM officer WHERE officer_no = $1', [officerNo]);
+
+    if (result.rows.length === 0) {
+        return 'Unknown';
+    }
+
+    return result.rows[0].officer_name;
+}
+
+router.get('/fetchClientsServed/:officer_no/:fiscal_year', async (req: Request, res: Response) => {
+
+    console.log('in buspayments router.get(/fetchClientsServed/:officer_no/:fiscal_year', req.params);
+
+    const { officer_no, fiscal_year } = req.params;
+    const client: PoolClient = await pool.connect();
+
+    const officerName = await GetOfficerName(Number(officer_no));
+
+    console.log('officerName: ', officerName)
+
+    try {
+        const result = await client.query(
+            `SELECT COUNT(buss_no) AS totcount FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2`,
+            [officerName, fiscal_year]
+        );
+
+
+        // Check if the query returned any results
+        if (result.rows.length === 0) {
+            return res.status(404).json(0); // Return 0 if no records found
+        }
+
+        console.log('result.rows[0].totcount: ', result.rows[0].totcount)
+        
+        // Return just the totsum value
+        return res.status(200).json(result.rows[0].totcount); // Send the totsum directly
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching BusPayments record', error });
+    } finally {
+        client.release();
     }
 });
 
@@ -580,7 +683,7 @@ router.post('/createPaymentsForAllBusinesses', async (req: Request, res: Respons
                 fiscal_year: busPaymentsData.fiscal_year,
                 ReceiptNo: busPaymentsData.ReceiptNo,
                 email: busPaymentsData.email,
-                electoral_area: busPaymentsData.electoral_area
+                electroral_area: busPaymentsData.electroral_area
             };
 
             // Generate the PDF receipt
@@ -619,7 +722,7 @@ async function findPreviousBalance(bussNo: number): Promise<number> {
 
         // Find previous billings
         const prevBalancesResult = await client.query(
-            'SELECT current_balance FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear < $2',
+            'SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear < $2',
             [bussNo, currentYear]
         );
 
@@ -702,15 +805,15 @@ async function updateOfficerBudget(params: Params): Promise<boolean> {
             params.busNo
         ]);
 
-        // Delete from var_buspayments
-        const deleteSQL = 'DELETE FROM varbuspayments WHERE buss_no = $1 AND officer_no = $2 AND fiscal_year = $3 AND monthpaid = $4 AND receiptno = $5';
-        await client.query(deleteSQL, [
-            params.busNo,
-            params.officerNo,
-            params.fiscalYear,
-            params.paymentMonth,
-            params.receiptNo
-        ]);
+        // // Delete from var_buspayments
+        // const deleteSQL = 'DELETE FROM varbuspayments WHERE buss_no = $1 AND officer_no = $2 AND fiscal_year = $3 AND monthpaid = $4 AND receiptno = $5';
+        // await client.query(deleteSQL, [
+        //     params.busNo,
+        //     params.officerNo,
+        //     params.fiscalYear,
+        //     params.paymentMonth,
+        //     params.receiptNo
+        // ]);
 
         return true;
     } catch (error) {

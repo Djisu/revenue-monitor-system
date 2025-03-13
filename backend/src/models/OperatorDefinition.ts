@@ -4,7 +4,7 @@ export interface OperatorDefinition {
     password: string;
     firstname: string;
     lastname: string;
-    email: string;
+    email?: string;
     resettoken?: string; // Optional because it may not always be set
     resettokenexpiration?: Date; // Optional
 }

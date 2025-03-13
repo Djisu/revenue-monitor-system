@@ -23,50 +23,81 @@ const initialState: PropertyRateState = {
     error: null,
 };
 
+
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+
+// Helper function to get the token from local storage
+const getAuthToken = () => {
+    return localStorage.getItem('token');
+};
+
 // Async thunk to fetch all property rates
 export const fetchPropertyRates = createAsyncThunk('propertyRate/fetchPropertyRates', async () => {
-    const response = await axios.get('/api/propertyRate');
+    const response = await axios.get(`${BASE_URL}/api/propertyRate`, {
+        headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+        },
+    });
     return response.data;
 });
 
 // Async thunk to fetch a single property rate by property_Class and fiscalyear
 export const fetchPropertyRateByPropertyClassAndFiscalyear = createAsyncThunk('propertyRate/fetchPropertyRateByPropertyClassAndFiscalyear', 
-      async ({ property_Class, fiscalyear }: { property_Class: string; fiscalyear: number }) => {
-      console.log(`fetchPropertyRateByPropertyClassAndFiscalyear: ${property_Class}, fiscalyear: ${fiscalyear}`);
+    async ({ property_Class, fiscalyear }: { property_Class: string; fiscalyear: number }) => {
+        console.log(`fetchPropertyRateByPropertyClassAndFiscalyear: ${property_Class}, fiscalyear: ${fiscalyear}`);
 
-      const response = await axios.get(`/api/propertyRate/${property_Class}/${fiscalyear}`);
-      return response.data;
-});
+        const response = await axios.get(`${BASE_URL}/api/propertyRate/${property_Class}/${fiscalyear}`, {
+            headers: {
+                Authorization: `Bearer ${getAuthToken()}`,
+            },
+        });
+        return response.data;
+    }
+);
 
 // Async thunk to create a new property rate
 export const createPropertyRate = createAsyncThunk('propertyRate/createPropertyRate', 
-   async (propertyRateData: PropertyRateData) => {
+    async (propertyRateData: PropertyRateData) => {
+        console.log('createPropertyRate action called with ', propertyRateData);
 
-    console.log('createPropertyRate action called with ', propertyRateData);
+        const response = await axios.post(`${BASE_URL}/api/propertyRate/create`, propertyRateData, {
+            headers: {
+                Authorization: `Bearer ${getAuthToken()}`,
+            },
+        });
 
-    const response = await axios.post('/api/propertyRate/create', propertyRateData);
-
-    console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
-    return response.data;
-});
+        console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
+        return response.data;
+    }
+);
 
 // Async thunk to update a property rate
 export const updatePropertyRate = createAsyncThunk('propertyRate/updatePropertyRate', 
     async ({ property_Class, fiscalyear, propertyRateData }: 
-                { property_Class: string; fiscalyear: number; propertyRateData: PropertyRateData }) => {
-    
-    const response = await axios.put(`/api/propertyRate/update${property_Class}/${fiscalyear}`, propertyRateData);
-    return response.data;
-});
+            { property_Class: string; fiscalyear: number; propertyRateData: PropertyRateData }) => {
+        
+        const response = await axios.put(`${BASE_URL}/api/propertyRate/update/${property_Class}/${fiscalyear}`, propertyRateData, {
+            headers: {
+                Authorization: `Bearer ${getAuthToken()}`,
+            },
+        });
+        return response.data;
+    }
+);
 
 // Async thunk to delete a property rate
 export const deletePropertyRate = createAsyncThunk('propertyRate/deletePropertyRate', 
     async ({ property_Class, fiscalyear }: { property_Class: string; fiscalyear: number }) => {
+        const response = await axios.delete(`${BASE_URL}/api/propertyRate/${property_Class}/${fiscalyear}`, {
+            headers: {
+                Authorization: `Bearer ${getAuthToken()}`,
+            },
+        });
 
-    const response = await axios.delete(`/api/propertyRate/${property_Class}/${fiscalyear}`);
-
-    return response.data;
-});
+        return response.data;
+    }
+);
 
 // Create the slice
 const propertyRateSlice = createSlice({
