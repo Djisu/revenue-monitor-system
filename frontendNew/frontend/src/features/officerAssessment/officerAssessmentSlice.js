@@ -64,21 +64,25 @@ export var createClientsServed = createAsyncThunk('officerAssessment/createClien
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, apiClient.post("".concat(BASE_URL, "/api/officerAssessment/create"), params, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': "Bearer ".concat(token),
-                    },
-                })];
+            case 0:
+                //console.clear();
+                console.log('in createClientsServed thunk', params);
+                return [4 /*yield*/, apiClient.post("".concat(BASE_URL, "/api/officerAssessment/create"), params, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': "Bearer ".concat(token),
+                        },
+                    })];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data.totalClientsServed]; // Adjust based on your API response
+                console.log('createClientsServed response', response.data);
+                return [2 /*return*/, response.data]; // Adjust based on your API response
         }
     });
 }); });
-function isNumber(value) {
-    return typeof value === 'number' && !isNaN(value);
-}
+// function isNumber(value: any): value is number {
+//     return typeof value === 'number' && !isNaN(value);
+// }
 // Async thunk to fetch the number of clients served
 export var fetchClientsServed = createAsyncThunk('officerAssessment/fetchClientsServed', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
     var response;
@@ -125,241 +129,349 @@ export var fetchFiscalYears = createAsyncThunk('officerAssessment/fetchFiscalYea
 }); });
 // Create the thunk for fetching January amount
 export var fetchJanuaryAmount = createAsyncThunk('payments/fetchJanuaryAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_1;
+    var response, totsum, error_1;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/January/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchJanuaryAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/January/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_1 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_1.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching February amount
 export var fetchFebruaryAmount = createAsyncThunk('payments/fetchFebruaryAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_2;
+    var response, totsum, error_2;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/February/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchFebruaryAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/February/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_2 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_2.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching March amount
 export var fetchMarchAmount = createAsyncThunk('payments/fetchMarchAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_3;
+    var response, totsum, error_3;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/March/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchMarchAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/March/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_3 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_3.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching April amount
 export var fetchAprilAmount = createAsyncThunk('payments/fetchAprilAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_4;
+    var response, totsum, error_4;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/April/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchAprilAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/April/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_4 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_4.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching May amount
 export var fetchMayAmount = createAsyncThunk('payments/fetchMayAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_5;
+    var response, totsum, error_5;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/May/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchMayAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/May/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_5 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_5.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching June amount
 export var fetchJuneAmount = createAsyncThunk('payments/fetchJuneAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_6;
+    var response, totsum, error_6;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/June/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchJuneAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/June/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_6 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_6.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching July amount
 export var fetchJulyAmount = createAsyncThunk('payments/fetchJulyAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_7;
+    var response, totsum, error_7;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/July/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchJulyAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/July/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_7 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_7.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching August amount
 export var fetchAugustAmount = createAsyncThunk('payments/fetchAugustAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_8;
+    var response, totsum, error_8;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/August/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchAugustAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/August/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_8 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_8.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching September amount
 export var fetchSeptemberAmount = createAsyncThunk('payments/fetchSeptemberAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_9;
+    var response, totsum, error_9;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/September/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchSeptemberAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/September/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_9 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_9.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching October amount
 export var fetchOctoberAmount = createAsyncThunk('payments/fetchOctoberAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_10;
+    var response, totsum, error_10;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/October/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchOctoberAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/October/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_10 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_10.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching November amount
 export var fetchNovemberAmount = createAsyncThunk('payments/fetchNovemberAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_11;
+    var response, totsum, error_11;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/November/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchNovemberAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/November/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_11 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_11.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 // Create the thunk for fetching December amount
 export var fetchDecemberAmount = createAsyncThunk('payments/fetchDecemberAmount', function (_a, _b) { return __awaiter(void 0, [_a, _b], void 0, function (_c, _d) {
-    var response, error_12;
+    var response, totsum, error_12;
     var officerNo = _c.officerNo, fiscalYear = _c.fiscalYear;
     var rejectWithValue = _d.rejectWithValue;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/December/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('in fetchDecemberAmount');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                return [2 /*return*/, response.data.amount]; // Ensure this matches the expected response structure
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/December/").concat(officerNo, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                totsum = Number(response.data.totsum);
+                console.log('totsum', totsum);
+                // Check if the conversion was successful
+                if (isNaN(totsum)) {
+                    throw new Error('Received an invalid number for totsum');
+                }
+                return [2 /*return*/, totsum]; // Now returning a number
+            case 3:
                 error_12 = _e.sent();
                 return [2 /*return*/, rejectWithValue(error_12.message)];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
@@ -372,6 +484,7 @@ export var fetchOfficerAssessment = createAsyncThunk('officerAssessment/fetchOff
             case 0: return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/").concat(officerNo, "/").concat(fiscalYear))];
             case 1:
                 response = _c.sent();
+                console.log('fetchOfficerAssessment response', response.data);
                 return [2 /*return*/, response.data]; // Ensure this matches OfficerAssessment structure
         }
     });

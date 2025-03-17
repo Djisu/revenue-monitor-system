@@ -204,10 +204,12 @@ var FrmClientPayments = function () {
                     return [4 /*yield*/, dispatch(createBusPayment(busPayment)).unwrap()];
                 case 2:
                     response = _a.sent();
-                    // Handle success, e.g., clear form, show success message, etc.
-                    setErrorMessage('');
-                    console.log(response);
-                    if (createBusPayment.fulfilled.match(response)) {
+                    console.log('XXXXXXXXXXX', response);
+                    // Log the response to verify
+                    console.log('Response.message:', response.message);
+                    alert(response.message);
+                    // Check if the response indicates success
+                    if (response && response.message) {
                         setBusinessNo(0);
                         setOfficerNo('');
                         setPaidAmount(0);
@@ -217,6 +219,10 @@ var FrmClientPayments = function () {
                         setEmail('');
                         setBilledAmount(0);
                         alert('Payment successfully added');
+                    }
+                    else {
+                        // Handle unexpected response structure
+                        setErrorMessage('Unexpected response received.');
                     }
                     return [3 /*break*/, 4];
                 case 3:

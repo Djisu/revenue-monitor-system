@@ -1,44 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useAppDispatch } from '../../app/store';
 import { Container, Form, Button,  Alert } from 'react-bootstrap';
-import axios from 'axios';
+
 import { Link } from 'react-router-dom';
-
-interface Business {
-  buss_no: number;
-  buss_name: string;
-  buss_address: string;
-  buss_type: string;
-  buss_permitno: string;
-  street_name: string;
-  landmark: string;
-  layout: string;
-  property_class: string;
-  tot_grade: string;
-  ceo: string;
-  telno: string;
-  assessmentby: string;
-  transdate: string;
-  status: string;
-  serialno: string;
-  current_rate: number;
-  property_rate: number;
-}
-
-interface ClientBalance {
-  buss_no: number;
-  fiscalyear: number;
-  balancebf: number;
-  current_balance: number;
-  totalAmountDue: number;
-  transdate: string;
-}
+import { fetchBusinesses, fetchBusinessById } from './businessSlice';
+import { billOneBusiness } from '../busPayments/busPaymentsSlice';
 
 export const FrmBillClient: React.FC = () => {
-  const [bussNo, setBussNo] = useState<number | string>('');
+  const [bussNo, setBussNo] = useState<number>(0);
   const [bussName, setBussName] = useState<string>('');
   const [amount, setAmount] = useState<number>(0);
-  const [businessList, setBusinessList] = useState<Business[]>([]);
   const [error, setError] = useState<string>('');
+  //let [businessExists, setBusinessExists] = useState(false)
+
+  //const businessesData = useAppSelector((state) => state.business.businesses)
+
+  const dispatch = useAppDispatch()
 
   useEffect(() => {
     fetchBusinessList();
@@ -46,80 +23,82 @@ export const FrmBillClient: React.FC = () => {
 
   const fetchBusinessList = async () => {
     try {
-      const response = await axios.get<Business[]>('http://your-api-url/tb_business');
-      setBusinessList(response.data);
+      await dispatch(fetchBusinesses()).unwrap()
+
     } catch (error) {
       console.error(error);
       setError('No business found');
     }
   };
 
-  const handleLoanNoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setBussNo(e.target.value);
-    validateLoanNo(e.target.value);
-  };
-
-  const validateLoanNo = async (value: string) => {
-    try {
-      value = value.trim().split(' ')[0];
-      const response = await axios.get<Business[]>(`http://your-api-url/tb_business?buss_no=${value}`);
-      if (response.data.length > 0) {
-        setBussName(response.data[0].buss_name);
-        setError('');
-      } else {
-        setError('A wrong business number');
-        setBussName('');
-      }
-    } catch (error) {
-      console.error(error);
-      setError('A wrong business number');
-      setBussName('');
-    }
-  };
-
   const handleBillClick = async () => {
+    console.log('in handleBillClick')
+
     try {
-      const fiscalYear = new Date().getFullYear();
-      const response = await axios.get<ClientBalance[]>(`http://your-api-url/tb_BussCurrBalance?buss_no=${bussNo}`);
-      if (response.data.length > 0) {
-        await axios.post('http://your-api-url/tb_BussCurrBalance', {
-          buss_no: bussNo,
-          fiscalyear: fiscalYear,
-          balancebf: 0,
-          current_balance: amount,
-          totalAmountDue: 0,
-          transdate: new Date().toISOString().split('T')[0],
-        });
+    
+      
+      const response = await dispatch(billOneBusiness(bussNo)).unwrap()
+
+      if (response){
         alert('Billing successful');
         setAmount(0);
-      } else {
-        setError('Business not found in client balances');
       }
+        
+     
     } catch (error) {
       console.error(error);
       setError('Error billing client');
     }
   };
 
-  const handleExitClick = () => {
-    window.location.href = '/'; // Redirect to main page or hide the form
+  const getBusiness = async (businessId: string) => {
+    console.log('in getBusiness, onBlur triggered with:', businessId);
+  
+    try {
+      // Convert businessId to a number if necessary
+      const id = Number(businessId);
+  
+      console.log('before  dispatch(fetchBusinessById(id)).unwrap();')
+      // Dispatch the async thunk and unwrap the result
+      const response = await dispatch(fetchBusinessById(id)).unwrap();
+
+      console.log('after  dispatch(fetchBusinessById(id)).unwrap(); response:', response.data)
+
+      console.log('response: ', response.data)
+        
+     if (response) {
+          setBussNo(response.data.buss_no || ''); // This can now be an empty string
+          setBussName(response.data.buss_name || '');
+          setAmount(response.data.current_rate || 0)
+      } else {
+        alert('record not found')
+      }
+
+    } catch (error: any) {     
+      console.error('Error fetching businesses:', error);
+      if (fetchBusinessById.rejected.match(error)) {
+        alert('Error fetching business');
+      }
+    }
   };
+  
 
   return (
     <Container>
-      <h2>Bill a Client</h2>
+     
       {error && <Alert variant="danger">{error}</Alert>}
       <Form>
+      <p className="bold-blue">Bill a Business</p>
         <Form.Group controlId="formBussNo">
           <Form.Label>Business Number:</Form.Label>
-          <Form.Select value={bussNo} onChange={handleLoanNoChange}>
-            <option value="">Select a business</option>
-            {businessList.map((business) => (
-              <option key={business.buss_no} value={business.buss_no}>
-                {business.buss_no} {business.buss_name}
-              </option>
-            ))}
-          </Form.Select>
+          <Form.Control
+            type="number"
+            value={bussNo}
+            onChange={(e) => setBussNo(Number(e.target.value))}
+            onBlur={(e) => getBusiness(e.target.value)}
+            placeholder="Enter business number"
+            min="0" // Optional: set minimum value
+          />
         </Form.Group>
 
         <Form.Group controlId="formBussName">
@@ -145,9 +124,9 @@ export const FrmBillClient: React.FC = () => {
         <Button variant="primary" onClick={handleBillClick}>
           Click to Bill a Client
         </Button>
-        <Button variant="danger" onClick={handleExitClick} style={{ marginLeft: '10px' }}>
+        {/* <Button variant="danger" onClick={handleExitClick} style={{ marginLeft: '10px' }}>
           Exit
-        </Button>
+        </Button> */}
       </Form>
       <Link to="/main" className="primary m-3">
           Go Back

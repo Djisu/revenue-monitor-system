@@ -36,28 +36,31 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
+import { useAppDispatch } from '../../app/store';
 import { Container, Form, Button, Alert } from 'react-bootstrap';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { fetchBusinesses, fetchBusinessById } from './businessSlice';
+import { billOneBusiness } from '../busPayments/busPaymentsSlice';
 export var FrmBillClient = function () {
-    var _a = useState(''), bussNo = _a[0], setBussNo = _a[1];
+    var _a = useState(0), bussNo = _a[0], setBussNo = _a[1];
     var _b = useState(''), bussName = _b[0], setBussName = _b[1];
     var _c = useState(0), amount = _c[0], setAmount = _c[1];
-    var _d = useState([]), businessList = _d[0], setBusinessList = _d[1];
-    var _e = useState(''), error = _e[0], setError = _e[1];
+    var _d = useState(''), error = _d[0], setError = _d[1];
+    //let [businessExists, setBusinessExists] = useState(false)
+    //const businessesData = useAppSelector((state) => state.business.businesses)
+    var dispatch = useAppDispatch();
     useEffect(function () {
         fetchBusinessList();
     }, []);
     var fetchBusinessList = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_1;
+        var error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('http://your-api-url/tb_business')];
+                    return [4 /*yield*/, dispatch(fetchBusinesses()).unwrap()];
                 case 1:
-                    response = _a.sent();
-                    setBusinessList(response.data);
+                    _a.sent();
                     return [3 /*break*/, 3];
                 case 2:
                     error_1 = _a.sent();
@@ -68,78 +71,68 @@ export var FrmBillClient = function () {
             }
         });
     }); };
-    var handleLoanNoChange = function (e) {
-        setBussNo(e.target.value);
-        validateLoanNo(e.target.value);
-    };
-    var validateLoanNo = function (value) { return __awaiter(void 0, void 0, void 0, function () {
+    var handleBillClick = function () { return __awaiter(void 0, void 0, void 0, function () {
         var response, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    value = value.trim().split(' ')[0];
-                    return [4 /*yield*/, axios.get("http://your-api-url/tb_business?buss_no=".concat(value))];
+                    console.log('in handleBillClick');
+                    _a.label = 1;
                 case 1:
-                    response = _a.sent();
-                    if (response.data.length > 0) {
-                        setBussName(response.data[0].buss_name);
-                        setError('');
-                    }
-                    else {
-                        setError('A wrong business number');
-                        setBussName('');
-                    }
-                    return [3 /*break*/, 3];
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, dispatch(billOneBusiness(bussNo)).unwrap()];
                 case 2:
+                    response = _a.sent();
+                    if (response) {
+                        alert('Billing successful');
+                        setAmount(0);
+                    }
+                    return [3 /*break*/, 4];
+                case 3:
                     error_2 = _a.sent();
                     console.error(error_2);
-                    setError('A wrong business number');
-                    setBussName('');
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    setError('Error billing client');
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     }); };
-    var handleBillClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var fiscalYear, response, error_3;
+    var getBusiness = function (businessId) { return __awaiter(void 0, void 0, void 0, function () {
+        var id, response, error_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 5, , 6]);
-                    fiscalYear = new Date().getFullYear();
-                    return [4 /*yield*/, axios.get("http://your-api-url/tb_BussCurrBalance?buss_no=".concat(bussNo))];
+                    console.log('in getBusiness, onBlur triggered with:', businessId);
+                    _a.label = 1;
                 case 1:
-                    response = _a.sent();
-                    if (!(response.data.length > 0)) return [3 /*break*/, 3];
-                    return [4 /*yield*/, axios.post('http://your-api-url/tb_BussCurrBalance', {
-                            buss_no: bussNo,
-                            fiscalyear: fiscalYear,
-                            balancebf: 0,
-                            current_balance: amount,
-                            totalAmountDue: 0,
-                            transdate: new Date().toISOString().split('T')[0],
-                        })];
+                    _a.trys.push([1, 3, , 4]);
+                    id = Number(businessId);
+                    console.log('before  dispatch(fetchBusinessById(id)).unwrap();');
+                    return [4 /*yield*/, dispatch(fetchBusinessById(id)).unwrap()];
                 case 2:
-                    _a.sent();
-                    alert('Billing successful');
-                    setAmount(0);
+                    response = _a.sent();
+                    console.log('after  dispatch(fetchBusinessById(id)).unwrap(); response:', response.data);
+                    console.log('response: ', response.data);
+                    if (response) {
+                        setBussNo(response.data.buss_no || ''); // This can now be an empty string
+                        setBussName(response.data.buss_name || '');
+                        setAmount(response.data.current_rate || 0);
+                    }
+                    else {
+                        alert('record not found');
+                    }
                     return [3 /*break*/, 4];
                 case 3:
-                    setError('Business not found in client balances');
-                    _a.label = 4;
-                case 4: return [3 /*break*/, 6];
-                case 5:
                     error_3 = _a.sent();
-                    console.error(error_3);
-                    setError('Error billing client');
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    console.error('Error fetching businesses:', error_3);
+                    if (fetchBusinessById.rejected.match(error_3)) {
+                        alert('Error fetching business');
+                    }
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     }); };
-    var handleExitClick = function () {
-        window.location.href = '/'; // Redirect to main page or hide the form
-    };
-    return (_jsxs(Container, { children: [_jsx("h2", { children: "Bill a Client" }), error && _jsx(Alert, { variant: "danger", children: error }), _jsxs(Form, { children: [_jsxs(Form.Group, { controlId: "formBussNo", children: [_jsx(Form.Label, { children: "Business Number:" }), _jsxs(Form.Select, { value: bussNo, onChange: handleLoanNoChange, children: [_jsx("option", { value: "", children: "Select a business" }), businessList.map(function (business) { return (_jsxs("option", { value: business.buss_no, children: [business.buss_no, " ", business.buss_name] }, business.buss_no)); })] })] }), _jsxs(Form.Group, { controlId: "formBussName", children: [_jsx(Form.Label, { children: "Business Name:" }), _jsx(Form.Control, { type: "text", value: bussName, readOnly: true })] }), _jsxs(Form.Group, { controlId: "formAmount", children: [_jsx(Form.Label, { children: "Amount to be posted:" }), _jsx(Form.Control, { type: "number", step: "0.01", value: amount, onChange: function (e) { return setAmount(Number(e.target.value)); }, style: { fontWeight: 'bold', color: 'blue' } })] }), _jsx(Button, { variant: "primary", onClick: handleBillClick, children: "Click to Bill a Client" }), _jsx(Button, { variant: "danger", onClick: handleExitClick, style: { marginLeft: '10px' }, children: "Exit" })] }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] }));
+    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), _jsxs(Form, { children: [_jsx("p", { className: "bold-blue", children: "Bill a Business" }), _jsxs(Form.Group, { controlId: "formBussNo", children: [_jsx(Form.Label, { children: "Business Number:" }), _jsx(Form.Control, { type: "number", value: bussNo, onChange: function (e) { return setBussNo(Number(e.target.value)); }, onBlur: function (e) { return getBusiness(e.target.value); }, placeholder: "Enter business number", min: "0" // Optional: set minimum value
+                             })] }), _jsxs(Form.Group, { controlId: "formBussName", children: [_jsx(Form.Label, { children: "Business Name:" }), _jsx(Form.Control, { type: "text", value: bussName, readOnly: true })] }), _jsxs(Form.Group, { controlId: "formAmount", children: [_jsx(Form.Label, { children: "Amount to be posted:" }), _jsx(Form.Control, { type: "number", step: "0.01", value: amount, onChange: function (e) { return setAmount(Number(e.target.value)); }, style: { fontWeight: 'bold', color: 'blue' } })] }), _jsx(Button, { variant: "primary", onClick: handleBillClick, children: "Click to Bill a Client" })] }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] }));
 };

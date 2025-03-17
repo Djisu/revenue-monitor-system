@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 1000, // Set the limit to 1 MB (1000 kB)
+    chunkSizeWarningLimit: 1500, // Set the limit to 1.5 MB (1500 kB)
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),

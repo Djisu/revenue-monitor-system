@@ -111,12 +111,12 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'BillClient')}>
                                 CP_Bill a Business
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('CP', 'ChangeLastYearRate')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('CP', 'ChangeLastYearRate')}>
                                 CP_Change Last Year Rate For a Business
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'ChangePrevBillAmount')}>
                                 CP_CHANGE PREVIOUSLY BILLED AMOUNT
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                         </NavDropdown>
 
                         <NavDropdown title="BOP Reports" id="basic-nav-dropdown">

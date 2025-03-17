@@ -28,9 +28,9 @@ const dbConfig = {
 
 // OfficerAssessment data interface
 interface OfficerAssessmentData {
-    officer_no: string;
+    officerNo: string;
     officer_name: string;
-    Noofclientsserved: number;
+    noofclientsserved: number;
     valueofbillsdistributed: number;
     bus_year: number;
     JanuaryAmount: number;
@@ -47,7 +47,7 @@ interface OfficerAssessmentData {
     DecemberAmount: number;
     totalReceiptTodate: number;
     balance: number;
-    remarks: string;
+    remarks: number;
 }
 
 
@@ -143,7 +143,7 @@ async function getMonthName (month: number): Promise<string> {
 async function getAmountByOfficerAndMonth(monthPaid: string, officerNo: string, fiscalYear: number): Promise<number> {
     console.log('in getAmountByOfficerAndMonth helper function', officerNo);
 
-    const officerName = await GetOfficerName(Number(officerNo));
+    const officerName = await GetOfficerName(officerNo);
 
     const month = await getMonthName(Number(monthPaid));
 
@@ -216,9 +216,9 @@ async function insertOfficerAssessment(data: OfficerAssessmentData) {
     `;
 
     const values = [
-        data.officer_no,
+        data.officerNo,
         data.officer_name,
-        data.Noofclientsserved,
+        data.noofclientsserved,
         data.valueofbillsdistributed,
         data.bus_year,
         data.JanuaryAmount,
@@ -251,14 +251,17 @@ async function insertOfficerAssessment(data: OfficerAssessmentData) {
     }
 }
 
-async function GetOfficerName(officerNo: number): Promise<string>  {
-   // const client: PoolClient =await pool.connect();
+async function GetOfficerName(officerNo: string): Promise<string>  {
+
+   console.log('in getOfficerName helper function', officerNo)
 
     const result = await pool.query('SELECT officer_name FROM officer WHERE officer_no = $1', [officerNo]);
 
     if (result.rows.length === 0) {
-        return 'Unknown';
+        return 'Officer name NOT FOUND!!';
     }
+
+    console.log('THIS IS THE officer_name: ', result.rows[0].officer_name);
 
     return result.rows[0].officer_name;
 }
@@ -270,7 +273,7 @@ router.get('/billsDistributed/:officer_no/:fiscal_year', async (req: Request, re
 
      const { officer_no, fiscal_year } = req.params;
 
-     const officerName = await GetOfficerName(Number(officer_no));
+     const officerName = await GetOfficerName(officer_no);
      
      try {
          const result = await pool.query('SELECT SUM(current_balance) as totsum FROM busscurrbalance WHERE assessmentby = $1 AND fiscalyear = $2', [officerName, fiscal_year]);
@@ -328,25 +331,164 @@ router.delete('/officerMonthAssess', async (req: Request, res: Response) => {
 });
 
 router.post('/create', async (req: Request, res: Response) => {
+    const client = await pool.connect();
+
+    
     try {
-        const params: OfficerAssessmentData = req.body;
+        await client.query('BEGIN');
 
-        console.log('in router.post(/create: ', params)
+        const params = req.body;
+        console.log('in router.post(/create: ', params);
 
-        // Validate incoming data if needed
-        if (!params.officer_no || !params.bus_year) {
+        const busYear = parseInt(params.fiscalYear, 10);
+
+        // Delete existing record
+        const deleteResult = await client.query('DELETE FROM officerassessment');
+        console.log('Delete result:', deleteResult.rowCount);
+
+        const officerName = await GetOfficerName(params.officerNo);
+
+        // Validate incoming data
+        if (!params.officerNo || !params.fiscalYear) {
+            console.log('MISSING PARAMS!!!');
             return res.status(400).send('Missing required fields');
         }
 
-        // Insert the officer assessment into the database
-        await insertOfficerAssessment(params);
+        // Insert new record
+        const insertQuery = `
+            INSERT INTO officerassessment (
+                officer_no, officer_name, noofclientsserved, valueofbillsdistributed, 
+                bus_year, januaryamount, februaryamount, marchamount, aprilamount, 
+                mayamount, juneamount, julyamount, augustamount, septemberamount, 
+                octoberamount, novemberamount, decemberamount, totalreceipttodate, 
+                balance, remarks
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, 
+                $10, $11, $12, $13, $14, $15, $16, $17, $18, 
+                $19, $20
+            )
+        `;
+
+        const values = [
+            params.officerNo,
+            officerName,
+            params.noOfClientsServed,
+            params.valueOfBillsDistributed,
+            busYear,
+            params.JanuaryAmount,
+            params.FebruaryAmount,
+            params.MarchAmount,
+            params.AprilAmount,
+            params.MayAmount,
+            params.JuneAmount,
+            params.JulyAmount,
+            params.AugustAmount,
+            params.SeptemberAmount,
+            params.OctoberAmount,
+            params.NovemberAmount,
+            params.DecemberAmount,
+            params.totalReceiptToDate,
+            params.balance,
+            params.remarks,
+        ];
+
+        const insertResult = await client.query(insertQuery, values);
+        console.log('Insert result:', insertResult.rowCount);
+
+        await client.query('COMMIT');
 
         res.status(201).send('Officer assessment inserted successfully');
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error('Error creating officer assessment:', err);
         res.status(500).send((err as Error).message);
+    } finally {
+        client.release();
     }
 });
+
+// router.post('/create', async (req: Request, res: Response) => {
+//     try {
+//         const params = req.body;
+
+//         console.log('in router.post(/create: ', params);
+//         console.clear();
+
+//         const busYear = parseInt(params.fiscalYear , 10);
+
+//         console.log('busYear: ', busYear)
+
+//         // Delete this transaction the officerassessment
+//         const deleteResult = await pool.query('DELETE FROM officerassessment WHERE officer_no = $1 AND bus_year = $2', [params.officerNo, busYear]);
+//         console.log('Delete result:', deleteResult.rowCount); // Should log how many rows were deleted
+
+//         const newOfficerNo = params.officerNo
+
+//         const officerName = await GetOfficerName(newOfficerNo);
+
+//         // Validate incoming data if needed
+//         if (!params.officerNo || !params.fiscalYear) {
+//             console.log('MISSING PARAMS!!!')
+//             return res.status(400).send('Missing required fields');
+//         }
+
+//         console.group('about to insert into officerassessment table')
+
+//         // Insert the officer assessment into the database
+//         const insertQuery = `
+//             INSERT INTO officerassessment (
+//                 officer_no, officer_name, noofclientsserved, valueofbillsdistributed, 
+//                 bus_year, januaryamount, februaryamount, marchamount, aprilamount, 
+//                 mayamount, juneamount, julyamount, augustamount, septemberamount, 
+//                 octoberamount, novemberamount, decemberamount, totalreceipttodate, 
+//                 balance, remarks
+//             ) VALUES (
+//                 $1, $2, $3, $4, $5, $6, $7, $8, $9, 
+//                 $10, $11, $12, $13, $14, $15, $16, $17, $18, 
+//                 $19, $20
+//             )
+//         `;
+       
+
+//         const values = [
+//             params.officerNo,
+//             officerName,
+//             params.noOfClientsServed,
+//             params.valueOfBillsDistributed,
+//             busYear,
+//             params.JanuaryAmount,
+//             params.FebruaryAmount,
+//             params.MarchAmount,
+//             params.AprilAmount,
+//             params.MayAmount,
+//             params.JuneAmount,
+//             params.JulyAmount,
+//             params.AugustAmount,
+//             params.SeptemberAmount,
+//             params.OctoberAmount,
+//             params.NovemberAmount,
+//             params.DecemberAmount,
+//             params.totalReceiptToDate,
+//             params.balance,
+//             params.remarks,
+//         ];
+
+//         console.log('Query: ' + insertQuery + 'Values: ' + values)
+//         const rows = await pool.query(insertQuery, values);
+
+//         console.log('after insert into table')
+
+//         if (rows.rowCount === 0) {
+//            res.status(404).send('Officer assessment record not inserted');
+//         }
+       
+//         res.status(201).send('Officer assessment inserted successfully');
+//     } catch (err) {
+//         console.error('Error creating officer assessment:', err);
+//         res.status(500).send((err as Error).message);
+//     }
+// });
+
 // Months routes
 // January route
 router.get('/January/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
@@ -355,23 +497,354 @@ router.get('/January/:officerNo/:fiscalYear', async (req: Request, res: Response
     const client: PoolClient = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'January'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(parseInt(officerNo))
+    const officerName = await GetOfficerName(officerNo)
 
     try {
-        // Convert fiscalYear to a number
         const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
 
-        console.log('officerName:', officerName);
-console.log('newFiscalYear:', newFiscalYear);
-console.log('monthPaid:', monthPaidx);
-        
-        // Define the SQL query   WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 . . , [officerNo, newFiscalYear, monthPaidx]
-        const query = `SELECT paidamount FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
 
-        // Log the query for debugging
-       /// console.log('Executing query:', query, 'with parameters:', [officerName, newFiscalYear, monthPaidx]);
-    
-        // Execute the query
+        console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// February route
+router.get('/February/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/February/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'February'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
+
+        console.log('Query executed. Rows returned:', result.rows[0]);  // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// March route
+router.get('/March/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/March/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'March'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
+
+        console.log('Query executed. Rows returned:', result.rows[0]);  // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// April route
+router.get('/April/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/April/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'April'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
+
+        console.log('Query executed. Rows returned:', result.rows[0]);  // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// May route
+router.get('/May/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/May/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'May'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
+
+        console.log('Query executed. Rows returned:', result.rows[0]);  // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// June route
+router.get('/June/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/June/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'June'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
+
+        console.log('Query executed. Rows returned:', result.rows[0]);  // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// July route
+router.get('/July/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/July/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'July'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
+
+        console.log('Query executed. Rows returned:', result.rows[0]);  // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// August route
+router.get('/August/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/August/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'August'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
+
+        console.log('Query executed. Rows returned:', result.rows[0]);  // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// September route
+router.get('/September/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/September/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'September'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
+
+        console.log('Query executed. Rows returned:', result.rows[0]);  // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// October route
+router.get('/October/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/October/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'October'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
+
+        console.log('Query executed. Rows returned:', result.rows[0]);  // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// November route
+router.get('/November/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/November/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'November'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
+        const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
+
+        console.log('Query executed. Rows returned:', result.rows[0]);  // Log all rows
+
+        if (result.rows.length > 0) {
+            return res.status(200).json(result.rows[0]);             
+        } else {
+            return res.status(404).json({ message: 'No records found for the given parameters.' });             
+        }
+    } catch (err) {
+        console.error('Error fetching monthly amount:', err);
+        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+// December route
+router.get('/December/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+    console.log('in router.get(/December/:officerNo/:fiscalYear)');
+
+    const client: PoolClient = await pool.connect();
+    const { officerNo, fiscalYear } = req.params; // Use req.params
+    const monthPaidx = 'December'; // Hard-coded for this endpoint
+    const officerName = await GetOfficerName(officerNo)
+
+    try {
+        const newFiscalYear = Number(fiscalYear);
+      
+        const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `
+
         const result = await client.query(query,  [officerName, newFiscalYear, monthPaidx]);
 
         console.log('Query executed. Rows returned:', result.rows); // Log all rows
@@ -389,456 +862,8 @@ console.log('monthPaid:', monthPaidx);
     }
 });
 
-// February route
-router.get('/February/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
 
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'February'; // Hard-coded for this endpoint
 
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-// March route
-router.get('/March/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
-
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'March'; // Hard-coded for this endpoint
-
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-// April route
-router.get('/April/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
-
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'April'; // Hard-coded for this endpoint
-
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-// May route
-router.get('/May/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
-
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'May'; // Hard-coded for this endpoint
-
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-// June route
-router.get('/June/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
-
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'June'; // Hard-coded for this endpoint
-
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-// July route
-router.get('/July/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
-
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'July'; // Hard-coded for this endpoint
-
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-// August route
-router.get('/August/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
-
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'August'; // Hard-coded for this endpoint
-
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-// September route
-router.get('/September/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
-
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'September'; // Hard-coded for this endpoint
-
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-// October route
-router.get('/October/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
-
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'October'; // Hard-coded for this endpoint
-
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-// November route
-router.get('/November/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
-
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'November'; // Hard-coded for this endpoint
-
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-// December route
-router.get('/December/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-    console.log('in router.get(/monthlyAmount/:officerNo/:fiscalYear)');
-
-    const client: PoolClient = await pool.connect();
-    const { officerNo, fiscalYear } = req.params; // Use req.params
-    const monthPaid = 'December'; // Hard-coded for this endpoint
-
-    try {
-        // Convert fiscalYear to a number
-        const newFiscalYear = Number(fiscalYear);
-        
-        // Define the SQL query
-        const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerNo, newFiscalYear, monthPaid]);
-    
-        // Execute the query
-        const result = await client.query(query, [officerNo, newFiscalYear, monthPaid]);
-
-        console.log('Query executed. Rows returned:', result.rows); // Log all rows
-
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows[0]);             
-        } else {
-            return res.status(404).json({ message: 'No records found for the given parameters.' });             
-        }
-    } catch (err) {
-        console.error('Error fetching monthly amount:', err);
-        res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
-    } finally {
-        client.release(); // Ensure the client is released back to the pool
-    }
-});
-
-
-
-// router.get('/monthlyAmount/:monthPaid/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
-//     console.log('in router.get(/monthlyAmount/:monthPaid/:officerNo/:fiscalYear)');
-
-
-//     const client: PoolClient = await pool.connect()
-
-    
-//         const { monthPaid, officerNo, fiscalYear } = req.params; // Use req.params
-//         let officerName = await GetOfficerName(Number(officerNo));
-
-//         let month = await getMonthName(Number(monthPaid));
-//         let newFiscalYear = Number(fiscalYear) 
-    
-//         try {
-//             // Define the SQL query
-//             const query = `SELECT * FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2 AND monthpaid = $3`;
-
-//             officerName = officerName.trim();
-            
-//             month = month.trim();
-    
-//             // console.log('officerName:', officerName, 'Type:', typeof officerName);
-//             // console.log('newFiscalYear:', newFiscalYear, 'Type:', typeof newFiscalYear);
-//             // console.log('month:', month, 'Type:', typeof month);
-
-
-
-//             // Log the query for debugging
-//             console.log('Executing query:', query, 'with parameters:', [officerName, newFiscalYear, month]);
-    
-//             // Execute the query
-//             const result  = await client.query(query, [officerNo, newFiscalYear, month]);
-
-//             console.log('Query executed. Rows returned:', result.rows[0]); // Log rows
-
-//             if (result.rows.length > 0) {
-//                 console.log('GGGGGGGGGGGG result.rows[0]: ', result.rows[0])
-//                 return res.status(200).json(result.rows[0]);             
-//             }
-    
-//             if (result.rows.length == 0) {
-//                 console.log('XXXXXXXXXXXXXX rows[0] ', result.rows[0])
-//                 return res.status(404).json(0);             
-//             }
-
-//             //console.log('rows[0].paidamount: ', result.rows[0].paidamount)
-//             return res.status(200).json(result.rows[0].paidamount); // Send the paidamount directly
-//     } catch (err) {
-//         res.status(500).send((err as Error).message);
-//         console.error('Error fetching monthly amount:', err);
-//     }
-// });
 
 router.get('/all', async (req: Request, res: Response) => {
     try {
@@ -856,56 +881,6 @@ router.get('/all', async (req: Request, res: Response) => {
     }
 });
 
-// // Create a new officer assessment record
-// router.post('/', async (req: Request, res: Response): Promise<void> => {
-//     const officerAssessmentData: OfficerAssessmentData = req.body;
-
-//     try {
-//         const { rows } = await pool.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND bus_year = $2', 
-//         [officerAssessmentData.officer_no, officerAssessmentData.bus_year]);
-
-//         if (rows.length > 0) {
-//             res.status(409).json({ message: 'Officer assessment record already exists' });
-//             return;
-//         }
-
-//         const { rows: result } = await pool.query(
-//             `INSERT INTO officerassessment 
-//             (officer_no, officer_name, Noofclientsserved, valueofbillsdistributed, bus_year, 
-//             JanuaryAmount, FebruaryAmount, MarchAmount, AprilAmount, MayAmount, 
-//             JuneAmount, JulyAmount, AugustAmount, SeptemberAmount, OctoberAmount, 
-//             NovemberAmount, DecemberAmount, totalReceiptTodate, balance, remarks) 
-//             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
-//             [
-//                 officerAssessmentData.officer_no,
-//                 officerAssessmentData.officer_name,
-//                 officerAssessmentData.Noofclientsserved,
-//                 officerAssessmentData.valueofbillsdistributed,
-//                 officerAssessmentData.bus_year,
-//                 officerAssessmentData.JanuaryAmount,
-//                 officerAssessmentData.FebruaryAmount,
-//                 officerAssessmentData.MarchAmount,
-//                 officerAssessmentData.AprilAmount,
-//                 officerAssessmentData.MayAmount,
-//                 officerAssessmentData.JuneAmount,
-//                 officerAssessmentData.JulyAmount,
-//                 officerAssessmentData.AugustAmount,
-//                 officerAssessmentData.SeptemberAmount,
-//                 officerAssessmentData.OctoberAmount,
-//                 officerAssessmentData.NovemberAmount,
-//                 officerAssessmentData.DecemberAmount,
-//                 officerAssessmentData.totalReceiptTodate,
-//                 officerAssessmentData.balance,
-//                 officerAssessmentData.remarks,
-//             ]
-//         );
-
-//         res.status(201).json({ message: 'Officer assessment record created successfully' });
-//     } catch (error) {
-//         console.error('Error:', error);
-//         res.status(500).json({ message: 'Error creating officer assessment record', error });
-//     }
-// });
 
 // Read all officer assessment records
 router.get('/', async (req: Request, res: Response) => {
@@ -923,13 +898,26 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response) => {
     const { officer_no, fiscal_year } = req.params;
 
     try {
-        const { rows } = await pool.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND fiscal_year = $2', 
+        console.log('in router.get(/:officer_no/:fiscal_year): ', req.params )
+        console.log('officer_no: ', officer_no)
+        console.log('fiscal_year: ', fiscal_year)
+
+        if (!officer_no ||!fiscal_year){
+            res.status(404).json([]);
+            return;
+        }
+
+        const { rows } = await pool.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND bus_year = $2', 
         [officer_no, fiscal_year]);
 
         if (rows.length == 0) {
-            res.status(404).json({ message: 'Officer assessment record not found' });
+            res.status(404).json([]);
             return;
         }
+
+        console.log('fetched rows[0]: ', rows[0])
+
+        res.status(200).send(rows[0]);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching officer assessment record', error });
@@ -960,7 +948,7 @@ router.put('/:officer_no/:fiscal_year', async (req: Request, res: Response): Pro
             WHERE officer_no = $20`,
             [
                 officerAssessmentData.officer_name,
-                officerAssessmentData.Noofclientsserved,
+                officerAssessmentData.noofclientsserved,
                 officerAssessmentData.valueofbillsdistributed,
                 officerAssessmentData.bus_year,
                 officerAssessmentData.JanuaryAmount,

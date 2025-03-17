@@ -23,33 +23,39 @@ const initialState: AccReceiptState = {
     error: null,
 };
 
+
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+
+
+
 // Async thunk to fetch all AccReceipts
 export const fetchAccReceipts = createAsyncThunk('accReceipts/fetchAccReceipts', async () => {
-    const response = await axios.get('/api/accReceipts');
+    const response = await axios.get(`${BASE_URL}/api/accReceipts`);
     return response.data;
 });
 
 // Async thunk to create a new AccReceipt
 export const createAccReceipt = createAsyncThunk('accReceipts/createAccReceipt', async (data: AccReceiptData) => {
-    const response = await axios.post('/api/accReceipts', data);
+    const response = await axios.post(`${BASE_URL}/api/accReceipts`, data); 
     return response.data;
 });
 
 // Async thunk to fetch a single AccReceipt
 export const fetchAccReceiptById = createAsyncThunk('accReceipts/fetchAccReceiptById', async ({ batchno, fiscalyear }: { batchno: string; fiscalyear: string; }) => {
-    const response = await axios.get(`/api/accReceipts/${batchno}/${fiscalyear}`);
+    const response = await axios.get(`${BASE_URL}/api/accReceipts/${batchno}/${fiscalyear}`);
     return response.data;
 });
 
 // Async thunk to update an AccReceipt
 export const updateAccReceipt = createAsyncThunk('accReceipts/updateAccReceipt', async ({ batchno, data }: { batchno: string; data: AccReceiptData }) => {
-    const response = await axios.put(`/api/accReceipts/${batchno}`, data);
+    const response = await axios.put(`${BASE_URL}/api/accReceipts/${batchno}`, data);
     return response.data;
 });
 
 // Async thunk to delete an AccReceipt
 export const deleteAccReceipt = createAsyncThunk('accReceipts/deleteAccReceipt', async ({ batchno, fiscalyear }: { batchno: string; fiscalyear: string }) => {
-    const response = await axios.delete(`/api/accReceipts/${batchno}/${fiscalyear}`);
+    const response = await axios.delete(`${BASE_URL}/api/accReceipts/${batchno}/${fiscalyear}`);
     return response.data;
 });
 

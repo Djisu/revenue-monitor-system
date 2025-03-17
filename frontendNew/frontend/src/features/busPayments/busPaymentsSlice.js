@@ -73,12 +73,12 @@ export var createBusPayment = createAsyncThunk('busPayments/createBusPayment', f
                     })];
             case 2:
                 response = _a.sent();
-                console.log('AFTER APIresponse data', response.data);
+                console.log('AFTER APIresponse data', response.data.message);
                 if (response.status >= 200 && response.status < 300) {
-                    console.log('busPayments fulfilled::: ', response.data);
+                    console.log('response.data: ', response.data);
                     // Ensure response.data is an array
-                    return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //
-                    // return data; // This data will be available as `action.payload`
+                    //return Array.isArray(response.data) ? response.data : []; //
+                    return [2 /*return*/, response.data]; // This data will be available as `action.payload`
                 }
                 else {
                     throw new Error("Error fetching business client payment. Status: ".concat(response.status, " - Error: ").concat(response.statusText));
@@ -221,6 +221,26 @@ export var billAllBusinesses = createAsyncThunk('businessType/billAllBusinesses'
         }
     });
 }); });
+export var billOneBusiness = createAsyncThunk('businessType/billoneBusiness', function (bussNo) { return __awaiter(void 0, void 0, void 0, function () {
+    var response;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log('inside billOneBusiness thunk');
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/busPayments/billonebusiness/").concat(bussNo), {
+                        headers: { 'Content-Type': 'application/json' },
+                    })];
+            case 1:
+                response = _a.sent();
+                console.log('after billonebusiness thunk, Response data:', response.data);
+                if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
+                console.log('billonebusiness thunk, response data:', response.data);
+                return [4 /*yield*/, response.data];
+            case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
+            case 3: throw new Error("Error billing one business types: ".concat(response.statusText));
+        }
+    });
+}); });
 // Create the slice 
 var busPaymentsSlice = createSlice({
     name: 'busPayments',
@@ -283,9 +303,8 @@ var busPaymentsSlice = createSlice({
             state.loading = true;
         })
             .addCase(createBusPayment.fulfilled, function (state, action) {
-            var _a;
             state.loading = false;
-            (_a = state.busPayments).push.apply(_a, action.payload); // Add the new business
+            state.busPayments.push(action.payload); // Add the new business
             state.error = null;
         })
             .addCase(createBusPayment.rejected, function (state, action) {

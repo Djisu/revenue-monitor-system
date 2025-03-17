@@ -7,6 +7,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import pkg from 'pg';
+import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'; //'../../utils/ensurePermitDirIsEmpty';
+import { generatePdf } from '../../generatePdf.js';
 const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
@@ -33,6 +35,7 @@ const transporter = nodemailer.createTransport({
 });
 // Function to generate PDF
 async function generatePDF(receiptData, receiptsDir) {
+    console.log('in generatePDF function');
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument();
         const receiptPath = path.join(receiptsDir, `receipt_${receiptData.ReceiptNo}.pdf`);
@@ -78,10 +81,12 @@ async function sendEmail(receiptPath, busPaymentsData) {
     try {
         await transporter.sendMail(mailOptions);
         console.log('Receipt email sent successfully');
+        return;
     }
     catch (emailError) {
         console.error('Error sending email:', emailError);
         throw emailError;
+        return;
     }
 }
 router.post('/create', async (req, res) => {
@@ -115,6 +120,7 @@ router.post('/create', async (req, res) => {
             busPaymentsData.email,
             busPaymentsData.electroral_area
         ]);
+        console.log('Payment entered into buspayment table');
         // Going to updateOfficerBudget function to update the officer budget
         const params = {
             paymentMonth: busPaymentsData.monthpaid,
@@ -127,7 +133,7 @@ router.post('/create', async (req, res) => {
             currentBalance: 0
         };
         const updateOfficerBudgetResult = await updateOfficerBudget(params);
-        console.log('updateOfficerBudgetResult:', updateOfficerBudgetResult);
+        console.log('back to router.create parent endpoint:', updateOfficerBudgetResult);
         console.log('about to generate receipt');
         // Generate the receipt data
         const receiptData = {
@@ -143,6 +149,7 @@ router.post('/create', async (req, res) => {
         };
         // Generate the PDF receipt
         const receiptPath = await generatePDF(receiptData, receiptsDir);
+        console.log('from generatePDF back to the parent endpoint');
         console.log('about to send email');
         // Send the email with the PDF attachment
         await sendEmail(receiptPath, busPaymentsData);
@@ -411,6 +418,140 @@ router.post('/billallbusinesses', async (req, res) => {
         }
     }
 });
+router.post('/billonebusiness/:bussNo', async (req, res) => {
+    console.log('in router.post(/billonebusiness');
+    // Ensure the receipts directory exists
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const receiptsDir = path.join(__dirname, 'receipts');
+    if (!fs.existsSync(receiptsDir)) {
+        fs.mkdirSync(receiptsDir, { recursive: true });
+        console.log('Created receipts directory:', receiptsDir);
+    }
+    else {
+        console.log('Receipts directory already exists:', receiptsDir);
+    }
+    const { bussNo } = req.params;
+    const client = await pool.connect();
+    const thisYear = new Date().getFullYear();
+    console.log('thisYear:', thisYear);
+    try {
+        await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
+        // Select one business
+        const businessesResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [bussNo]);
+        console.log('businessesResult.rows.length: ', businessesResult.rows.length);
+        console.log('ABOUT TO BILL ONE BUSINESS');
+        // Insert into busscurrbalance
+        for (const businessRow of businessesResult.rows) {
+            await client.query('INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea, assessmentby) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [
+                businessRow.buss_no,
+                new Date().getFullYear(),
+                0,
+                businessRow.current_rate,
+                0,
+                new Date().toISOString().split('T')[0],
+                businessRow.electroral_area,
+                businessRow.assessmentby // Add the appropriate value for `assessmentby`
+            ]);
+        }
+        /////////Produce permits/////////////////////
+        // Ensure the permits directory is empty
+        await ensurePermitDirIsEmpty();
+        console.log('after ensurePermitDirIsEmpty()');
+        // Select all businesses in the electoral area
+        let businessRows = await client.query('SELECT * FROM business WHERE buss_no = $1', [bussNo]);
+        if (businessRows.rows.length === 0) {
+            console.log('No business found for', bussNo);
+            res.status(404).json({ message: `No business found for ${bussNo}` });
+            return;
+        }
+        console.log('about to loop through businessesResult to find balances');
+        // Update balancebf in busscurrbalance table for all businesses
+        for (let i = 0; i < businessRows.rows.length; i++) {
+            const { buss_no } = businessRows.rows[i];
+            console.log('in the update busscurrbalance table loop');
+            ``;
+            //let varCurrentRate = 0;
+            let varBalance = await findBusinessBalance(buss_no);
+            console.log('varBalance is: ', varBalance);
+            console.log('about to update busscurrbalance table');
+            // Update busscurrbalance table with current balance and fiscal year
+            await client.query('UPDATE busscurrbalance SET balancebf = $1 WHERE buss_no = $2 AND fiscalyear = $3', [varBalance, buss_no, thisYear]);
+            console.log('after updating busscurrbalance table');
+        }
+        console.log('Finish  loop through businessesResult');
+        console.log('about to DELETE FROM tmpbusiness');
+        // Delete from tmp_business
+        await client.query('DELETE FROM tmpbusiness');
+        console.log('about to DELETE FROM tmpbusscurrbalance');
+        // Delete from tmp_BussCurrBalance
+        await client.query('DELETE FROM tmpbusscurrbalance');
+        // Insert into tmp_business
+        let tmpBusinessRows = await client.query(`
+                INSERT INTO tmpbusiness 
+                SELECT * FROM business 
+                WHERE buss_no = $1 
+                  AND current_rate > 0 
+                ORDER BY buss_name ASC 
+                RETURNING *;
+            `, [bussNo]);
+        console.log('after insert into tmpbusiness and tmpBusinessRows.rows.length: ', tmpBusinessRows.rows.length);
+        const recReport = await client.query('SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
+        console.log('after SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2');
+        console.log('recReport.rows.length:', recReport.rows.length);
+        if (recReport.rows.length === 0) {
+            res.status(404).json({ message: 'No paid bills found for the electoral area' });
+            return;
+        }
+        await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
+        console.log('after INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance');
+        // Add serial numbers
+        let recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
+        let permitNo = 1;
+        for (let i = 0; i < recBusiness.rows.length; i++) {
+            const varSerialNo = permitNo.toString().padStart(10, '0');
+            console.log(`Updating buss_no: ${recBusiness.rows[i].buss_no}, Serial No: ${varSerialNo}`);
+            await client.query('UPDATE tmpbusiness SET serialno = $1 WHERE buss_no = $2', [varSerialNo, recBusiness.rows[i].buss_no]);
+            permitNo++;
+        }
+        console.log('after serial number generation');
+        // Check if there are any bills in tmp_business
+        let recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_name ASC');
+        if (recBills.rows.length === 0) {
+            res.status(404).json({ message: 'No bills found for the electoral area' });
+            return;
+        }
+        console.log('ABOUT TO GENERATE PDFs');
+        // Produce Bills now
+        for (const bill of recBills.rows) {
+            console.log('Generating PDF for bill:', bill.buss_no);
+            try {
+                const pdfBuffer = await generatePdf(bill);
+                // Save the PDF to a file or handle it as needed
+                fs.writeFileSync(path.join(__dirname, 'permits', `permit_${bill.buss_no}.pdf`), pdfBuffer);
+                console.log('BILL written to permitDir');
+            }
+            catch (error) {
+                console.error('Error generating PDF for bill:', bill, error);
+                res.status(500).json({ message: `Error generating PDF for bill ${bill.buss_no}: ${error.message}` });
+                return;
+            }
+        }
+        console.log('Bills generated successfully');
+        ////////End of permits production///////////
+        res.status(200).json({ success: true, message: 'One business billed successfully' });
+    }
+    catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ success: false, message: 'Error billing one business', error });
+    }
+    finally {
+        // Ensure client is released
+        if (client) {
+            client.release();
+        }
+    }
+});
 // async function findPreviousBalance(bussNo: number): Promise<number> {
 //     const client: PoolClient = await pool.connect();
 async function GetOfficerName(officerNo) {
@@ -583,6 +724,31 @@ async function findPreviousBalance(bussNo) {
         client.release();
     }
 }
+async function findBusinessBalance(bussNo) {
+    let client = null;
+    try {
+        client = await pool.connect();
+        // Get current year and previous fiscal year
+        const currentYear = new Date().getFullYear();
+        // Find all payments
+        const prevPaymentsResult = await client.query('SELECT SUM(paidAmount) AS totsum FROM buspayments WHERE buss_no = $1 AND fiscal_year < $2', [bussNo, currentYear]);
+        const prevPayments = prevPaymentsResult.rows[0]?.totsum ?? 0;
+        // Find all billings
+        const prevBalancesResult = await client.query('SELECT SUM(current_balance) AS totPrevBal FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear < $2', [bussNo, currentYear]);
+        const prevBalances = prevBalancesResult.rows[0]?.totPrevBal ?? 0;
+        // Calculate balance
+        return prevBalances - prevPayments;
+    }
+    catch (error) {
+        console.error(error);
+        throw new Error('Error fetching business balance');
+    }
+    finally {
+        if (client) {
+            client.release(); // Release the client instance
+        }
+    }
+}
 async function updateOfficerBudget(params) {
     const client = await pool.connect();
     console.log('in updateOfficerBudget');
@@ -615,12 +781,15 @@ async function updateOfficerBudget(params) {
             params.officerNo,
             params.fiscalYear
         ]);
+        console.log('officerbudget actuals updated');
         // Update outstanding
         const outstandingSQL = 'UPDATE officerbudget SET outstanding = annual_budget - Actual_total WHERE officer_no = $1 AND fiscal_year = $2';
         await client.query(outstandingSQL, [
             params.officerNo,
             params.fiscalYear
         ]);
+        console.log('officerbudget outstanding updated');
+        console.log('about to insert payment into receipt table');
         // Insert into client payment trans table
         const insertSQL = 'INSERT INTO receipt(buss_no, receiptno, description, transdate, amount) VALUES ($1, $2, $3, $4, $5)';
         await client.query(insertSQL, [
@@ -630,12 +799,15 @@ async function updateOfficerBudget(params) {
             params.transDate,
             params.amount
         ]);
+        console.log('payment entered into receipt table');
+        console.log('about to update business balance');
         // Update client's balance
         const updateBalanceSQL = 'UPDATE business SET balance = balance + $1 WHERE buss_no = $2';
         await client.query(updateBalanceSQL, [
             params.currentBalance,
             params.busNo
         ]);
+        console.log('business balance updated');
         // // Delete from var_buspayments
         // const deleteSQL = 'DELETE FROM varbuspayments WHERE buss_no = $1 AND officer_no = $2 AND fiscal_year = $3 AND monthpaid = $4 AND receiptno = $5';
         // await client.query(deleteSQL, [
@@ -645,6 +817,7 @@ async function updateOfficerBudget(params) {
         //     params.paymentMonth,
         //     params.receiptNo
         // ]);
+        console.log('going to return true from updateOfficerBudget endpoint');
         return true;
     }
     catch (error) {

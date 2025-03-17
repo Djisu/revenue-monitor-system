@@ -17,9 +17,14 @@ import { fetchJanuaryAmount,
         fetchNovemberAmount, 
         fetchDecemberAmount, 
         fetchClientsServed, 
-        fetchBillsDistributed
+        fetchBillsDistributed,
+        createClientsServed,
+        CreateClientsServedParams,
+        fetchOfficerAssessment
        } from './officerAssessmentSlice'; 
 import {fetchOfficerBudget} from '../officerBudget/officerBudgetSlice';
+import OfficerAssessmentBarChart from '../../charts/OfficerAssessmentBarChart';
+
 
 export interface FetchClientsServedParams {
   officerNo: string;
@@ -29,6 +34,11 @@ export interface FetchClientsServedParams {
 interface FiscalYear {
   fiscal_year: number;
 }
+
+// interface OfficerData {
+//   officer_name: string;
+//   noofclientsserved: number;
+// }
 
 export interface Officer {
   officer_no: number;
@@ -43,27 +53,9 @@ interface OfficerBudgetResponse {
   statusText: string;
 }
 
-export interface CreateClientsServedParams {
-  officerNo: string;
-  fiscalYear: FiscalYear;
-  noOfClientsServed: number;
-  valueOfBillsDistributed: number;
-  januaryAmount: number;
-  februaryAmount: number;
-  marchAmount: number;
-  aprilAmount: number;
-  mayAmount: number;
-  juneAmount: number;
-  julyAmount: number;
-  augustAmount: number;
-  septemberAmount: number;
-  octoberAmount: number;
-  novemberAmount: number;
-  decemberAmount: number;
-  totalReceiptToDate: number;
-  balance: number;
-  remarks: number;
-}
+//type FetchClientsServedPayload = any[]; // Replace 'any[]' with the actual type
+
+
 
 const FrmOfficerAssessment = () => {
   const dispatch = useAppDispatch();
@@ -71,25 +63,42 @@ const FrmOfficerAssessment = () => {
 
   const [firstFiscalYear, setFirstFiscalYear] = useState(""); // Initialize as an empty string
   const [firstOfficer, setFirstOfficer] = useState('');
-  //let [fiscalYears, setFiscalYears] = useState<FiscalYearsParam[]>([]);
-  //const [selectedOfficerName, setSelectedOfficerName] = useState('');
+  const [chartData, setChartData] = useState<any[]>([]); // Initialize as an empty array
 
+  const [shouldFetchChartData, setShouldFetchChartData] = useState(false);
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log('in fetchData');
+  
+      try {
+        const action = await dispatch(fetchOfficerAssessment({ officerNo: firstOfficer, fiscalYear: parseInt(firstFiscalYear, 10) }));
+  
+        console.log('action.payload: ', action.payload);
+  
+        // Check if action.payload is an object and convert it to an array
+        const fetchedData = Array.isArray(action.payload) ? action.payload : [action.payload];
+        
+        setChartData(fetchedData); // Set the normalized data to chartData
+  
+        console.log('SUCCESS SUCCESS SUCCESS');
+        console.log('chartData: ', fetchedData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        console.log('FAIL FAIL FAIL');
+      }
+    };
+  
+    if (shouldFetchChartData) {
+      fetchData();
+      setShouldFetchChartData(false); // Reset the state after fetching
+    }
+  }, [dispatch, shouldFetchChartData]); 
 
   let officersData = useAppSelector((state) => state.officer.officers);
 
-  // const fiscalYearsData: FiscalYear[] = useAppSelector((state) => state.officerAssessment.fiscalYears);    //.officerAssessment?.bus_year || []);
   
-  // console.log("Selected Fiscal Year:", firstFiscalYear);
-  // console.log("Fiscal Years Data:", fiscalYearsData);
-
-  // useEffect(() => {
-  //   console.log('Officers Data Updated:', officersData); 
-  // }, [fiscalYearsData]);
-
-  // Use this effect to log the updated state after it changes
-  // useEffect(() => {
-  //   console.log("Updated firstOfficer:", firstOfficer);
-  // }, [firstOfficer]);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -99,56 +108,12 @@ const FrmOfficerAssessment = () => {
     fetchData();
   }, [dispatch]);
 
- // Fetch fiscal years
-// const fetchFiscalYearsData = async () => {
-//   try {
-//       // Dispatch the thunk
-//       const resultAction = await dispatch(fetchFiscalYears())  //.unwrap();
-
-//       console.log("resultAction:", resultAction)
-
-
-
-//      // Check if the response indicates that the data exists
-//           if (resultAction.payload) {
-//             // Data was successfully fetched
-//             console.log('resultAction.payload:', resultAction.payload);
-//             // You can further process the budget data here
-//           } else {
-//             // Handle the case where the data doesn't exist
-//             console.error("No budget data found for the officer:", resultAction);
-//             alert("No budget data found for the officer.");
-//           }
-      
-//   } catch (error) {
-//       console.error("Error fetching fiscal years:", error);
-//       const currentYear = new Date().getFullYear();
-//       alert(`No officer budget details entered FOR the year ${currentYear}`);
-//   }
-// };
-
-  // const handleFirstOfficerChange = (event: React.ChangeEvent<HTMLElement>) => {
-  //   const target = event.target as HTMLSelectElement; 
-  //   console.log("target.value:", target.value);
-
-  //   setFirstOfficer(target.value.split(' ')[0]);
-  //    console.log("firstOfficer:", firstOfficer);
-  // };
-
-  // const handleFirstOfficerChange = (event: React.ChangeEvent<HTMLElement>) => {
-  //   const target = event.target as HTMLSelectElement;
-  //   const selectedOfficer = target.value.split(' ')[0];
-  //   setFirstOfficer(selectedOfficer);
-  // };
-
+ 
    const handleFirstOfficerChange = (event: React.ChangeEvent<HTMLElement>) => {
          const target = event.target as HTMLSelectElement;
          const selectedOfficer = target.value.split(' ')[0];
          setFirstOfficer(selectedOfficer);
     };
-
-   
-
 
   const handleFirstFiscalYearChange = (event: React.ChangeEvent<HTMLElement>) => {
     const target = event.target as HTMLSelectElement;
@@ -208,71 +173,194 @@ const FrmOfficerAssessment = () => {
                 console.log('valueOfBillsDistributed: ', valueOfBillsDistributed);
 
                 // // Fetch all monthly amounts
-                let januaryAmount: number = await dispatch(fetchJanuaryAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                console.log('januaryAmount: ', januaryAmount)
+                let januaryAmount: number = 0  
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                    januaryAmount = await dispatch(fetchJanuaryAmount({ officerNo, fiscalYear: fiscalYearValue })).unwrap();
+                    
+                    console.log('Total amount for January:', januaryAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
+              
+                let februaryAmount: number = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  februaryAmount = await dispatch(fetchFebruaryAmount({ officerNo, fiscalYear: fiscalYearValue })).unwrap();
+                    
+                    console.log('Total amount for February:', februaryAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
+
+                let marchAmount = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  marchAmount = await dispatch(fetchMarchAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                    
+                  console.log('Total amount for March:', marchAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
+
+                let aprilAmount = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  aprilAmount = await dispatch(fetchAprilAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                    
+                  console.log('Total amount for april:', aprilAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
+
+                let mayAmount = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  mayAmount = await dispatch(fetchMayAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                    
+                  console.log('Total amount for may:', mayAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
+
                 
-                // let februaryAmount: number = await dispatch(fetchFebruaryAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                // let marchAmount: number = await dispatch(fetchMarchAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                // let aprilAmount: number = await dispatch(fetchAprilAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                // let mayAmount: number = await dispatch(fetchMayAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                // let juneAmount: number = await dispatch(fetchJuneAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                // let julyAmount: number = await dispatch(fetchJulyAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                // let augustAmount: number = await dispatch(fetchAugustAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                // let septemberAmount: number = await dispatch(fetchSeptemberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                // let octoberAmount: number = await dispatch(fetchOctoberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                // let novemberAmount: number = await dispatch(fetchNovemberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
-                // let decemberAmount: number = await dispatch(fetchDecemberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                let juneAmount = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  juneAmount = await dispatch(fetchJuneAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                    
+                  console.log('Total amount for june:', juneAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
 
-                // let totalReceiptToDate: number = januaryAmount + februaryAmount + marchAmount + aprilAmount + mayAmount + juneAmount + julyAmount + augustAmount + 
-                // septemberAmount + octoberAmount + novemberAmount + decemberAmount;
 
-                // // Calculate balance and remarks
-                // let balance = valueOfBillsDistributed - totalReceiptToDate;
-                // console.log('balance: ', balance);
+                let julyAmount = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  julyAmount = await dispatch(fetchJulyAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                    
+                  console.log('Total amount for july:', julyAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
 
-                // const remarks = (valueOfBillsDistributed > 0) ? (totalReceiptToDate / valueOfBillsDistributed) * 100 : 0;
-                // console.log('remarks: ', remarks);
+                let augustAmount = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  augustAmount = await dispatch(fetchAugustAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                    
+                  console.log('Total amount for august:', augustAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
 
-                // // Create the object for the thunk
-                // const createClientsServedParams: CreateClientsServedParams = {
-                //     officerNo, // Assumes officerNo is a string defined elsewhere
-                //     fiscalYear, // Ensure firstFiscalYear is a valid string representation of a number
-                //     noOfClientsServed, // Must be defined as a number
-                //     valueOfBillsDistributed, // Must be defined as a number
-                //     januaryAmount, // Must be defined as a number
-                //     februaryAmount, // Must be defined as a number
-                //     marchAmount, // Must be defined as a number
-                //     aprilAmount, // Must be defined as a number
-                //     mayAmount, // Must be defined as a number
-                //     juneAmount, // Must be defined as a number
-                //     julyAmount, // Must be defined as a number
-                //     augustAmount, // Must be defined as a number
-                //     septemberAmount, // Must be defined as a number
-                //     octoberAmount, // Must be defined as a number
-                //     novemberAmount, // Must be defined as a number
-                //     decemberAmount, // Must be defined as a number
-                //     totalReceiptToDate, // Must be defined as a number
-                //     balance, // Must be defined as a number
-                //     remarks, // Should be a string
-                // };
 
-                //console.log('createClientsServedParams processed values: ', createClientsServedParams);
+                let septemberAmount = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  septemberAmount = await dispatch(fetchSeptemberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                    
+                  console.log('Total amount for september:', septemberAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
+
+                let octoberAmount = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  octoberAmount = await dispatch(fetchOctoberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                    
+                  console.log('Total amount for october:', octoberAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
+
+                let novemberAmount = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  novemberAmount = await dispatch(fetchNovemberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                    
+                  console.log('Total amount for november:', novemberAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
+
+                let decemberAmount = 0
+                try {
+                  // Directly use unwrap to get the result or catch the error
+                  decemberAmount = await dispatch(fetchDecemberAmount({ officerNo, fiscalYear: fiscalYearValue  })).unwrap();
+                    
+                  console.log('Total amount for december:', decemberAmount);
+                } catch (error) {
+                    console.error('Failed to fetch amount:', error);
+                }
+
+
+                let totalReceiptToDate: number = 
+                januaryAmount +  // Assuming value is the property holding the number
+                februaryAmount + 
+                marchAmount + 
+                aprilAmount + 
+                mayAmount + 
+                juneAmount + 
+                julyAmount + 
+                augustAmount + 
+                septemberAmount + 
+                octoberAmount + 
+                novemberAmount + 
+                decemberAmount;
+                 
+                console.log('totalReceiptToDate: ', totalReceiptToDate)
+
+                // Calculate balance and remarks
+                let balance = valueOfBillsDistributed - totalReceiptToDate;
+                console.log('balance: ', balance);
+
+                const remarks = (valueOfBillsDistributed > 0) ? (totalReceiptToDate / valueOfBillsDistributed) * 100 : 0;
+                console.log('remarks: ', remarks)
+
+                // Create the object for the thunk
+                const createClientsServedParams: CreateClientsServedParams = {
+                  officerNo, // Assumes officerNo is a string defined elsewhere
+                  fiscalYear: fiscalYearValue, // Use 'fiscalYear'
+                  noOfClientsServed, // Must be defined as a number
+                  valueOfBillsDistributed, // Must be defined as a number
+                  JanuaryAmount: januaryAmount, // Use PascalCase
+                  FebruaryAmount: februaryAmount,
+                  MarchAmount: marchAmount,
+                  AprilAmount: aprilAmount,
+                  MayAmount: mayAmount,
+                  JuneAmount: juneAmount,
+                  JulyAmount: julyAmount,
+                  AugustAmount: augustAmount,
+                  SeptemberAmount: septemberAmount,
+                  OctoberAmount: octoberAmount,
+                  NovemberAmount: novemberAmount,
+                  DecemberAmount: decemberAmount,
+                  totalReceiptToDate, // Must be defined as a number
+                  balance, // Must be defined as a number
+                  remarks, // Keep as a number (float)
+                };
+
+                console.log('createClientsServedParams processed values: ', createClientsServedParams);
 
                 // Now you can dispatch the thunk with this object
-                // await dispatch(createClientsServed(createClientsServedParams));
+                const answer = await dispatch(createClientsServed(createClientsServedParams)).unwrap();
+                
+                console.log('answer: ', answer)
+                
+                alert(answer)
+
+                console.log('All data fetched and processed.');
+                // Set to trigger fetching chart data
+                setShouldFetchChartData(true);
             }));
+
+           
         } else {
             console.log('No data available or response structure is invalid.');
         }
-
-        // Fetch assessment response
-        // const assessmentResponse = await dispatch(fetchOfficerAssessments()).unwrap();
-
-        // if (assessmentResponse.length > 0) {
-        //     alert(`This is the report for ${firstFiscalYear}`);
-        // } else {
-        //     alert("No records found");
-        // }
     } catch (error: any) {
         console.error("Error processing preview:", error);
         // alert("Error processing preview");
@@ -329,18 +417,18 @@ const FrmOfficerAssessment = () => {
           </Button>
         </Col>
       </Row>
-      {/* <Row className="mt-3">
-        <Col className="text-center">
-          <Button variant="secondary" onClick={handleExitClick}>
-            Exit
-          </Button>
-        </Col>
-      </Row> */}
+    
       <Row className="mt-3">
         <Col>
         <Button variant="secondary" onClick={handleExitClick}>
             Exit
           </Button>
+        </Col>
+      </Row>
+        {/* Add the OfficerAssessmentBarChart here */}
+        <Row className="mt-3">
+        <Col>
+        <OfficerAssessmentBarChart data={chartData} />
         </Col>
       </Row>
     </Container>

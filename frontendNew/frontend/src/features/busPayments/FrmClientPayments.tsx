@@ -174,11 +174,13 @@ const FrmClientPayments = () => {
     console.log('busPayment:', busPayment);
     try {
       const response = await dispatch(createBusPayment(busPayment)).unwrap();
-      // Handle success, e.g., clear form, show success message, etc.
-      setErrorMessage('');
-      console.log(response);
+      console.log('XXXXXXXXXXX', response)
+      // Log the response to verify
+      console.log('Response.message:', response.message);
+      alert(response.message)
 
-      if (createBusPayment.fulfilled.match(response)) {
+      // Check if the response indicates success
+  if (response && response.message){     
         setBusinessNo(0);
         setOfficerNo('');
         setPaidAmount(0);
@@ -189,6 +191,9 @@ const FrmClientPayments = () => {
         setBilledAmount(0);
 
         alert('Payment successfully added');
+      } else {
+        // Handle unexpected response structure
+        setErrorMessage('Unexpected response received.');
       }
     } catch (error: any) {
       // Handle error, e.g., show error message

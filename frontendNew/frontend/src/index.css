@@ -117,3 +117,7 @@ button:focus-visible {
   color: black; /* Set font color to black */
   background-color: #f2f2f2;
 }
+.bold-blue {
+  font-weight: bold;
+  color: blue;
+}

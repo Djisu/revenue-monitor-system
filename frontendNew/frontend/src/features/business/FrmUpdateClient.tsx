@@ -61,9 +61,9 @@ export interface BusinessData {
   BALANCENEW?: number;
 }
 
-const UpdateClientForm: React.FC = () => {
+const FrmUpdateClient: React.FC = () => {
   // State management for form fields
-  const [businessNo, setBusinessNo] = useState<number>(0);
+  const [businessNo, setBusinessNo] = useState<number | "">('');
   const [businessName, setBusinessName] = useState('');
   const [ceo, setCeo] = useState('');
   const [businessAddress, setBusinessAddress] = useState('');
@@ -310,7 +310,7 @@ const handleEditClick = async () => {
     console.log('THIS IS THE UPDATED gps_address:  ', gpsAddress)
 
     const response = await dispatch(updateBusiness({
-      buss_no: businessNo,
+      buss_no: businessNo || 0,  // Ensure buss_no is a number, defaulting to 0 if businessNo is falsy,
       data:  {
         ...updatedBusiness.data,
         tot_grade: finalGrade,
@@ -461,41 +461,48 @@ const handleEditClick = async () => {
       // Dispatch the async thunk and unwrap the result
       const response = await dispatch(fetchBusinessById(id)).unwrap();
 
-      console.log('after  dispatch(fetchBusinessById(id)).unwrap(); response:', response)
+      console.log('after  dispatch(fetchBusinessById(id)).unwrap(); response:', response.data)
 
-      console.log('typeof response: ', typeof response)
+      console.log('response: ', response.data)
 
       // Check if response is an array or an object
      // if(Array.isArray(response)) {
-        console.log('Response is an array:', response);
+        
+     if (response) {
+          setBusinessNo(response.data.buss_no || ''); // This can now be an empty string
+          setBusinessName(response.data.buss_name || '');
+          // Handle other fields similarly...
+      }
+
+
 
         // set response fields to the following state variables
-        setBusinessNo(response.buss_no);
-        setBusinessName(response.buss_name);
-        setBusinessAddress(response.buss_address);
+        setBusinessNo(response.data.buss_no);
+        setBusinessName(response.data.buss_name);
+        setBusinessAddress(response.data.buss_address);
 
          // Populate form fields with selected item data
-        setBusinessNo(response.buss_no);
-        setBusinessName(response.buss_name);
-        setBusinessAddress(response.buss_address);
-        setBusinessType(response.buss_type);
-        // setSelectedBusinessType(response.buss_type);
-        console.log('buss_town:', response.buss_town)
-        setBussTown(response.buss_town);
+        setBusinessNo(response.data.buss_no);
+        setBusinessName(response.data.buss_name);
+        setBusinessAddress(response.data.buss_address);
+        setBusinessType(response.data.buss_type);
+        // setSelectedBusinessType(response.data.buss_type);
+        console.log('buss_town:', response.data.buss_town)
+        setBussTown(response.data.buss_town);
        
-        setStreetName(response.street_name);
-        setLandMark(response.landmark);
-        setElectoralArea(response.electroral_area);
-        setPropertyClass(response.property_class);
+        setStreetName(response.data.street_name);
+        setLandMark(response.data.landmark);
+        setElectoralArea(response.data.electroral_area);
+        setPropertyClass(response.data.property_class);
 
-        getRate(response.property_class)
+        //getRate(response.data.property_class)
       
-        setCeo(response.ceo);
-        setTelNo(response.telno);
-        console.log('response.assessmentby:  ', response.assessmentby)
-        selectedOfficer = response.assessmentby;
-        setSelectedOfficer(response.assessmentby);
-        setAssessment(response.assessmentby);
+        setCeo(response.data.ceo);
+        setTelNo(response.data.telno);
+        console.log('response.data.assessmentby:  ', response.data.assessmentby)
+        selectedOfficer = response.data.assessmentby;
+        setSelectedOfficer(response.data.assessmentby);
+        setAssessment(response.data.assessmentby);
 
         console.log('selectedOfficer:  ', selectedOfficer)
         console.log('assessments:  ', assessments)
@@ -540,7 +547,7 @@ const handleEditClick = async () => {
               <Form.Label>Business Number:</Form.Label>
               <Form.Control 
                     value={businessNo} 
-                    onChange={(e) => setBusinessNo(Number(e.target.value))} 
+                    onChange={(e) => setBusinessNo(e.target.value ? Number(e.target.value) : '')} 
                     onBlur={(e) => getBusiness(e.target.value)}
               />
             </Col>
@@ -1244,5 +1251,5 @@ const handleEditClick = async () => {
 ;
 };
 
-export default UpdateClientForm;
+export default FrmUpdateClient;
 

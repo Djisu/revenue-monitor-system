@@ -61,7 +61,7 @@ const dbConfig = {
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 //let pool: Pool | undefined;
 let pool;
-//const pool = new Pool()
+let isPoolEnding = false;
 // Create PostgreSQL connection
 const connectDB = async () => {
     try {
@@ -174,8 +174,10 @@ app.listen(port, async () => {
 process.once('SIGUSR2', () => {
     process.kill(process.pid, 'SIGUSR2');
 });
+// Handle process signals
 process.on('SIGINT', async () => {
-    if (pool) {
+    if (pool && !isPoolEnding) {
+        isPoolEnding = true; // Prevent further calls to end the pool
         await pool.end();
         console.log(colors.green('PostgreSQL connection closed'));
     }

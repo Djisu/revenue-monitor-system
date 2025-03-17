@@ -23,6 +23,11 @@ interface BusPaymentsState {
     billedAmount: number;
 }
 
+export interface BillData {
+    bussNo: number;
+    amount: number;
+  }
+
 const initialState: BusPaymentsState = {
     busPayments: [],
     loading: false,
@@ -56,13 +61,13 @@ export const createBusPayment = createAsyncThunk('busPayments/createBusPayment',
                 headers: { 'Content-Type': 'application/json' },
             }
         );
-        console.log('AFTER APIresponse data', response.data);
+        console.log('AFTER APIresponse data', response.data.message);
 
         if (response.status >= 200 && response.status < 300) {
-            console.log('busPayments fulfilled::: ', response.data);
+            console.log('response.data: ', response.data);
             // Ensure response.data is an array
-            return Array.isArray(response.data) ? response.data : []; //
-            // return data; // This data will be available as `action.payload`
+            //return Array.isArray(response.data) ? response.data : []; //
+            return response.data // This data will be available as `action.payload`
         } else {
             throw new Error(`Error fetching business client payment. Status: ${response.status} - Error: ${response.statusText}`);
         }           
@@ -162,6 +167,29 @@ export const billAllBusinesses = createAsyncThunk('businessType/billAllBusinesse
     }
 });
 
+export const billOneBusiness = createAsyncThunk('businessType/billoneBusiness', async (bussNo: number) => {
+    console.log('inside billOneBusiness thunk');
+
+    //const response = await axios.post(`${BASE_URL}/api/busPayments/billonebusiness/${bussNo}/${amount}`);
+
+    const response = await axios.post(
+        `${BASE_URL}/api/busPayments/billonebusiness/${bussNo}`,
+        {
+            headers: { 'Content-Type': 'application/json' },
+        }
+    );
+
+    console.log('after billonebusiness thunk, Response data:', response.data)
+
+    if (response.status >= 200 && response.status < 300) {
+        console.log('billonebusiness thunk, response data:', response.data);
+
+        return await response.data; // This data will be available as `action.payload`
+    } else {
+        throw new Error(`Error billing one business types: ${response.statusText}`);
+    }
+});
+
 // Create the slice 
 const busPaymentsSlice = createSlice({
     name: 'busPayments',
@@ -225,7 +253,7 @@ const busPaymentsSlice = createSlice({
             })
             .addCase(createBusPayment.fulfilled, (state, action) => {
                 state.loading = false;
-                state.busPayments.push(...action.payload); // Add the new business
+                state.busPayments.push(action.payload); // Add the new business
                 state.error = null;
             })
             .addCase(createBusPayment.rejected, (state, action) => {

@@ -68,7 +68,7 @@ export interface CreateClientsServedParams {
     DecemberAmount: number;
     totalReceiptToDate: number;
     balance: number;
-    remarks: string;
+    remarks: number;
 }
 
 export interface FiscalYear {
@@ -106,19 +106,25 @@ const token = localStorage.getItem('token');
 export const createClientsServed = createAsyncThunk<number, CreateClientsServedParams>(
     'officerAssessment/createClientsServed',
     async (params: CreateClientsServedParams): Promise<number> => {
+        //console.clear();
+        console.log('in createClientsServed thunk', params)
+
         const response = await apiClient.post(`${BASE_URL}/api/officerAssessment/create`, params, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
         });
-        return response.data.totalClientsServed; // Adjust based on your API response
+
+        console.log('createClientsServed response', response.data)
+       
+        return response.data; // Adjust based on your API response
     }
 );
 
-function isNumber(value: any): value is number {
-    return typeof value === 'number' && !isNaN(value);
-}
+// function isNumber(value: any): value is number {
+//     return typeof value === 'number' && !isNaN(value);
+// }
 
 // Async thunk to fetch the number of clients served
 export const fetchClientsServed = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
@@ -158,9 +164,19 @@ export const fetchFiscalYears = createAsyncThunk<FiscalYear[], void>(
 export const fetchJanuaryAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchJanuaryAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchJanuaryAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/January/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+            const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -171,9 +187,19 @@ export const fetchJanuaryAmount = createAsyncThunk<number, { officerNo: string; 
 export const fetchFebruaryAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchFebruaryAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchFebruaryAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/February/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -184,9 +210,19 @@ export const fetchFebruaryAmount = createAsyncThunk<number, { officerNo: string;
 export const fetchMarchAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchMarchAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchMarchAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/March/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -197,9 +233,19 @@ export const fetchMarchAmount = createAsyncThunk<number, { officerNo: string; fi
 export const fetchAprilAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchAprilAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchAprilAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/April/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -210,9 +256,19 @@ export const fetchAprilAmount = createAsyncThunk<number, { officerNo: string; fi
 export const fetchMayAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchMayAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchMayAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/May/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -223,9 +279,19 @@ export const fetchMayAmount = createAsyncThunk<number, { officerNo: string; fisc
 export const fetchJuneAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchJuneAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchJuneAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/June/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -236,9 +302,19 @@ export const fetchJuneAmount = createAsyncThunk<number, { officerNo: string; fis
 export const fetchJulyAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchJulyAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchJulyAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/July/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -249,9 +325,19 @@ export const fetchJulyAmount = createAsyncThunk<number, { officerNo: string; fis
 export const fetchAugustAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchAugustAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchAugustAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/August/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -262,9 +348,19 @@ export const fetchAugustAmount = createAsyncThunk<number, { officerNo: string; f
 export const fetchSeptemberAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchSeptemberAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchSeptemberAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/September/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -275,9 +371,19 @@ export const fetchSeptemberAmount = createAsyncThunk<number, { officerNo: string
 export const fetchOctoberAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchOctoberAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchOctoberAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/October/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -288,9 +394,19 @@ export const fetchOctoberAmount = createAsyncThunk<number, { officerNo: string; 
 export const fetchNovemberAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchNovemberAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchNovemberAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/November/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -301,9 +417,19 @@ export const fetchNovemberAmount = createAsyncThunk<number, { officerNo: string;
 export const fetchDecemberAmount = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'payments/fetchDecemberAmount',
     async ({ officerNo, fiscalYear }, { rejectWithValue }) => {
+        console.log('in fetchDecemberAmount')
         try {
             const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/December/${officerNo}/${fiscalYear}`);
-            return response.data.amount; // Ensure this matches the expected response structure
+             const totsum = Number(response.data.totsum); // Convert to number
+
+            console.log('totsum', totsum)
+            
+            // Check if the conversion was successful
+            if (isNaN(totsum)) {
+                throw new Error('Received an invalid number for totsum');
+            }
+
+            return totsum; // Now returning a number
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -314,7 +440,10 @@ export const fetchDecemberAmount = createAsyncThunk<number, { officerNo: string;
 export const fetchOfficerAssessment = createAsyncThunk<OfficerAssessment, { officerNo: string; fiscalYear: number }>(
     'officerAssessment/fetchOfficerAssessment',
     async ({ officerNo, fiscalYear }): Promise<OfficerAssessment> => {
+
         const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/${officerNo}/${fiscalYear}`);
+        console.log('fetchOfficerAssessment response', response.data)
+
         return response.data; // Ensure this matches OfficerAssessment structure
     }
 );
