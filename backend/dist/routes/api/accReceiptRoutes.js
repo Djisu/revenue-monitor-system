@@ -15,8 +15,10 @@ const dbConfig = {
 // Create a connection pool
 const pool = new Pool(dbConfig);
 // Create a new AccReceipt record
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
+    console.log('router.post(/create)');
     const accReceiptData = req.body;
+    console.log(accReceiptData);
     try {
         // Check if an operator permission with the same OperatorID already exists
         const accReceipt = await pool.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [accReceiptData.batchno, accReceiptData.fiscalyear]);
@@ -41,10 +43,12 @@ router.post('/', async (req, res) => {
     }
 });
 // Read all AccReceipt records
-router.get('/', async (req, res) => {
+router.get('/all', async (req, res) => {
+    console.log('in router.get(/all)');
     try {
         const rows = await pool.query('SELECT * FROM accreceipt');
-        res.json(rows.rows);
+        console.log(rows.rows);
+        res.status(200).json({ message: 'AccReceipts fetched successfully', data: rows.rows });
     }
     catch (error) {
         console.error(error);

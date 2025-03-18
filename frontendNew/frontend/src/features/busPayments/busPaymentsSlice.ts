@@ -45,6 +45,19 @@ export const fetchBusPayments = createAsyncThunk('busPayments/fetchBusPayments',
     return response.data;
 });
 
+export const fetchTransSavings = createAsyncThunk('busPayments/fetchBusPayments', async () => {
+    const response = await axios.get(`${BASE_URL}/api/busPayments/transSavings`);
+    
+    console.log('response data', response.data);
+
+    if (response.status >= 200 && response.status < 300) {
+        console.log('fetchBusPayments fulfilled::: ', response.data.data);
+        return response.data.data; // Return the correct data
+    } else {
+        throw new Error(`Error fetching bus payment. Status: ${response.status} - Error: ${response.statusText}`);
+    }
+});
+
 // Async thunk to create a new BusPayments record
 export const createBusPayment = createAsyncThunk('busPayments/createBusPayment', async (data: BusPaymentsData) => {
     console.log('createBusPayment slice', data);
@@ -125,13 +138,24 @@ export const fetchBusPaymentByPaymentDate = createAsyncThunk('busPayments/fetchB
     return response.data;
 });
 
-export const fetchBusPaymentByTwoDates = createAsyncThunk('busPayments/fetchBusPaymentByTwoDates', async ({ startDate, endDate }: { startDate: Date; endDate: Date }) => {
+export const fetchBusPaymentByTwoDates = createAsyncThunk('busPayments/fetchBusPaymentByTwoDates', 
+   async ({ bussNo, startDate, endDate }: { bussNo: string; startDate: Date; endDate: Date }) => {
+
+    console.log('in fetchBusPaymentByTwoDates slice', bussNo, startDate, endDate)
+
     // You can format the dates as strings or pass them in a way your API expects
     const formattedStartDate = startDate.toISOString().split('T')[0];
     const formattedEndDate = endDate.toISOString().split('T')[0];
 
-    const response = await axios.get(`${BASE_URL}/api/busPayments?startDate=${formattedStartDate}&endDate=${formattedEndDate}`);
-    return response.data;
+    const response = await axios.get(`${BASE_URL}/api/busPayments/${bussNo}/${formattedStartDate}/${formattedEndDate}`);
+
+    console.log('response data', response.data);
+    if (response.status >= 200 && response.status < 300) {
+        console.log('busPayments fulfilled::: ', response.data.data);
+        return response.data.data; // Return the correct data
+    } else {
+        throw new Error(`Error fetching bus payment. Status: ${response.status} - Error: ${response.statusText}`);
+    }
 });
 
 // Async thunk to update a BusPayments record
@@ -301,7 +325,7 @@ const busPaymentsSlice = createSlice({
             })
             .addCase(fetchBusPaymentByTwoDates.fulfilled, (state, action) => {
                 state.loading = false;
-                state.busPayments.push(action.payload); // Add the new BusPayments record
+                state.busPayments.push(...action.payload); // Add the new BusPayments record
                 state.error = null;
             })
             .addCase(fetchBusPaymentByTwoDates.rejected, (state, action) => {

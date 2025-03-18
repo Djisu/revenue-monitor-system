@@ -43,14 +43,20 @@ var initialState = {
     loading: false,
     error: null,
 };
+var BASE_URL = import.meta.env.VITE_BASE_URL ||
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 // Async thunk to fetch all AccReceipts
 export var fetchAccReceipts = createAsyncThunk('accReceipts/fetchAccReceipts', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get('/api/accReceipts')];
+            case 0:
+                console.log('in fetchAccReceipts');
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/accReceipts/all"))];
             case 1:
                 response = _a.sent();
+                console.log('in fetchAccReceipts after response: ', response.data.data);
+                console.log(response.data);
                 return [2 /*return*/, response.data];
         }
     });
@@ -60,7 +66,7 @@ export var createAccReceipt = createAsyncThunk('accReceipts/createAccReceipt', f
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post('/api/accReceipts', data)];
+            case 0: return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/accReceipts/create"), data)];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -73,7 +79,7 @@ export var fetchAccReceiptById = createAsyncThunk('accReceipts/fetchAccReceiptBy
     var batchno = _b.batchno, fiscalyear = _b.fiscalyear;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.get("/api/accReceipts/".concat(batchno, "/").concat(fiscalyear))];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/accReceipts/").concat(batchno, "/").concat(fiscalyear))];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
@@ -86,7 +92,7 @@ export var updateAccReceipt = createAsyncThunk('accReceipts/updateAccReceipt', f
     var batchno = _b.batchno, data = _b.data;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.put("/api/accReceipts/".concat(batchno), data)];
+            case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/accReceipts/").concat(batchno), data)];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
@@ -99,7 +105,7 @@ export var deleteAccReceipt = createAsyncThunk('accReceipts/deleteAccReceipt', f
     var batchno = _b.batchno, fiscalyear = _b.fiscalyear;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.delete("/api/accReceipts/".concat(batchno, "/").concat(fiscalyear))];
+            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/accReceipts/").concat(batchno, "/").concat(fiscalyear))];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];

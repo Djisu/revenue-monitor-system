@@ -36,15 +36,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
+import { useAppDispatch } from '../../app/store';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { fetchAccReceipts, createAccReceipt, deleteAccReceipt } from './accReceiptSlice';
+// interface Receipt {
+//     fiscalyear: number;
+//     batchno: number;
+//     firstno: number;
+//     lastno: number;
+// }
 export var FrmReceipts = function () {
     var _a = useState(0), fiscalYear = _a[0], setFiscalYear = _a[1];
-    var _b = useState(0), batchNo = _b[0], setBatchNo = _b[1];
+    var _b = useState(''), batchNo = _b[0], setBatchNo = _b[1];
     var _c = useState(0), firstNo = _c[0], setFirstNo = _c[1];
     var _d = useState(0), lastNo = _d[0], setLastNo = _d[1];
     var _e = useState([]), receipts = _e[0], setReceipts = _e[1];
+    var dispatch = useAppDispatch();
     useEffect(function () {
         // Fetch receipts on form load
         fetchReceipts();
@@ -55,10 +64,17 @@ export var FrmReceipts = function () {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get('/api/receipts')];
+                    return [4 /*yield*/, dispatch(fetchAccReceipts()).unwrap()];
                 case 1:
                     response = _a.sent();
-                    setReceipts(response.data);
+                    console.log('response.data: ', response.data);
+                    if (response.data && response.data.length > 0) {
+                        setReceipts(response.data);
+                    }
+                    else {
+                        console.warn("No receipts found");
+                        alert("No receipts available at the moment.");
+                    }
                     return [3 /*break*/, 3];
                 case 2:
                     error_1 = _a.sent();
@@ -73,7 +89,7 @@ export var FrmReceipts = function () {
         setFiscalYear(Number(e.target.value));
     };
     var handleBatchNoChange = function (e) {
-        setBatchNo(Number(e.target.value));
+        setBatchNo(e.target.value);
     };
     var handleFirstNoChange = function (e) {
         setFirstNo(Number(e.target.value));
@@ -82,7 +98,7 @@ export var FrmReceipts = function () {
         setLastNo(Number(e.target.value));
     };
     var handleAddClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_2;
+        var data, response, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -105,19 +121,20 @@ export var FrmReceipts = function () {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.post('/api/add-receipt', {
-                            fiscalyear: fiscalYear,
-                            batchno: batchNo,
-                            firstno: firstNo,
-                            lastno: lastNo
-                        })];
+                    data = {
+                        fiscalyear: fiscalYear,
+                        batchno: batchNo,
+                        firstno: firstNo,
+                        lastno: lastNo
+                    };
+                    return [4 /*yield*/, dispatch(createAccReceipt(data))];
                 case 2:
                     response = _a.sent();
-                    if (response.data.success) {
+                    if (response.payload.message) {
                         alert("Record successfully added");
                         // Clear input fields
                         setFiscalYear(0);
-                        setBatchNo(0);
+                        setBatchNo('');
                         setFirstNo(0);
                         setLastNo(0);
                         // Refresh the list of receipts
@@ -160,19 +177,17 @@ export var FrmReceipts = function () {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.post('/api/delete-receipt', {
+                    return [4 /*yield*/, dispatch(deleteAccReceipt({
                             fiscalyear: fiscalYear,
-                            batchno: batchNo,
-                            firstno: firstNo,
-                            lastno: lastNo
-                        })];
+                            batchno: batchNo
+                        }))];
                 case 2:
                     response = _a.sent();
-                    if (response.data.success) {
+                    if (response.payload.success) {
                         alert("Record successfully deleted");
                         // Clear input fields
                         setFiscalYear(0);
-                        setBatchNo(0);
+                        setBatchNo('');
                         setFirstNo(0);
                         setLastNo(0);
                         // Refresh the list of receipts
@@ -191,12 +206,12 @@ export var FrmReceipts = function () {
             }
         });
     }); };
-    var handleExitClick = function () {
-        // Hide the form and show main form (this can be handled via routing)
-        console.log("Exit button clicked");
-        // For example, you might navigate to another route here
-        // history.push('/main-form');
-    };
+    // const handleExitClick = () => {
+    //     // Hide the form and show main form (this can be handled via routing)
+    //     console.log("Exit button clicked");
+    //     // For example, you might navigate to another route here
+    //     // history.push('/main-form');
+    // };
     var handleBatchNoClick = function () { return __awaiter(void 0, void 0, void 0, function () {
         var response, error_4;
         return __generator(this, function (_a) {
@@ -230,7 +245,7 @@ export var FrmReceipts = function () {
             }
         });
     }); };
-    return (_jsxs(Container, { fluid: true, children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h1", { className: "text-center text-primary", children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsxs(Row, { children: [_jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFiscalYear", children: [_jsx(Form.Label, { children: "Fiscal Year:" }), _jsx(Form.Control, { type: "number", value: fiscalYear, onChange: handleFiscalYearChange, required: true })] }) }), _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formBatchNo", children: [_jsx(Form.Label, { children: "Batch Number:" }), _jsx(Form.Control, { type: "number", value: batchNo, onChange: handleBatchNoChange, onClick: handleBatchNoClick, required: true })] }) })] }), _jsxs(Row, { children: [_jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstNo", children: [_jsx(Form.Label, { children: "First Receipt Number:" }), _jsx(Form.Control, { type: "number", value: firstNo, onChange: handleFirstNoChange, required: true })] }) }), _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formLastNo", children: [_jsx(Form.Label, { children: "Last Receipt Number:" }), _jsx(Form.Control, { type: "number", value: lastNo, onChange: handleLastNoChange, required: true })] }) })] }), _jsxs(Row, { className: "mt-3", children: [_jsx(Col, { children: _jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add New Record" }) }), _jsx(Col, { children: _jsx(Button, { variant: "danger", onClick: handleDeleteClick, children: "Delete" }) }), _jsx(Col, { children: _jsx(Button, { variant: "secondary", onClick: handleExitClick, children: "Exit" }) })] }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { children: [_jsx("h2", { children: "List of Receipt Numbers" }), _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Fiscal Year" }), _jsx("th", { children: "Batch Number" }), _jsx("th", { children: "First No" }), _jsx("th", { children: "Last No" })] }) }), _jsx("tbody", { children: receipts.map(function (receipt, index) { return (_jsxs("tr", { onClick: function () {
+    return (_jsxs(Container, { fluid: true, children: [_jsxs(Row, { children: [_jsxs(Col, { children: [_jsx("p", { className: "text-center text-primary", children: "MARCORY MUNICIPAL ASSEMBLY" }), _jsxs(Form.Group, { controlId: "formFiscalYear", children: [_jsx(Form.Label, { children: "Fiscal Year:" }), _jsx(Form.Control, { type: "number", value: fiscalYear, onChange: handleFiscalYearChange, required: true })] })] }), _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formBatchNo", children: [_jsx(Form.Label, { children: "Batch Number:" }), _jsx(Form.Control, { type: "number", value: batchNo, onChange: handleBatchNoChange, onClick: handleBatchNoClick, required: true })] }) })] }), _jsxs(Row, { children: [_jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstNo", children: [_jsx(Form.Label, { children: "First Receipt Number:" }), _jsx(Form.Control, { type: "number", value: firstNo, onChange: handleFirstNoChange, required: true })] }) }), _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formLastNo", children: [_jsx(Form.Label, { children: "Last Receipt Number:" }), _jsx(Form.Control, { type: "number", value: lastNo, onChange: handleLastNoChange, required: true })] }) })] }), _jsxs(Row, { className: "mt-3", children: [_jsx(Col, { children: _jsx(Button, { variant: "primary", onClick: handleAddClick, children: "Add New Record" }) }), _jsx(Col, { children: _jsx(Button, { variant: "danger", onClick: handleDeleteClick, children: "Delete" }) })] }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { children: [_jsx("h2", { children: "List of Receipt Numbers" }), _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Fiscal Year" }), _jsx("th", { children: "Batch Number" }), _jsx("th", { children: "First No" }), _jsx("th", { children: "Last No" })] }) }), _jsx("tbody", { children: receipts.map(function (receipt, index) { return (_jsxs("tr", { onClick: function () {
                                             setFiscalYear(receipt.fiscalyear);
                                             setBatchNo(receipt.batchno);
                                             setFirstNo(receipt.firstno);

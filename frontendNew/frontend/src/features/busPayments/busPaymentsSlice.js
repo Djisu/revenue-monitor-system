@@ -58,6 +58,25 @@ export var fetchBusPayments = createAsyncThunk('busPayments/fetchBusPayments', f
         }
     });
 }); });
+export var fetchTransSavings = createAsyncThunk('busPayments/fetchBusPayments', function () { return __awaiter(void 0, void 0, void 0, function () {
+    var response;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/transSavings"))];
+            case 1:
+                response = _a.sent();
+                console.log('response data', response.data);
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('fetchBusPayments fulfilled::: ', response.data.data);
+                    return [2 /*return*/, response.data.data]; // Return the correct data
+                }
+                else {
+                    throw new Error("Error fetching bus payment. Status: ".concat(response.status, " - Error: ").concat(response.statusText));
+                }
+                return [2 /*return*/];
+        }
+    });
+}); });
 // Async thunk to create a new BusPayments record
 export var createBusPayment = createAsyncThunk('busPayments/createBusPayment', function (data) { return __awaiter(void 0, void 0, void 0, function () {
     var response, error_1;
@@ -163,16 +182,25 @@ export var fetchBusPaymentByPaymentDate = createAsyncThunk('busPayments/fetchBus
 }); });
 export var fetchBusPaymentByTwoDates = createAsyncThunk('busPayments/fetchBusPaymentByTwoDates', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
     var formattedStartDate, formattedEndDate, response;
-    var startDate = _b.startDate, endDate = _b.endDate;
+    var bussNo = _b.bussNo, startDate = _b.startDate, endDate = _b.endDate;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
+                console.log('in fetchBusPaymentByTwoDates slice', bussNo, startDate, endDate);
                 formattedStartDate = startDate.toISOString().split('T')[0];
                 formattedEndDate = endDate.toISOString().split('T')[0];
-                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments?startDate=").concat(formattedStartDate, "&endDate=").concat(formattedEndDate))];
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/").concat(bussNo, "/").concat(formattedStartDate, "/").concat(formattedEndDate))];
             case 1:
                 response = _c.sent();
-                return [2 /*return*/, response.data];
+                console.log('response data', response.data);
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('busPayments fulfilled::: ', response.data.data);
+                    return [2 /*return*/, response.data.data]; // Return the correct data
+                }
+                else {
+                    throw new Error("Error fetching bus payment. Status: ".concat(response.status, " - Error: ").concat(response.statusText));
+                }
+                return [2 /*return*/];
         }
     });
 }); });
@@ -351,8 +379,9 @@ var busPaymentsSlice = createSlice({
             state.loading = true;
         })
             .addCase(fetchBusPaymentByTwoDates.fulfilled, function (state, action) {
+            var _a;
             state.loading = false;
-            state.busPayments.push(action.payload); // Add the new BusPayments record
+            (_a = state.busPayments).push.apply(_a, action.payload); // Add the new BusPayments record
             state.error = null;
         })
             .addCase(fetchBusPaymentByTwoDates.rejected, function (state, action) {

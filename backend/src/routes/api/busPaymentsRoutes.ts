@@ -66,6 +66,28 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Function to get Business name from buss_no
+async function getBusinessName(buss_no: string): Promise<string> {
+    const client: PoolClient = await pool.connect();
+
+    try {
+        const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
+
+        if (result.rows.length === 0) {
+            return 'Business not found';
+        }
+
+        return result.rows[0].buss_name;
+    } catch (error) {
+        console.error('Error:', error);
+        return 'Error getting business name';
+    } finally {
+        client.release();
+    }
+}
+
+
+
 // Function to generate PDF
 async function generatePDF(receiptData: BusPaymentsData, receiptsDir: string): Promise<string> {
     console.log('in generatePDF function')
@@ -370,27 +392,219 @@ router.get('/:date', async (req: Request, res: Response) => {
     }
 });
 
+router.get('/transsavings', async (req: Request, res: Response) => {
+    const client: PoolClient = await pool.connect();
+
+    //Select all from transsavings
+    try {
+        const result = await client.query('SELECT * FROM transsavings');
+        console.log('Transsavings records found')
+
+        console.log(result.rows);
+        res.status(200).json({ message: 'Transsavings records found', data: result.rows });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching Transsavings records', error });
+    } finally {
+        client.release();
+    }
+})
+
 // Read a single BusPayments record by date range
-router.get('/:firstdate/:lastdate', async (req: Request, res: Response) => {
-    const { firstdate, lastdate } = req.params;
+router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request, res: Response) => {
+    const { bussNo, formattedStartDate, formattedEndDate } = req.params;
+
+    // Get today's date
+    const today = new Date();
+    const formattedToday = today.toISOString().split('T')[0]; // Convert to YYYY-MM-DD
+
+    // Get the current year
+    const currentYear = new Date().getFullYear();
+
+    // Validate bussNo
+    const intBussNo = parseInt(bussNo, 10);
+    if (isNaN(intBussNo)) {
+        return res.status(400).json({ message: 'Invalid business number' });
+    }
+
+    // Validate date format (optional, implement your own validation)
+    if (!isValidDate(formattedStartDate) || !isValidDate(formattedEndDate)) {
+        return res.status(400).json({ message: 'Invalid date format, use YYYY-MM-DD' });
+    }
+
+    console.log('XXXXXXX in router.get(/:bussNo/:formattedStartDate/:formattedEndDate): ', req.params);
 
     const client: PoolClient = await pool.connect();
 
+    console.log("intBussNo: ", intBussNo);
+    console.log("formattedStartDate: ", formattedStartDate);
+    console.log("formattedEndDate: ", formattedEndDate);
+
+    const bussName = await getBusinessName(bussNo);
+
+    console.log('bussName:', bussName);
+
     try {
-        const result = await client.query('SELECT * FROM buspayments WHERE transdate BETWEEN $1 AND $2', [firstdate, lastdate]);
+        // Delete all from transsavings
+        await client.query('DELETE FROM transsavings');
+
+        // Select from busscurrbalance
+        const bussCurrbalanceResult: QueryResult = await client.query(
+            'SELECT DISTINCT SUM(current_balance) AS totdebit FROM busscurrbalance WHERE buss_no = $1 AND transdate < $2',
+            [intBussNo, formattedToday]
+        );
+
+        let vardebit: number = 0
+
+        if (bussCurrbalanceResult.rows.length > 0) {
+            vardebit = bussCurrbalanceResult.rows[0].totdebit;
+        }
+
+        console.log('vardebit:', vardebit);
+
+        // Select from buspayments
+        const busPaymentsResult: QueryResult = await client.query(
+            'SELECT DISTINCT SUM(paidamount) as totcredit FROM buspayments WHERE buss_no = $1 AND transdate < $2',
+            [intBussNo, formattedToday]
+        );
+
+        let varcredit: number = 0
+        if (busPaymentsResult.rows.length > 0) {
+            varcredit = busPaymentsResult.rows[0].totcredit;
+        }
+        console.log('varcredit:', varcredit);
+
+        let varbalance: number = 0;
+        varbalance = varcredit - vardebit;
+
+        console.log('varbalance:', varbalance);
+
+        // Enter the balance bf detailed line
+        if (varbalance > 0) {         
+            const transsavingsDebit: QueryResult = await client.query(
+                'INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+                [intBussNo, formattedToday, 'BALANCE BROUGHT FORWARD', 0, varbalance, varbalance, 5, currentYear, 0]
+            );
+        } else {
+            const transsavingsCredit: QueryResult = await client.query(
+                'INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+                [intBussNo, formattedToday, 'BALANCE BROUGHT FORWARD', varbalance, 0, varbalance, 5, currentYear, 0]
+            );
+        }
+
+        const busscurrbalanceResult: QueryResult = await client.query(
+            'SELECT * FROM busscurrbalance WHERE buss_no = $1 AND transdate BETWEEN $2 AND $3 ORDER BY transdate ASC',
+            [intBussNo, formattedStartDate, formattedEndDate]
+        );
+
+        if (busscurrbalanceResult.rows.length === 0) {
+            console.log('Business not billed yet');
+            return res.status(404).json({ message: 'Business not billed yet', data: [] });
+        }
+
+       // loop through busscurrbalanceResult.rows and insert into transsavings
+        for (const bussCurrbalanceRow of busscurrbalanceResult.rows) {
+
+            console.log('Inserting into transsavings:', {
+                buss_no: bussCurrbalanceRow.buss_no,
+                transdate: bussCurrbalanceRow.transdate,
+                details: "Bill Payment for " + bussCurrbalanceRow.fiscal_year + ", receipt no: " + bussCurrbalanceRow.receiptno,
+                debit: 0,
+                credit: bussCurrbalanceRow.paidamount || 0,
+                balance: varbalance,
+                userid: 5,
+                yearx: currentYear,
+                term: bussName
+            });
+
+            const transsavingsResult: QueryResult = await client.query(
+                'INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+                [
+                    bussCurrbalanceRow.buss_no,
+                    bussCurrbalanceRow.transdate,
+                    'Annual Revenue Billing for Fiscal Year ' + bussCurrbalanceRow.fiscalyear,
+                    bussCurrbalanceRow.current_balance,
+                    0, // credit
+                    bussCurrbalanceRow.current_balance,
+                    5,
+                    currentYear,
+                   bussName
+                ]
+            );
+        }
+
+        // Select from buspayments
+        const busPaymentsDetailedResult: QueryResult = await client.query(
+            'SELECT * FROM buspayments WHERE buss_no = $1 AND transdate BETWEEN $2 AND $3 ORDER BY transdate ASC',
+            [intBussNo, formattedStartDate, formattedEndDate]
+        );
+
+
+        if (busPaymentsDetailedResult.rows.length === 0) {
+            console.log('No records found');
+            return res.status(404).json({ message: 'No records found', data: [] });
+        }
+
+        // loop through busPaymentsDetailedResult.rows and insert into transsavings
+        if (busPaymentsDetailedResult.rows.length > 0) {
+            for (const busPaymentRow of busPaymentsDetailedResult.rows) {    
+                
+                console.log('Inserting into transsavings:', {
+                    buss_no: busPaymentRow.buss_no,
+                    transdate: busPaymentRow.transdate,
+                    details: "Bill Payment for " + busPaymentRow.fiscal_year + ", receipt no: " + busPaymentRow.receiptno,
+                    debit: 0,
+                    credit: busPaymentRow.paidamount || 0,
+                    balance: varbalance,
+                    userid: 5,
+                    yearx: currentYear,
+                    term: bussName
+                });
+
+                const transsavingsResult: QueryResult = await client.query(
+                    'INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+                    [
+                        busPaymentRow.buss_no,
+                        busPaymentRow.transdate,
+                        "Bill Payment for " + busPaymentRow.fiscal_year + ", receipt no: " + busPaymentRow.receiptno,
+                        0, // debit
+                        busPaymentRow.paidamount || 0,
+                        varbalance,
+                        5,
+                        currentYear,
+                        bussName
+                    ]
+                );           
+            }
+        }
+
+        console.log('after looping through busscurrbalanceResult.rows and busPaymentsDetailedResult.rows')
+        
+        const result = await client.query(
+            'SELECT * FROM transsavings WHERE buss_no = $1 AND transdate BETWEEN $2 AND $3 ORDER BY transdate ASC',
+            [intBussNo, formattedStartDate, formattedEndDate]
+        );
 
         if (result.rows.length === 0) {
-            res.status(404).json({ message: 'Business Payments record not found' });
-            return;
+            console.log('Business transactions record not found');
+            return res.status(404).json({ message: 'Business transactions record not found', data: [] });
         }
-        res.json(result.rows);
+
+        console.log('Records found:', result.rows.length);
+        res.status(200).json({ message: 'Records found', data: result.rows });
     } catch (error) {
-        console.error(error);
+        console.error('Error fetching BusPayments record:', error);
         res.status(500).json({ message: 'Error fetching BusPayments record', error });
     } finally {
         client.release();
     }
 });
+
+// Helper function to validate date format (YYYY-MM-DD)
+const isValidDate = (dateString: string): boolean => {
+    const regex = /^\d{4}-\d{2}-\d{2}$/; // Matches YYYY-MM-DD
+    return regex.test(dateString);
+};
 
 // Update a BusPayments record
 router.put('/:buss_no', async (req: Request, res: Response) => {

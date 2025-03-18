@@ -106,7 +106,7 @@ app.get('/', (req, res) => {
 });
 // Use the business routes
 app.use('/api/business', businessRoutes);
-app.use('/api/accReceipt', accReceiptRoutes);
+app.use('/api/accReceipts', accReceiptRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/balance', balanceRoutes);
 app.use('/api/budgetAssess', budgetAssessRoutes);

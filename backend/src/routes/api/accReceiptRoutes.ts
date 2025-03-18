@@ -30,8 +30,11 @@ interface AccReceiptData {
 }
 
 // Create a new AccReceipt record
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/create', async (req: Request, res: Response): Promise<void> => {
+
+    console.log('router.post(/create)')
     const accReceiptData: AccReceiptData = req.body;
+    console.log(accReceiptData)
 
     try {
         // Check if an operator permission with the same OperatorID already exists
@@ -66,10 +69,13 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Read all AccReceipt records
-router.get('/', async (req: Request, res: Response) => {
+router.get('/all', async (req: Request, res: Response) => {
+    console.log('in router.get(/all)')
     try {
         const rows = await pool.query('SELECT * FROM accreceipt');
-        res.json(rows.rows);
+        console.log(rows.rows)
+       
+        res.status(200).json({message: 'AccReceipts fetched successfully', data: rows.rows});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching AccReceipts', error });

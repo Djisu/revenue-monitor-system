@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { useAppDispatch } from '../../app/store';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import {fetchAccReceipts, createAccReceipt, AccReceiptData, deleteAccReceipt} from './accReceiptSlice'
 
-interface Receipt {
-    fiscalyear: number;
-    batchno: number;
-    firstno: number;
-    lastno: number;
-}
+// interface Receipt {
+//     fiscalyear: number;
+//     batchno: number;
+//     firstno: number;
+//     lastno: number;
+// }
 
 export const FrmReceipts: React.FC = () => {
     const [fiscalYear, setFiscalYear] = useState<number>(0);
-    const [batchNo, setBatchNo] = useState<number>(0);
+    const [batchNo, setBatchNo] = useState<string>('');
     const [firstNo, setFirstNo] = useState<number>(0);
     const [lastNo, setLastNo] = useState<number>(0);
-    const [receipts, setReceipts] = useState<Receipt[]>([]);
+    const [receipts, setReceipts] = useState<AccReceiptData[]>([]);
 
+    const dispatch = useAppDispatch();
+   
     useEffect(() => {
         // Fetch receipts on form load
         fetchReceipts();
@@ -24,8 +28,15 @@ export const FrmReceipts: React.FC = () => {
 
     const fetchReceipts = async () => {
         try {
-            const response = await axios.get('/api/receipts');
-            setReceipts(response.data);
+            const response = await dispatch(fetchAccReceipts()).unwrap();
+            console.log('response.data: ', response.data)
+            
+            if (response.data && response.data.length > 0) {
+                setReceipts(response.data);
+            } else {
+                console.warn("No receipts found");
+                alert("No receipts available at the moment.");
+            }
         } catch (error) {
             console.error("Error fetching receipts", error);
             alert("An error occurred while fetching receipts");
@@ -37,7 +48,7 @@ export const FrmReceipts: React.FC = () => {
     };
 
     const handleBatchNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setBatchNo(Number(e.target.value));
+        setBatchNo(e.target.value);
     };
 
     const handleFirstNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,18 +78,20 @@ export const FrmReceipts: React.FC = () => {
         }
 
         try {
-            const response = await axios.post('/api/add-receipt', {
+            const data: AccReceiptData = {
                 fiscalyear: fiscalYear,
                 batchno: batchNo,
                 firstno: firstNo,
                 lastno: lastNo
-            });
+            }
 
-            if (response.data.success) {
+            const response = await dispatch(createAccReceipt(data));
+
+            if (response.payload.message) {
                 alert("Record successfully added");
                 // Clear input fields
                 setFiscalYear(0);
-                setBatchNo(0);
+                setBatchNo('');
                 setFirstNo(0);
                 setLastNo(0);
                 // Refresh the list of receipts
@@ -111,18 +124,16 @@ export const FrmReceipts: React.FC = () => {
         }
 
         try {
-            const response = await axios.post('/api/delete-receipt', {
+            const response = await dispatch(deleteAccReceipt({
                 fiscalyear: fiscalYear,
-                batchno: batchNo,
-                firstno: firstNo,
-                lastno: lastNo
-            });
+                batchno: batchNo
+            }));
 
-            if (response.data.success) {
+            if (response.payload.success) {
                 alert("Record successfully deleted");
                 // Clear input fields
                 setFiscalYear(0);
-                setBatchNo(0);
+                setBatchNo('');
                 setFirstNo(0);
                 setLastNo(0);
                 // Refresh the list of receipts
@@ -136,12 +147,12 @@ export const FrmReceipts: React.FC = () => {
         }
     };
 
-    const handleExitClick = () => {
-        // Hide the form and show main form (this can be handled via routing)
-        console.log("Exit button clicked");
-        // For example, you might navigate to another route here
-        // history.push('/main-form');
-    };
+    // const handleExitClick = () => {
+    //     // Hide the form and show main form (this can be handled via routing)
+    //     console.log("Exit button clicked");
+    //     // For example, you might navigate to another route here
+    //     // history.push('/main-form');
+    // };
 
     const handleBatchNoClick = async () => {
         if (!fiscalYear) {
@@ -167,13 +178,14 @@ export const FrmReceipts: React.FC = () => {
 
     return (
         <Container fluid>
-            <Row className="mb-3">
+            {/* <Row className="mb-3">
                 <Col>
-                    <h1 className="text-center text-primary">MARCORY MUNICIPAL ASSEMBLY</h1>
+                   
                 </Col>
-            </Row>
+            </Row> */}
             <Row>
                 <Col>
+                <p className="text-center text-primary">MARCORY MUNICIPAL ASSEMBLY</p>
                     <Form.Group controlId="formFiscalYear">
                         <Form.Label>Fiscal Year:</Form.Label>
                         <Form.Control
@@ -232,11 +244,11 @@ export const FrmReceipts: React.FC = () => {
                         Delete
                     </Button>
                 </Col>
-                <Col>
+                {/* <Col>
                     <Button variant="secondary" onClick={handleExitClick}>
                         Exit
                     </Button>
-                </Col>
+                </Col> */}
             </Row>
             <Row className="mt-3">
                 <Col>

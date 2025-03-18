@@ -3,8 +3,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the type for AccReceipt data
-interface AccReceiptData {
-    fiscalyear: string;
+export interface AccReceiptData {
+    fiscalyear: number;
     batchno: string;
     firstno: number;
     lastno: number;
@@ -31,13 +31,19 @@ const BASE_URL = import.meta.env.VITE_BASE_URL ||
 
 // Async thunk to fetch all AccReceipts
 export const fetchAccReceipts = createAsyncThunk('accReceipts/fetchAccReceipts', async () => {
-    const response = await axios.get(`${BASE_URL}/api/accReceipts`);
-    return response.data;
+    console.log('in fetchAccReceipts')
+
+    const response = await axios.get(`${BASE_URL}/api/accReceipts/all`);
+
+    console.log('in fetchAccReceipts after response: ', response.data.data)
+
+    console.log(response.data)
+    return response.data
 });
 
 // Async thunk to create a new AccReceipt
 export const createAccReceipt = createAsyncThunk('accReceipts/createAccReceipt', async (data: AccReceiptData) => {
-    const response = await axios.post(`${BASE_URL}/api/accReceipts`, data); 
+    const response = await axios.post(`${BASE_URL}/api/accReceipts/create`, data); 
     return response.data;
 });
 
@@ -54,7 +60,7 @@ export const updateAccReceipt = createAsyncThunk('accReceipts/updateAccReceipt',
 });
 
 // Async thunk to delete an AccReceipt
-export const deleteAccReceipt = createAsyncThunk('accReceipts/deleteAccReceipt', async ({ batchno, fiscalyear }: { batchno: string; fiscalyear: string }) => {
+export const deleteAccReceipt = createAsyncThunk('accReceipts/deleteAccReceipt', async ({ batchno, fiscalyear }: { batchno: string; fiscalyear: number }) => {
     const response = await axios.delete(`${BASE_URL}/api/accReceipts/${batchno}/${fiscalyear}`);
     return response.data;
 });

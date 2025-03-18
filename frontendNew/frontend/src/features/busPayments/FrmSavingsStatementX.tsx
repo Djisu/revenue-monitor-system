@@ -1,152 +1,192 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, ChangeEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../../app/store";
+import { Container, Form, Button, Row, Col, Table } from "react-bootstrap";
+import { fetchBusinessById } from "../business/businessSlice";
+import { fetchBusPaymentByTwoDates, fetchTransSavings } from "./busPaymentsSlice";
 
-const SavingsStatementX: React.FC = () => {
-    const [loanNo, setLoanNo] = useState<string>('');
-    const [startDate, setStartDate] = useState<string>('');
-    const [endDate, setEndDate] = useState<string>('');
-    // @ts-ignore
-    const [businessName, setBusinessName] = useState<string>('');
-    const [dates, setDates] = useState<string[]>([]);
-    const [records, setRecords] = useState<any[]>([]);
+const FrmSavingsStatementX: React.FC = () => {
+  let [bussNo, setBussNo] = useState<string>("");
+  let [startDate, setStartDate] = useState<string>("");
+  let [endDate, setEndDate] = useState<string>("");
 
-    useEffect(() => {
-        // Set default end date to today
-        setEndDate(new Date().toLocaleDateString('en-GB'));
+  let [businessName, setBusinessName] = useState<string>("");
+  let [records, setRecords] = useState<any[]>([]);
+  let [errorMessage, setErrorMessage] = useState<string>("");
+  let [successMessage, setSuccessMessage] = useState<string>("");
+
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate(); // Initialize the useNavigate hook
+
+  useEffect(() => {
+    // Set default end date to today
+   // setEndDate(new Date().toLocaleDateString("en-GB"));
     }, []);
 
-    const handleLoanNoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLoanNo(e.target.value);
-
-        // Fetch dates based on loan number
-        fetchDates(e.target.value);
+    const handleBussNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setBussNo(e.target.value);
     };
 
-    // const handleLoanNoValidate = async () => {
-    //     if (!loanNo) {
-    //         alert("Select a business number");
-    //         return;
-    //     }
+    const handleStartDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const selectedDate = event.target.value; // This should be 'YYYY-MM-DD'
+        setStartDate(selectedDate); // Assuming you want to keep it in that format
+    };
+    
+    const handleEndDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const selectedDate = event.target.value; // This should be 'YYYY-MM-DD'
+        setEndDate(selectedDate); // Again, keeping it in that format
+    };
 
-    //     try {
-    //         const response = await axios.get(`/api/business/${loanNo}`);
-    //         if (response.data.length > 0) {
-    //             setBusinessName(response.data[0].buss_name);
-    //         } else {
-    //             alert("A wrong business number");
-    //         }
-    //     } catch (error) {
-    //         console.error("Error validating loan number", error);
-    //         alert("An error occurred while validating the loan number");
-    //     }
+    // const handleStartDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    //     const formattedDate = formatDate(event.target.value);
+    //     setStartDate(formattedDate);
+    // };
+    
+    // const handleEndDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    //     const formattedDate = formatDate(event.target.value);
+    //     setEndDate(formattedDate);
     // };
 
-    const fetchDates = async (bussNo: string) => {
-        try {
-            const response = await axios.get(`/api/dates`, {
-                params: { buss_no: bussNo }
-            });
-            setDates(response.data.map((rec: any) => rec.transdate));
-        } catch (error) {
-            console.error("Error fetching dates", error);
-            alert("No payment records date found");
-        }
-    };
-
-    const handleStartDateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setStartDate(e.target.value);
-    };
-
-    const handleEndDateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setEndDate(e.target.value);
-    };
-
     const handlePreviewClick = async () => {
-        if (!loanNo) {
+        console.log('in handlePreviewClick')
+
+        setSuccessMessage("");
+        setErrorMessage("");
+        
+        if (!bussNo) {
             alert("Select a business number");
             return;
         }
-
+    
         try {
-            const response = await axios.get(`/api/records`, {
-                params: { buss_no: loanNo, start_date: startDate, end_date: endDate }
-            });
-            setRecords(response.data);
+            const response = await dispatch(fetchBusPaymentByTwoDates({
+                bussNo: bussNo,
+                startDate: new Date(startDate),
+                endDate: new Date(endDate)
+            }));
+        
+            if (fetchBusPaymentByTwoDates.fulfilled.match(response)) {
+                const fetchedRecords = response.payload; // Get the payload directly
+                console.log('fetchedRecords:', fetchedRecords);
+                
+                // Update records state
+                setRecords(fetchedRecords);
+        
+                // If you want to update dates from the fetched records
+                const dates = fetchedRecords.map((rec: any) => rec.transdate);
+                //setDates(dates);
+                console.log('dates:', dates);
+        
+                // Set a success message if needed
+                setSuccessMessage("Payment records fetched successfully");
+                const transSavingsData = await dispatch(fetchTransSavings());
+                console.log('transSavingsData:', transSavingsData);
+
+                // Update records state
+                if (fetchTransSavings.fulfilled.match(transSavingsData)) {
+                    const fetchedTransSavings = transSavingsData.payload; // Get the payload directly
+                    console.log('fetchedTransSavings:', fetchedTransSavings);
+                    // Update records state
+                    setRecords(fetchedTransSavings);
+                } else {
+                    throw new Error('Failed to fetch bus payments');
+                }
+            } else {
+                throw new Error('Failed to fetch bus payments');
+            }
         } catch (error) {
-            console.error("Error fetching records", error);
-            alert("No records found");
+            console.error("Error fetching dates", error);
+            setErrorMessage("Error fetching payment records. Please try again.");
+            alert("No payment records found for the selected dates");
         }
     };
 
-    const handleExitClick = () => {
-        // Hide the form and show main form (this can be handled via routing)
-        console.log("Exit button clicked");
+    const getBusiness = async (businessNo: string) => {
+        console.log('in getBusiness')
+    
+        try {
+          const response = await dispatch(fetchBusinessById(Number(businessNo))).unwrap();
+          
+          console.log('Response from slice:', response.data)
+    
+           if ( response) {
+             console.log('there is response:', response.data);
+    
+            setBusinessName(response.data.buss_name);
+            console.log(businessName)
+         }else{
+          console.log('data not found')
+         }
+        } catch (error: any) {
+          console.error('Error fetching business:', error);
+          errorMessage = 'Error fetching business. Please try again.' 
+          
+          setErrorMessage(errorMessage);
+        }
     };
 
+    // const formatDate = (dateString: string): string => {
+    //     const [day, month, year] = dateString.split("/");
+    //     return `${year}-${month}-${day}`; // Convert to "YYYY-MM-DD"
+    // };
+    
     return (
         <Container>
+            
             <Row>
-                <Col>
-                    <h1 className="text-center text-primary">MARCORY MUNICIPAL ASSEMBLY</h1>
-                </Col>
-            </Row>
-            <Row>
-                <Col>
-                    <Form.Group controlId="formLoanNo">
+            <Col>
+                <p>Savings Statement</p>
+                {errorMessage && <div className="text-danger">{errorMessage}</div>}
+                {successMessage && <div className="text-success">{successMessage}</div>}
+                <hr />              
+                <Form.Group controlId="formLoanNo">                        
                         <Form.Label>Business Number</Form.Label>
-                        <Form.Select value={loanNo} onChange={handleLoanNoChange} required>
-                            <option value="">Select Business Number</option>
-                            {/* Populate with business numbers from database */}
-                        </Form.Select>
-                    </Form.Group>
-                </Col>
-                <Col>
-                    <Form.Group controlId="formBusinessName">
+                        <input
+                            type="number"
+                            value={bussNo}
+                            onChange={handleBussNoChange}
+                            onBlur={(e) => getBusiness(e.target.value)}
+                            required
+                            placeholder="Enter Business Number"
+                        />
+                </Form.Group>
+
+                <Form.Group controlId="formBusinessName">
                         <Form.Label>Name</Form.Label>
                         <Form.Control type="text" value={businessName} readOnly />
-                    </Form.Group>
-                </Col>
-            </Row>
-            <Row>
-                <Col>
-                    <Form.Group controlId="formStartDate">
-                        <Form.Label>Start Date</Form.Label>
-                        <Form.Select value={startDate} onChange={handleStartDateChange} required>
-                            <option value="">Select Start Date</option>
-                            {dates.map(date => (
-                                <option key={date} value={date}>{date}</option>
-                            ))}
-                        </Form.Select>
-                    </Form.Group>
-                </Col>
-                <Col>
-                    <Form.Group controlId="formEndDate">
-                        <Form.Label>End Date</Form.Label>
-                        <Form.Select value={endDate} onChange={handleEndDateChange} required>
-                            <option value="">Select End Date</option>
-                            {dates.map(date => (
-                                <option key={date} value={date}>{date}</option>
-                            ))}
-                        </Form.Select>
-                    </Form.Group>
-                </Col>
-            </Row>
+                </Form.Group>
+                <Form.Group controlId="formStartDate">
+                    <Form.Label>Start Date</Form.Label>
+                    <Form.Control 
+                        type="date" 
+                        value={startDate} 
+                        onChange={handleStartDateChange} 
+                        required 
+                    />
+                </Form.Group>
+
+                <Form.Group controlId="formEndDate">
+                    <Form.Label>End Date</Form.Label>
+                    <Form.Control 
+                        type="date" 
+                        value={endDate} 
+                        onChange={handleEndDateChange} 
+                        required 
+                    />
+                </Form.Group>
+
+            </Col>
             <Row className="mt-3">
-                <Col>
+                <Col className="d-flex justify-content-between">
                     <Button variant="primary" onClick={handlePreviewClick}>
                         Preview
                     </Button>
-                </Col>
-                <Col>
-                    <Button variant="danger" onClick={handleExitClick}>
-                        Exit
+                    <Button variant="secondary" onClick={() => navigate("/main")}>
+                        Go Back
                     </Button>
                 </Col>
             </Row>
-            <Row className="mt-3">
-                <Col>
+            <Col>
                     <Table striped bordered hover>
                         <thead>
                             <tr>
@@ -172,16 +212,9 @@ const SavingsStatementX: React.FC = () => {
                         </tbody>
                     </Table>
                 </Col>
-            </Row>
-            <Row className="mt-3">
-                <Col>
-                <Link to="/main" className="primary m-3">
-                    Go Back
-                </Link>
-                </Col>
-            </Row>
+             </Row>
         </Container>
     );
 };
 
-export default SavingsStatementX;
+export default FrmSavingsStatementX;

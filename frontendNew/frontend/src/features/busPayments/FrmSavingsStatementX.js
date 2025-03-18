@@ -35,104 +35,140 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState, useEffect } from 'react';
-import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
-var SavingsStatementX = function () {
-    var _a = useState(''), loanNo = _a[0], setLoanNo = _a[1];
-    var _b = useState(''), startDate = _b[0], setStartDate = _b[1];
-    var _c = useState(''), endDate = _c[0], setEndDate = _c[1];
-    // @ts-ignore
-    var _d = useState(''), businessName = _d[0], setBusinessName = _d[1];
-    var _e = useState([]), dates = _e[0], setDates = _e[1];
-    var _f = useState([]), records = _f[0], setRecords = _f[1];
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../../app/store";
+import { Container, Form, Button, Row, Col, Table } from "react-bootstrap";
+import { fetchBusinessById } from "../business/businessSlice";
+import { fetchBusPaymentByTwoDates, fetchTransSavings } from "./busPaymentsSlice";
+var FrmSavingsStatementX = function () {
+    var _a = useState(""), bussNo = _a[0], setBussNo = _a[1];
+    var _b = useState(""), startDate = _b[0], setStartDate = _b[1];
+    var _c = useState(""), endDate = _c[0], setEndDate = _c[1];
+    var _d = useState(""), businessName = _d[0], setBusinessName = _d[1];
+    var _e = useState([]), records = _e[0], setRecords = _e[1];
+    var _f = useState(""), errorMessage = _f[0], setErrorMessage = _f[1];
+    var _g = useState(""), successMessage = _g[0], setSuccessMessage = _g[1];
+    var dispatch = useAppDispatch();
+    var navigate = useNavigate(); // Initialize the useNavigate hook
     useEffect(function () {
         // Set default end date to today
-        setEndDate(new Date().toLocaleDateString('en-GB'));
+        // setEndDate(new Date().toLocaleDateString("en-GB"));
     }, []);
-    var handleLoanNoChange = function (e) {
-        setLoanNo(e.target.value);
-        // Fetch dates based on loan number
-        fetchDates(e.target.value);
+    var handleBussNoChange = function (e) {
+        setBussNo(e.target.value);
     };
-    // const handleLoanNoValidate = async () => {
-    //     if (!loanNo) {
-    //         alert("Select a business number");
-    //         return;
-    //     }
-    //     try {
-    //         const response = await axios.get(`/api/business/${loanNo}`);
-    //         if (response.data.length > 0) {
-    //             setBusinessName(response.data[0].buss_name);
-    //         } else {
-    //             alert("A wrong business number");
-    //         }
-    //     } catch (error) {
-    //         console.error("Error validating loan number", error);
-    //         alert("An error occurred while validating the loan number");
-    //     }
+    var handleStartDateChange = function (event) {
+        var selectedDate = event.target.value; // This should be 'YYYY-MM-DD'
+        setStartDate(selectedDate); // Assuming you want to keep it in that format
+    };
+    var handleEndDateChange = function (event) {
+        var selectedDate = event.target.value; // This should be 'YYYY-MM-DD'
+        setEndDate(selectedDate); // Again, keeping it in that format
+    };
+    // const handleStartDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    //     const formattedDate = formatDate(event.target.value);
+    //     setStartDate(formattedDate);
     // };
-    var fetchDates = function (bussNo) { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios.get("/api/dates", {
-                            params: { buss_no: bussNo }
-                        })];
-                case 1:
-                    response = _a.sent();
-                    setDates(response.data.map(function (rec) { return rec.transdate; }));
-                    return [3 /*break*/, 3];
-                case 2:
-                    error_1 = _a.sent();
-                    console.error("Error fetching dates", error_1);
-                    alert("No payment records date found");
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
-            }
-        });
-    }); };
-    var handleStartDateChange = function (e) {
-        setStartDate(e.target.value);
-    };
-    var handleEndDateChange = function (e) {
-        setEndDate(e.target.value);
-    };
+    // const handleEndDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    //     const formattedDate = formatDate(event.target.value);
+    //     setEndDate(formattedDate);
+    // };
     var handlePreviewClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_2;
+        var response, fetchedRecords, dates, transSavingsData, fetchedTransSavings, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!loanNo) {
+                    console.log('in handlePreviewClick');
+                    setSuccessMessage("");
+                    setErrorMessage("");
+                    if (!bussNo) {
                         alert("Select a business number");
                         return [2 /*return*/];
                     }
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios.get("/api/records", {
-                            params: { buss_no: loanNo, start_date: startDate, end_date: endDate }
-                        })];
+                    _a.trys.push([1, 6, , 7]);
+                    return [4 /*yield*/, dispatch(fetchBusPaymentByTwoDates({
+                            bussNo: bussNo,
+                            startDate: new Date(startDate),
+                            endDate: new Date(endDate)
+                        }))];
                 case 2:
                     response = _a.sent();
-                    setRecords(response.data);
+                    if (!fetchBusPaymentByTwoDates.fulfilled.match(response)) return [3 /*break*/, 4];
+                    fetchedRecords = response.payload;
+                    console.log('fetchedRecords:', fetchedRecords);
+                    // Update records state
+                    setRecords(fetchedRecords);
+                    dates = fetchedRecords.map(function (rec) { return rec.transdate; });
+                    //setDates(dates);
+                    console.log('dates:', dates);
+                    // Set a success message if needed
+                    setSuccessMessage("Payment records fetched successfully");
+                    return [4 /*yield*/, dispatch(fetchTransSavings())];
+                case 3:
+                    transSavingsData = _a.sent();
+                    console.log('transSavingsData:', transSavingsData);
+                    // Update records state
+                    if (fetchTransSavings.fulfilled.match(transSavingsData)) {
+                        fetchedTransSavings = transSavingsData.payload;
+                        console.log('fetchedTransSavings:', fetchedTransSavings);
+                        // Update records state
+                        setRecords(fetchedTransSavings);
+                    }
+                    else {
+                        throw new Error('Failed to fetch bus payments');
+                    }
+                    return [3 /*break*/, 5];
+                case 4: throw new Error('Failed to fetch bus payments');
+                case 5: return [3 /*break*/, 7];
+                case 6:
+                    error_1 = _a.sent();
+                    console.error("Error fetching dates", error_1);
+                    setErrorMessage("Error fetching payment records. Please try again.");
+                    alert("No payment records found for the selected dates");
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
+            }
+        });
+    }); };
+    var getBusiness = function (businessNo) { return __awaiter(void 0, void 0, void 0, function () {
+        var response, error_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    console.log('in getBusiness');
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, dispatch(fetchBusinessById(Number(businessNo))).unwrap()];
+                case 2:
+                    response = _a.sent();
+                    console.log('Response from slice:', response.data);
+                    if (response) {
+                        console.log('there is response:', response.data);
+                        setBusinessName(response.data.buss_name);
+                        console.log(businessName);
+                    }
+                    else {
+                        console.log('data not found');
+                    }
                     return [3 /*break*/, 4];
                 case 3:
                     error_2 = _a.sent();
-                    console.error("Error fetching records", error_2);
-                    alert("No records found");
+                    console.error('Error fetching business:', error_2);
+                    errorMessage = 'Error fetching business. Please try again.';
+                    setErrorMessage(errorMessage);
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
         });
     }); };
-    var handleExitClick = function () {
-        // Hide the form and show main form (this can be handled via routing)
-        console.log("Exit button clicked");
-    };
-    return (_jsxs(Container, { children: [_jsx(Row, { children: _jsx(Col, { children: _jsx("h1", { className: "text-center text-primary", children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsxs(Row, { children: [_jsx(Col, { children: _jsxs(Form.Group, { controlId: "formLoanNo", children: [_jsx(Form.Label, { children: "Business Number" }), _jsx(Form.Select, { value: loanNo, onChange: handleLoanNoChange, required: true, children: _jsx("option", { value: "", children: "Select Business Number" }) })] }) }), _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formBusinessName", children: [_jsx(Form.Label, { children: "Name" }), _jsx(Form.Control, { type: "text", value: businessName, readOnly: true })] }) })] }), _jsxs(Row, { children: [_jsx(Col, { children: _jsxs(Form.Group, { controlId: "formStartDate", children: [_jsx(Form.Label, { children: "Start Date" }), _jsxs(Form.Select, { value: startDate, onChange: handleStartDateChange, required: true, children: [_jsx("option", { value: "", children: "Select Start Date" }), dates.map(function (date) { return (_jsx("option", { value: date, children: date }, date)); })] })] }) }), _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formEndDate", children: [_jsx(Form.Label, { children: "End Date" }), _jsxs(Form.Select, { value: endDate, onChange: handleEndDateChange, required: true, children: [_jsx("option", { value: "", children: "Select End Date" }), dates.map(function (date) { return (_jsx("option", { value: date, children: date }, date)); })] })] }) })] }), _jsxs(Row, { className: "mt-3", children: [_jsx(Col, { children: _jsx(Button, { variant: "primary", onClick: handlePreviewClick, children: "Preview" }) }), _jsx(Col, { children: _jsx(Button, { variant: "danger", onClick: handleExitClick, children: "Exit" }) })] }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Business Number" }), _jsx("th", { children: "Date" }), _jsx("th", { children: "Details" }), _jsx("th", { children: "Debit" }), _jsx("th", { children: "Credit" }), _jsx("th", { children: "Balance" })] }) }), _jsx("tbody", { children: records.map(function (rec, index) { return (_jsxs("tr", { children: [_jsx("td", { children: rec.buss_no }), _jsx("td", { children: rec.transdate }), _jsx("td", { children: rec.details }), _jsx("td", { children: rec.debit }), _jsx("td", { children: rec.credit }), _jsx("td", { children: rec.balance })] }, index)); }) })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) })] }));
+    // const formatDate = (dateString: string): string => {
+    //     const [day, month, year] = dateString.split("/");
+    //     return `${year}-${month}-${day}`; // Convert to "YYYY-MM-DD"
+    // };
+    return (_jsx(Container, { children: _jsxs(Row, { children: [_jsxs(Col, { children: [_jsx("p", { children: "Savings Statement" }), errorMessage && _jsx("div", { className: "text-danger", children: errorMessage }), successMessage && _jsx("div", { className: "text-success", children: successMessage }), _jsx("hr", {}), _jsxs(Form.Group, { controlId: "formLoanNo", children: [_jsx(Form.Label, { children: "Business Number" }), _jsx("input", { type: "number", value: bussNo, onChange: handleBussNoChange, onBlur: function (e) { return getBusiness(e.target.value); }, required: true, placeholder: "Enter Business Number" })] }), _jsxs(Form.Group, { controlId: "formBusinessName", children: [_jsx(Form.Label, { children: "Name" }), _jsx(Form.Control, { type: "text", value: businessName, readOnly: true })] }), _jsxs(Form.Group, { controlId: "formStartDate", children: [_jsx(Form.Label, { children: "Start Date" }), _jsx(Form.Control, { type: "date", value: startDate, onChange: handleStartDateChange, required: true })] }), _jsxs(Form.Group, { controlId: "formEndDate", children: [_jsx(Form.Label, { children: "End Date" }), _jsx(Form.Control, { type: "date", value: endDate, onChange: handleEndDateChange, required: true })] })] }), _jsx(Row, { className: "mt-3", children: _jsxs(Col, { className: "d-flex justify-content-between", children: [_jsx(Button, { variant: "primary", onClick: handlePreviewClick, children: "Preview" }), _jsx(Button, { variant: "secondary", onClick: function () { return navigate("/main"); }, children: "Go Back" })] }) }), _jsx(Col, { children: _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Business Number" }), _jsx("th", { children: "Date" }), _jsx("th", { children: "Details" }), _jsx("th", { children: "Debit" }), _jsx("th", { children: "Credit" }), _jsx("th", { children: "Balance" })] }) }), _jsx("tbody", { children: records.map(function (rec, index) { return (_jsxs("tr", { children: [_jsx("td", { children: rec.buss_no }), _jsx("td", { children: rec.transdate }), _jsx("td", { children: rec.details }), _jsx("td", { children: rec.debit }), _jsx("td", { children: rec.credit }), _jsx("td", { children: rec.balance })] }, index)); }) })] }) })] }) }));
 };
-export default SavingsStatementX;
+export default FrmSavingsStatementX;
