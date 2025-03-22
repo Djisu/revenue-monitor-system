@@ -1,12 +1,14 @@
 // src/features/busPayments/busPaymentsSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { RootState } from '../../app/store';
 
 // Define the type for BusPayments data
 export interface BusPaymentsData {
     buss_no: string;
     officer_no: string;
     paidAmount: number;
+    paidamount?: number;
     monthpaid: string;
     transdate: string;
     fiscal_year: string;
@@ -16,7 +18,7 @@ export interface BusPaymentsData {
 }
 
 // Define the initial state for the slice
-interface BusPaymentsState {
+export interface BusPaymentsState {
     busPayments: BusPaymentsData[];
     loading: boolean;
     error: string | null;
@@ -35,9 +37,32 @@ const initialState: BusPaymentsState = {
     billedAmount: 0,
 };
 
+export interface FetchDailyPaymentsArgs {
+    firstDate: Date;
+    lastDate: Date;
+    electoralarea: string;
+    bussType: string;
+}
+
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+
+export const selectBusPayments = (state: RootState) => state.busPayments.busPayments;
+
+// Async thunk to fetch all BusPayments records
+export const fetchPaymentDefaulters = createAsyncThunk('busPayments/fetchPaymentDefaulters', async (electoralarea: string) => {
+    console.log('in fetchPaymentDefaulters slice', electoralarea)
+
+    const response = await axios.get(`${BASE_URL}/api/busPayments/defaulters/${electoralarea}`);
+    
+    if (response.status >= 200 && response.status < 300) {
+        console.log('fetchPaymentDefaulters fulfilled::: ', response.data.data);
+        return response.data; // Return the correct data
+    } else {
+        throw new Error(`Error fetching bus payment. Status: ${response.status} - Error: ${response.statusText}`);
+    }
+});
 
 // Async thunk to fetch all BusPayments records
 export const fetchBusPayments = createAsyncThunk('busPayments/fetchBusPayments', async () => {
@@ -46,7 +71,7 @@ export const fetchBusPayments = createAsyncThunk('busPayments/fetchBusPayments',
 });
 
 export const fetchTransSavings = createAsyncThunk('busPayments/fetchBusPayments', async () => {
-    const response = await axios.get(`${BASE_URL}/api/busPayments/transSavings`);
+    const response = await axios.get(`${BASE_URL}/api/busPayments/transsavings`);
     
     console.log('response data', response.data);
 
@@ -211,6 +236,35 @@ export const billOneBusiness = createAsyncThunk('businessType/billoneBusiness', 
         return await response.data; // This data will be available as `action.payload`
     } else {
         throw new Error(`Error billing one business types: ${response.statusText}`);
+    }
+});
+
+export const fetchDailyPayments = createAsyncThunk('businessType/dailypayments', async (args: FetchDailyPaymentsArgs) => {
+    console.log('inside fetchDailyPayments thunk');
+
+    const { firstDate, lastDate, electoralarea, bussType } = args;
+
+     // Format the dates to YYYY-MM-DD
+     const formattedFirstDate = new Date(firstDate).toISOString().split('T')[0]; // Get date part only
+     const formattedLastDate = new Date(lastDate).toISOString().split('T')[0]; // Get date part only
+
+     console.log('formattedFirstDate:', formattedFirstDate, 'formattedLastDate:', formattedLastDate)
+
+    const response = await axios.get(
+        `${BASE_URL}/api/busPayments/dailypayments/${formattedFirstDate}/${formattedLastDate}/${electoralarea}/${bussType}`,
+        {
+            headers: { 'Content-Type': 'application/json' },
+        }
+    );
+
+    console.log('after fetchDailyPayments thunk, Response data:', response.data)
+
+    if (response.status >= 200 && response.status < 300) {
+        console.log('fetchDailyPayments thunk, response data.data:', response.data.data);
+
+        return await response.data.data; // This data will be available as `action.payload`
+    } else {
+        throw new Error(`Error fetching one business types: ${response.statusText}`);
     }
 });
 

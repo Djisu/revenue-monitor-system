@@ -151,6 +151,60 @@ async function sendEmail(receiptPath: string, busPaymentsData: BusPaymentsData):
     }
 }
 
+router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoralarea/:bussType', async (req: Request, res: Response) => {
+   
+    console.log('router.get(/dailypayments/:formattedFirstDate/:formattedLastDate/:electoralarea/:bussType');
+
+    const { formattedFirstDate, lastformattedLastDate, electoralarea, bussType } = req.params;
+
+    console.log('formattedFirstDate:', formattedFirstDate);
+    console.log('lastformattedLastDate:', lastformattedLastDate);
+    console.log('electoralarea:', electoralarea);
+    console.log('bussType:', bussType);
+
+    let client: PoolClient | null = null;
+
+    try {
+        client = await pool.connect();
+
+        const result = await client.query(
+            `SELECT * FROM buspayments WHERE transdate >= $1 AND transdate <= $2 AND electroral_area = $3 AND buss_type LIKE $4`,
+            [formattedFirstDate, lastformattedLastDate, electoralarea, bussType + '%']
+        );
+
+        if (result.rows.length === 0) {
+            console.log('No BusPayments records found')
+
+            res.status(404).json({ message: 'No BusPayments records found', data: [] });
+            return;
+        }
+
+        const busPaymentsData = result.rows.map((row) => {
+            return {
+                buss_no: row.buss_no,
+                officer_no: row.officer_no,
+                paidAmount: parseFloat(row.paidamount),
+                monthpaid: row.monthpaid,
+                transdate: row.transdate,
+                fiscal_year: row.fiscal_year,
+                ReceiptNo: row.receiptno,
+                email: row.email,
+                electroral_area: row.electroral_area
+            };
+        });
+        console.log('Payments fetched: ', busPaymentsData)
+        res.status(200).json({ message: 'Payments fetched', data: busPaymentsData });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching BusPayments records', error });
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+});
+
+
 router.post('/create', async (req: Request, res: Response) => {
     console.log('router.post(/create XXXXXXXXX ');
 
@@ -395,20 +449,259 @@ router.get('/:date', async (req: Request, res: Response) => {
 router.get('/transsavings', async (req: Request, res: Response) => {
     const client: PoolClient = await pool.connect();
 
+    console.log('in router.get(/transsavings ', req.body)
+
     //Select all from transsavings
     try {
         const result = await client.query('SELECT * FROM transsavings');
         console.log('Transsavings records found')
 
         console.log(result.rows);
+
         res.status(200).json({ message: 'Transsavings records found', data: result.rows });
     } catch (error) {
         console.error(error);
+
         res.status(500).json({ message: 'Error fetching Transsavings records', error });
     } finally {
         client.release();
     }
 })
+
+// Defaulter's list
+router.get('/defaulters/:electoralarea', async (req: Request, res: Response) => {
+    const client: PoolClient = await pool.connect();
+
+    try {
+        console.log('in router.get(/defaulters/:electoralarea ', req.body);
+
+        const { electoralarea } = req.params;
+
+        if (!electoralarea) {
+            return res.status(400).json({ message: 'Invalid electoral area' });
+        }
+
+        // Give me currentYear
+        const currentYear = new Date().getFullYear();
+
+        await client.query('DELETE FROM balance');
+        console.log('after DELETE FROM balance');
+
+        const electoralareaResult: QueryResult = await client.query(
+            'SELECT * FROM business WHERE electroral_area = $1 and status = $2',
+            [electoralarea, 'Active']
+        );
+
+        if (electoralareaResult.rows.length === 0) {
+            console.log('No records found from business table for ', electoralarea);
+            return res.status(404).json({ message: 'No records found', data: [] });
+        }
+
+        console.log('got electoralareaResult result for looping for ', electoralarea);
+        for (let i = 0; i < electoralareaResult.rows.length; i++) {
+            console.log('i:', i);
+            console.log('buss_no:', electoralareaResult.rows[i].buss_no);
+
+            // get business name
+            const bussName = await getBusinessName(electoralareaResult.rows[i].buss_no);
+            console.log('bussName:', bussName);
+
+            // Get street_name of the business
+            const streetName = electoralareaResult.rows[i].street_name;
+            console.log('streetName:', streetName);
+
+            console.log('about to find totalPayableResult');
+            // Find total payable
+            const totalPayableResult: QueryResult = await client.query(
+                'SELECT SUM(current_balance) as totsum FROM busscurrbalance WHERE buss_no = $1',
+                [electoralareaResult.rows[i].buss_no]
+            );
+
+            if (totalPayableResult.rows.length === 0) {
+                console.log('No totalPayableResult found');
+                // You may still want to continue with the logic
+            } else {
+                console.log('totalPayable found');
+
+                const totalPayable = totalPayableResult.rows[0].totsum;
+                console.log('totalPayable:', totalPayable);
+
+                console.log('about to find totalPaidResult');
+                // Find total paid
+                const totalPaidResult: QueryResult = await client.query(
+                    'SELECT SUM(paidamount) as totpay FROM buspayments WHERE buss_no = $1',
+                    [electoralareaResult.rows[i].buss_no]
+                );
+
+                if (totalPaidResult.rows.length === 0) {
+                    console.log('No records found');
+                    // You may still want to continue with the logic
+                }
+
+                console.log('totalPaid found');
+                const totalPaid = totalPaidResult.rows[0].totpay;
+                console.log('totalPaid:', totalPaid);
+
+                let varCurrentBalance = parseFloat(totalPayable) - parseFloat(totalPaid);
+
+                console.log('varCurrentBalance:', varCurrentBalance);
+
+                console.log('about to insert into balance');
+                if (varCurrentBalance > 0) {
+                    // insert into balance
+                    const balanceResult: QueryResult = await client.query(
+                        'INSERT INTO balance (buss_no, buss_name, billamount, paidamount, balance, electroral_area, street_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+                        [electoralareaResult.rows[i].buss_no, bussName, totalPayable, totalPaid, varCurrentBalance, electoralarea, streetName]
+                    );
+                    console.log('balanceResult.rows.length: ', balanceResult.rows.length);
+                }
+            }
+        }
+
+        console.log('after insert into balance');
+
+        console.log('about to find out if there are any defaulters in the balance table');
+        // Select from balance
+        const balResult: QueryResult = await client.query('SELECT * FROM balance');
+
+        if (balResult.rows.length === 0) {
+            console.log('No defaulters found');
+            return res.status(200).json({ message: 'No defaulters found', data: [] });
+        }
+
+        console.log('defaulters present');
+        res.status(200).json({ message: 'Defaulters found', data: balResult.rows });
+
+    } catch (error: any) {
+        console.error('Error in /defaulters/:electoralarea endpoint:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    } finally {
+        client.release(); // Ensure the client is released back to the pool
+    }
+});
+
+
+
+// router.get('/defaulters/:electoralarea', async (req: Request, res: Response) => {
+//     const client: PoolClient = await pool.connect();
+
+//  console.log('in router.get(/defaulters:/electoralarea ', req.body)
+
+//     const { electoralarea } = req.params;
+
+//     if (!electoralarea) {
+//         return res.status(400).json({ message: 'Invalid electoral area' });
+//     }
+
+//     // Give me currentYear
+//     const currentYear = new Date().getFullYear();
+
+   
+//     client.query('DELETE FROM balance')
+//     console.log('after DELETE FROM balance')
+
+//     const electoralareaResult: QueryResult = await client.query(
+//         'SELECT * FROM business WHERE electroral_area = $1 and status = $2',
+//         [electoralarea, 'Active']
+//     );
+
+//     if (electoralareaResult.rows.length === 0) {
+//         console.log('No records found from business table for ', electoralarea)
+//         res.status(404).json({ message: 'No records found', data: [] });
+//         return;
+//     }
+
+//     console.log('got electoralareaResult result for looping for ', electoralarea)
+//     for (let i = 0; i < electoralareaResult.rows.length; i++){
+//         console.log('i:', i);
+//         console.log('buss_no:', electoralareaResult.rows[i].buss_no);
+
+
+//          // get business name
+//         const bussName = await getBusinessName(electoralareaResult.rows[i].buss_no);
+//        console.log('bussName:', bussName);
+
+//        // Get street_name of the business
+//         const streetName = electoralareaResult.rows[i].street_name;
+//         console.log('streetName:', streetName);
+
+//         console.log('about to find totalPayableResult')
+//         // Find total payable
+//         const totalPayableResult: QueryResult = await client.query(
+//             'SELECT SUM(current_balance) as totsum FROM busscurrbalance WHERE buss_no = $1',
+//             [electoralareaResult.rows[i].buss_no]
+//         );
+//         if (totalPayableResult.rows.length === 0) {
+//             console.log('No totalPayableResult found');
+//             //return res.status(404).json({ message: 'No records found', data: [] });
+//         } else {
+//             console.log('totalPayable found')
+
+//             const totalPayable = totalPayableResult.rows[0].totsum;
+//             console.log('totalPayable:', totalPayable);
+
+//             console.log('about to find totalPaidResult')
+//             // Find total paid
+//             const totalPaidResult: QueryResult = await client.query(
+//                 'SELECT SUM(paidamount) as totpay FROM buspayments WHERE buss_no = $1',
+//                 [electoralareaResult.rows[i].buss_no]
+//             );
+
+//             if (totalPaidResult.rows.length === 0) {
+//                 console.log('No records found');
+//                 //return res.status(404).json({ message: 'No records found', data: [] });
+//             }
+
+//             console.log('totalPaid found')
+//             const totalPaid = totalPaidResult.rows[0].totpay;
+//             console.log('totalPaid:', totalPaid);
+
+//             let varCurrentBalance = parseFloat(totalPayable) - parseFloat(totalPaid)
+
+//             console.log('varCurrentBalance:', varCurrentBalance)
+
+//             console.log('about to insert into balance')
+//             if (varCurrentBalance > 0){
+//                 // insert into balance
+//                 const balanceResult: QueryResult = await client.query(
+//                     'INSERT INTO balance (buss_no, buss_name, billamount, paidamount, balance, electoral_area, street_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+//                     [electoralareaResult.rows[i].buss_no, bussName, totalPayable, totalPaid, varCurrentBalance, electoralarea, streetName]
+//                 );
+//                 console.log('balanceResult.rows.length: ', balanceResult.rows.length)
+//             }
+            
+            
+//         }       
+//     }
+//     console.log('after insert into balance')
+
+//     console.log('about to findout if there are any defaulters in the balance table')
+//    // Select from balance
+//    const balResult: QueryResult = await client.query('SELECT * FROM balance')
+
+//    if (balResult.rows.length === 0){
+//       console.log('No defaulters found')
+//       res.status(404).json({ message: 'No defaulters found', data: [] });
+//    }
+
+//     console.log('defaulters found');
+//     res.status(200).json({ message: 'Defaulters found', data: balResult.rows });
+
+
+//     // client.query('SELECT * FROM balance', (err, result) => {
+//     //     if (err) {
+//     //         console.error(err);
+//     //         res.status(500).json({ message: 'Error fetching defaulters', error: err });
+//     //     } else {
+//     //         console.log('defaulters found');
+//     //         res.status(200).json({ message: 'Defaulters found', data: result.rows });
+//     //     }
+//     //     client.release();
+//     // });
+// });
+
+
+const generateRandomTerm = () => Math.floor(Math.random() * 10000).toString(); // Generates a random number between 0-9999
 
 // Read a single BusPayments record by date range
 router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request, res: Response) => {
@@ -499,24 +792,11 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
 
         if (busscurrbalanceResult.rows.length === 0) {
             console.log('Business not billed yet');
-            return res.status(404).json({ message: 'Business not billed yet', data: [] });
+            //return res.status(404).json({ message: 'Business not billed yet', data: [] });
         }
 
        // loop through busscurrbalanceResult.rows and insert into transsavings
         for (const bussCurrbalanceRow of busscurrbalanceResult.rows) {
-
-            console.log('Inserting into transsavings:', {
-                buss_no: bussCurrbalanceRow.buss_no,
-                transdate: bussCurrbalanceRow.transdate,
-                details: "Bill Payment for " + bussCurrbalanceRow.fiscal_year + ", receipt no: " + bussCurrbalanceRow.receiptno,
-                debit: 0,
-                credit: bussCurrbalanceRow.paidamount || 0,
-                balance: varbalance,
-                userid: 5,
-                yearx: currentYear,
-                term: bussName
-            });
-
             const transsavingsResult: QueryResult = await client.query(
                 'INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
                 [
@@ -528,7 +808,7 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
                     bussCurrbalanceRow.current_balance,
                     5,
                     currentYear,
-                   bussName
+                    generateRandomTerm()
                 ]
             );
         }
@@ -542,25 +822,12 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
 
         if (busPaymentsDetailedResult.rows.length === 0) {
             console.log('No records found');
-            return res.status(404).json({ message: 'No records found', data: [] });
+            //return res.status(404).json({ message: 'No records found', data: [] });
         }
 
         // loop through busPaymentsDetailedResult.rows and insert into transsavings
         if (busPaymentsDetailedResult.rows.length > 0) {
             for (const busPaymentRow of busPaymentsDetailedResult.rows) {    
-                
-                console.log('Inserting into transsavings:', {
-                    buss_no: busPaymentRow.buss_no,
-                    transdate: busPaymentRow.transdate,
-                    details: "Bill Payment for " + busPaymentRow.fiscal_year + ", receipt no: " + busPaymentRow.receiptno,
-                    debit: 0,
-                    credit: busPaymentRow.paidamount || 0,
-                    balance: varbalance,
-                    userid: 5,
-                    yearx: currentYear,
-                    term: bussName
-                });
-
                 const transsavingsResult: QueryResult = await client.query(
                     'INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
                     [
@@ -572,14 +839,14 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
                         varbalance,
                         5,
                         currentYear,
-                        bussName
+                        generateRandomTerm()
                     ]
                 );           
             }
         }
 
         console.log('after looping through busscurrbalanceResult.rows and busPaymentsDetailedResult.rows')
-        
+
         const result = await client.query(
             'SELECT * FROM transsavings WHERE buss_no = $1 AND transdate BETWEEN $2 AND $3 ORDER BY transdate ASC',
             [intBussNo, formattedStartDate, formattedEndDate]
@@ -587,7 +854,7 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
 
         if (result.rows.length === 0) {
             console.log('Business transactions record not found');
-            return res.status(404).json({ message: 'Business transactions record not found', data: [] });
+            //return res.status(404).json({ message: 'Business transactions record not found', data: [] });
         }
 
         console.log('Records found:', result.rows.length);

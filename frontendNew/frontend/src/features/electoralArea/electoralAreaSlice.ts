@@ -4,11 +4,11 @@ import axios from 'axios';
 
 
 // Define the initial state
-interface ElectoralArea {
+export interface ElectoralArea {
     electoral_area: string;
 }
 
-interface ElectoralAreaState {
+export interface ElectoralAreaState {
     electoralAreas: ElectoralArea[];
     loading: boolean;
     error: string | null;

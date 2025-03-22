@@ -34,6 +34,7 @@ import photosReducer from '../features/photos/photosSlice';
 import busPaymentsReducer from '../features/busPayments/busPaymentsSlice';
 import officerBudgetReducer from '../features/officerBudget/officerBudgetSlice';
 import { collectorElectoralAreaReducer } from '../features/collectorElectoralarea/collectorElectoralAreaSlice';
+import balanceReducer from '../features/balance/balanceSlice';
 var store = configureStore({
     reducer: {
         accReceipt: accReceiptReducer,
@@ -67,6 +68,7 @@ var store = configureStore({
         busPayments: busPaymentsReducer,
         officerBudget: officerBudgetReducer,
         collectorElectoralArea: collectorElectoralAreaReducer,
+        balance: balanceReducer,
     },
 });
 // Create typed hooks

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../app/store";
 import { Container, Form, Button, Row, Col, Table } from "react-bootstrap";
 import { fetchBusinessById } from "../business/businessSlice";
-import { fetchBusPaymentByTwoDates, fetchTransSavings } from "./busPaymentsSlice";
+import { fetchBusPaymentByTwoDates } from "./busPaymentsSlice";
 
 const FrmSavingsStatementX: React.FC = () => {
   let [bussNo, setBussNo] = useState<string>("");
@@ -66,6 +66,8 @@ const FrmSavingsStatementX: React.FC = () => {
             }));
         
             if (fetchBusPaymentByTwoDates.fulfilled.match(response)) {
+                console.log('GOT IT GOT IT GOT IT')
+
                 const fetchedRecords = response.payload; // Get the payload directly
                 console.log('fetchedRecords:', fetchedRecords);
                 
@@ -79,18 +81,18 @@ const FrmSavingsStatementX: React.FC = () => {
         
                 // Set a success message if needed
                 setSuccessMessage("Payment records fetched successfully");
-                const transSavingsData = await dispatch(fetchTransSavings());
-                console.log('transSavingsData:', transSavingsData);
+                // const transSavingsData = await dispatch(fetchTransSavings());
+                // console.log('transSavingsData:', transSavingsData);
 
-                // Update records state
-                if (fetchTransSavings.fulfilled.match(transSavingsData)) {
-                    const fetchedTransSavings = transSavingsData.payload; // Get the payload directly
-                    console.log('fetchedTransSavings:', fetchedTransSavings);
-                    // Update records state
-                    setRecords(fetchedTransSavings);
-                } else {
-                    throw new Error('Failed to fetch bus payments');
-                }
+                // // Update records state
+                // if (fetchTransSavings.fulfilled.match(transSavingsData)) {
+                //     const fetchedTransSavings = transSavingsData.payload; // Get the payload directly
+                //     console.log('fetchedTransSavings:', fetchedTransSavings);
+                //     // Update records state
+                //     setRecords(fetchedTransSavings);
+                // } else {
+                //     throw new Error('Failed to fetch bus payments');
+                // }
             } else {
                 throw new Error('Failed to fetch bus payments');
             }
@@ -187,7 +189,7 @@ const FrmSavingsStatementX: React.FC = () => {
                 </Col>
             </Row>
             <Col>
-                    <Table striped bordered hover>
+                    <Table className="small-table" striped bordered hover>
                         <thead>
                             <tr>
                                 <th>Business Number</th>

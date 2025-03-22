@@ -79,14 +79,24 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Read all balance records
-router.get('/', async (req: Request, res: Response) => {
+router.get('/all', async (req: Request, res: Response) => {
     let client: PoolClient | null = null;
+
+    console.log('in router.get(/all)')
 
     try {
         client = await pool.connect();
 
         const result: QueryResult = await client.query('SELECT * FROM balance');
-        res.json(result.rows);
+
+        if (result.rows.length === 0) {
+            res.status(404).json({ message: 'No balance records found', data: [] });
+            return;
+        }
+
+        console.log('in router.get(/all) result.rows', result.rows)
+
+        res.status(200).json({ message: 'Balances fetched', data: result.rows});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching balance records', error });

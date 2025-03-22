@@ -59,7 +59,7 @@ export var fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessType
                 console.log('after fetchBusinessTypes thunk, Response data:', response.data);
                 if (response.status >= 200 && response.status < 300) {
                     console.log('fetchBusinessTypes thunk, response data:', response.data);
-                    return [2 /*return*/, response.data]; // This data will be available as `action.payload`
+                    return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //
                 }
                 else {
                     throw new Error("Error fetching business types: ".concat(response.statusText));
@@ -134,9 +134,9 @@ var businessTypeSlice = createSlice({
             state.error = null;
         })
             .addCase(fetchBusinessTypes.fulfilled, function (state, action) {
-            var _a;
             state.loading = false;
-            (_a = state.businessTypes).push.apply(_a, action.payload);
+            //state.businessTypes.push(...action.payload);
+            state.businessTypes = action.payload; // Ensure this returns the correct structure
             state.error = null;
         })
             .addCase(fetchBusinessTypes.rejected, function (state, action) {

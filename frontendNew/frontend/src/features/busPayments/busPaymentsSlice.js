@@ -46,6 +46,28 @@ var initialState = {
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+export var selectBusPayments = function (state) { return state.busPayments.busPayments; };
+// Async thunk to fetch all BusPayments records
+export var fetchPaymentDefaulters = createAsyncThunk('busPayments/fetchPaymentDefaulters', function (electoralarea) { return __awaiter(void 0, void 0, void 0, function () {
+    var response;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log('in fetchPaymentDefaulters slice', electoralarea);
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/defaulters/").concat(electoralarea))];
+            case 1:
+                response = _a.sent();
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('fetchPaymentDefaulters fulfilled::: ', response.data.data);
+                    return [2 /*return*/, response.data]; // Return the correct data
+                }
+                else {
+                    throw new Error("Error fetching bus payment. Status: ".concat(response.status, " - Error: ").concat(response.statusText));
+                }
+                return [2 /*return*/];
+        }
+    });
+}); });
 // Async thunk to fetch all BusPayments records
 export var fetchBusPayments = createAsyncThunk('busPayments/fetchBusPayments', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
@@ -62,7 +84,7 @@ export var fetchTransSavings = createAsyncThunk('busPayments/fetchBusPayments', 
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/transSavings"))];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/transsavings"))];
             case 1:
                 response = _a.sent();
                 console.log('response data', response.data);
@@ -266,6 +288,30 @@ export var billOneBusiness = createAsyncThunk('businessType/billoneBusiness', fu
                 return [4 /*yield*/, response.data];
             case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
             case 3: throw new Error("Error billing one business types: ".concat(response.statusText));
+        }
+    });
+}); });
+export var fetchDailyPayments = createAsyncThunk('businessType/dailypayments', function (args) { return __awaiter(void 0, void 0, void 0, function () {
+    var firstDate, lastDate, electoralarea, bussType, formattedFirstDate, formattedLastDate, response;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log('inside fetchDailyPayments thunk');
+                firstDate = args.firstDate, lastDate = args.lastDate, electoralarea = args.electoralarea, bussType = args.bussType;
+                formattedFirstDate = new Date(firstDate).toISOString().split('T')[0];
+                formattedLastDate = new Date(lastDate).toISOString().split('T')[0];
+                console.log('formattedFirstDate:', formattedFirstDate, 'formattedLastDate:', formattedLastDate);
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/dailypayments/").concat(formattedFirstDate, "/").concat(formattedLastDate, "/").concat(electoralarea, "/").concat(bussType), {
+                        headers: { 'Content-Type': 'application/json' },
+                    })];
+            case 1:
+                response = _a.sent();
+                console.log('after fetchDailyPayments thunk, Response data:', response.data);
+                if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
+                console.log('fetchDailyPayments thunk, response data.data:', response.data.data);
+                return [4 /*yield*/, response.data.data];
+            case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
+            case 3: throw new Error("Error fetching one business types: ".concat(response.statusText));
         }
     });
 }); });

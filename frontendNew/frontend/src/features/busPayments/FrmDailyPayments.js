@@ -36,174 +36,108 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
+import { useAppSelector, useAppDispatch } from '../../app/store';
 import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
+import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
+import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
+import { fetchDailyPayments, selectBusPayments } from './busPaymentsSlice';
+import PaymentsTable from './PaymentsTable';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link } from 'react-router-dom';
-var DailyPayments = function () {
-    var _a = useState(''), zone = _a[0], setZone = _a[1];
-    var _b = useState(''), bussType = _b[0], setBussType = _b[1];
+var FrmDailyPayments = function () {
+    var _a = useState(''), electoralArea = _a[0], setElectoralArea = _a[1];
+    //let [electoralAreasData, setElectoralAreasData] = useState<ElectoralArea[]>([]);//
+    var _b = useState(''), selectedBusinessType = _b[0], setSelectedBusinessType = _b[1];
     var _c = useState(''), firstDate = _c[0], setFirstDate = _c[1];
     var _d = useState(''), lastDate = _d[0], setLastDate = _d[1];
-    var _e = useState([]), zones = _e[0], setZones = _e[1];
-    var _f = useState([]), bussTypes = _f[0], setBussTypes = _f[1];
-    var _g = useState([]), paymentDates = _g[0], setPaymentDates = _g[1];
-    var _h = useState(''), error = _h[0], setError = _h[1];
+    var _e = useState([]), bussTypes = _e[0], setBussTypes = _e[1];
+    var _f = useState(''), errorx = _f[0], setErrorx = _f[1];
+    var _g = useState([]), busPaymentsData = _g[0], setBusPaymentsData = _g[1];
+    var dispatch = useAppDispatch();
+    var _h = useAppSelector(function (state) { return state.electoralArea; }), electoralAreas = _h.electoralAreas, loading = _h.loading, error = _h.error;
+    var businessTypes = useAppSelector(function (state) { return state.businessType.businessTypes; }); // as BusinessTypeData[]
+    console.log('businessTypes: ', businessTypes);
     useEffect(function () {
-        var fetchData = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var zonesResponse, zonesData, paymentDatesResponse, paymentDatesData, error_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 6, , 7]);
-                        // Update business zones in payments
-                        return [4 /*yield*/, fetch('/api/update-business-zones', { method: 'POST' })];
-                    case 1:
-                        // Update business zones in payments
-                        _a.sent();
-                        return [4 /*yield*/, fetch('/api/zones')];
-                    case 2:
-                        zonesResponse = _a.sent();
-                        return [4 /*yield*/, zonesResponse.json()];
-                    case 3:
-                        zonesData = _a.sent();
-                        setZones(zonesData);
-                        return [4 /*yield*/, fetch('/api/payment-dates')];
-                    case 4:
-                        paymentDatesResponse = _a.sent();
-                        return [4 /*yield*/, paymentDatesResponse.json()];
-                    case 5:
-                        paymentDatesData = _a.sent();
-                        setPaymentDates(paymentDatesData);
-                        return [3 /*break*/, 7];
-                    case 6:
-                        error_1 = _a.sent();
-                        setError(error_1.message);
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
-                }
-            });
-        }); };
-        fetchData();
-    }, []);
-    var fetchBussTypes = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, data, error_2;
+        if (Array.isArray(businessTypes)) {
+            setBussTypes(businessTypes); // Update local state with fetched data
+        }
+    }, [businessTypes]); // Dependency array includes businessTypes
+    if (Array.isArray(businessTypes)) {
+        console.log('businessTypes  is an array');
+    }
+    else {
+        console.log('IT IS NOT AN ARRAY');
+    }
+    // Check entire Redux state (for debugging)
+    //const entireState = useAppSelector((state) => state);
+    //console.log('Entire Redux State:', entireState);
+    var busPayments = useAppSelector(selectBusPayments);
+    console.log('busPayments:', busPayments);
+    useEffect(function () {
+        dispatch(fetchElectoralAreas());
+        dispatch(fetchBusinessTypes());
+    }, [dispatch]);
+    useEffect(function () {
+        console.log('Fetched business types:', businessTypes);
+    }, [businessTypes]);
+    var handleViewClick = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var DailyPaymentsData, answer, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!zone) {
-                        setError("Select a zone");
+                    console.log('Inside handleViewClick');
+                    if (!electoralArea) {
+                        setErrorx("Please select an electoral area");
+                        return [2 /*return*/];
+                    }
+                    if (!selectedBusinessType) {
+                        setErrorx("Please select a business type");
+                        return [2 /*return*/];
+                    }
+                    if (!firstDate) {
+                        setErrorx("Please select a first date");
+                        return [2 /*return*/];
+                    }
+                    if (!lastDate) {
+                        setErrorx("Please select a last date");
                         return [2 /*return*/];
                     }
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 4, , 5]);
-                    return [4 /*yield*/, fetch("/api/business-types?zone=".concat(zone))];
+                    _a.trys.push([1, 3, , 4]);
+                    DailyPaymentsData = {
+                        firstDate: new Date(firstDate),
+                        lastDate: new Date(lastDate),
+                        electoralarea: electoralArea,
+                        bussType: selectedBusinessType,
+                    };
+                    console.log('DailyPaymentsData:', DailyPaymentsData);
+                    return [4 /*yield*/, dispatch(fetchDailyPayments(DailyPaymentsData))];
                 case 2:
-                    response = _a.sent();
-                    return [4 /*yield*/, response.json()];
-                case 3:
-                    data = _a.sent();
-                    setBussTypes(data);
-                    return [3 /*break*/, 5];
-                case 4:
-                    error_2 = _a.sent();
-                    setError(error_2.message);
-                    return [3 /*break*/, 5];
-                case 5: return [2 /*return*/];
-            }
-        });
-    }); };
-    var handleZoneChange = function (e) { return __awaiter(void 0, void 0, void 0, function () {
-        var selectedZone;
-        return __generator(this, function (_a) {
-            selectedZone = e.target.value;
-            setZone(selectedZone);
-            // Fetch business types based on the selected zone
-            fetchBussTypes();
-            return [2 /*return*/];
-        });
-    }); };
-    var handleFirstDateChange = function (e) {
-        var selectedDate = e.target.value;
-        setFirstDate(selectedDate);
-    };
-    var handleLastDateChange = function (e) {
-        var selectedDate = e.target.value;
-        setLastDate(selectedDate);
-    };
-    var handleViewClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, data, error_3;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, fetch('/api/produce-report', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ firstDate: firstDate, lastDate: lastDate, zone: zone, bussType: bussType, posted: false }),
-                        })];
-                case 1:
-                    response = _a.sent();
-                    return [4 /*yield*/, response.json()];
-                case 2:
-                    data = _a.sent();
-                    if (data.success) {
-                        window.location.href = '/reports/daily-zones-payments'; // Redirect to report page
-                        setError('');
+                    answer = _a.sent();
+                    console.log('answer:', answer);
+                    if (answer.payload) {
+                        busPaymentsData = answer.payload;
+                        setBusPaymentsData(busPaymentsData);
                     }
-                    else {
-                        setError(data.message);
-                    }
+                    console.log('busPaymentsData:', busPaymentsData);
                     return [3 /*break*/, 4];
                 case 3:
-                    error_3 = _a.sent();
-                    setError(error_3.message);
+                    error_1 = _a.sent();
+                    console.error("Error fetching daily payments:", error_1);
+                    setErrorx("Error fetching daily payments");
+                    alert("Error fetching daily payments");
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
         });
     }); };
-    var handleProduceReportClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, data, error_4;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, fetch('/api/produce-report', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ firstDate: firstDate, lastDate: lastDate, zone: zone, bussType: bussType, posted: true }),
-                        })];
-                case 1:
-                    response = _a.sent();
-                    return [4 /*yield*/, response.json()];
-                case 2:
-                    data = _a.sent();
-                    if (data.success) {
-                        window.location.href = '/reports/daily-zones-payments'; // Redirect to report page
-                        setError('');
-                    }
-                    else {
-                        setError(data.message);
-                    }
-                    return [3 /*break*/, 4];
-                case 3:
-                    error_4 = _a.sent();
-                    setError(error_4.message);
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
-            }
-        });
-    }); };
-    var handleExitClick = function () {
-        // Logic to hide the form and show the main form
-        // This can be managed by routing or state in a larger application
-        window.location.href = '/'; // Redirect to main page or handle as needed
-    };
-    return (_jsxs("div", { className: "container mt-5", children: [error && _jsx(Alert, { color: "danger", children: error }), _jsx("h1", { className: "text-center text-underline", children: "Produce Daily Payments Report" }), _jsx("h2", { className: "text-center", children: "MARCORY MUNICIPAL ASSEMBLY" }), _jsxs(Form, { children: [_jsxs(FormGroup, { children: [_jsx(Label, { for: "zone", className: "font-weight-bold", children: "Electoral Area:" }), _jsxs(Input, { type: "select", name: "zone", id: "zone", value: zone, onChange: handleZoneChange, children: [_jsx("option", { value: "", children: "Select Zone" }), zones.map(function (z) { return (_jsx("option", { value: z, children: z }, z)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "bussType", className: "font-weight-bold", children: "Business Type/Profession:" }), _jsxs(Input, { type: "select", name: "bussType", id: "bussType", value: bussType, onChange: function (e) { return setBussType(e.target.value); }, children: [_jsx("option", { value: "", children: "Select Business Type" }), bussTypes.map(function (bt) { return (_jsx("option", { value: bt, children: bt }, bt)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "firstDate", className: "font-weight-bold", children: "First Payment Date:" }), _jsxs(Input, { type: "select", name: "firstDate", id: "firstDate", value: firstDate, onChange: handleFirstDateChange, children: [_jsx("option", { value: "", children: "Select Date" }), paymentDates.map(function (date) { return (_jsx("option", { value: date, children: date }, date)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "lastDate", className: "font-weight-bold", children: "Last Payment Date:" }), _jsxs(Input, { type: "select", name: "lastDate", id: "lastDate", value: lastDate, onChange: handleLastDateChange, children: [_jsx("option", { value: "", children: "Select Date" }), paymentDates.map(function (date) { return (_jsx("option", { value: date, children: date }, date)); })] })] }), _jsx(FormGroup, { children: _jsxs("div", { className: "d-flex justify-content-between", children: [_jsx(Button, { color: "primary", onClick: handleViewClick, children: "Produce Report (unposted payments)" }), _jsx(Button, { color: "success", onClick: handleProduceReportClick, children: "Produce Report (posted payments)" }), _jsx(Button, { color: "danger", onClick: handleExitClick, children: "Exit" })] }) })] }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] }));
+    if (loading) {
+        return _jsx("div", { children: "Loading..." });
+    }
+    if (error || errorx) {
+        return _jsxs("div", { children: ["Error: ", error || errorx] });
+    }
+    return (_jsxs("div", { className: "container mt-5", children: [errorx && _jsx(Alert, { color: "danger", children: errorx }), _jsxs(Form, { children: [_jsxs(FormGroup, { children: [_jsx("p", { className: "text-center text-underline", children: "Produce Daily Payments Report" }), _jsx(Label, { for: "zone", className: "font-weight-bold", children: "Electoral Area:" }), _jsxs(Input, { type: "select", name: "electoral_area", id: "electoral_area", value: electoralArea, onChange: function (e) { return setElectoralArea(e.target.value); }, children: [_jsx("option", { value: "", children: "Select..." }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area.electoral_area, children: area.electoral_area }, index)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "bussType", className: "font-weight-bold", children: "Business Type/Profession:" }), _jsxs(Input, { type: "select", name: "bussType", id: "bussType", value: selectedBusinessType, onChange: function (e) { return setSelectedBusinessType(e.target.value); }, children: [_jsx("option", { value: "", children: "Select Business Type" }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "firstDate", className: "font-weight-bold", children: "First Payment Date:" }), _jsx(Input, { type: "date", name: "firstDate", id: "firstDate", value: firstDate, onChange: function (e) { return setFirstDate(e.target.value); } })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "lastDate", className: "font-weight-bold", children: "Last Payment Date:" }), _jsx(Input, { type: "date", name: "lastDate", id: "lastDate", value: lastDate, onChange: function (e) { return setLastDate(e.target.value); } })] }), _jsxs(FormGroup, { children: [_jsx("div", { className: "d-flex justify-content-between", children: _jsx(Button, { color: "primary", onClick: handleViewClick, children: "Produce Report" }) }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] })] }), _jsx(PaymentsTable, { busPaymentsData: busPaymentsData })] }));
 };
-export default DailyPayments;
+export default FrmDailyPayments;

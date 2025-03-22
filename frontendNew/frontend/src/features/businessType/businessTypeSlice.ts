@@ -35,7 +35,7 @@ export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTy
     if (response.status >= 200 && response.status < 300) {
         console.log('fetchBusinessTypes thunk, response data:', response.data);
 
-        return response.data; // This data will be available as `action.payload`
+        return Array.isArray(response.data) ? response.data : []; //
     } else {
         throw new Error(`Error fetching business types: ${response.statusText}`);
     }
@@ -100,7 +100,8 @@ const businessTypeSlice = createSlice({
             })
             .addCase(fetchBusinessTypes.fulfilled, (state, action) => {
                 state.loading = false;
-                state.businessTypes.push(...action.payload);
+                //state.businessTypes.push(...action.payload);
+                state.businessTypes = action.payload; // Ensure this returns the correct structure
                 state.error = null;
             })
             .addCase(fetchBusinessTypes.rejected, (state, action) => {

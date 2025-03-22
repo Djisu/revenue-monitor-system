@@ -121,3 +121,11 @@ button:focus-visible {
   font-weight: bold;
   color: blue;
 }
+
+.small-table {
+  font-size: 0.8rem; /* Adjust size as needed */
+}
+
+.small-table th {
+  font-size: 0.9rem; /* Slightly larger than the body text */
+}
