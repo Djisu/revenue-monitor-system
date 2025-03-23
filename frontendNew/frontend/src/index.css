@@ -129,3 +129,8 @@ button:focus-visible {
 .small-table th {
   font-size: 0.9rem; /* Slightly larger than the body text */
 }
+
+.chart-container {
+  height: 400px; /* Adjust this value as needed */
+  width: 100%; /* Ensure it takes the full width */
+}

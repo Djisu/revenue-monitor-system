@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import apiClient from '../../utilities/apiClient';
+import axios from 'axios';
 
 // Define the types for the state based on OfficerAssessment
 export interface OfficerAssessment {
@@ -46,8 +47,6 @@ interface PaymentsState {
     decemberAmount: number | null; // For December amount specifically
     fiscalYears: FiscalYear[]; // Add this line
 }
-
-
 
 export interface CreateClientsServedParams {
     officerNo: string;
@@ -130,14 +129,23 @@ export const createClientsServed = createAsyncThunk<number, CreateClientsServedP
 export const fetchClientsServed = createAsyncThunk<number, { officerNo: string; fiscalYear: number }>(
     'officerAssessment/fetchClientsServed',
     async ({ officerNo, fiscalYear }): Promise<number> => {
+
         console.log('fetchClientsServed thunk called');
+
+        console.log(`Fetching clients served for Officer No: ${officerNo}, Fiscal Year: ${fiscalYear}`);
+
+        if (!officerNo) {
+            throw new Error('Invalid officerNo: must be a string');
+        }
 
         // Check if fiscalYear is a number
         if (typeof fiscalYear !== 'number' || isNaN(fiscalYear)) {
             throw new Error('Invalid fiscalYear: must be a number');
         }
 
-        const response = await apiClient.get(`${BASE_URL}/api/buspayments/fetchClientsServed/${officerNo}/${fiscalYear}`);
+        console.log('about to call endpoint')
+        const response = await axios.get(`${BASE_URL}/api/officerAssessment/fetchClientsServed/${officerNo}/${fiscalYear}`);
+        console.log('fetchClientsServed response', response.data)
         return response.data;
     }
 );

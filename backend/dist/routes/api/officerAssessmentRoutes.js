@@ -705,6 +705,33 @@ router.get('/December/:officerNo/:fiscalYear', async (req, res) => {
         client.release(); // Ensure the client is released back to the pool
     }
 });
+router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req, res) => {
+    console.log('in router.get(/fetchClientsServed/:officerNo/:fiscalYear', req.params);
+    const { officerNo, fiscalYear } = req.params;
+    if (!officerNo || !fiscalYear) {
+        return res.status(400).json({ error: 'Missing parameters' });
+    }
+    const client = await pool.connect();
+    const officerName = await GetOfficerName(officerNo.toString());
+    console.log('officerName: ', officerName);
+    try {
+        const result = await client.query(`SELECT COUNT(buss_no) AS totcount FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2`, [officerName, fiscalYear]);
+        // Check if the query returned any results
+        if (result.rows.length === 0) {
+            return res.status(404).json(0); // Return 0 if no records found
+        }
+        console.log('result.rows[0].totcount: ', result.rows[0].totcount);
+        // Return just the totsum value
+        return res.status(200).json(result.rows[0].totcount); // Send the totsum directly
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching BusPayments record', error });
+    }
+    finally {
+        client.release();
+    }
+});
 router.get('/all', async (req, res) => {
     try {
         const { officerNo, fiscalYear, monthPaid } = req.query;

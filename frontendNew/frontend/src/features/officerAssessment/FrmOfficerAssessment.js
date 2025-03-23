@@ -152,6 +152,8 @@ var FrmOfficerAssessment = function () {
                                         if (isNaN(fiscalYearValue)) {
                                             throw new Error('Invalid fiscalYear: must be a number');
                                         }
+                                        // Dispatch the thunk with the necessary parameters
+                                        console.log('on dispatch(fetchClientsServed');
                                         return [4 /*yield*/, dispatch(fetchClientsServed({ officerNo: officerNo, fiscalYear: fiscalYearValue })).unwrap()];
                                     case 1:
                                         noOfClientsServed = _a.sent();

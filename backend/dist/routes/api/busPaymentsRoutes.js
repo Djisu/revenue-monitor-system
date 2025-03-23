@@ -903,14 +903,17 @@ async function GetOfficerName(officerNo) {
     }
     return result.rows[0].officer_name;
 }
-router.get('/fetchClientsServed/:officer_no/:fiscal_year', async (req, res) => {
-    console.log('in buspayments router.get(/fetchClientsServed/:officer_no/:fiscal_year', req.params);
-    const { officer_no, fiscal_year } = req.params;
+router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req, res) => {
+    console.log('in router.get(/fetchClientsServed/:officerNo/:fiscalYear', req.params);
+    const { officerNo, fiscalYear } = req.params;
+    if (!officerNo || !fiscalYear) {
+        return res.status(400).json({ error: 'Missing parameters' });
+    }
     const client = await pool.connect();
-    const officerName = await GetOfficerName(Number(officer_no));
+    const officerName = await GetOfficerName(Number(officerNo));
     console.log('officerName: ', officerName);
     try {
-        const result = await client.query(`SELECT COUNT(buss_no) AS totcount FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2`, [officerName, fiscal_year]);
+        const result = await client.query(`SELECT COUNT(buss_no) AS totcount FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2`, [officerName, fiscalYear]);
         // Check if the query returned any results
         if (result.rows.length === 0) {
             return res.status(404).json(0); // Return 0 if no records found

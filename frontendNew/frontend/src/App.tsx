@@ -63,6 +63,7 @@ import FrmPropertySavingsStatementX from './features/propertyBalance/FrmProperty
 import checkAccess from './utilities/checkAccess';
 import NotFound from './components/layout/NotFound';
 import MainMenuWrapper from './components/MainMenuWrapper';
+//import OfficerAssessmentBarChart from './charts/OfficerAssessmentBarChart';
 
 
 
@@ -120,7 +121,13 @@ const App: React.FC = () => {
                     <Route path="/BusinessTypesReport" element={<ProtectedRoute element={<FrmBusinessTypesReport />} />} />
                    
                     <Route path="/CollectorsBusinessesReport" element={<ProtectedRoute element={<FrmCollectorsBusinessesReport />} />} />
-                   
+                
+{/*                     
+                    <Route 
+                        path="/OfficerAssessmentBarChart" 
+                        element={<OfficerAssessmentBarChart data={chartData} />} 
+                    />
+                    */}
                     {/* Routes for property forms */}
                     <Route path="/PropertyClass" element={<ProtectedRoute element={<FrmPropertyClass />} />} />
                     <Route path="/PropertyUse" element={<ProtectedRoute element={<FrmPropertyUse />} />} />
@@ -139,7 +146,7 @@ const App: React.FC = () => {
                     <Route path="*" element={<NotFound />} />
 
                     {/* <Route path="/AuditTrail" element={<AuditTrail />} /> FrmBusinessReferences*/} 
-                    {/* Add other routes for forms */}
+                    {/* Add other routes for forms */}  OfficerAssessmentBarChart
                 </Routes>
             </Router>
         </AuthProvider>

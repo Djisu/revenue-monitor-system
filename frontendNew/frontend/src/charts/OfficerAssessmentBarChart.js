@@ -113,6 +113,6 @@ var OfficerAssessmentBarChart = function (_a) {
             },
         },
     };
-    return (_jsx("div", { children: _jsx(Bar, { data: chartData, options: options }) }));
+    return (_jsx("div", { children: _jsx(Bar, { data: chartData, options: options, height: 400 }) }));
 };
 export default OfficerAssessmentBarChart;

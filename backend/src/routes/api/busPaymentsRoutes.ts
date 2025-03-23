@@ -1194,21 +1194,26 @@ async function GetOfficerName(officerNo: number): Promise<string>  {
     return result.rows[0].officer_name;
 }
 
-router.get('/fetchClientsServed/:officer_no/:fiscal_year', async (req: Request, res: Response) => {
+router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
 
-    console.log('in buspayments router.get(/fetchClientsServed/:officer_no/:fiscal_year', req.params);
+    console.log('in router.get(/fetchClientsServed/:officerNo/:fiscalYear', req.params);
 
-    const { officer_no, fiscal_year } = req.params;
+    const { officerNo, fiscalYear } = req.params;
+
+    if (!officerNo || !fiscalYear) {
+        return res.status(400).json({ error: 'Missing parameters' });
+    }
+    
     const client: PoolClient = await pool.connect();
 
-    const officerName = await GetOfficerName(Number(officer_no));
+    const officerName = await GetOfficerName(Number(officerNo));
 
     console.log('officerName: ', officerName)
 
     try {
         const result = await client.query(
             `SELECT COUNT(buss_no) AS totcount FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2`,
-            [officerName, fiscal_year]
+            [officerName, fiscalYear]
         );
 
 

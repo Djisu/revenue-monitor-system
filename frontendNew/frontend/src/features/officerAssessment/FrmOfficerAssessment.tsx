@@ -165,6 +165,7 @@ const FrmOfficerAssessment = () => {
                 }
 
                 // Dispatch the thunk with the necessary parameters
+                console.log('on dispatch(fetchClientsServed')
                 let noOfClientsServed = await dispatch(fetchClientsServed({ officerNo, fiscalYear: fiscalYearValue })).unwrap();
                 console.log('noOfClientsServed: ', noOfClientsServed);
 

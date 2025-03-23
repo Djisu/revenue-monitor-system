@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import apiClient from '../../utilities/apiClient';
+import axios from 'axios';
 // Initial state
 var initialState = {
     officerAssessment: null,
@@ -91,13 +92,19 @@ export var fetchClientsServed = createAsyncThunk('officerAssessment/fetchClients
         switch (_c.label) {
             case 0:
                 console.log('fetchClientsServed thunk called');
+                console.log("Fetching clients served for Officer No: ".concat(officerNo, ", Fiscal Year: ").concat(fiscalYear));
+                if (!officerNo) {
+                    throw new Error('Invalid officerNo: must be a string');
+                }
                 // Check if fiscalYear is a number
                 if (typeof fiscalYear !== 'number' || isNaN(fiscalYear)) {
                     throw new Error('Invalid fiscalYear: must be a number');
                 }
-                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/buspayments/fetchClientsServed/").concat(officerNo, "/").concat(fiscalYear))];
+                console.log('about to call endpoint');
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officerAssessment/fetchClientsServed/").concat(officerNo, "/").concat(fiscalYear))];
             case 1:
                 response = _c.sent();
+                console.log('fetchClientsServed response', response.data);
                 return [2 /*return*/, response.data];
         }
     });
