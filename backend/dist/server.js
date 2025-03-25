@@ -41,6 +41,7 @@ import businessTypeRoute from './routes/api/businessTypeRoutes.js';
 import busPaymentsRoutes from './routes/api/busPaymentsRoutes.js';
 import OfficerBudgetRoute from './routes/api/officerBudgetRoute.js';
 import CollectorElectoralAreaRoute from './routes/api/collectorElectoralarea.js';
+import bustypeDetailedReportRoute from './routes/api/bustypeDetailedReportRoute.js';
 // Load environment variables from .env file
 const environment = process.env.NODE_ENV || 'development';
 dotenv.config(); // Load .env file from the default location
@@ -137,7 +138,8 @@ app.use('/api/businessType', businessTypeRoute);
 app.use('/api/busPayments', busPaymentsRoutes);
 app.use('/api/OfficerBudget', OfficerBudgetRoute);
 app.use('/api/CollectorElectoralArea', CollectorElectoralAreaRoute);
-// Set up multer storage  CollectorElectoralArea
+app.use('/api/bustypeDetailedReport', bustypeDetailedReportRoute);
+// Set up multer storage  CollectorElectoralArea 
 const storage = diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');

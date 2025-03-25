@@ -151,15 +151,15 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('BO', 'ExecutiveSummaryReport')}>
                                 BO_Produce Executive Summary Report
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProduceClientAnnualBalancesReport')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProduceClientAnnualBalancesReport')}>
                                 BN_Produce Client Annual Balances Report
-                            </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('GV', 'DisplayClientsCurrentBalances')}>
+                            </NavDropdown.Item> */}
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('GV', 'DisplayClientsCurrentBalances')}>
                                 GV_Display Clients Current Balances
-                            </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProduceVarianceAnalysisReport')}>
+                            </NavDropdown.Item> */}
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProduceVarianceAnalysisReport')}>
                                 BN_Produce a Balance Brought Forward Report
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                             {/* <NavDropdown.Item onClick={() => handleMenuClick('BN', 'DefaultersPrepaymentsReport')}>
                                 BN_Produce Defaulters Report
                             </NavDropdown.Item> */}

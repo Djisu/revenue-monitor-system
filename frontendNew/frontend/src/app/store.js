@@ -35,6 +35,8 @@ import busPaymentsReducer from '../features/busPayments/busPaymentsSlice';
 import officerBudgetReducer from '../features/officerBudget/officerBudgetSlice';
 import { collectorElectoralAreaReducer } from '../features/collectorElectoralarea/collectorElectoralAreaSlice';
 import balanceReducer from '../features/balance/balanceSlice';
+import busTypedetailedReportReducer from '../features/busTypeDetailedReport/busTypeDetailedReportSlice';
+import reportsReducer from '../features/managementSummariseReport.ts/BusTypeSummaryReportSlice';
 var store = configureStore({
     reducer: {
         accReceipt: accReceiptReducer,
@@ -69,6 +71,8 @@ var store = configureStore({
         officerBudget: officerBudgetReducer,
         collectorElectoralArea: collectorElectoralAreaReducer,
         balance: balanceReducer,
+        busTypedetailedReport: busTypedetailedReportReducer,
+        reports: reportsReducer,
     },
 });
 // Create typed hooks
