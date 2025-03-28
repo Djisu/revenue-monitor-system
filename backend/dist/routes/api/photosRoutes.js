@@ -106,7 +106,8 @@ router.post('/store', upload.single('photo'), async (req, res) => {
         const { officer_no, photo, photo_name, photo_type } = req.body;
         if (!officer_no || !photo || !photo_name || !photo_type) {
             console.error('Missing officer number, photo, photo_name, or photo_type');
-            return res.status(400).send('Missing officer number, photo, photo_name, or photo_type');
+            res.status(400).send('Missing officer number, photo, photo_name, or photo_type');
+            return;
         }
         // console.log('Officer number:', officer_no);
         // console.log('Photo name:', photo_name);
@@ -123,18 +124,21 @@ router.post('/store', upload.single('photo'), async (req, res) => {
                 await client.query(updateQuery, [photoBuffer, officer_no]);
                 console.log(`Photo updated for officer_no: ${officer_no}`);
                 const photoUrl = `${BASE_URL}/api/photos/retrieve/${officer_no}`;
-                return res.status(200).json({ message: 'Photo updated successfully', photoUrl: photoUrl });
+                res.status(200).json({ message: 'Photo updated successfully', photoUrl: photoUrl });
+                return;
             }
             // Insert the new photo
             await client.query('INSERT INTO photos (officer_no, photo_name,  photo_type, photo_buffer) VALUES ($1, $2, $3, $4)', [officer_no, photo_name, photo_type, photoBuffer]);
             const photoUrl = `${BASE_URL}/api/photos/retrieve/${officer_no}`;
             console.log(`Successfully stored photo for officer_no: ${officer_no}`);
             console.log('Photo URL:', photoUrl);
-            return res.status(200).json({ message: 'Photo stored successfully', photoUrl: photoUrl });
+            res.status(200).json({ message: 'Photo stored successfully', photoUrl: photoUrl });
+            return;
         }
         catch (err) {
             console.error('Error storing photo:', err);
-            return res.status(500).json({ error: 'Error storing photo', details: err });
+            res.status(500).json({ error: 'Error storing photo', details: err });
+            return;
         }
         finally {
             client.release();
@@ -150,7 +154,8 @@ router.get('/retrieve/:officer_no', async (req, res) => {
     const { officer_no } = req.params;
     console.log('in router.get(/retrieve/:officer_no', officer_no);
     if (!officer_no) {
-        return res.status(400).json({ error: 'officer_no is required' });
+        res.status(400).json({ error: 'officer_no is required' });
+        return;
     }
     try {
         const client = await pool.connect();
@@ -158,7 +163,8 @@ router.get('/retrieve/:officer_no', async (req, res) => {
         try {
             const result = await client.query(sql, [officer_no]);
             if (result.rows.length === 0) {
-                return res.status(404).json({ message: 'Photo not found' });
+                res.status(404).json({ message: 'Photo not found' });
+                return;
             }
             const photo = result.rows[0];
             // Set the appropriate content type
@@ -171,6 +177,7 @@ router.get('/retrieve/:officer_no', async (req, res) => {
         catch (err) {
             console.error('Error retrieving photo:', err);
             res.status(500).json({ error: 'Error retrieving photo', details: err });
+            return;
         }
         finally {
             client.release();
@@ -184,19 +191,23 @@ router.get('/retrieve/:officer_no', async (req, res) => {
 router.delete('/delete/:officer_no', async (req, res) => {
     const { officer_no } = req.params;
     if (!officer_no) {
-        return res.status(400).json({ error: 'officer_no is required' });
+        res.status(400).json({ error: 'officer_no is required' });
+        return;
     }
     try {
         const result = await deletePhoto(officer_no);
         if (result.rowCount > 0) { // Ensure deletion was successful
             res.status(200).json({ message: 'Photo deleted successfully', result });
+            return;
         }
         else {
             res.status(404).json({ error: 'Photo not found' });
+            return;
         }
     }
     catch (err) {
         res.status(500).json({ error: 'Error deleting photo', details: err });
+        return;
     }
 });
 export default router;

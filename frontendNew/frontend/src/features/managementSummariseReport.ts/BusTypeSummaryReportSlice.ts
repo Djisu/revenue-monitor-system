@@ -41,7 +41,7 @@ export const fetchBusTypeSummaryReports = createAsyncThunk(
         zone?: string;     // Mark as optional
         bussType?: string; // Mark as optional
     }) => {
-        const response = await axios.get(`/create/${firstDate}/${lastDate}/${zone || ''}/${bussType || ''}`);
+        const response = await axios.get(`${BASE_URL}/create/${firstDate}/${lastDate}/${zone || ''}/${bussType || ''}`);
         return response.data; // Assuming the response data is an array of BusTypeSummaryReport
     }
 );

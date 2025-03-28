@@ -1,4 +1,4 @@
-interface BusTypeDetailedReport {
+export interface BusTypeDetailedReport {
     electoral_area: string;  // Corresponds to VARCHAR(255)
     buss_no: number;         // Corresponds to INTEGER
     buss_name: string;       // Corresponds to VARCHAR(255)

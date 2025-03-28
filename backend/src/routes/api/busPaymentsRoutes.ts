@@ -469,7 +469,7 @@ router.get('/transsavings', async (req: Request, res: Response) => {
 })
 
 // Defaulter's list
-router.get('/defaulters/:electoralarea', async (req: Request, res: Response) => {
+router.get('/defaulters/:electoralarea', async (req: Request, res: Response): Promise<void> => {
     const client: PoolClient = await pool.connect();
 
     try {
@@ -478,7 +478,8 @@ router.get('/defaulters/:electoralarea', async (req: Request, res: Response) => 
         const { electoralarea } = req.params;
 
         if (!electoralarea) {
-            return res.status(400).json({ message: 'Invalid electoral area' });
+             res.status(400).json({ message: 'Invalid electoral area' });
+            return
         }
 
         // Give me currentYear
@@ -494,7 +495,8 @@ router.get('/defaulters/:electoralarea', async (req: Request, res: Response) => 
 
         if (electoralareaResult.rows.length === 0) {
             console.log('No records found from business table for ', electoralarea);
-            return res.status(404).json({ message: 'No records found', data: [] });
+             res.status(404).json({ message: 'No records found', data: [] });
+            return
         }
 
         console.log('got electoralareaResult result for looping for ', electoralarea);
@@ -566,7 +568,8 @@ router.get('/defaulters/:electoralarea', async (req: Request, res: Response) => 
 
         if (balResult.rows.length === 0) {
             console.log('No defaulters found');
-            return res.status(200).json({ message: 'No defaulters found', data: [] });
+             res.status(200).json({ message: 'No defaulters found', data: [] });
+            return
         }
 
         console.log('defaulters present');
@@ -582,129 +585,13 @@ router.get('/defaulters/:electoralarea', async (req: Request, res: Response) => 
 
 
 
-// router.get('/defaulters/:electoralarea', async (req: Request, res: Response) => {
-//     const client: PoolClient = await pool.connect();
 
-//  console.log('in router.get(/defaulters:/electoralarea ', req.body)
-
-//     const { electoralarea } = req.params;
-
-//     if (!electoralarea) {
-//         return res.status(400).json({ message: 'Invalid electoral area' });
-//     }
-
-//     // Give me currentYear
-//     const currentYear = new Date().getFullYear();
-
-   
-//     client.query('DELETE FROM balance')
-//     console.log('after DELETE FROM balance')
-
-//     const electoralareaResult: QueryResult = await client.query(
-//         'SELECT * FROM business WHERE electroral_area = $1 and status = $2',
-//         [electoralarea, 'Active']
-//     );
-
-//     if (electoralareaResult.rows.length === 0) {
-//         console.log('No records found from business table for ', electoralarea)
-//         res.status(404).json({ message: 'No records found', data: [] });
-//         return;
-//     }
-
-//     console.log('got electoralareaResult result for looping for ', electoralarea)
-//     for (let i = 0; i < electoralareaResult.rows.length; i++){
-//         console.log('i:', i);
-//         console.log('buss_no:', electoralareaResult.rows[i].buss_no);
-
-
-//          // get business name
-//         const bussName = await getBusinessName(electoralareaResult.rows[i].buss_no);
-//        console.log('bussName:', bussName);
-
-//        // Get street_name of the business
-//         const streetName = electoralareaResult.rows[i].street_name;
-//         console.log('streetName:', streetName);
-
-//         console.log('about to find totalPayableResult')
-//         // Find total payable
-//         const totalPayableResult: QueryResult = await client.query(
-//             'SELECT SUM(current_balance) as totsum FROM busscurrbalance WHERE buss_no = $1',
-//             [electoralareaResult.rows[i].buss_no]
-//         );
-//         if (totalPayableResult.rows.length === 0) {
-//             console.log('No totalPayableResult found');
-//             //return res.status(404).json({ message: 'No records found', data: [] });
-//         } else {
-//             console.log('totalPayable found')
-
-//             const totalPayable = totalPayableResult.rows[0].totsum;
-//             console.log('totalPayable:', totalPayable);
-
-//             console.log('about to find totalPaidResult')
-//             // Find total paid
-//             const totalPaidResult: QueryResult = await client.query(
-//                 'SELECT SUM(paidamount) as totpay FROM buspayments WHERE buss_no = $1',
-//                 [electoralareaResult.rows[i].buss_no]
-//             );
-
-//             if (totalPaidResult.rows.length === 0) {
-//                 console.log('No records found');
-//                 //return res.status(404).json({ message: 'No records found', data: [] });
-//             }
-
-//             console.log('totalPaid found')
-//             const totalPaid = totalPaidResult.rows[0].totpay;
-//             console.log('totalPaid:', totalPaid);
-
-//             let varCurrentBalance = parseFloat(totalPayable) - parseFloat(totalPaid)
-
-//             console.log('varCurrentBalance:', varCurrentBalance)
-
-//             console.log('about to insert into balance')
-//             if (varCurrentBalance > 0){
-//                 // insert into balance
-//                 const balanceResult: QueryResult = await client.query(
-//                     'INSERT INTO balance (buss_no, buss_name, billamount, paidamount, balance, electoral_area, street_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-//                     [electoralareaResult.rows[i].buss_no, bussName, totalPayable, totalPaid, varCurrentBalance, electoralarea, streetName]
-//                 );
-//                 console.log('balanceResult.rows.length: ', balanceResult.rows.length)
-//             }
-            
-            
-//         }       
-//     }
-//     console.log('after insert into balance')
-
-//     console.log('about to findout if there are any defaulters in the balance table')
-//    // Select from balance
-//    const balResult: QueryResult = await client.query('SELECT * FROM balance')
-
-//    if (balResult.rows.length === 0){
-//       console.log('No defaulters found')
-//       res.status(404).json({ message: 'No defaulters found', data: [] });
-//    }
-
-//     console.log('defaulters found');
-//     res.status(200).json({ message: 'Defaulters found', data: balResult.rows });
-
-
-//     // client.query('SELECT * FROM balance', (err, result) => {
-//     //     if (err) {
-//     //         console.error(err);
-//     //         res.status(500).json({ message: 'Error fetching defaulters', error: err });
-//     //     } else {
-//     //         console.log('defaulters found');
-//     //         res.status(200).json({ message: 'Defaulters found', data: result.rows });
-//     //     }
-//     //     client.release();
-//     // });
-// });
 
 
 const generateRandomTerm = () => Math.floor(Math.random() * 10000).toString(); // Generates a random number between 0-9999
 
 // Read a single BusPayments record by date range
-router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request, res: Response) => {
+router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request, res: Response): Promise<void> => {
     const { bussNo, formattedStartDate, formattedEndDate } = req.params;
 
     // Get today's date
@@ -717,12 +604,14 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
     // Validate bussNo
     const intBussNo = parseInt(bussNo, 10);
     if (isNaN(intBussNo)) {
-        return res.status(400).json({ message: 'Invalid business number' });
+        res.status(400).json({ message: 'Invalid business number' });
+        return 
     }
 
     // Validate date format (optional, implement your own validation)
     if (!isValidDate(formattedStartDate) || !isValidDate(formattedEndDate)) {
-        return res.status(400).json({ message: 'Invalid date format, use YYYY-MM-DD' });
+         res.status(400).json({ message: 'Invalid date format, use YYYY-MM-DD' });
+        return
     }
 
     console.log('XXXXXXX in router.get(/:bussNo/:formattedStartDate/:formattedEndDate): ', req.params);
@@ -859,9 +748,11 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
 
         console.log('Records found:', result.rows.length);
         res.status(200).json({ message: 'Records found', data: result.rows });
+        return
     } catch (error) {
         console.error('Error fetching BusPayments record:', error);
         res.status(500).json({ message: 'Error fetching BusPayments record', error });
+        return
     } finally {
         client.release();
     }
@@ -908,9 +799,11 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
         );
 
         res.status(200).json({ message: 'BusPayments record updated successfully' });
+        return
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error updating BusPayments record', error });
+        return
     } finally {
         client.release();
     }
@@ -934,16 +827,18 @@ router.delete('/:buss_no', async (req: Request, res: Response) => {
         await client.query('DELETE FROM buspayments WHERE buss_no = $1', [buss_no]);
 
         res.status(200).json({ message: 'BusPayments record deleted successfully' });
+        return
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting BusPayments record', error });
+        return
     } finally {
         client.release();
     }
 });
 
 
-router.post('/billallbusinesses', async (req: Request, res: Response) => {
+router.post('/billallbusinesses', async (req: Request, res: Response): Promise<void> => {
     console.log('in router.post(/billallbusinesses');
 
     const client: PoolClient = await pool.connect();
@@ -992,9 +887,11 @@ router.post('/billallbusinesses', async (req: Request, res: Response) => {
         }
 
         res.status(200).json({ success: true, message: 'All businesses billed successfully' });
+        return
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ success: false, message: 'Error billing all businesses', error });
+        return
     } finally {
         // Ensure client is released
         if (client) {
@@ -1003,7 +900,7 @@ router.post('/billallbusinesses', async (req: Request, res: Response) => {
     }
 });
 
-router.post('/billonebusiness/:bussNo', async (req: Request, res: Response) => {
+router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Promise<void> => {
     console.log('in router.post(/billonebusiness');
 
       // Ensure the receipts directory exists
@@ -1166,9 +1063,11 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response) => {
 
             ////////End of permits production///////////
             res.status(200).json({ success: true, message: 'One business billed successfully' });
+            return
         } catch (error) {
             console.error('Error:', error);
             res.status(500).json({ success: false, message: 'Error billing one business', error });
+            return
         } finally {
             // Ensure client is released
             if (client) {
@@ -1194,14 +1093,15 @@ async function GetOfficerName(officerNo: number): Promise<string>  {
     return result.rows[0].officer_name;
 }
 
-router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req: Request, res: Response) => {
+router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req: Request, res: Response): Promise<void> => {
 
     console.log('in router.get(/fetchClientsServed/:officerNo/:fiscalYear', req.params);
 
     const { officerNo, fiscalYear } = req.params;
 
     if (!officerNo || !fiscalYear) {
-        return res.status(400).json({ error: 'Missing parameters' });
+         res.status(400).json({ error: 'Missing parameters' });
+        return
     }
     
     const client: PoolClient = await pool.connect();
@@ -1219,16 +1119,19 @@ router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req: Request, re
 
         // Check if the query returned any results
         if (result.rows.length === 0) {
-            return res.status(404).json(0); // Return 0 if no records found
+             res.status(404).json(0); // Return 0 if no records found
+            return
         }
 
         console.log('result.rows[0].totcount: ', result.rows[0].totcount)
         
         // Return just the totsum value
-        return res.status(200).json(result.rows[0].totcount); // Send the totsum directly
+         res.status(200).json(result.rows[0].totcount); // Send the totsum directly
+        return
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching BusPayments record', error });
+        return
     } finally {
         client.release();
     }
@@ -1368,10 +1271,11 @@ router.post('/createPaymentsForAllBusinesses', async (req: Request, res: Respons
         res.status(200).json({
             message: 'Payments for all businesses created successfully.',
         });
-
+        return
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating payments for all businesses', error });
+        return
     } finally {
         client.release();
     }

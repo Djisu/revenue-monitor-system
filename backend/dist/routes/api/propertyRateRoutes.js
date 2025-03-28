@@ -47,7 +47,7 @@ router.post('/create', async (req, res) => {
             VALUES ($1, $2, $3, $4)
             RETURNING property_class, rate`;
         const insertValues = [
-            propertyRateData.property_Class.toLowerCase(),
+            propertyRateData.property_Class.toLowerCase(), // Convert property_class to lowercase
             propertyRateData.fiscalyear,
             propertyRateData.rate,
             propertyRateData.registrationrate,
@@ -58,7 +58,7 @@ router.post('/create', async (req, res) => {
             res.status(201).json({
                 success: true,
                 message: 'Property rate record created successfully',
-                property_class: insertResult.rows[0].property_class,
+                property_class: insertResult.rows[0].property_class, // Use the processed property class   
                 rate: insertResult.rows[0].rate
             });
         }

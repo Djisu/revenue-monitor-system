@@ -9,11 +9,17 @@ interface FetchReportsParams {
     fiscalYear: string;
 }
 
-// interface FetchDetailedReportsParams {
+// interface BusTypeDetaileditem {
 //     electoral_area: string;
-//     buss_no: string;
-// }
-    
+//     buss_no: number;
+//     buss_name: string;
+//     buss_type: string;
+//     amountdue: number;
+//     amountpaid: number;
+//     balance: number;
+//     tot_grade: string;
+//   }
+  
 
 
 // Define the interface for BusTypeDetailedReport
@@ -70,17 +76,21 @@ export const deleteReport = createAsyncThunk('reports/deleteReport', async (buss
     return buss_no; // Return the buss_no to update the state
 });
 
-// Create async thunk for fetching reports based on criteria
-export const fetchReportsByCriteria = createAsyncThunk<BusTypeDetailedReport[], FetchReportsParams>(
+// Create async thunk for fetching reports based on criteria  export const fetchReportsByCriteria = createAsyncThunk<BusTypeDetailedReport[], FetchReportsParams>(
+export const fetchReportsByCriteria = createAsyncThunk(
     'reports/fetchReportsByCriteria',
-    async ({ zone, businessType, fiscalYear }: FetchReportsParams) => {
+    async ({ zone = '', businessType = '', fiscalYear }: {zone: string, businessType: string, fiscalYear: string} ) => {
+        const newFiscalYear: number = parseInt(fiscalYear, 10)
 
         console.log('in fetchReportsByCriteria thunk')
+        console.log('zone: ', zone)
+        console.log('businessType: ', businessType)
+        console.log('fiscalYear: ', fiscalYear)
 
-        const response = await axios.get(`${BASE_URL}/api/bustypeDetailedReport/${zone}/${businessType}/${fiscalYear}`); // Adjust the endpoint as necessary
+        const response = await axios.get(`${BASE_URL}/api/bustypeDetailedReport/${zone}/${businessType}/${newFiscalYear}`); // Adjust the endpoint as necessary
         
         if (response.status >= 200 && response.status < 300) {
-            console.log('fetchReportsByCriteria fulfilled::: ', response.data.data);
+            console.log('fetchReportsByCriteria fulfilled::: ', response.data);
             // Ensure response.data is an array
             return Array.isArray(response.data.data) ? response.data.data : []; 
         } else {
@@ -106,34 +116,31 @@ export const fetchAllRecords = createAsyncThunk('reports/fetchAllRecords', async
 
 // Create the async thunk
 export const fetchDetailedReports = createAsyncThunk<BusTypeDetailedReport[], FetchReportsParams, { rejectValue: string }>(
- 'reports/fetchDetailedReports',
-  async ({ zone, businessType, fiscalYear }: FetchReportsParams, { rejectWithValue }) => {
+    'reports/fetchDetailedReports',
+    async ({ zone, businessType, fiscalYear }: FetchReportsParams, { rejectWithValue }) => {
+        console.log('in fetchDetailedReports thunk');
+        try {
+            const response = await axios.get(`${BASE_URL}/api/bustypeDetailedReport/${zone}/${businessType}/${fiscalYear}`);
+            
+            console.log('response.data.data XXXXXXX: ', response.data.data);
 
-  try {
-    const response = await axios.get<BusTypeDetailedReport[]>(`${BASE_URL}/api/bustypeDetailedReport/${zone}/${businessType}/${fiscalYear}`);
-
-    console.log('response: ', response)
-
-    return Array.isArray(response.data) ? response.data : []; 
-
-    // return response.data.map(report => ({
-    //     electoral_area: report.electoral_area,
-    //     buss_no: report.buss_no,
-    //     buss_name: report.buss_name,
-    //     buss_type: report.buss_type,
-    //     amountdue: report.amountdue,
-    //     amountpaid: report.amountpaid,
-    //     balance: report.balance,
-    //     tot_grade: report.tot_grade,
-    // }));
-  } catch (error) {
-    // You can customize the error handling here
-    if (axios.isAxiosError(error)) {
-        return rejectWithValue(error.message);
+            // Access the `data` property of the response
+            if (response.data.message === 'BusTypeDetailedReport fetched') {
+                return response.data.data; // Return the array of reports
+            } else {
+                // Handle unexpected message
+                console.warn('Unexpected response message: ', response.data.message);
+                return rejectWithValue('Unexpected response structure');
+            }
+        } catch (error) {
+            // Custom error handling
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue(error.message);
+            }
+            return rejectWithValue('An unexpected error occurred');
+        }
     }
-    return rejectWithValue('An unexpected error occurred');
-  }
-});
+);
 
 
    

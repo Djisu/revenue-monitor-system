@@ -46,16 +46,16 @@ var DailyPayments = function () {
     var _a = useState(''), zone = _a[0], setZone = _a[1];
     var _b = useState([]), electoralAreas = _b[0], setElectoralAreas = _b[1];
     var _c = useState(''), bussType = _c[0], setBussType = _c[1];
-    var _d = useState(''), businessType = _d[0], setBusinessType = _d[1];
-    var _e = useState(''), firstDate = _e[0], setFirstDate = _e[1];
-    var _f = useState(''), lastDate = _f[0], setLastDate = _f[1];
-    var _g = useState([]), zones = _g[0], setZones = _g[1];
-    var _h = useState([]), bussTypes = _h[0], setBussTypes = _h[1];
-    var _j = useState([]), paymentDates = _j[0], setPaymentDates = _j[1];
-    var _k = useState(''), error = _k[0], setError = _k[1];
-    var _l = useState(false), isLoading = _l[0], setIsLoading = _l[1];
-    var _m = useState([]), managementReport = _m[0], setManagementReport = _m[1];
-    var _o = useState(0), totalBalance = _o[0], setTotalBalance = _o[1];
+    //let [businessType, setBusinessType] = useState<string>('');
+    var _d = useState(''), firstDate = _d[0], setFirstDate = _d[1];
+    var _e = useState(''), lastDate = _e[0], setLastDate = _e[1];
+    //let [zones, setZones] = useState<string[]>([]);
+    var _f = useState([]), bussTypes = _f[0], setBussTypes = _f[1];
+    //let [paymentDates, setPaymentDates] = useState<string[]>([]);
+    var _g = useState(''), error = _g[0], setError = _g[1];
+    var _h = useState(false), isLoading = _h[0], setIsLoading = _h[1];
+    var _j = useState([]), managementReport = _j[0], setManagementReport = _j[1];
+    var _k = useState(0), totalBalance = _k[0], setTotalBalance = _k[1];
     var navigate = useNavigate(); // Initialize the useNavigate hook  
     var dispatch = useAppDispatch();
     // Fetch data on component mount
@@ -85,6 +85,7 @@ var DailyPayments = function () {
     // }, [dispatch]);
     var managementReportData = useAppSelector(function (state) { return state.reports.reports; });
     console.log('managementReportData:', managementReportData);
+    setManagementReport(managementReportData);
     var businessList = managementReportData.map(function (report) {
         return {
             electoral_area: report.electoral_area,
@@ -161,7 +162,7 @@ var DailyPayments = function () {
         var selectedDate = e.target.value;
         setLastDate(selectedDate);
     };
-    var handleProduceReport = function (posted) { return __awaiter(void 0, void 0, void 0, function () {
+    var handleProduceReport = function () { return __awaiter(void 0, void 0, void 0, function () {
         var response, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -196,7 +197,7 @@ var DailyPayments = function () {
     //     handleProduceReport(false);
     // };
     var handleProduceReportClick = function () {
-        handleProduceReport(true);
+        handleProduceReport();
     };
     managementReport.forEach(function (business) {
         totalBalance += business.amountdue - business.amountpaid;

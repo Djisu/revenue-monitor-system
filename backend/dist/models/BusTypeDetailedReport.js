@@ -1,2 +1,2 @@
-"use strict";
+export {};
 //# sourceMappingURL=BusTypeDetailedReport.js.map

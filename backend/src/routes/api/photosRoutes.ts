@@ -134,7 +134,7 @@ router.get('/retrieve', async (req: Request, res: Response) => {
 });
 
 // Endpoint to store a photo
-router.post('/store', upload.single('photo'), async (req: Request, res: Response) => {
+router.post('/store', upload.single('photo'), async (req: Request, res: Response): Promise<void> => {
     try {
         console.log('in /store post');
 
@@ -142,7 +142,8 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
 
         if (!officer_no || !photo || !photo_name || !photo_type) {
             console.error('Missing officer number, photo, photo_name, or photo_type');
-            return res.status(400).send('Missing officer number, photo, photo_name, or photo_type');
+            res.status(400).send('Missing officer number, photo, photo_name, or photo_type');
+            return 
         }
 
         // console.log('Officer number:', officer_no);
@@ -168,7 +169,8 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
                 console.log(`Photo updated for officer_no: ${officer_no}`);
 
                 const photoUrl = `${BASE_URL}/api/photos/retrieve/${officer_no}`;   
-                return res.status(200).json({ message: 'Photo updated successfully', photoUrl: photoUrl });
+                 res.status(200).json({ message: 'Photo updated successfully', photoUrl: photoUrl });
+                return
             }
 
             // Insert the new photo
@@ -183,10 +185,12 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
 
             console.log('Photo URL:', photoUrl);
 
-            return res.status(200).json({ message: 'Photo stored successfully', photoUrl: photoUrl });
+             res.status(200).json({ message: 'Photo stored successfully', photoUrl: photoUrl });
+            return
         } catch (err) {
             console.error('Error storing photo:', err);
-            return res.status(500).json({ error: 'Error storing photo', details: err });
+             res.status(500).json({ error: 'Error storing photo', details: err });
+            return
         } finally {
             client.release();
         }
@@ -197,13 +201,14 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
 });
 
 // Endpoint to retrieve a photo
-router.get('/retrieve/:officer_no', async (req: Request<{ officer_no: string }>, res: Response) => {
+router.get('/retrieve/:officer_no', async (req: Request<{ officer_no: string }>, res: Response): Promise<void> => {
     const { officer_no } = req.params;
 
     console.log('in router.get(/retrieve/:officer_no', officer_no);
 
     if (!officer_no) {
-        return res.status(400).json({ error: 'officer_no is required' });
+         res.status(400).json({ error: 'officer_no is required' });
+        return
     }
 
     try {
@@ -214,7 +219,8 @@ router.get('/retrieve/:officer_no', async (req: Request<{ officer_no: string }>,
             const result = await client.query(sql, [officer_no]);
 
             if (result.rows.length === 0) {
-                return res.status(404).json({ message: 'Photo not found' });
+                 res.status(404).json({ message: 'Photo not found' });
+                return
             }
 
             const photo = result.rows[0] as { photo_buffer: Buffer, photo_name: string, photo_type: string };
@@ -230,6 +236,7 @@ router.get('/retrieve/:officer_no', async (req: Request<{ officer_no: string }>,
         } catch (err) {
             console.error('Error retrieving photo:', err);
             res.status(500).json({ error: 'Error retrieving photo', details: err });
+            return
         } finally {
             client.release();
         }
@@ -239,11 +246,12 @@ router.get('/retrieve/:officer_no', async (req: Request<{ officer_no: string }>,
 });
 
 // Endpoint to delete a photo
-router.delete('/delete/:officer_no', async (req: Request<{ officer_no: string }>, res: Response) => {
+router.delete('/delete/:officer_no', async (req: Request<{ officer_no: string }>, res: Response): Promise<void> => {
     const { officer_no } = req.params;
 
     if (!officer_no) {
-        return res.status(400).json({ error: 'officer_no is required' });
+         res.status(400).json({ error: 'officer_no is required' });
+        return
     }
 
     try {
@@ -251,11 +259,14 @@ router.delete('/delete/:officer_no', async (req: Request<{ officer_no: string }>
 
         if (result.rowCount > 0) { // Ensure deletion was successful
             res.status(200).json({ message: 'Photo deleted successfully', result });
+            return
         } else {
             res.status(404).json({ error: 'Photo not found' });
+            return
         }
     } catch (err) {
         res.status(500).json({ error: 'Error deleting photo', details: err });
+        return
     }
 });
 

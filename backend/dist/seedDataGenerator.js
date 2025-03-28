@@ -79,7 +79,7 @@ export const generateBusinessData = (startNumber, count) => {
             emailaddress: `business${i}@example.com`,
             noofemployees: generateRandomNumberInRange(1, 4),
             noofbranches: generateRandomNumberInRange(1, 4),
-            BALANCENEW: 0,
+            BALANCENEW: 0, // Ensure BALANCENEW is always a number
             gps_address: generateRandomGPSAddress(),
             buss_location: generateRandomEnumValue(['Concrete Building', 'Container', 'Kiosk']),
         };

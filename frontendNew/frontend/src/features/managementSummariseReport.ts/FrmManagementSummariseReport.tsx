@@ -84,7 +84,9 @@ const DailyPayments: React.FC = () => {
     // }, [dispatch]);
 
    const managementReportData = useAppSelector((state) => state.reports.reports);
+
     console.log('managementReportData:', managementReportData);
+    setManagementReport(managementReportData)
 
     const businessList = managementReportData.map((report) => {
         return {
@@ -174,7 +176,7 @@ const DailyPayments: React.FC = () => {
         setLastDate(selectedDate);
     };
 
-    const handleProduceReport = async (posted: boolean) => {
+    const handleProduceReport = async () => {
         setIsLoading(true);
         setError('');
 
@@ -205,7 +207,7 @@ const DailyPayments: React.FC = () => {
     // };
 
     const handleProduceReportClick = () => {
-        handleProduceReport(true);
+        handleProduceReport();
     };
 
     managementReport.forEach((business) => {

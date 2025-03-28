@@ -25,7 +25,7 @@ export interface collectorElectoralArea {
 const router = express.Router();
 
 // Create a new "collectorElectoralArea"
-router.post('/create', async (req: Request<{}, {}, collectorElectoralArea>, res: Response) => {
+router.post('/create', async (req: Request<{}, {}, collectorElectoralArea>, res: Response): Promise<void> => {
     console.log('Creating a new collector electoral area...', req.body);
 
     const client: PoolClient = await pool.connect();
@@ -37,7 +37,8 @@ router.post('/create', async (req: Request<{}, {}, collectorElectoralArea>, res:
 
         // Validate input
         if (!officer_no || !electoralarea) {
-            return res.status(400).json({ message: 'Please provide both officer_no and electoralarea.' });
+             res.status(400).json({ message: 'Please provide both officer_no and electoralarea.' });
+            return
         }
 
         // Find the name of the collector based on the officer number
@@ -48,7 +49,8 @@ router.post('/create', async (req: Request<{}, {}, collectorElectoralArea>, res:
 
         // if no collector is found, return an error
         if (result1.rowCount === 0) {
-            return res.status(201).json({ message: 'Collector not found in businesses.' });
+             res.status(201).json({ message: 'Collector not found in businesses.' });
+            return
         }
         
         // Execute the database query
@@ -69,16 +71,18 @@ router.post('/create', async (req: Request<{}, {}, collectorElectoralArea>, res:
 
         // Respond with success message
         res.status(201).json({ message: 'Collector electoral area created successfully.' });
+        return
     } catch (error) {
         console.error('Error creating collector electoral area:', error);
         res.status(500).json({ message: 'An error occurred while creating the collector electoral area.' });
+        return
     } finally {
         client.release(); // Ensure the client is released back to the pool
     }
 });
 
 // GET endpoint to retrieve all collector electoral areas
-router.get('/all', async (req: Request, res: Response) => {
+router.get('/all', async (req: Request, res: Response): Promise<void> => {
     console.log('Retrieving all collector electoral areas...');
 
     const client: PoolClient = await pool.connect();
@@ -91,7 +95,8 @@ router.get('/all', async (req: Request, res: Response) => {
         );
 
         if (result.rowCount === 0) {
-            return res.status(200).json([]);
+             res.status(200).json([]);
+            return
         }
         // Respond with the retrieved data
         res.status(200).json(result.rows);
@@ -102,7 +107,7 @@ router.get('/all', async (req: Request, res: Response) => {
 });
 
 // Update a "collectorelectoralarea"
-router.put('/update/:officer_no', async (req: Request<{ officer_no: string }, {}, { electoralarea: string }>, res: Response) => {
+router.put('/update/:officer_no', async (req: Request<{ officer_no: string }, {}, { electoralarea: string }>, res: Response): Promise<void> => {
     console.log('Updating a collector electoral area...')
 
     const client: PoolClient = await pool.connect();
@@ -119,7 +124,8 @@ router.put('/update/:officer_no', async (req: Request<{ officer_no: string }, {}
 
         // Check if any rows were updated
         if (result.rowCount === 0) {
-            return res.status(404).json({ message: 'Collector electoral area not found.' });
+             res.status(404).json({ message: 'Collector electoral area not found.' });
+            return
         }
 
         // Respond with success message
@@ -131,7 +137,7 @@ router.put('/update/:officer_no', async (req: Request<{ officer_no: string }, {}
 });
 
 // Delete a "collectorElectoralArea"
-router.delete('/delete/:officer_no', async (req: Request<{ officer_no: string }>, res: Response) => {
+router.delete('/delete/:officer_no', async (req: Request<{ officer_no: string }>, res: Response): Promise<void> => {
     console.log('Deleting a collector electoral area...')
 
     const client: PoolClient = await pool.connect();
@@ -147,7 +153,8 @@ router.delete('/delete/:officer_no', async (req: Request<{ officer_no: string }>
 
         // Check if any rows were deleted
         if (result.rowCount === 0) {
-            return res.status(404).json({ message: 'Collector electoral area not found.' });
+             res.status(404).json({ message: 'Collector electoral area not found.' });
+            return
         }
 
         // Respond with success message

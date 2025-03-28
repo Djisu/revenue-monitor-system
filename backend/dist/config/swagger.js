@@ -2,7 +2,7 @@
 import swaggerJsDoc from 'swagger-jsdoc';
 const swaggerOptions = {
     swaggerDefinition: {
-        openapi: '3.0.0',
+        openapi: '3.0.0', // OpenAPI version
         info: {
             title: 'Your API Title',
             version: '1.0.0',

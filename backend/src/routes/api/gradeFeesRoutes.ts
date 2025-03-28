@@ -64,6 +64,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(200).json({ success: true, message: 'Grade Fees record created successfully', fees: gradeFeesData.fees });
+        return
     } catch (error: any) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating GradeFees record', error: error.message });

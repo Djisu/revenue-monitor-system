@@ -18,7 +18,7 @@ export async function generatePdf(data) {
     const templateJson = {
         content: [
             { text: 'Business Operating Permit', style: 'header' },
-            { text: `Serial No: ${varSerialNo}`, color: 'red' },
+            { text: `Serial No: ${varSerialNo}`, color: 'red' }, // Set the font color to red
             { text: `Account No: ${data.buss_no}` },
             { text: `Business Name: ${data.buss_name}` },
             { text: `Type: ${data.buss_type}` },

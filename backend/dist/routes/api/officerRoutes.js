@@ -134,7 +134,7 @@ router.get('/all', async (req, res) => {
             const photoBlob = photoBuffer ? new Blob([photoBuffer], { type: row.photo_type }) : null; // Convert Buffer to Blob
             return {
                 ...row,
-                photo: photoBlob,
+                photo: photoBlob, // Blob object
                 photoUrl: photoBlob ? URL.createObjectURL(photoBlob) : null // Create Blob URL
             };
         });

@@ -47,12 +47,14 @@ var BASE_URL = import.meta.env.VITE_BASE_URL ||
 // Create async thunk for fetching reports
 export var fetchBusTypeSummaryReports = createAsyncThunk('reports/fetchBusTypeSummaryReports', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
     var response;
-    var firstDate = _b.firstDate, lastDate = _b.lastDate, zone = _b.zone, bussType = _b.bussType;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/create/").concat(firstDate, "/").concat(lastDate, "/").concat(zone, "/").concat(bussType))];
+    var firstDate = _b.firstDate, lastDate = _b.lastDate, _c = _b.zone, zone = _c === void 0 ? '' : _c, // Default to empty string if not provided
+    _d = _b.bussType, // Default to empty string if not provided
+    bussType = _d === void 0 ? '' : _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/create/").concat(firstDate, "/").concat(lastDate, "/").concat(zone || '', "/").concat(bussType || ''))];
             case 1:
-                response = _c.sent();
+                response = _e.sent();
                 return [2 /*return*/, response.data]; // Assuming the response data is an array of BusTypeSummaryReport
         }
     });

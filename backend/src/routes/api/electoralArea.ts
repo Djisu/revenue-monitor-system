@@ -63,6 +63,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(201).json({ success: true, message: electoralAreaData.electoral_area });
+        return
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
@@ -74,7 +75,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Read all electoral area records
-router.get('/all', async (req: Request, res: Response) => {
+router.get('/all', async (req: Request, res: Response): Promise<void> => {
     let client = null;
     try {
         client = await pool.connect();
@@ -86,9 +87,11 @@ router.get('/all', async (req: Request, res: Response) => {
 
         console.log('Electoral Areas:', electoralAreas);
         res.status(200).json(electoralAreas); // Return the array directly
+        return
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Error fetching electoral area records', error });
+        return
     } finally {
         if (client) {
             client.release();

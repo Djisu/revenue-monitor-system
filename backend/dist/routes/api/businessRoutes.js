@@ -1,3 +1,4 @@
+import express from 'express';
 import * as dotenv from 'dotenv';
 import pkg from 'pg';
 const { Pool } = pkg;
@@ -6,9 +7,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import router from './accReceiptRoutes.js';
 import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'; //'../../utils/ensurePermitDirIsEmpty.js';
 dotenv.config(); // Load .env file from the default location
+const router = express.Router();
 // PostgreSQL connection configuration
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
@@ -126,29 +127,31 @@ router.get('/all', async (req, res) => {
 router.get('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
     console.log('in router.get(/:buss_no)', req.params); // Debugging output
-    // Check if buss_no is undefined or invalid
-    if (!buss_no) {
-        return res.status(400).json({ message: 'Business number is required' });
+    // Check if buss_no is invalid
+    if (!buss_no || isNaN(Number(buss_no))) {
+        res.status(400).json({ message: 'Valid business number is required', data: [] });
+        return;
     }
     const client = await pool.connect();
     try {
         // Debugging: Log the query being executed
         console.log('Executing query for buss_no:', buss_no);
-        let newBuss_no = parseInt(buss_no);
+        const newBuss_no = parseInt(buss_no);
         const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [newBuss_no]);
+        client.release();
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found', data: [] });
+            return;
         }
-        else {
-            res.status(200).json({ message: 'Business record found', data: result.rows[0] });
-        }
+        res.status(200).json({ message: 'Business record found', data: result.rows[0] });
+        return;
     }
     catch (error) {
         console.error('Database query error:', error);
-        res.status(500).json({ message: 'Error fetching business', data: error });
-    }
-    finally {
-        client.release(); // Ensure the client is released
+        res.status(500).json({ message: 'Error fetching business', data: error.message });
+        return;
+        // } finally {
+        //     client.release(); // Ensure the client is released
     }
 });
 // Read all electoral_areas

@@ -33,6 +33,7 @@ router.post('/create', async (req, res) => {
         // Insert the new electoral area data
         await client.query('INSERT INTO electoralarea (electoral_area) VALUES ($1)', [electoralAreaData.electoral_area]);
         res.status(201).json({ success: true, message: electoralAreaData.electoral_area });
+        return;
     }
     catch (error) {
         console.error('Error:', error);
@@ -54,10 +55,12 @@ router.get('/all', async (req, res) => {
         const electoralAreas = result.rows.map(row => ({ electoral_area: row.electoral_area }));
         console.log('Electoral Areas:', electoralAreas);
         res.status(200).json(electoralAreas); // Return the array directly
+        return;
     }
     catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Error fetching electoral area records', error });
+        return;
     }
     finally {
         if (client) {

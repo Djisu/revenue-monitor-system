@@ -89,19 +89,23 @@ export var deleteReport = createAsyncThunk('reports/deleteReport', function (bus
         }
     });
 }); });
-// Create async thunk for fetching reports based on criteria
+// Create async thunk for fetching reports based on criteria  export const fetchReportsByCriteria = createAsyncThunk<BusTypeDetailedReport[], FetchReportsParams>(
 export var fetchReportsByCriteria = createAsyncThunk('reports/fetchReportsByCriteria', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
-    var response;
-    var zone = _b.zone, businessType = _b.businessType, fiscalYear = _b.fiscalYear;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var newFiscalYear, response;
+    var _c = _b.zone, zone = _c === void 0 ? '' : _c, _d = _b.businessType, businessType = _d === void 0 ? '' : _d, fiscalYear = _b.fiscalYear;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
+                newFiscalYear = parseInt(fiscalYear, 10);
                 console.log('in fetchReportsByCriteria thunk');
-                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/bustypeDetailedReport/").concat(zone, "/").concat(businessType, "/").concat(fiscalYear))];
+                console.log('zone: ', zone);
+                console.log('businessType: ', businessType);
+                console.log('fiscalYear: ', fiscalYear);
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/bustypeDetailedReport/").concat(zone, "/").concat(businessType, "/").concat(newFiscalYear))];
             case 1:
-                response = _c.sent();
+                response = _e.sent();
                 if (response.status >= 200 && response.status < 300) {
-                    console.log('fetchReportsByCriteria fulfilled::: ', response.data.data);
+                    console.log('fetchReportsByCriteria fulfilled::: ', response.data);
                     // Ensure response.data is an array
                     return [2 /*return*/, Array.isArray(response.data.data) ? response.data.data : []];
                 }
@@ -143,20 +147,32 @@ export var fetchDetailedReports = createAsyncThunk('reports/fetchDetailedReports
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/bustypeDetailedReport/").concat(zone, "/").concat(businessType, "/").concat(fiscalYear))];
+                console.log('in fetchDetailedReports thunk');
+                _e.label = 1;
             case 1:
-                response = _e.sent();
-                console.log('response: ', response);
-                return [2 /*return*/, Array.isArray(response.data) ? response.data : []];
+                _e.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/bustypeDetailedReport/").concat(zone, "/").concat(businessType, "/").concat(fiscalYear))];
             case 2:
+                response = _e.sent();
+                console.log('response.data.data XXXXXXX: ', response.data.data);
+                // Access the `data` property of the response
+                if (response.data.message === 'BusTypeDetailedReport fetched') {
+                    return [2 /*return*/, response.data.data]; // Return the array of reports
+                }
+                else {
+                    // Handle unexpected message
+                    console.warn('Unexpected response message: ', response.data.message);
+                    return [2 /*return*/, rejectWithValue('Unexpected response structure')];
+                }
+                return [3 /*break*/, 4];
+            case 3:
                 error_1 = _e.sent();
-                // You can customize the error handling here
+                // Custom error handling
                 if (axios.isAxiosError(error_1)) {
                     return [2 /*return*/, rejectWithValue(error_1.message)];
                 }
                 return [2 /*return*/, rejectWithValue('An unexpected error occurred')];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });

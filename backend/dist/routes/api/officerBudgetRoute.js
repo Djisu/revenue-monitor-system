@@ -28,13 +28,16 @@ router.get('/all', async (req, res) => {
     try {
         const result = await client.query(`SELECT * FROM officerbudget`);
         if (result.rows.length === 0) {
-            return res.status(200).json([]);
+            res.status(200).json([]);
+            return;
         }
         res.status(200).json(result.rows);
+        return;
     }
     catch (error) {
         console.error(error);
         res.status(500).send('Error fetching officer budgets');
+        return;
     }
     finally {
         client.release();
@@ -47,15 +50,18 @@ router.get('/officerbudget/:officer_no/:fiscal_year/:electoral_area', async (req
         const result = await client.query(`SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2 AND electoral_area = $3`, [officer_no, fiscal_year, electoral_area]);
         // Check if there are any rows returned
         if (result.rows.length > 0) {
-            return res.status(200).json({ exists: true, data: result.rows });
+            res.status(200).json({ exists: true, data: result.rows });
+            return;
         }
         else {
-            return res.status(200).json({ exists: false });
+            res.status(200).json({ exists: false });
+            return;
         }
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ exists: false, message: 'Error fetching officer budget' });
+        res.status(500).json({ exists: false, message: 'Error fetching officer budget' });
+        return;
     }
 });
 router.get('/:officer_no/:fiscal_year', async (req, res) => {
@@ -67,15 +73,18 @@ router.get('/:officer_no/:fiscal_year', async (req, res) => {
         const result = await client.query(`SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2`, [officer_no, fiscal_year]);
         // Check if there are any rows returned
         if (result.rows.length > 0) {
-            return res.status(200).json({ exists: true, data: result.rows });
+            res.status(200).json({ exists: true, data: result.rows });
+            return;
         }
         else {
-            return res.status(200).json({ exists: false });
+            res.status(200).json({ exists: false });
+            return;
         }
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ exists: false, message: 'Error fetching officer budget' });
+        res.status(500).json({ exists: false, message: 'Error fetching officer budget' });
+        return;
     }
 });
 // Function to populate electoral areas based on officer number
@@ -126,11 +135,12 @@ router.post('/addBudget', async (req, res) => {
         console.log('checkResult:', checkResult.rows);
         if (checkResult.rows.length > 0) {
             console.log('officerbudget record still exists, deletion not successful');
-            return res.status(400).json({
+            res.status(400).json({
                 status: 'fail',
                 message: 'officerbudget record still exists, deletion not successful',
                 data: {}
             });
+            return;
         }
         // Find officer name from officer_no
         const officerName = await client.query(`
@@ -138,11 +148,12 @@ router.post('/addBudget', async (req, res) => {
             WHERE officer_no = $1`, [officer_no]);
         if (officerName.rows.length === 0) {
             console.log('Officer not found');
-            return res.status(400).json({
+            res.status(400).json({
                 status: 'fail',
                 message: 'Officer not found',
                 data: {}
             });
+            return;
         }
         console.log('officerName.rows[0].officer_name:', officerName.rows[0].officer_name);
         // Find Annual Budget
@@ -150,11 +161,12 @@ router.post('/addBudget', async (req, res) => {
             SELECT SUM(current_rate) AS totsum FROM business 
             WHERE assessmentby = $1`, [officerName.rows[0].officer_name]);
         if (annual_budget.rows[0].length === 0) {
-            return res.status(400).json({
+            res.status(400).json({
                 status: 'fail',
                 message: 'Annual budget not found for officer ' + officerName.rows[0].officer_name,
                 data: {}
             });
+            return;
         }
         console.log('annual_budget.rows[0].totsum:', annual_budget.rows[0].totsum);
         // Find Monthly Budget
@@ -227,11 +239,12 @@ router.post('/addBudget', async (req, res) => {
         console.log('officerExists.rows:', officerExists.rows);
         if (officerExists.rows.length === 0) {
             console.log('Officer budget not found');
-            return res.status(400).json({
+            res.status(400).json({
                 status: 'fail',
                 message: 'Officer budget not found',
                 data: {}
             });
+            return;
         }
         console.log('INSERT INTO officerbudget successful');
         console.log('about to call updateOfficerBudget');
@@ -252,11 +265,12 @@ router.post('/addBudget', async (req, res) => {
         console.log('budget.length === 0:', budget.length === 0);
         if (budget.length === 0) {
             console.log('No budget found for officer_no: ', officerName.rows[0].officer_name, 'in fiscal year: ', fiscal_year);
-            return res.status(400).json({
+            res.status(400).json({
                 status: 'fail',
                 message: 'No budget found for officerName.rows[0].officer_name: ' + officerName.rows[0].officer_name + 'in fiscal year: ' + fiscal_year,
                 data: {}
             });
+            return;
         }
         else if (budget.length > 1) {
             console.error('Multiple budget records found for officerName.rows[0].officer_name: ', officerName.rows[0].officer_name, 'in fiscal year: ', fiscal_year);
@@ -281,6 +295,7 @@ router.post('/addBudget', async (req, res) => {
                 message: 'Payments not found his businesses',
                 data: {}
             });
+            return;
         }
         console.log('payments found:');
         let totActuals = 0;
@@ -361,10 +376,12 @@ router.post('/addBudget', async (req, res) => {
             message: 'Budget record added successfully',
             data: { /* your data here */}
         });
+        return;
     }
     catch (error) {
         console.error(error);
         res.status(500).send('Error adding budget record');
+        return;
     }
     finally {
         client.release();
