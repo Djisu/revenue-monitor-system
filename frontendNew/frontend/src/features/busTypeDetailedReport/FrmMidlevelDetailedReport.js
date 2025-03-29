@@ -204,6 +204,9 @@ var FrmMidlevelDetailedReport = function () {
     //     totalBalance += business.amountdue - business.amountpaid;
     //   });
     //   console.log('totalBalance: ', totalBalance)
+    var grandTotalAmountDue = 0; // Initialize grand total amount due
+    var grandTotalAmountPaid = 0; // Initialize grand total amount paid
+    var grandTotalBalance = 0; // Initialize grand total balance
     var groupedData = busDetailedReport.reduce(function (acc, busDetailedReport) {
         var area = busDetailedReport.electoral_area;
         if (!area) {
@@ -218,14 +221,19 @@ var FrmMidlevelDetailedReport = function () {
                 businesses: []
             };
         }
-        // Ensure that amountdue and amountpaid are treated as numbers
-        var amountDue = busDetailedReport.amountdue || 0;
-        var amountPaid = busDetailedReport.amountpaid || 0;
+        // Get raw values
+        var rawAmountDue = busDetailedReport.amountdue;
+        var rawAmountPaid = busDetailedReport.amountpaid;
+        var amountDue = typeof rawAmountDue === 'number' ? rawAmountDue : parseFloat(rawAmountDue) || 0;
+        var amountPaid = typeof rawAmountPaid === 'number' ? rawAmountPaid : parseFloat(rawAmountPaid) || 0;
         // Update totals
         acc[area].totalAmountDue += amountDue;
         acc[area].totalAmountPaid += amountPaid;
         acc[area].totalBalance = acc[area].totalAmountDue - acc[area].totalAmountPaid;
-        // Push the business details to the corresponding area
+        // Add to grand totals
+        grandTotalAmountDue += acc[area].totalAmountDue;
+        grandTotalAmountPaid += acc[area].totalAmountPaid;
+        grandTotalBalance += acc[area].totalBalance;
         acc[area].businesses.push({
             electroral_area: area,
             buss_no: busDetailedReport.buss_no,
@@ -238,9 +246,15 @@ var FrmMidlevelDetailedReport = function () {
     }, {});
     var summarizedList = Object.values(groupedData);
     console.log('summarizedList: ', summarizedList);
-    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs("div", { children: [_jsxs(Form, { children: [_jsx("p", { className: "text-center mb-4", children: "Mid Level Detailed Report" }), _jsxs(Form.Group, { controlId: "formZone", children: [_jsx(Form.Label, { children: "Electoral Area:" }), _jsxs(Form.Select, { value: zone, onChange: handleZoneChange, children: [_jsx("option", { value: "All electoral areas", children: "All electoral areas" }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }), _jsxs(Form.Group, { controlId: "formBussType", children: [_jsx(Form.Label, { children: "Business Type/Profession:" }), _jsxs(Form.Select, { value: businessType, onChange: handleBusinessTypeChange, children: [_jsx("option", { value: "", children: "Select business types/professions" }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }), _jsxs(Form.Group, { controlId: "formFiscalYear", children: [_jsx(Form.Label, { children: "Current Fiscal Year:" }), _jsx(Form.Control, { type: "text", value: fiscalYear, onChange: handleLastDateChange, readOnly: true })] }), _jsxs("div", { children: [_jsx(Button, { variant: "primary", onClick: handleViewClick, style: { marginTop: '10px' }, children: "Produce Report" }), _jsx(Button, { variant: "secondary", onClick: function () { return navigate("/main"); }, style: { marginLeft: '40px', marginTop: '10px' }, children: "Go Back" })] }), loading && (_jsx("div", { className: "text-center mt-3", children: _jsx(Spinner, { animation: "border", role: "status", children: _jsx("span", { className: "visually-hidden", children: "Loading..." }) }) }))] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Electoral Area" }), _jsx("th", { children: "Business Name" }), _jsx("th", { children: "Business Type/Profession" }), _jsx("th", { children: "Amount Due" }), _jsx("th", { children: "Amount Paid" }), _jsx("th", { children: "Balance" })] }) }), _jsx("tbody", { children: summarizedList.map(function (area, index) {
-                                    var _a, _b;
-                                    return (_jsxs(React.Fragment, { children: [_jsxs("tr", { children: [_jsx("td", { rowSpan: area.businesses.length || 1, children: area.electoral_area || 'N/A' }), _jsx("td", { children: ((_a = area.businesses[0]) === null || _a === void 0 ? void 0 : _a.buss_name) || 'N/A' }), _jsx("td", { children: ((_b = area.businesses[0]) === null || _b === void 0 ? void 0 : _b.buss_type) || 'N/A' }), _jsx("td", { children: isNaN(area.totalAmountDue) ? '0.00' : area.totalAmountDue.toFixed(2) }), _jsx("td", { children: isNaN(area.totalAmountPaid) ? '0.00' : area.totalAmountPaid.toFixed(2) }), _jsx("td", { children: isNaN(area.totalBalance) ? '0.00' : area.totalBalance.toFixed(2) })] }), area.businesses.slice(1).map(function (business) { return (_jsxs("tr", { children: [_jsx("td", { children: business.buss_name }), _jsx("td", { children: business.buss_type }), _jsx("td", { children: business.amountdue || '0.00' }), _jsx("td", { children: business.amountpaid || '0.00' }), _jsx("td", { children: (business.amountdue - business.amountpaid) || '0.00' })] }, business.buss_no)); })] }, index));
-                                }) })] })] })] }));
+    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs("div", { children: [_jsxs(Form, { children: [_jsx("p", { className: "text-center mb-4", children: "Mid Level Detailed Report" }), _jsxs(Form.Group, { controlId: "formZone", children: [_jsx(Form.Label, { children: "Electoral Area:" }), _jsxs(Form.Select, { value: zone, onChange: handleZoneChange, children: [_jsx("option", { value: "All electoral areas", children: "All electoral areas" }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }), _jsxs(Form.Group, { controlId: "formBussType", children: [_jsx(Form.Label, { children: "Business Type/Profession:" }), _jsxs(Form.Select, { value: businessType, onChange: handleBusinessTypeChange, children: [_jsx("option", { value: "", children: "Select business types/professions" }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }), _jsxs(Form.Group, { controlId: "formFiscalYear", children: [_jsx(Form.Label, { children: "Current Fiscal Year:" }), _jsx(Form.Control, { type: "text", value: fiscalYear, onChange: handleLastDateChange, readOnly: true })] }), _jsxs("div", { children: [_jsx(Button, { variant: "primary", onClick: handleViewClick, style: { marginTop: '10px' }, children: "Produce Report" }), _jsx(Button, { variant: "secondary", onClick: function () { return navigate("/main"); }, style: { marginLeft: '40px', marginTop: '10px' }, children: "Go Back" })] }), loading && (_jsx("div", { className: "text-center mt-3", children: _jsx(Spinner, { animation: "border", role: "status", children: _jsx("span", { className: "visually-hidden", children: "Loading..." }) }) }))] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Electoral Area" }), _jsx("th", { children: "Business Name" }), _jsx("th", { children: "Business Type/Profession" }), _jsx("th", { children: "Amount Due" }), _jsx("th", { children: "Amount Paid" }), _jsx("th", { children: "Balance" })] }) }), _jsxs("tbody", { children: [summarizedList.map(function (area, index) {
+                                        var _a, _b;
+                                        var isFirstBusiness = index === 0 || area.electoral_area !== summarizedList[index - 1].electoral_area;
+                                        if (isFirstBusiness) {
+                                            return (_jsxs(React.Fragment, { children: [_jsxs("tr", { children: [_jsx("td", { rowSpan: area.businesses.length + 1, children: area.electoral_area || 'N/A' }), _jsx("td", { children: ((_a = area.businesses[0]) === null || _a === void 0 ? void 0 : _a.buss_name) || 'N/A' }), _jsx("td", { children: ((_b = area.businesses[0]) === null || _b === void 0 ? void 0 : _b.buss_type) || 'N/A' }), _jsx("td", { children: isNaN(area.totalAmountDue) ? '0.00' : area.totalAmountDue.toFixed(2) }), _jsx("td", { children: isNaN(area.totalAmountPaid) ? '0.00' : area.totalAmountPaid.toFixed(2) }), _jsx("td", { children: isNaN(area.totalBalance) ? '0.00' : area.totalBalance.toFixed(2) })] }), area.businesses.slice(1).map(function (business) { return (_jsxs("tr", { children: [_jsx("td", { children: business.buss_name || 'N/A' }), _jsx("td", { children: business.buss_type || 'N/A' }), _jsx("td", { children: isNaN(business.amountdue) ? '0.00' : business.amountdue.toFixed(2) }), _jsx("td", { children: isNaN(business.amountpaid) ? '0.00' : business.amountpaid.toFixed(2) }), _jsx("td", { children: isNaN(business.amountdue - business.amountpaid) ? '0.00' : (business.amountdue - business.amountpaid).toFixed(2) })] }, business.buss_no)); }), _jsxs("tr", { style: { fontWeight: 'bold' }, children: [_jsxs("td", { colSpan: 3, children: ["Total for ", area.electoral_area] }), _jsx("td", { children: isNaN(area.totalAmountDue) ? '0.00' : area.totalAmountDue.toFixed(2) }), _jsx("td", { children: isNaN(area.totalAmountPaid) ? '0.00' : area.totalAmountPaid.toFixed(2) }), _jsx("td", { children: isNaN(area.totalBalance) ? '0.00' : area.totalBalance.toFixed(2) })] })] }, index));
+                                        }
+                                        else {
+                                            return null; // Skip rendering if not the first business
+                                        }
+                                    }), _jsxs("tr", { style: { fontWeight: 'bold', backgroundColor: '#f0f0f0' }, children: [_jsx("td", { colSpan: 3, children: "Grand Total" }), _jsx("td", { children: isNaN(grandTotalAmountDue) ? '0.00' : grandTotalAmountDue.toFixed(2) }), _jsx("td", { children: isNaN(grandTotalAmountPaid) ? '0.00' : grandTotalAmountPaid.toFixed(2) }), _jsx("td", { children: isNaN(grandTotalBalance) ? '0.00' : grandTotalBalance.toFixed(2) })] })] })] })] })] }));
 };
 export default FrmMidlevelDetailedReport;

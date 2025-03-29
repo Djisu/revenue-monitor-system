@@ -225,43 +225,54 @@ const FrmMidlevelDetailedReport: React.FC = () => {
 
 //   console.log('totalBalance: ', totalBalance)
 
+let grandTotalAmountDue = 0; // Initialize grand total amount due
+let grandTotalAmountPaid = 0; // Initialize grand total amount paid
+let grandTotalBalance = 0; // Initialize grand total balance
+
 const groupedData = busDetailedReport.reduce<Record<string, SummarizedArea>>((acc, busDetailedReport) => {
-  const area = busDetailedReport.electoral_area;
+    const area = busDetailedReport.electoral_area;
 
-  if (!area) {
-      return acc; // Skip if no electoral area
-  }
+    if (!area) {
+        return acc; // Skip if no electoral area
+    }
 
-  if (!acc[area]) {
-      acc[area] = {
-          electoral_area: area,
-          totalAmountDue: 0,
-          totalAmountPaid: 0,
-          totalBalance: 0,
-          businesses: []
-      };
-  }
+    if (!acc[area]) {
+        acc[area] = {
+            electoral_area: area,
+            totalAmountDue: 0,
+            totalAmountPaid: 0,
+            totalBalance: 0,
+            businesses: []
+        };
+    }
 
-  // Ensure that amountdue and amountpaid are treated as numbers
-  const amountDue = busDetailedReport.amountdue || 0; 
-  const amountPaid = busDetailedReport.amountpaid || 0;   
+    // Get raw values
+    const rawAmountDue = busDetailedReport.amountdue;
+    const rawAmountPaid = busDetailedReport.amountpaid;
 
-  // Update totals
-  acc[area].totalAmountDue += amountDue;
-  acc[area].totalAmountPaid += amountPaid;
-  acc[area].totalBalance = acc[area].totalAmountDue - acc[area].totalAmountPaid;
+    const amountDue = typeof rawAmountDue === 'number' ? rawAmountDue : parseFloat(rawAmountDue) || 0; 
+    const amountPaid = typeof rawAmountPaid === 'number' ? rawAmountPaid : parseFloat(rawAmountPaid) || 0;   
 
-  // Push the business details to the corresponding area
-  acc[area].businesses.push({
-      electroral_area: area,
-      buss_no: busDetailedReport.buss_no,
-      buss_name: busDetailedReport.buss_name,
-      buss_type: busDetailedReport.buss_type,
-      amountdue: amountDue,
-      amountpaid: amountPaid
-  });
+    // Update totals
+    acc[area].totalAmountDue += amountDue;
+    acc[area].totalAmountPaid += amountPaid;
+    acc[area].totalBalance = acc[area].totalAmountDue - acc[area].totalAmountPaid;
 
-  return acc;
+    // Add to grand totals
+    grandTotalAmountDue += acc[area].totalAmountDue;
+    grandTotalAmountPaid += acc[area].totalAmountPaid;
+    grandTotalBalance += acc[area].totalBalance;
+
+    acc[area].businesses.push({
+        electroral_area: area,
+        buss_no: busDetailedReport.buss_no,
+        buss_name: busDetailedReport.buss_name,
+        buss_type: busDetailedReport.buss_type,
+        amountdue: amountDue,
+        amountpaid: amountPaid
+    });
+
+    return acc;
 }, {});
 
 const summarizedList: SummarizedArea[] = Object.values(groupedData);
@@ -336,27 +347,48 @@ console.log('summarizedList: ', summarizedList);
           </tr>
         </thead>
         <tbody>
-            {summarizedList.map((area, index) => (
-                <React.Fragment key={index}>
-                    <tr>
-                        <td rowSpan={area.businesses.length || 1}>{area.electoral_area || 'N/A'}</td>
-                        <td>{area.businesses[0]?.buss_name || 'N/A'}</td>
-                        <td>{area.businesses[0]?.buss_type || 'N/A'}</td>
-                        <td>{isNaN(area.totalAmountDue) ? '0.00' : area.totalAmountDue.toFixed(2)}</td>
-                        <td>{isNaN(area.totalAmountPaid) ? '0.00' : area.totalAmountPaid.toFixed(2)}</td>
-                        <td>{isNaN(area.totalBalance) ? '0.00' : area.totalBalance.toFixed(2)}</td>
-                    </tr>
-                    {area.businesses.slice(1).map((business) => (
-                        <tr key={business.buss_no}>
-                            <td>{business.buss_name}</td>
-                            <td>{business.buss_type}</td>
-                            <td>{business.amountdue || '0.00'}</td>
-                            <td>{business.amountpaid || '0.00'}</td>
-                            <td>{(business.amountdue - business.amountpaid) || '0.00'}</td>
-                        </tr>
-                    ))}
-                </React.Fragment>
-            ))}
+            {summarizedList.map((area, index) => {
+                const isFirstBusiness = index === 0 || area.electoral_area !== summarizedList[index - 1].electoral_area;
+
+                if (isFirstBusiness) {
+                    return (
+                        <React.Fragment key={index}>
+                            <tr>
+                                <td rowSpan={area.businesses.length + 1}>{area.electoral_area || 'N/A'}</td>
+                                <td>{area.businesses[0]?.buss_name || 'N/A'}</td>
+                                <td>{area.businesses[0]?.buss_type || 'N/A'}</td>
+                                <td>{isNaN(area.totalAmountDue) ? '0.00' : area.totalAmountDue.toFixed(2)}</td>
+                                <td>{isNaN(area.totalAmountPaid) ? '0.00' : area.totalAmountPaid.toFixed(2)}</td>
+                                <td>{isNaN(area.totalBalance) ? '0.00' : area.totalBalance.toFixed(2)}</td>
+                            </tr>
+                            {area.businesses.slice(1).map((business) => (
+                                <tr key={business.buss_no}>
+                                    <td>{business.buss_name || 'N/A'}</td>
+                                    <td>{business.buss_type || 'N/A'}</td>
+                                    <td>{isNaN(business.amountdue) ? '0.00' : business.amountdue.toFixed(2)}</td>
+                                    <td>{isNaN(business.amountpaid) ? '0.00' : business.amountpaid.toFixed(2)}</td>
+                                    <td>{isNaN(business.amountdue - business.amountpaid) ? '0.00' : (business.amountdue - business.amountpaid).toFixed(2)}</td>
+                                </tr>
+                            ))}
+                            <tr style={{ fontWeight: 'bold' }}>
+                                <td colSpan={3}>Total for {area.electoral_area}</td>
+                                <td>{isNaN(area.totalAmountDue) ? '0.00' : area.totalAmountDue.toFixed(2)}</td>
+                                <td>{isNaN(area.totalAmountPaid) ? '0.00' : area.totalAmountPaid.toFixed(2)}</td>
+                                <td>{isNaN(area.totalBalance) ? '0.00' : area.totalBalance.toFixed(2)}</td>
+                            </tr>
+                        </React.Fragment>
+                    );
+                } else {
+                    return null; // Skip rendering if not the first business
+                }
+            })}
+            {/* Render Grand Total Row */}
+            <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
+                <td colSpan={3}>Grand Total</td>
+                <td>{isNaN(grandTotalAmountDue) ? '0.00' : grandTotalAmountDue.toFixed(2)}</td>
+                <td>{isNaN(grandTotalAmountPaid) ? '0.00' : grandTotalAmountPaid.toFixed(2)}</td>
+                <td>{isNaN(grandTotalBalance) ? '0.00' : grandTotalBalance.toFixed(2)}</td>
+            </tr>
         </tbody>
        </Table>
       </div>      
