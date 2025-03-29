@@ -204,9 +204,9 @@ var FrmMidlevelDetailedReport = function () {
     //     totalBalance += business.amountdue - business.amountpaid;
     //   });
     //   console.log('totalBalance: ', totalBalance)
-    var grandTotalAmountDue = 0; // Initialize grand total amount due
-    var grandTotalAmountPaid = 0; // Initialize grand total amount paid
-    var grandTotalBalance = 0; // Initialize grand total balance
+    var grandTotalAmountDue = 0;
+    var grandTotalAmountPaid = 0;
+    var grandTotalBalance = 0;
     var groupedData = busDetailedReport.reduce(function (acc, busDetailedReport) {
         var area = busDetailedReport.electoral_area;
         if (!area) {
@@ -221,19 +221,18 @@ var FrmMidlevelDetailedReport = function () {
                 businesses: []
             };
         }
-        // Get raw values
         var rawAmountDue = busDetailedReport.amountdue;
         var rawAmountPaid = busDetailedReport.amountpaid;
         var amountDue = typeof rawAmountDue === 'number' ? rawAmountDue : parseFloat(rawAmountDue) || 0;
         var amountPaid = typeof rawAmountPaid === 'number' ? rawAmountPaid : parseFloat(rawAmountPaid) || 0;
-        // Update totals
+        // Update area totals
         acc[area].totalAmountDue += amountDue;
         acc[area].totalAmountPaid += amountPaid;
         acc[area].totalBalance = acc[area].totalAmountDue - acc[area].totalAmountPaid;
         // Add to grand totals
-        grandTotalAmountDue += acc[area].totalAmountDue;
-        grandTotalAmountPaid += acc[area].totalAmountPaid;
-        grandTotalBalance += acc[area].totalBalance;
+        grandTotalAmountDue += amountDue;
+        grandTotalAmountPaid += amountPaid;
+        grandTotalBalance = grandTotalAmountDue - grandTotalAmountPaid; // Correctly calculate grand total balance
         acc[area].businesses.push({
             electroral_area: area,
             buss_no: busDetailedReport.buss_no,
@@ -253,7 +252,7 @@ var FrmMidlevelDetailedReport = function () {
                                             return (_jsxs(React.Fragment, { children: [_jsxs("tr", { children: [_jsx("td", { rowSpan: area.businesses.length + 1, children: area.electoral_area || 'N/A' }), _jsx("td", { children: ((_a = area.businesses[0]) === null || _a === void 0 ? void 0 : _a.buss_name) || 'N/A' }), _jsx("td", { children: ((_b = area.businesses[0]) === null || _b === void 0 ? void 0 : _b.buss_type) || 'N/A' }), _jsx("td", { children: isNaN(area.totalAmountDue) ? '0.00' : area.totalAmountDue.toFixed(2) }), _jsx("td", { children: isNaN(area.totalAmountPaid) ? '0.00' : area.totalAmountPaid.toFixed(2) }), _jsx("td", { children: isNaN(area.totalBalance) ? '0.00' : area.totalBalance.toFixed(2) })] }), area.businesses.slice(1).map(function (business) { return (_jsxs("tr", { children: [_jsx("td", { children: business.buss_name || 'N/A' }), _jsx("td", { children: business.buss_type || 'N/A' }), _jsx("td", { children: isNaN(business.amountdue) ? '0.00' : business.amountdue.toFixed(2) }), _jsx("td", { children: isNaN(business.amountpaid) ? '0.00' : business.amountpaid.toFixed(2) }), _jsx("td", { children: isNaN(business.amountdue - business.amountpaid) ? '0.00' : (business.amountdue - business.amountpaid).toFixed(2) })] }, business.buss_no)); }), _jsxs("tr", { style: { fontWeight: 'bold' }, children: [_jsxs("td", { colSpan: 3, children: ["Total for ", area.electoral_area] }), _jsx("td", { children: isNaN(area.totalAmountDue) ? '0.00' : area.totalAmountDue.toFixed(2) }), _jsx("td", { children: isNaN(area.totalAmountPaid) ? '0.00' : area.totalAmountPaid.toFixed(2) }), _jsx("td", { children: isNaN(area.totalBalance) ? '0.00' : area.totalBalance.toFixed(2) })] })] }, index));
                                         }
                                         else {
-                                            return null; // Skip rendering if not the first business
+                                            return null;
                                         }
                                     }), _jsxs("tr", { style: { fontWeight: 'bold', backgroundColor: '#f0f0f0' }, children: [_jsx("td", { colSpan: 3, children: "Grand Total" }), _jsx("td", { children: isNaN(grandTotalAmountDue) ? '0.00' : grandTotalAmountDue.toFixed(2) }), _jsx("td", { children: isNaN(grandTotalAmountPaid) ? '0.00' : grandTotalAmountPaid.toFixed(2) }), _jsx("td", { children: isNaN(grandTotalBalance) ? '0.00' : grandTotalBalance.toFixed(2) })] })] })] })] })] }));
 };

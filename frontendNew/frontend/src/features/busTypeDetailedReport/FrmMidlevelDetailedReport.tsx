@@ -225,9 +225,9 @@ const FrmMidlevelDetailedReport: React.FC = () => {
 
 //   console.log('totalBalance: ', totalBalance)
 
-let grandTotalAmountDue = 0; // Initialize grand total amount due
-let grandTotalAmountPaid = 0; // Initialize grand total amount paid
-let grandTotalBalance = 0; // Initialize grand total balance
+let grandTotalAmountDue = 0; 
+let grandTotalAmountPaid = 0; 
+let grandTotalBalance = 0;
 
 const groupedData = busDetailedReport.reduce<Record<string, SummarizedArea>>((acc, busDetailedReport) => {
     const area = busDetailedReport.electoral_area;
@@ -246,22 +246,21 @@ const groupedData = busDetailedReport.reduce<Record<string, SummarizedArea>>((ac
         };
     }
 
-    // Get raw values
     const rawAmountDue = busDetailedReport.amountdue;
     const rawAmountPaid = busDetailedReport.amountpaid;
 
-    const amountDue = typeof rawAmountDue === 'number' ? rawAmountDue : parseFloat(rawAmountDue) || 0; 
-    const amountPaid = typeof rawAmountPaid === 'number' ? rawAmountPaid : parseFloat(rawAmountPaid) || 0;   
+    const amountDue = typeof rawAmountDue === 'number' ? rawAmountDue : parseFloat(rawAmountDue) || 0;
+    const amountPaid = typeof rawAmountPaid === 'number' ? rawAmountPaid : parseFloat(rawAmountPaid) || 0;
 
-    // Update totals
+    // Update area totals
     acc[area].totalAmountDue += amountDue;
     acc[area].totalAmountPaid += amountPaid;
     acc[area].totalBalance = acc[area].totalAmountDue - acc[area].totalAmountPaid;
 
     // Add to grand totals
-    grandTotalAmountDue += acc[area].totalAmountDue;
-    grandTotalAmountPaid += acc[area].totalAmountPaid;
-    grandTotalBalance += acc[area].totalBalance;
+    grandTotalAmountDue += amountDue;
+    grandTotalAmountPaid += amountPaid;
+    grandTotalBalance = grandTotalAmountDue - grandTotalAmountPaid; // Correctly calculate grand total balance
 
     acc[area].businesses.push({
         electroral_area: area,
@@ -379,15 +378,15 @@ console.log('summarizedList: ', summarizedList);
                         </React.Fragment>
                     );
                 } else {
-                    return null; // Skip rendering if not the first business
+                    return null;
                 }
             })}
             {/* Render Grand Total Row */}
             <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
-                <td colSpan={3}>Grand Total</td>
-                <td>{isNaN(grandTotalAmountDue) ? '0.00' : grandTotalAmountDue.toFixed(2)}</td>
-                <td>{isNaN(grandTotalAmountPaid) ? '0.00' : grandTotalAmountPaid.toFixed(2)}</td>
-                <td>{isNaN(grandTotalBalance) ? '0.00' : grandTotalBalance.toFixed(2)}</td>
+              <td colSpan={3}>Grand Total</td>
+              <td>{isNaN(grandTotalAmountDue) ? '0.00' : grandTotalAmountDue.toFixed(2)}</td>
+              <td>{isNaN(grandTotalAmountPaid) ? '0.00' : grandTotalAmountPaid.toFixed(2)}</td>
+              <td>{isNaN(grandTotalBalance) ? '0.00' : grandTotalBalance.toFixed(2)}</td>
             </tr>
         </tbody>
        </Table>
