@@ -68,9 +68,9 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
             localStorage.setItem('user', JSON.stringify(response.data.user));
 
             console.log(response.data.user.firstname +  ' ' + response.data.user.lastname)
-            localStorage.setItem('operatorId', JSON.stringify(response.data.user.firstname +  ' ' + response.data.user.lastname));
+            localStorage.setItem('operatorId', JSON.stringify(response.data.user.operatorid));
 
-            //console.log('User:', response.data.user);
+            console.log('userId:', response.data.user.operatorid);
 
             // Assuming existingPermissions is an array
             const permissions = response.data.user.existingPermissions; 

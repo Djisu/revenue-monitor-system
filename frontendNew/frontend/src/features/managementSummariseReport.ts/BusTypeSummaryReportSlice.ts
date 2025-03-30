@@ -42,14 +42,22 @@ export const fetchBusTypeSummaryReports = createAsyncThunk(
         bussType?: string; // Mark as optional
     }) => {
 
-        const user = localStorage.getItem('user');
+        const user = localStorage.getItem('operatorId');
 
+        if (!user) {
+            console.warn('User not logged in');
+            return [];
+        }
+
+        console.log('user: ', user)
 
         const response = await axios.get(`${BASE_URL}/api/bustypeSummaryReport/create/${firstDate}/${lastDate}/${zone}/${bussType}/${user}`);
         console.log('response.data.data XXXXXXX: ', response.data.data);
 
-        // Access the `data` property of the response
-        if (response.data.message === 'BusTypeDetailedReport fetched') {
+        // Access the `data` property of the response BusTypeSummaryReport fetched
+        console.log('response.data.message: ', response.data.message)
+
+        if (response.data.message === 'BusTypeSummaryReport fetched') {
             return response.data.data; // Return the array of reports
         } else {
             // Handle unexpected message

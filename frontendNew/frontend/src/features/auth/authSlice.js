@@ -70,7 +70,8 @@ export var loginUser = createAsyncThunk('auth/loginUser', function (credentials_
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 console.log(response.data.user.firstname + ' ' + response.data.user.lastname);
-                localStorage.setItem('operatorId', JSON.stringify(response.data.user.firstname + ' ' + response.data.user.lastname));
+                localStorage.setItem('operatorId', JSON.stringify(response.data.user.operatorid));
+                console.log('userId:', response.data.user.operatorid);
                 permissions = response.data.user.existingPermissions;
                 //console.log('Permissions:', permissions);
                 // Store permissions if they exist

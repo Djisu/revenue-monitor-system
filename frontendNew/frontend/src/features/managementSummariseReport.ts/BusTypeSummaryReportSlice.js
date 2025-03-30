@@ -46,17 +46,25 @@ var BASE_URL = import.meta.env.VITE_BASE_URL ||
     (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 // Create async thunk for fetching reports
 export var fetchBusTypeSummaryReports = createAsyncThunk('reports/fetchBusTypeSummaryReports', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
-    var response;
+    var user, response;
     var firstDate = _b.firstDate, lastDate = _b.lastDate, zone = _b.zone, // Default to empty string if not provided
     bussType = _b.bussType;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/bustypeSummaryReport/create/").concat(firstDate, "/").concat(lastDate, "/").concat(zone, "/").concat(bussType))];
+            case 0:
+                user = localStorage.getItem('operatorId');
+                if (!user) {
+                    console.warn('User not logged in');
+                    return [2 /*return*/, []];
+                }
+                console.log('user: ', user);
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/bustypeSummaryReport/create/").concat(firstDate, "/").concat(lastDate, "/").concat(zone, "/").concat(bussType, "/").concat(user))];
             case 1:
                 response = _c.sent();
                 console.log('response.data.data XXXXXXX: ', response.data.data);
-                // Access the `data` property of the response
-                if (response.data.message === 'BusTypeDetailedReport fetched') {
+                // Access the `data` property of the response BusTypeSummaryReport fetched
+                console.log('response.data.message: ', response.data.message);
+                if (response.data.message === 'BusTypeSummaryReport fetched') {
                     return [2 /*return*/, response.data.data]; // Return the array of reports
                 }
                 else {

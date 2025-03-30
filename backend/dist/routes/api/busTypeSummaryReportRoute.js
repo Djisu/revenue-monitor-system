@@ -31,19 +31,31 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
     const client = await pool.connect();
     try {
         const { firstDate, lastDate, zone, bussType, user } = req.params;
+        console.log('zone:', zone);
+        console.log('bussType:', bussType);
+        console.log('user:', user);
+        // Ensure user is a string
+        const userId = String(user); // Convert user to string
         // Assuming 'user' is the user ID passed from the frontend
-        console.log('User ID: ', user);
+        console.log('User ID: ', userId);
         const thisYear = lastDate.substring(0, 4);
-        // Make sure to validate the user ID against your application logic here
+        console.log('This year: ', thisYear);
+        console.log('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND electoral_area = $2 AND user_id = $2');
         // Delete from bustypesummaryreport table for the specific user
-        await client.query('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND electoral_area = $2 AND user_id = $3', [bussType, zone, user]);
+        await client.query('DELETE FROM bustypesummaryreport WHERE user_id = $1', [userId]);
+        let searchResult = await client.query('SELECT * FROM bustypesummaryreport WHERE user_id = $1', [userId]);
+        if (searchResult.rows.length > 0) {
+            console.log('Deleted records NOT DELETED!!!!!');
+        }
+        console.log('SELECT DISTINCT electoral_area, buss_type FROM business WHERE status = $1');
         let result;
         if (zone === 'All electoral areas') {
-            result = await client.query('SELECT DISTINCT electoral_area, buss_type FROM business WHERE status = $1', ['Active']);
+            result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1', ['Active']);
         }
         else {
-            result = await client.query('SELECT DISTINCT electoral_area, buss_type FROM business WHERE status = $1 AND electoral_area = $2', ['Active', zone]);
+            result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND electroral_area = $2', ['Active', zone]);
         }
+        console.log('result.rows.length: ', result.rows.length);
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'No businesses found in the selected zone', data: [] });
         }
@@ -51,79 +63,114 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
         let varCurrRate = 0;
         let varPayment = 0;
         let varBalance = 0;
+        console.log('Calculating current rate and balance for each business');
         // Calculate current rate
         if (result.rows.length === 1) {
-            if (zone === 'All electoral areas') {
-                recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2', [thisYear, bussType]);
-                varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
-            }
-            else {
-                recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, zone]);
-                varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
-            }
-            if (zone === 'All electoral areas') {
-                recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2', [thisYear, bussType]);
-                varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
-            }
-            else {
-                recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, zone]);
-                varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
-            }
+            console.log('IN STANDALONE MODE');
+            // if (zone === 'All electoral areas') {
+            //     console.log('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2')
+            //     recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2', [thisYear, bussType]);
+            //     varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
+            // } else {
+            recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, zone]);
+            varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
+            console.log('standalone varCurrRate: ', varCurrRate);
+            // }
+            // if (zone === 'All electoral areas') {
+            //     console.log('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2')
+            //     recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2', [thisYear, bussType]);
+            //     varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
+            // } else {
+            console.log('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electoralarea = $3');
+            recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electroral_area = $3', [thisYear, bussType, zone]);
+            varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
+            console.log('standalone varPayment: ', varPayment);
+            //}
+            console.log('Calculating balance for each business');
             varBalance = varCurrRate - varPayment;
+            console.log('varBalance: ', varBalance);
             // Check if the report already exists for the specific user
-            const reportCheckQuery = 'SELECT * FROM bustypesummaryreport WHERE buss_type = $1 AND electoral_area = $2 AND user_id = $3 AND transdate >= $4 AND transdate <= $5';
-            const reportCheckResult = await client.query(reportCheckQuery, [bussType, zone, user, firstDate, lastDate]);
-            if (reportCheckResult.rowCount === 0) {
-                const insertQuery = `
+            console.log('SELECT * FROM bustypesummaryreport WHERE user_id = $3');
+            const reportCheckQuery = 'SELECT * FROM bustypesummaryreport WHERE user_id = $1';
+            const reportCheckResult = await client.query(reportCheckQuery, [userId]);
+            // if (reportCheckResult.rowCount === 0) {
+            console.log('INSERT INTO bustypesummaryreport(buss_type, amountdue, amountpaid, balance, electoral_area, transdate, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)');
+            const insertQuery = `
                     INSERT INTO bustypesummaryreport(buss_type, amountdue, amountpaid, balance, electoral_area, transdate, user_id)
                     VALUES ($1, $2, $3, $4, $5, $6, $7)
                 `;
-                await client.query(insertQuery, [bussType, varCurrRate, varPayment, varBalance, zone, lastDate, user]);
-            }
+            await client.query(insertQuery, [bussType, varCurrRate, varPayment, varBalance, zone, lastDate, userId]);
+            // }
         }
-        else {
+        if (result.rows.length > 1) {
+            console.log('IN MULTIPLE MODE');
             for (const row of result.rows) {
-                if (zone === 'All electoral areas') {
-                    recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, row.electoral_area]);
-                    varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
-                }
-                else {
-                    recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, zone]);
-                    varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
-                }
-                if (zone === 'All electoral areas') {
-                    recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, row.electoral_area]);
-                    varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
-                }
-                else {
-                    recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, zone]);
-                    varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
-                }
+                varCurrRate = 0;
+                varPayment = 0;
+                varBalance = 0;
+                console.log('row.electroral_area: ', row.electroral_area);
+                console.log('==========================================');
+                // if (zone === 'All electoral areas') {
+                console.log('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2', [thisYear, bussType]);
+                recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, row.electroral_area]);
+                varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
+                console.log('IN MULTIPLE MODE varCurrRate: ', varCurrRate);
+                // }
+                //  else {
+                //     console.log('in the loop SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea = $3')
+                //     recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, zone]);
+                //     varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
+                // }
+                //  if (zone === 'All electoral areas') {
+                console.log('in the loop SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2');
+                recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electroral_area = $3', [thisYear, bussType, row.electroral_area]);
+                varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
+                console.log('IN MULTIPLE MODE varPayment: ', varPayment);
+                //} 
+                // else {
+                //     console.log('in the loop SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electroral_area = $3')
+                //     recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electroral_area = $3', [thisYear, bussType, zone]);
+                //     varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
+                // }
+                console.log(' in  the loop Calculating balance for each business');
                 varBalance = varCurrRate - varPayment;
+                console.log('IN MULTIPLE MODE varBalance: ', varBalance);
                 // Check if the report already exists for the specific user
-                const reportCheckQuery = 'SELECT * FROM bustypesummaryreport WHERE buss_type = $1 AND electoral_area = $2 AND user_id = $3 AND transdate >= $4 AND transdate <= $5';
-                const reportCheckResult = await client.query(reportCheckQuery, [bussType, row.electoral_area, user, firstDate, lastDate]);
-                if (reportCheckResult.rowCount === 0) {
-                    const insertQuery = `
+                // console.log(' Check if the report already exists for the specific user')
+                // console.log('after the loop SELECT * FROM bustypesummaryreport WHERE buss_type = $1 AND user_id = $2')
+                // const reportCheckQuery = 'SELECT * FROM bustypesummaryreport WHERE buss_type = $1 AND user_id = $2';
+                // const reportCheckResult = await client.query(reportCheckQuery, [bussType, userId]);
+                // if (reportCheckResult.rowCount === 0) {
+                console.log('before insert statement: NOT FOUND');
+                console.log('INSERT INTO bustypesummaryreport(buss_type, amountdue, amountpaid, balance, electoral_area, transdate, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)');
+                const insertQuery = `
                         INSERT INTO bustypesummaryreport(buss_type, amountdue, amountpaid, balance, electoral_area, transdate, user_id)
                         VALUES ($1, $2, $3, $4, $5, $6, $7)
                     `;
-                    await client.query(insertQuery, [bussType, varCurrRate, varPayment, varBalance, row.electoral_area, lastDate, user]);
-                }
+                await client.query(insertQuery, [bussType, varCurrRate, varPayment, varBalance, row.electroral_area, lastDate, userId]);
+                // } else {
+                //     console.log('bustypesummaryreport not deleted!!!!')
+                // }
+                varCurrRate = 0;
+                varPayment = 0;
+                varBalance = 0;
             }
         }
         let results;
-        if (zone === 'All electoral areas') {
-            results = await client.query(`SELECT * FROM bustypesummaryreport WHERE buss_type = $1 AND user_id = $2`, [bussType, user]);
-        }
-        else {
-            results = await client.query('SELECT * FROM bustypesummaryreport WHERE buss_type = $1 AND electoral_area = $2 AND user_id = $3', [bussType, zone, user]);
-        }
+        console.log('about to  SELECT * FROM bustypesummaryreport WHERE buss_type = $1 AND user_id = $2');
+        //if (zone === 'All electoral areas') {
+        results = await client.query(`SELECT DISTINCT * FROM bustypesummaryreport WHERE buss_type = $1 AND user_id = $2`, [bussType, userId]);
+        // } else {
+        //     results = await client.query('SELECT * FROM bustypesummaryreport WHERE buss_type = $1 AND user_id = $2', [bussType, userId]);
+        // }
         let businessTypeSummaryReport = results.rows;
+        console.log('businessTypeSummaryReport.length > 0: ', businessTypeSummaryReport.length > 0);
         if (businessTypeSummaryReport.length > 0) {
+            console.log('Returning the data');
             return res.status(200).json({ message: 'BusTypeSummaryReport fetched', data: businessTypeSummaryReport });
         }
         else {
+            console.log('404---No data found in bustypesummaryreport');
             return res.status(404).json({ message: 'No data found in bustypesummaryreport', data: [] });
         }
     }

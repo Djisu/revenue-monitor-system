@@ -74,6 +74,7 @@ router.post('/login', async (req, res) => {
         const user = {
             firstname: operators[0].firstname,
             lastname: operators[0].lastname,
+            operatorid: operators[0].operatorid,
             existingPermissions
         };
         //console.log('I AM HERE 4')

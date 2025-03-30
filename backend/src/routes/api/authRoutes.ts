@@ -130,6 +130,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         const user = {           
             firstname: operators[0].firstname, 
             lastname: operators[0].lastname,
+            operatorid: operators[0].operatorid,
             existingPermissions 
         };
 
