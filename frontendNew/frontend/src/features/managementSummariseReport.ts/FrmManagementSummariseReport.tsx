@@ -5,6 +5,8 @@ import { Form, FormGroup, Label, Input, Button, Alert, Table } from 'reactstrap'
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { fetchBusTypeSummaryReports, BusTypeSummaryReport } from './BusTypeSummaryReportSlice';
+import { Bar } from 'react-chartjs-2';
+//import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
 interface BusinessTypeData {
     Business_Type: string;
@@ -37,6 +39,14 @@ const DailyPayments: React.FC = () => {
     useEffect(() => {
         setManagementReport(managementReportData);
     }, [managementReportData]);
+
+    // const businessList = managementReport.map((report) => ({
+    //     electoral_area: report.electoral_area,
+    //     buss_type: report.buss_type,
+    //     amountdue: report.amountdue,
+    //     amountpaid: report.amountpaid,
+    //     balance: report.amountdue - report.amountpaid,
+    // }));
 
     useEffect(() => {
         const total = managementReport.reduce((acc, curr) => acc + (curr.amountdue - curr.amountpaid), 0);
@@ -106,6 +116,28 @@ const DailyPayments: React.FC = () => {
         balance: report.amountdue - report.amountpaid
     }));
 
+    // Chart data
+    const chartData = {
+        labels: businessList.map(business => business.electoral_area), // Use electoral_area as labels
+        datasets: [
+            {
+                label: 'Amount Due',
+                data: businessList.map(business => business.amountdue),
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            },
+            {
+                label: 'Amount Paid',
+                data: businessList.map(business => business.amountpaid),
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            },
+            {
+                label: 'Balance',
+                data: businessList.map(business => business.balance),
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+            },
+        ],
+    };
+
     return (
         <div>
             <div className="container mt-5">
@@ -114,6 +146,10 @@ const DailyPayments: React.FC = () => {
                     <Form>
                         <FormGroup>
                             <p className="text-center text-underline">Produce Daily Payments Report</p>
+
+                             {/* Render the Bar chart here */}
+                             <Bar data={chartData} />
+
                             <Label for="zone" className="font-weight-bold">Electoral Area:</Label>
                             <Input type="select" name="zone" id="zone" value={zone} onChange={handleZoneChange}>
                                 <option value="All electoral areas">All electoral areas</option>
