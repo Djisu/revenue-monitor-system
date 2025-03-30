@@ -7,4 +7,5 @@ export interface BussCurrBalance {
     transdate: Date;
     electoralarea: string;
     assessmentby: string;
+    buss_type?: string;
 }

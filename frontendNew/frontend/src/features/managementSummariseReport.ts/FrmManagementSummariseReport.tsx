@@ -83,10 +83,11 @@ const DailyPayments: React.FC = () => {
     //     fetchData();
     // }, [dispatch]);
 
-   const managementReportData = useAppSelector((state) => state.reports.reports);
+    const managementReportData = useAppSelector((state) => state.reports.reports);
 
-    console.log('managementReportData:', managementReportData);
-    setManagementReport(managementReportData)
+    useEffect(() => {
+        setManagementReport(managementReportData);
+    }, [managementReportData]); // Update only when managementReportData changes
 
     const businessList = managementReportData.map((report) => {
         return {
@@ -99,9 +100,9 @@ const DailyPayments: React.FC = () => {
     });
 
     useEffect(() => {
-        const total = businessList.reduce((acc, curr) => acc + curr.balance, 0);
+        const total = managementReport.reduce((acc, curr) => acc + (curr.amountdue - curr.amountpaid), 0);
         setTotalBalance(total);
-    }, [businessList]);
+    }, [managementReport]); // Update when managementReport changes
 
     const electoralAreaData = useAppSelector((state) => state.electoralArea.electoralAreas) ;
 
@@ -181,20 +182,17 @@ const DailyPayments: React.FC = () => {
         setError('');
 
         try {
-            const response = await fetchBusTypeSummaryReports({
+            const answer = await dispatch(fetchBusTypeSummaryReports({
                 firstDate,
                 lastDate,
                 zone,
                 bussType
-            });
+            }));
 
-            console.log('response:', response);
-
-            // if (response.success) {
-            //     window.location.href = '/reports/daily-zones-payments'; // Redirect to report page
-            // } else {
-            //     setError(response.message);
-            // }
+            if (answer && answer.payload){
+                setManagementReport(answer.payload);
+                console.log('managementReport:', managementReport);
+            }          
         } catch (error: any) {
             setError(error.message);
         } finally {
@@ -220,92 +218,100 @@ const DailyPayments: React.FC = () => {
     
 
     return (
+        <div>
         <div className="container mt-5">
             {error && <Alert color="danger">{error}</Alert>}
-            <h1 className="text-center text-underline">Produce Daily Payments Report</h1>
-            <h2 className="text-center">MARCORY MUNICIPAL ASSEMBLY</h2>
-            <Form>
-                <FormGroup>
-                    <Label for="zone" className="font-weight-bold">Electoral Area:</Label>
-                    <Input type="select" name="zone" id="zone" value={zone} onChange={handleZoneChange}>
-                        <option value="">Select Zone</option>
-                        {electoralAreas.map((area, index) => (
-                          <option key={index} value={area}>{area}</option>
-                        ))}
-                    </Input>
-                </FormGroup>
-                <FormGroup>
-                    <Label for="bussType" className="font-weight-bold">Business Type/Profession:</Label>
-                    <Input type="select" name="bussType" id="bussType" value={bussType} onChange={(e) => setBussType(e.target.value)}>
-                        <option value="">Select Business Type</option>
-                        {bussTypes.map((businessType, index) => (
-                        <option key={index} value={businessType.business_type}>
-                            {businessType.business_type}
-                        </option>
-                        ))}
-                    </Input>
-                </FormGroup>
-                <FormGroup>
-                    <Label for="firstDate" className="font-weight-bold">First Payment Date (YYYYMMDD):</Label>
-                    <Input
-                        type="number"
-                        name="firstDate"
-                        id="firstDate"
-                        value={firstDate}
-                        onChange={handleFirstDateChange}
-                        placeholder="Enter date as YYYYMMDD"
-                    />
-                </FormGroup>
-                <FormGroup>
-                    <Label for="lastDate" className="font-weight-bold">Last Payment Date (YYYYMMDD):</Label>
-                    <Input
-                        type="number"
-                        name="lastDate"
-                        id="lastDate"
-                        value={lastDate}
-                        onChange={handleLastDateChange}
-                        placeholder="Enter date as YYYYMMDD"
-                    />
-                </FormGroup>
-                <FormGroup>
-                    <div className="d-flex justify-content-between">
-                        {/* <Button color="primary" onClick={handleViewClick} disabled={isLoading}>
-                            {isLoading ? 'Loading...' : 'Produce Report (unposted payments)'}
-                        </Button> */}
-                        <Button color="success" onClick={handleProduceReportClick} disabled={isLoading}>
-                           Produce Payments Report
-                        </Button>
-                                
-                        <Button variant="secondary" onClick={() => navigate("/main")} style={{ marginLeft: '40px',  marginTop: '10px' }}>
-                            Go Back
-                        </Button>
-                    </div>
-                </FormGroup>
-            </Form>
-            <Table striped bordered hover className="mt-3">
-                <thead>
-                Total Balance: {totalBalance}
-                <tr>
-                    <th>Electoral Area</th>          
-                    <th>Business Type/Profession</th>
-                    <th>Amount Due</th>
-                    <th>Amount Paid</th>
-                    <th>Balance</th>
-                </tr>
-                </thead>
-                <tbody>
-                {businessList.map((business, index) => (
-                    <tr key={index}>
-                    <td>{business.electoral_area}</td>            
-                    <td>{business.buss_type}</td>
-                    <td>{business.amountdue}</td>
-                    <td>{business.amountpaid}</td>
-                    <td>{business.amountdue - business.amountpaid}</td>
-                    </tr>
-                ))}
-                </tbody>    
-            </Table>
-              
+           
+            {/* <h2 className="text-center">MARCORY MUNICIPAL ASSEMBLY</h2> */}
+                   <div>
+                    <Form>
+                        <FormGroup>
+                        <p className="text-center text-underline">Produce Daily Payments Report</p>
+                            <Label for="zone" className="font-weight-bold">Electoral Area:</Label>
+                            <Input type="select" name="zone" id="zone" value={zone} onChange={handleZoneChange}>
+                                <option value="All electoral areas">Select Electoral Area/Zone</option>
+                                   {electoralAreas.map((area, index) => (
+                                <option key={index} value={area}>{area}</option>
+                                ))}
+                            </Input>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="bussType" className="font-weight-bold">Business Type/Profession:</Label>
+                            <Input type="select" name="bussType" id="bussType" value={bussType} onChange={(e) => setBussType(e.target.value)}>
+                                <option value="">Select Business Type</option>
+                                {bussTypes.map((businessType, index) => (
+                                <option key={index} value={businessType.business_type}>
+                                    {businessType.business_type}
+                                </option>
+                                ))}
+                            </Input>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="firstDate" className="font-weight-bold">First Payment Date:</Label>
+                            <Input
+                                type="date"
+                                name="firstDate"
+                                id="firstDate"
+                                value={firstDate}
+                                onChange={handleFirstDateChange}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="lastDate" className="font-weight-bold">Last Payment Date:</Label>
+                            <Input
+                                type="date"
+                                name="lastDate"
+                                id="lastDate"
+                                value={lastDate}
+                                onChange={handleLastDateChange}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <div className="d-flex justify-content-between">
+                                {/* <Button color="primary" onClick={handleViewClick} disabled={isLoading}>
+                                    {isLoading ? 'Loading...' : 'Produce Report (unposted payments)'}
+                                </Button> */}
+                                <div>
+                                    <Button color="success" onClick={handleProduceReportClick} disabled={isLoading}>
+                                        Produce Summerized Report
+                                    </Button>
+                                    <div>     
+                                    <Button variant="secondary" onClick={() => navigate("/main")} style={{ marginLeft: '40px',  marginTop: '10px' }}>
+                                        Go Back
+                                    </Button>
+                                </div>
+                                <div>
+                                    <Table striped bordered hover className="mt-3">
+                                        <thead>
+                                        {/* Total Balance: {totalBalance} */}
+                                        <tr>
+                                            <th>Electoral Area</th>          
+                                            <th>Business Type/Profession</th>
+                                            <th>Amount Due</th>
+                                            <th>Amount Paid</th>
+                                            <th>Balance</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            {businessList.map((business, index) => (
+                                                <tr key={index}>
+                                                <td>{business.electoral_area}</td>            
+                                                <td>{business.buss_type}</td>
+                                                <td>{business.amountdue}</td>
+                                                <td>{business.amountpaid}</td>
+                                                <td>{business.amountdue - business.amountpaid}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>    
+                                    </Table>
+                                </div>  
+                                </div>  
+                            </div>
+                        </FormGroup>
+                    </Form>
+                </div>
+               
+            </div>  
         </div>
     );
 };

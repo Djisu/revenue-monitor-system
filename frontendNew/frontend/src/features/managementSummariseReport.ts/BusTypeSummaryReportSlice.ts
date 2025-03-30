@@ -33,16 +33,29 @@ export const fetchBusTypeSummaryReports = createAsyncThunk(
     async ({
         firstDate,
         lastDate,
-        zone = '',         // Default to empty string if not provided
-        bussType = '',     // Default to empty string if not provided
+        zone,         // Default to empty string if not provided
+        bussType,     // Default to empty string if not provided
     }: {
         firstDate: string;
         lastDate: string;
         zone?: string;     // Mark as optional
         bussType?: string; // Mark as optional
     }) => {
-        const response = await axios.get(`${BASE_URL}/create/${firstDate}/${lastDate}/${zone || ''}/${bussType || ''}`);
-        return response.data; // Assuming the response data is an array of BusTypeSummaryReport
+
+        const user = localStorage.getItem('user');
+
+
+        const response = await axios.get(`${BASE_URL}/api/bustypeSummaryReport/create/${firstDate}/${lastDate}/${zone}/${bussType}/${user}`);
+        console.log('response.data.data XXXXXXX: ', response.data.data);
+
+        // Access the `data` property of the response
+        if (response.data.message === 'BusTypeDetailedReport fetched') {
+            return response.data.data; // Return the array of reports
+        } else {
+            // Handle unexpected message
+            console.warn('Unexpected response message: ', response.data.message);
+            return [];
+        }
     }
 );
 

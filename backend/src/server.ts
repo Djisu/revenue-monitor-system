@@ -44,6 +44,7 @@ import busPaymentsRoutes from './routes/api/busPaymentsRoutes.js';
 import OfficerBudgetRoute  from './routes/api/officerBudgetRoute.js';
 import CollectorElectoralAreaRoute  from './routes/api/collectorElectoralarea.js';
 import bustypeDetailedReportRoute from './routes/api/bustypeDetailedReportRoute.js'
+import bustypeSummaryReportRoute from './routes/api/busTypeSummaryReportRoute.js'
 
 // Load environment variables from .env file
 const environment = process.env.NODE_ENV || 'development';
@@ -153,8 +154,9 @@ app.use('/api/busPayments', busPaymentsRoutes);
 app.use('/api/OfficerBudget', OfficerBudgetRoute);
 app.use('/api/CollectorElectoralArea', CollectorElectoralAreaRoute);
 app.use('/api/bustypeDetailedReport', bustypeDetailedReportRoute);
+app.use('/api/bustypeSummaryReport', bustypeSummaryReportRoute);
 
-// Set up multer storage  CollectorElectoralArea 
+// Set up multer storage  CollectorElectoralArea bustypeSummaryReportRoute
 const storage: StorageEngine = diskStorage({
     destination: (req: Request, file: Express.Multer.File, cb: (error: any, destination: string) => void) => {
         cb(null, 'uploads/');
