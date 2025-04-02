@@ -1,6 +1,9 @@
 //import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
+// import PDFDocument from 'pdfkit';
+// import nodemailer, { SendMailOptions } from 'nodemailer';
+import nodemailer from 'nodemailer';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -328,7 +331,6 @@ router.post('/addBudget', async (req, res) => {
             // console.log('Parameters:', [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
             // Execute the update query
             await client.query(updateQuery, [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
-            await client.query(updateQuery, [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
             console.log('final totActuals: ', totActuals);
             // Check if the update query was successful
             console.log('updateQuery.length: ', updateQuery.length);
@@ -381,6 +383,128 @@ router.post('/addBudget', async (req, res) => {
     catch (error) {
         console.error(error);
         res.status(500).send('Error adding budget record');
+        return;
+    }
+    finally {
+        client.release();
+    }
+});
+router.post('/updateBudget', async (req, res) => {
+    const { officer_no, fiscal_year, month, paidAmount } = req.body;
+    console.log("in router.post(/updateBudget): ", req.body);
+    const client = await pool.connect();
+    try {
+        // Find officer name from officer_no
+        const officerName = await client.query(`
+            SELECT * FROM officer 
+            WHERE officer_no = $1`, [officer_no]);
+        if (officerName.rows.length === 0) {
+            console.log('Officer not found');
+            res.status(400).json({
+                status: 'fail',
+                message: 'Officer not found',
+                data: {}
+            });
+            return;
+        }
+        console.log('officerName.rows[0].officer_name:', officerName.rows[0].officer_name);
+        // Find the corresponding month column name
+        const monthColumn = `${month.toLowerCase()}_actual`;
+        // Find the corresponding month budget
+        const monthBudgetQuery = `
+            SELECT ${monthColumn} AS budget FROM officerbudget 
+            WHERE officer_name = $1 AND fiscal_year = $2
+        `;
+        const monthBudgetResult = await client.query(monthBudgetQuery, [officerName.rows[0].officer_name, fiscal_year]);
+        const monthBudget = monthBudgetResult.rows[0].budget;
+        console.log('monthBudget:', monthBudget);
+        if (monthBudget === null) {
+            console.log('No budget found for month:', month);
+            res.status(400).json({
+                status: 'fail',
+                message: 'No budget found for month:', month,
+                data: {}
+            });
+            return;
+        }
+        // Convert paidAmount to a number
+        const paidAmountNum = paidAmount;
+        console.log('paidAmount: ', paidAmountNum);
+        if (isNaN(paidAmountNum)) {
+            console.error('Invalid paidAmount:', paidAmount);
+            res.status(400).json({
+                status: 'fail',
+                message: 'Invalid paidAmount:', paidAmount,
+                data: {}
+            });
+            return;
+        }
+        // Update the actual total
+        const actualTotal = monthBudget + paidAmountNum;
+        // Update the corresponding month column
+        const updateQuery = `
+            UPDATE officerbudget 
+            SET ${monthColumn} = $1, 
+                actual_total = $2, 
+                outstanding = annual_budget - $2 
+            WHERE officer_name = $3 AND fiscal_year = $4
+        `;
+        // Log the constructed query and parameters for debugging
+        // console.log('Update Query:', updateQuery);
+        // console.log('Parameters:', [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
+        // Execute the update query
+        const updateResult = await client.query(updateQuery, [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
+        console.log('updateResult:', updateResult);
+        if (updateResult.rowCount === 0) {
+            console.error('Error updating officerbudget for month:', month);
+            res.status(400).json({
+                status: 'fail',
+                message: 'Error updating officerbudget for month:', month,
+                data: {}
+            });
+            return;
+        }
+        // The send email will be replaced by text message
+        // Send email to officer
+        const officerEmail = await pool.query(`
+            SELECT email FROM officer 
+            WHERE officer_no = $1`, [officer_no]);
+        if (officerEmail.rows.length === 0) {
+            res.status(404).send('Officer email not found');
+            return; // Skip email if officer email not found
+        }
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: emailUser,
+                pass: emailPassword
+            }
+        });
+        const mailOptions = {
+            from: emailUser,
+            to: officerEmail.rows[0].email,
+            subject: 'RevMonitor - Budget Updated',
+            text: `Your budget for ${month} has been updated successfully. Please check your email for more details.`
+        };
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error sending email:', error);
+            }
+            else {
+                console.log('Email sent:', info.messageId);
+            }
+        });
+        console.log('Sending email to officer successful');
+        res.status(200).json({
+            status: 'success',
+            message: 'Budget record updated successfully',
+            data: { /* your data here */}
+        });
+        return;
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).send('Error updating budget record');
         return;
     }
     finally {

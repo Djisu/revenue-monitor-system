@@ -26,6 +26,8 @@ export interface OfficerAssessment {
     totalReceiptTodate: number;
     balance: number;
     remarks: string;
+    
+    totalValue: number; // Add this line
 }
 
 // Define the combined state type
@@ -448,6 +450,8 @@ export const fetchDecemberAmount = createAsyncThunk<number, { officerNo: string;
 export const fetchOfficerAssessment = createAsyncThunk<OfficerAssessment, { officerNo: string; fiscalYear: number }>(
     'officerAssessment/fetchOfficerAssessment',
     async ({ officerNo, fiscalYear }): Promise<OfficerAssessment> => {
+
+        console.log('in fetchOfficerAssessment: ',  officerNo, fiscalYear )
 
         const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/${officerNo}/${fiscalYear}`);
         console.log('fetchOfficerAssessment response', response.data)

@@ -260,8 +260,8 @@ router.post('/create', async (req, res) => {
         console.log('in router.post(/create: ', params);
         const busYear = parseInt(params.fiscalYear, 10);
         // Delete existing record
-        const deleteResult = await client.query('DELETE FROM officerassessment');
-        console.log('Delete result:', deleteResult.rowCount);
+        // const deleteResult = await client.query('DELETE FROM officerassessment');
+        // console.log('Delete result:', deleteResult.rowCount);
         const officerName = await GetOfficerName(params.officerNo);
         // Validate incoming data
         if (!params.officerNo || !params.fiscalYear) {
@@ -804,15 +804,22 @@ router.get('/', async (req, res) => {
 router.get('/:officer_no/:fiscal_year', async (req, res) => {
     const { officer_no, fiscal_year } = req.params;
     try {
+        console.log('XXxXXXXVVVVVVVTTTTTTT');
         console.log('in router.get(/:officer_no/:fiscal_year): ', req.params);
+        console.log('====================================');
         console.log('officer_no: ', officer_no);
+        console.log('====================================');
         console.log('fiscal_year: ', fiscal_year);
+        console.log('====================================');
         if (!officer_no || !fiscal_year) {
+            console.log('invalid officer_no or fiscal_year');
             res.status(404).json([]);
             return;
         }
+        console.log('Valid officer_no AND fiscal_year');
         const { rows } = await pool.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND bus_year = $2', [officer_no, fiscal_year]);
         if (rows.length == 0) {
+            console.log('officer not found in officerassessment');
             res.status(404).json([]);
             return;
         }
@@ -900,7 +907,7 @@ router.get('/clients-served/:officerNo/:fiscalYear', async (req, res) => {
     }
     const query = `
         SELECT COUNT(buss_no) AS totsum 
-        FROM tb_buspayments 
+        FROM buspayments 
         WHERE officer_no = $1 AND fiscal_year = $2
     `;
     const values = [officerNo, fiscalYear];
@@ -933,7 +940,7 @@ router.get('/bills-distributed/:officerNo/:fiscalYear', async (req, res) => {
     }
     const query = `
         SELECT SUM(current_balance) AS totsum 
-        FROM tb_busscurrbalance 
+        FROM busscurrbalance 
         WHERE assessmentby = $1 AND fiscalyear = $2
     `;
     const values = [officerNo, fiscalYear];
@@ -993,7 +1000,7 @@ router.get('/amount/:month/:officerNo/:fiscalYear', async (req, res) => {
 const findMonthlyAmount = async (officerNo, fiscalYear, month) => {
     const query = `
         SELECT SUM(amount) AS totsum 
-        FROM tb_buspayments 
+        FROM buspayments 
         WHERE officer_no = $1 
         AND fiscal_year = $2 
         AND (monthpaid = $3 OR monthpaid = $4)
