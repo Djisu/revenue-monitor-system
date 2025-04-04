@@ -133,7 +133,7 @@ const FrmMidlevelDetailedReport: React.FC = () => {
 
 
   const businessTypes = useAppSelector((state) => state.businessType.businessTypes); 
-  //console.log('businessTypes: ', businessTypes);
+  console.log('businessTypes: ', businessTypes);
   
   useEffect(() => {
     if (Array.isArray(businessTypes)) {
@@ -285,7 +285,7 @@ console.log('summarizedList: ', summarizedList);
       <Form>
          <p className="text-center mb-4">Mid Level Detailed Report</p>
         <Form.Group controlId="formZone">
-          <Form.Label>Electoral Area:</Form.Label>
+          <Form.Label>Electoral Area:- Select any electoral area then select All electoral areas </Form.Label>
           <Form.Select value={zone} onChange={handleZoneChange}>
             <option value="All electoral areas">All electoral areas</option>
             {electoralAreas.map((area, index) => (
