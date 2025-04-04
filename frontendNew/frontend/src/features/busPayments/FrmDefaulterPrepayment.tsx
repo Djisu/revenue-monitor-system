@@ -3,10 +3,11 @@ import {useAppDispatch, useAppSelector} from '../../app/store'
 import { Button, Form, Container, Row, Col } from 'react-bootstrap';
 
 import { Link } from 'react-router-dom';
-import { fetchElectoralAreas, ElectoralArea } from '../electoralArea/electoralAreaSlice';
+//import { fetchElectoralAreas, ElectoralArea } from '../electoralArea/electoralAreaSlice';
 import { fetchPaymentDefaulters } from './busPaymentsSlice';
 import { fetchBalances } from '../balance/balanceSlice';
 import BalanceTable from '../balance/BalanceTable';
+import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 //import DummyBalanceTable from '../balance/DummyBalanceTable';
 
 export interface Balance {
@@ -21,15 +22,36 @@ export interface Balance {
 
 const DefaulterPrepaymentForm: React.FC = () => {
   let [electoralArea, setElectoralArea] = useState<string>('');
-  let [electoralAreasData, setElectoralAreasData] = useState<ElectoralArea[]>([]);
+  //let [electoralAreasData, setElectoralAreasData] = useState<ElectoralArea[]>([]);
+   const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
 
   let dispatch = useAppDispatch()
 
-  let {electoralAreas, loading, error} = useAppSelector(state => state.electoralArea)
+  //let {electoralAreas, loading, error} = useAppSelector(state => state.electoralArea)
+
+// Get electoral areas from the Redux store // as ElectoralArea[];
+// Get electoral areas from the Redux store // as ElectoralArea[];
+const electoralAreaData = useAppSelector((state) => state.electoralArea.electoralAreas);
+if (electoralAreaData){
+  console.log('electoralAreaData: ', electoralAreaData)
+}
+
+useEffect(() => {
+  dispatch(fetchElectoralAreas());
+}, [dispatch]);
+
+useEffect(() => {
+  if (electoralAreaData && Array.isArray(electoralAreaData)) {
+      setElectoralAreas(electoralAreaData.map((area) => area.electoral_area));
+      console.log('electoralAreas: ', electoralAreas)
+  } else {
+      console.error('Expected electoralAreaData to be an array but got:', electoralAreaData);
+  }
+}, [electoralAreaData, setElectoralAreas]);
 
   const balanceData = useAppSelector(state => state.balance.balances); // Should be an array of Balance
 
-  console.log('THIS IS THE balanceData.data: ', balanceData);
+  //console.log('THIS IS THE balanceData.data: ', balanceData);
 
   useEffect(() => {
       const fetchBalancesData = async () => {
@@ -47,20 +69,13 @@ const DefaulterPrepaymentForm: React.FC = () => {
   }, [dispatch]); // Dependency array includes dispatch
 
   useEffect(() => {
-    const fetchElectoralAreasData = async () => {
-      try {
-        await dispatch(fetchElectoralAreas());
-        electoralAreasData = electoralAreas;
-
-        setElectoralAreasData(electoralAreasData);
-      } catch (error) {
-        console.error("Error fetching electoral areas:", error);
-        alert("Error fetching electoral areas");
-      }
-    };
-  
-    fetchElectoralAreasData();
-  }, [dispatch]);
+    if (electoralAreaData && Array.isArray(electoralAreaData)) {
+        setElectoralAreas(electoralAreaData.map((area) => area.electoral_area));
+        console.log('electoralAreas: ', electoralAreas)
+    } else {
+        console.error('Expected electoralAreaData to be an array but got:', electoralAreaData);
+    }
+  }, [electoralAreaData, setElectoralAreas]);
 
   const handleChange = (e: React.ChangeEvent<HTMLElement>) => {
     const target = e.target as HTMLSelectElement;
@@ -92,14 +107,6 @@ const DefaulterPrepaymentForm: React.FC = () => {
     }
   };
 
-  if (loading){
-    <div>Loading...</div>
-  }
-
-  if (error ){
-    <div>Error: error.message</div>
-  }
-
   return (
     <Container fluid className="bg-light">
       <Row className="mt-3">
@@ -112,11 +119,9 @@ const DefaulterPrepaymentForm: React.FC = () => {
               <Form.Group>
                 <Form.Label htmlFor="electoral_area">Electoral Area:</Form.Label>
                  <Form.Select  name="electoral_area" id="electoral_area" value={electoralArea} onChange={handleChange}>
-                      <option>Select...</option>
+                 <option>Select...</option>
                       {electoralAreas.map((area, index) => (
-                          <option key={index} value={area.electoral_area}>
-                              {area.electoral_area}
-                          </option>
+                        <option key={index} value={area}>{area}</option>
                       ))}
                 </Form.Select >
               </Form.Group>
