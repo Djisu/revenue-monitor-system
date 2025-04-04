@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the type for OffBudgetAssessment data
-interface OffBudgetAssessmentData {
+export interface OffBudgetAssessmentData {
     officer_name: string;
     JanuaryAmount: number;
     JanuaryBudget: number;
@@ -31,13 +31,17 @@ interface OffBudgetAssessmentData {
     DecemberBudget: number;
 }
 
+
+
 // Define the type for the response of the amountByOfficerAndMonth API
 interface AmountByOfficerAndMonthResponse {
     totsum: number | null;
 }
 
+
+
 // Define the initial state for the slice
-interface OffBudgetAssessmentState {
+export interface OffBudgetAssessmentState {
     assessments: OffBudgetAssessmentData[];
     loading: boolean;
     error: string | null;
@@ -51,21 +55,27 @@ const initialState: OffBudgetAssessmentState = {
     amountByOfficerAndMonth: null,
 };
 
+
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+
+
+
 // Async thunk to fetch all OffBudgetAssessment records
 export const fetchOffBudgetAssessments = createAsyncThunk('offBudgetAssessment/fetchOffBudgetAssessments', async () => {
-    const response = await axios.get('/api/offBudgetAssessment');
+    const response = await axios.get(`${BASE_URL}/api/offBudgetAssessment`);
     return response.data;
 });
 
 // Async thunk to create a new OffBudgetAssessment record
 export const createOffBudgetAssessment = createAsyncThunk('offBudgetAssessment/createOffBudgetAssessment', async (data: OffBudgetAssessmentData) => {
-    const response = await axios.post('/api/offBudgetAssessment', data);
+    const response = await axios.post(`${BASE_URL}/api/offBudgetAssessment`, data);
     return response.data;
 });
 
 // Async thunk to fetch a single OffBudgetAssessment record by officer_name
 export const fetchOffBudgetAssessmentByOfficer = createAsyncThunk('offBudgetAssessment/fetchOffBudgetAssessmentByOfficer', async (officer_name: string) => {
-    const response = await axios.get(`/api/offBudgetAssessment/${officer_name}`);
+    const response = await axios.get(`${BASE_URL}/api/offBudgetAssessment/${officer_name}`);
     return response.data;
 });
 
@@ -73,14 +83,14 @@ export const fetchOffBudgetAssessmentByOfficer = createAsyncThunk('offBudgetAsse
 export const updateOffBudgetAssessment = createAsyncThunk(
     'offBudgetAssessment/updateOffBudgetAssessment',
     async ({ officer_name, data }: { officer_name: string; data: OffBudgetAssessmentData }) => {
-        const response = await axios.put(`/api/offBudgetAssessment/${officer_name}`, data);
+        const response = await axios.put(`${BASE_URL}/api/offBudgetAssessment/${officer_name}`, data);  
         return response.data;
     }
 );
 
 // Async thunk to delete an OffBudgetAssessment record
 export const deleteOffBudgetAssessment = createAsyncThunk('offBudgetAssessment/deleteOffBudgetAssessment', async (officer_name: string) => {
-    const response = await axios.delete(`/api/offBudgetAssessment/${officer_name}`);
+    const response = await axios.delete(`${BASE_URL}/api/offBudgetAssessment/${officer_name}`);
     return response.data;
 });
 
@@ -88,12 +98,41 @@ export const deleteOffBudgetAssessment = createAsyncThunk('offBudgetAssessment/d
 export const fetchAmountByOfficerAndMonth = createAsyncThunk(
     'offBudgetAssessment/fetchAmountByOfficerAndMonth',
     async ({ officerNo, fiscalYear, monthPaid }: { officerNo: string; fiscalYear: string; monthPaid: string }) => {
-        const response = await axios.get<{ totsum: number | null }>('/api/amountByOfficerAndMonth', {
+
+        console.log('in fetchAmountByOfficerAndMonth')
+
+        const response = await axios.get<{ totsum: number | null }>(`${BASE_URL}/api/offBudgetAssessment`, {
             params: { officerNo, fiscalYear, monthPaid }
         });
         return response.data;
     }
 );
+
+// Async thunk to fetch amount by officer and month
+export const fetchDataByOfficerAndFiscalYear = createAsyncThunk<OffBudgetAssessmentData[], { officerNo: string; fiscalYear: number }>(
+    'offBudgetAssessment/fetchDataByOfficerAndFiscalYear',
+    async ({ officerNo, fiscalYear }): Promise<OffBudgetAssessmentData[]> => {
+
+        const response = await axios.get(`${BASE_URL}/api/offBudgetAssessment/${officerNo}/${fiscalYear}`);
+        return response.data;
+
+        
+    }
+);
+
+// // Async thunk to fetch the officer assessment
+// export const fetchOfficerAssessment = createAsyncThunk<OfficerAssessment, { officerNo: string; fiscalYear: number }>(
+//     'officerAssessment/fetchOfficerAssessment',
+//     async ({ officerNo, fiscalYear }): Promise<OfficerAssessment> => {
+
+//         console.log('in fetchOfficerAssessment: ',  officerNo, fiscalYear )
+
+//         const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/${officerNo}/${fiscalYear}`);
+//         console.log('fetchOfficerAssessment response', response.data)
+
+//         return response.data; // Ensure this matches OfficerAssessment structure
+//     }
+// );
 
 // Create the slice
 const offBudgetAssessmentSlice = createSlice({
@@ -177,9 +216,22 @@ const offBudgetAssessmentSlice = createSlice({
             .addCase(fetchAmountByOfficerAndMonth.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch amount by officer and month';
+            })
+            .addCase(fetchDataByOfficerAndFiscalYear.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchDataByOfficerAndFiscalYear.fulfilled, (state, action) => {
+                state.loading = false;
+                state.assessments = action.payload; // Update the amountByOfficerAndYear state 
+                state.error = null;
+            })
+            .addCase(fetchDataByOfficerAndFiscalYear.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to fetch amount by officer and month';
             });
     },
-});
+    },
+);
 
 // Export the actions if needed
 export const {} = offBudgetAssessmentSlice.actions; // Add any synchronous actions if required

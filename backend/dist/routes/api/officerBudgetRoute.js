@@ -69,18 +69,24 @@ router.get('/officerbudget/:officer_no/:fiscal_year/:electoral_area', async (req
 });
 router.get('/:officer_no/:fiscal_year', async (req, res) => {
     const { officer_no, fiscal_year } = req.params;
-    console.clear();
+    //console.clear();
     console.log('in router.get(/:officer_no/:fiscal_year): ', req.params);
+    const officerNoNew = parseInt(officer_no.split(' ')[0], 10);
+    console.log('officerNoNew: ', officerNoNew);
     const client = await pool.connect();
+    console.log('about to SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2');
     try {
-        const result = await client.query(`SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2`, [officer_no, fiscal_year]);
+        const result = await client.query(`SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2`, [officerNoNew, fiscal_year]);
+        console.log('after SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2');
         // Check if there are any rows returned
         if (result.rows.length > 0) {
-            res.status(200).json({ exists: true, data: result.rows });
+            console.log('Data found!!!!');
+            res.status(200).json({ message: "Data found", data: result.rows });
             return;
         }
         else {
-            res.status(200).json({ exists: false });
+            console.log('No data found');
+            res.status(200).json({ message: "No data found", data: [] });
             return;
         }
     }

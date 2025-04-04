@@ -55,6 +55,8 @@ import FrmProperty from './features/property/FrmProperty';
 import FrmPropertyOfficerBudget from './features/propertyOfficerBudget/FrmPropertyOfficerBudget';
 import FrmProducePropertyRates from './features/propertyRate/FrmProducePropertyRates';
 
+import FrmOfficerBudgetActual from './features/offBudgetAssessment/FrmOfficerBudgetActual';
+
 import FrmPropertyUpdate from './features/property/FrmPropertyUpdate';
 import FrmPropertyRate from './features/propertyRate/FrmPropertyRate';
 import FrmPropertyBillPayments from './features/propertyBalance/FrmPropertyBillPayments';
@@ -121,6 +123,7 @@ const App: React.FC = () => {
                     <Route path="/BusinessTypesReport" element={<ProtectedRoute element={<FrmBusinessTypesReport />} />} />
                    
                     <Route path="/CollectorsBusinessesReport" element={<ProtectedRoute element={<FrmCollectorsBusinessesReport />} />} />
+                    <Route path="/CompareBudgetActualReport" element={<ProtectedRoute element={<FrmOfficerBudgetActual />} />} />
                 
 {/*                     
                     <Route 

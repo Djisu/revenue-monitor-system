@@ -32,7 +32,9 @@ import  receiptReducer from '../features/receipt/receiptSlice';
 import  transSavingsReducer from '../features/transSavings/transSavingsSlice';
 import photosReducer from '../features/photos/photosSlice'; 
 import busPaymentsReducer from '../features/busPayments/busPaymentsSlice'
+
 import officerBudgetReducer from '../features/officerBudget/officerBudgetSlice';
+
 import { collectorElectoralAreaReducer } from '../features/collectorElectoralarea/collectorElectoralAreaSlice';
 import balanceReducer from '../features/balance/balanceSlice';
 import busTypedetailedReportReducer from '../features/busTypeDetailedReport/busTypeDetailedReportSlice'
@@ -70,7 +72,9 @@ const store = configureStore({
         transSavings: transSavingsReducer,
         photos: photosReducer,
         busPayments: busPaymentsReducer,
+
         officerBudget: officerBudgetReducer,
+        
         collectorElectoralArea: collectorElectoralAreaReducer,
         balance: balanceReducer,
         busTypedetailedReport: busTypedetailedReportReducer,

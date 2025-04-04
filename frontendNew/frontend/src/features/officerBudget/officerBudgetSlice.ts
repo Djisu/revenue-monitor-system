@@ -3,7 +3,7 @@ import apiClient from '../../utilities/apiClient';
 import axios from 'axios';
 
 // Define the initial state
-interface OfficerBudgetState {
+export interface OfficerBudgetState {
     data: any[] | null;
     loading: boolean;
     error: string | null;
@@ -33,10 +33,9 @@ export const fetchOfficerBudget = createAsyncThunk(
     'officerBudget/fetchOfficerBudget',
     async ({ officer_no, fiscal_year }: { officer_no: string; fiscal_year: number; }) => {
 
-        console.clear();
         console.log('in fetchOfficerBudget thunk')
 
-        const response = await apiClient.get(`/api/officerbudget/${officer_no}/${fiscal_year}`);
+        const response = await apiClient.get(`${BASE_URL}/api/officerbudget/${officer_no}/${fiscal_year}`);
 
         console.log('response data: ', response.data)
 
@@ -56,7 +55,7 @@ export const fetchOfficerBudget = createAsyncThunk(
 export const fetchOfficerBudgetAll = createAsyncThunk(
     'officerBudget/fetchOfficerBudgetAll',
     async () => {
-        const response = await axios.get('/officerbudget/all');
+        const response = await axios.get(`${BASE_URL}/officerbudget/all`);
 
         if (response.status !== 200) {
             throw new Error('Failed to fetch officer budgets');

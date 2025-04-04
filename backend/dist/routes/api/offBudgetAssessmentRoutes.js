@@ -156,6 +156,30 @@ router.get('/:officer_name', async (req, res) => {
         }
     }
 });
+// Read a single OffBudgetAssessment record by officer_name
+router.get('/:officer_no/:fiscalYear', async (req, res) => {
+    const { officer_no, fiscalYear } = req.params;
+    let client = null;
+    try {
+        client = await pool.connect();
+        const result = await client.query('SELECT * FROM offbudgetassessment WHERE officer_name = $1', [officer_no]);
+        if (Array.isArray(result.rows) && result.rows.length > 0) {
+            res.json(result.rows[0]); // Return the first row
+        }
+        else {
+            res.status(404).json({ message: 'OffBudgetAssessment record not found' });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching OffBudgetAssessment record', error });
+    }
+    finally {
+        if (client) {
+            client.release();
+        }
+    }
+});
 // Update an OffBudgetAssessment record
 router.put('/:officer_name', async (req, res) => {
     const { officer_name } = req.params;

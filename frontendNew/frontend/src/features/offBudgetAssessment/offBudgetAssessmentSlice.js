@@ -44,12 +44,14 @@ var initialState = {
     error: null,
     amountByOfficerAndMonth: null,
 };
+var BASE_URL = import.meta.env.VITE_BASE_URL ||
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 // Async thunk to fetch all OffBudgetAssessment records
 export var fetchOffBudgetAssessments = createAsyncThunk('offBudgetAssessment/fetchOffBudgetAssessments', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get('/api/offBudgetAssessment')];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/offBudgetAssessment"))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -61,7 +63,7 @@ export var createOffBudgetAssessment = createAsyncThunk('offBudgetAssessment/cre
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post('/api/offBudgetAssessment', data)];
+            case 0: return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/offBudgetAssessment"), data)];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -73,7 +75,7 @@ export var fetchOffBudgetAssessmentByOfficer = createAsyncThunk('offBudgetAssess
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("/api/offBudgetAssessment/".concat(officer_name))];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/offBudgetAssessment/").concat(officer_name))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -86,7 +88,7 @@ export var updateOffBudgetAssessment = createAsyncThunk('offBudgetAssessment/upd
     var officer_name = _b.officer_name, data = _b.data;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.put("/api/offBudgetAssessment/".concat(officer_name), data)];
+            case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/offBudgetAssessment/").concat(officer_name), data)];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
@@ -98,7 +100,7 @@ export var deleteOffBudgetAssessment = createAsyncThunk('offBudgetAssessment/del
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.delete("/api/offBudgetAssessment/".concat(officer_name))];
+            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/offBudgetAssessment/").concat(officer_name))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -111,15 +113,40 @@ export var fetchAmountByOfficerAndMonth = createAsyncThunk('offBudgetAssessment/
     var officerNo = _b.officerNo, fiscalYear = _b.fiscalYear, monthPaid = _b.monthPaid;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.get('/api/amountByOfficerAndMonth', {
-                    params: { officerNo: officerNo, fiscalYear: fiscalYear, monthPaid: monthPaid }
-                })];
+            case 0:
+                console.log('in fetchAmountByOfficerAndMonth');
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/offBudgetAssessment"), {
+                        params: { officerNo: officerNo, fiscalYear: fiscalYear, monthPaid: monthPaid }
+                    })];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
         }
     });
 }); });
+// Async thunk to fetch amount by officer and month
+export var fetchDataByOfficerAndFiscalYear = createAsyncThunk('offBudgetAssessment/fetchDataByOfficerAndFiscalYear', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
+    var response;
+    var officerNo = _b.officerNo, fiscalYear = _b.fiscalYear;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/offBudgetAssessment/").concat(officerNo, "/").concat(fiscalYear))];
+            case 1:
+                response = _c.sent();
+                return [2 /*return*/, response.data];
+        }
+    });
+}); });
+// // Async thunk to fetch the officer assessment
+// export const fetchOfficerAssessment = createAsyncThunk<OfficerAssessment, { officerNo: string; fiscalYear: number }>(
+//     'officerAssessment/fetchOfficerAssessment',
+//     async ({ officerNo, fiscalYear }): Promise<OfficerAssessment> => {
+//         console.log('in fetchOfficerAssessment: ',  officerNo, fiscalYear )
+//         const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/${officerNo}/${fiscalYear}`);
+//         console.log('fetchOfficerAssessment response', response.data)
+//         return response.data; // Ensure this matches OfficerAssessment structure
+//     }
+// );
 // Create the slice
 var offBudgetAssessmentSlice = createSlice({
     name: 'offBudgetAssessment',
@@ -200,6 +227,18 @@ var offBudgetAssessmentSlice = createSlice({
             state.error = null;
         })
             .addCase(fetchAmountByOfficerAndMonth.rejected, function (state, action) {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to fetch amount by officer and month';
+        })
+            .addCase(fetchDataByOfficerAndFiscalYear.pending, function (state) {
+            state.loading = true;
+        })
+            .addCase(fetchDataByOfficerAndFiscalYear.fulfilled, function (state, action) {
+            state.loading = false;
+            state.assessments = action.payload; // Update the amountByOfficerAndYear state 
+            state.error = null;
+        })
+            .addCase(fetchDataByOfficerAndFiscalYear.rejected, function (state, action) {
             state.loading = false;
             state.error = action.error.message || 'Failed to fetch amount by officer and month';
         });

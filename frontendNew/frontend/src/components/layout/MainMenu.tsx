@@ -173,7 +173,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'CollectorPerformanceGraph')}>
                                 BN_Produce Collector Performance Graph
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'OneMonthPerformanceGraph')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('BN', 'OneMonthPerformanceGraph')}>
                                 BN_Produce Collector One Month Performance Graph-Financial
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'OneMonthPerformanceGraphPercentage')}>
@@ -181,12 +181,15 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BO', 'CompareTwoYearsPaymentPeriods')}>
                                 BO_Produce Compare Two Years Payment Periods-Graph
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('BT', 'BusinessTypesReport')}>
                                 BT_Produce Business Types Report-Graph
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('OB', 'CollectorsBusinessesReport')}>
                                 ZB_Produce Businesses for a  Collector Report-Graph
+                            </NavDropdown.Item>
+                            <NavDropdown.Item onClick={() => handleMenuClick('OB', 'CompareBudgetActualReport')}>
+                                ZB_Produce Compare Budget to Actual Report-Graph
                             </NavDropdown.Item>
                             {/* <NavDropdown.Item onClick={() => handleMenuClick('Login', 'Login')}>
                                 Login
@@ -194,7 +197,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                         </NavDropdown>
 
                         {/* Hidden menu items are commented out for now */}
-                        <NavDropdown title="Property Setup" id="basic-nav-dropdown">
+                        {/* <NavDropdown title="Property Setup" id="basic-nav-dropdown">
                             <NavDropdown.Item onClick={() => handleMenuClick('SP', 'SetupPropertyClass')}>
                                 SP_Fee Fixing Setup Property Class
                             </NavDropdown.Item>
@@ -222,9 +225,9 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'PayPropertyBill')}>
                                 BN_Pay Property Bill
                             </NavDropdown.Item>
-                        </NavDropdown>
+                        </NavDropdown> */}
 
-                        <NavDropdown title="Property Rate Reports" id="basic-nav-dropdown">
+                        {/* <NavDropdown title="Property Rate Reports" id="basic-nav-dropdown">
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProducePropertyRateBills')}>
                                 BN_Produce Property Rate Bills
                             </NavDropdown.Item>
@@ -240,7 +243,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProducePropertyRateVarianceAnalysisReport')}>
                                 BN_Produce a Snapshot of the Property Rate Financial Standing of the Assembly
                             </NavDropdown.Item>
-                        </NavDropdown>
+                        </NavDropdown> */}
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>

@@ -53,9 +53,8 @@ export var fetchOfficerBudget = createAsyncThunk('officerBudget/fetchOfficerBudg
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                console.clear();
                 console.log('in fetchOfficerBudget thunk');
-                return [4 /*yield*/, apiClient.get("/api/officerbudget/".concat(officer_no, "/").concat(fiscal_year))];
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerbudget/").concat(officer_no, "/").concat(fiscal_year))];
             case 1:
                 response = _c.sent();
                 console.log('response data: ', response.data);
@@ -76,7 +75,7 @@ export var fetchOfficerBudgetAll = createAsyncThunk('officerBudget/fetchOfficerB
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get('/officerbudget/all')];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/officerbudget/all"))];
             case 1:
                 response = _a.sent();
                 if (response.status !== 200) {

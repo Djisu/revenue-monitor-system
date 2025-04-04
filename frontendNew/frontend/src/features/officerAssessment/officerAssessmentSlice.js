@@ -488,7 +488,9 @@ export var fetchOfficerAssessment = createAsyncThunk('officerAssessment/fetchOff
     var officerNo = _b.officerNo, fiscalYear = _b.fiscalYear;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/").concat(officerNo, "/").concat(fiscalYear))];
+            case 0:
+                console.log('in fetchOfficerAssessment: ', officerNo, fiscalYear);
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/").concat(officerNo, "/").concat(fiscalYear))];
             case 1:
                 response = _c.sent();
                 console.log('fetchOfficerAssessment response', response.data);
