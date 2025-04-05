@@ -174,7 +174,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 BN_Produce Collector Performance Graph
                             </NavDropdown.Item>
                             {/* <NavDropdown.Item onClick={() => handleMenuClick('BN', 'OneMonthPerformanceGraph')}>
-                                BN_Produce Collector One Month Performance Graph-Financial
+                                BN_Produce Collector One Month Performance Graph-Financial 
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'OneMonthPerformanceGraphPercentage')}>
                                 BN_Produce Collector One Month Performance Graph-Percentage
@@ -182,11 +182,11 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('BO', 'CompareTwoYearsPaymentPeriods')}>
                                 BO_Produce Compare Two Years Payment Periods-Graph
                             </NavDropdown.Item> */}
-                            <NavDropdown.Item onClick={() => handleMenuClick('BT', 'BusinessTypesReport')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('BT', 'BusinessTypesReport')}>
                                 BT_Produce Business Types Report-Graph
-                            </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('OB', 'CollectorsBusinessesReport')}>
-                                ZB_Produce Businesses for a  Collector Report-Graph
+                            </NavDropdown.Item> */}
+                            <NavDropdown.Item onClick={() => handleMenuClick('OB', 'ElectoralAreasPaymentsGraph')}>
+                                ZB_Produce Payments for Electoral areas Report-Graph
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('OB', 'CompareBudgetActualReport')}>
                                 ZB_Produce Compare Budget to Actual Report-Graph

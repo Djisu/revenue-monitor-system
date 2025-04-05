@@ -56,21 +56,17 @@ import FrmPropertyOfficerBudget from './features/propertyOfficerBudget/FrmProper
 import FrmProducePropertyRates from './features/propertyRate/FrmProducePropertyRates';
 
 import FrmOfficerBudgetActual from './features/offBudgetAssessment/FrmOfficerBudgetActual';
+import FrmElectoralAreasPaymentsGraph from './features/busPayments/FrmElectoralAreasPaymentsGraph';
 
 import FrmPropertyUpdate from './features/property/FrmPropertyUpdate';
 import FrmPropertyRate from './features/propertyRate/FrmPropertyRate';
 import FrmPropertyBillPayments from './features/propertyBalance/FrmPropertyBillPayments';
-import FrmDailyPropertyPayments from './features/propertyBalance/FrmDailyPropertyPayments';
+import FrmDailyPropertyPayments from './features/propertyBalance/FrmDailyPropertyPayments';//
 import FrmPropertySavingsStatementX from './features/propertyBalance/FrmPropertySavingsStatementX';
 import checkAccess from './utilities/checkAccess';
 import NotFound from './components/layout/NotFound';
 import MainMenuWrapper from './components/MainMenuWrapper';
 //import OfficerAssessmentBarChart from './charts/OfficerAssessmentBarChart';
-
-
-
-
-//import AuditTrail from './features/AuditTrail';
 
 const App: React.FC = () => {
     let [isMainMenuVisible, setMainMenuVisible] = useState(true);
@@ -124,11 +120,11 @@ const App: React.FC = () => {
                    
                     <Route path="/CollectorsBusinessesReport" element={<ProtectedRoute element={<FrmCollectorsBusinessesReport />} />} />
                     <Route path="/CompareBudgetActualReport" element={<ProtectedRoute element={<FrmOfficerBudgetActual />} />} />
-                
+                    <Route path="/ElectoralAreasPaymentsGraph" element={<ProtectedRoute element={<FrmElectoralAreasPaymentsGraph />} />} />
 {/*                     
                     <Route 
                         path="/OfficerAssessmentBarChart" 
-                        element={<OfficerAssessmentBarChart data={chartData} />} 
+                        element={<OfficerAssessmentBarChart data={chartData} />}  
                     />
                     */}
                     {/* Routes for property forms */}

@@ -115,7 +115,7 @@ export const FrmBusiness: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchElectoralAreas());
-}, [dispatch]);
+  }, [dispatch]);
 
 // Get businesses from the Redux store
   const business = useAppSelector((state) => state.business.businesses);

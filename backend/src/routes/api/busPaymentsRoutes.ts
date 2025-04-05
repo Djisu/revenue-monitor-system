@@ -10,7 +10,7 @@ import { dirname } from 'path';
 
 import { QueryResult, PoolClient } from 'pg';
 import pkg from 'pg';
-import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'    //'../../utils/ensurePermitDirIsEmpty';
+import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'   
 import { generatePdf } from '../../generatePdf.js';
 const { Pool } = pkg;
 
@@ -402,22 +402,46 @@ router.get('/:buss_no', async (req: Request, res: Response) => {
     }
 });
 
-// Read a single BusPayments record by electoral_area
-router.get('/:electoralarea', async (req: Request, res: Response) => {
-    const { electoralarea } = req.params;
+router.post('/:electoralArea', async (req: Request, res: Response) => {
+    let { electoralArea } = req.params;
+
+    electoralArea = electoralArea.toString()
+
+    console.log('Received electoral area:', electoralArea);
+
+    if (typeof electoralArea === 'number'){
+        console.log('IT IS A NUMBER!!!!!')
+    }
 
     const client: PoolClient = await pool.connect();
 
     try {
-        const result = await client.query('SELECT * FROM buspayments WHERE electoral_area = $1', [electoralarea]);
+        if (electoralArea === 'All electoral areas') {
+            console.log('electoralArea is All electoral areas');
+            const result = await client.query('SELECT * FROM buspayments');
 
-        if (result.rows.length === 0) {
-            res.status(404).json({ message: 'Business Payments record not found' });
-            return;
+            if (result.rows.length === 0) {
+                res.status(404).json({ message: 'Business Payments record not found', data: [] });
+                return;
+            }
+            console.log('data: ', result.rows)
+            res.status(200).json({ message: 'Data found', data: result.rows});
+            return
+        } else {
+            console.log('Executing query for electoral area:', electoralArea);
+            const result = await client.query('SELECT * FROM "buspayments" WHERE "electroral_area" = $1', [electoralArea]);
+
+            if (result.rows.length === 0) {
+                res.status(404).json({ message: 'Business Payments record not found', data: [] });
+                return;
+            }
+            console.log('data: ', result.rows)
+            res.status(200).json({ message: 'Data found', data: result.rows});
+            return
         }
-        res.json(result.rows);
+        
     } catch (error) {
-        console.error(error);
+        console.error('Database error:', error);
         res.status(500).json({ message: 'Error fetching BusPayments record', error });
     } finally {
         client.release();

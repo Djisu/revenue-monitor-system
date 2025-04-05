@@ -31,7 +31,7 @@ export interface BillData {
   }
 
 const initialState: BusPaymentsState = {
-    busPayments: [],
+    busPayments: []  as BusPaymentsData[],
     loading: false,
     error: null,
     billedAmount: 0,
@@ -153,8 +153,15 @@ async (buss_no: string) => {
 
 // Async thunk to fetch a single BusPayments record by buss_no
 export const fetchBusPaymentByElectoralArea = createAsyncThunk('busPayments/fetchBusPaymentByElectoralArea', async (electoralArea: string) => {
-    const response = await axios.get(`${BASE_URL}/api/busPayments/${electoralArea}`);
-    return response.data;
+    console.log('in fetchBusPaymentByElectoralArea: ', electoralArea)
+
+    const response = await axios.post(`${BASE_URL}/api/busPayments/${electoralArea}`);
+
+    if (Array.isArray(response.data)) {
+        console.log('fetchBusPaymentByElectoralArea fulfilled::: ', response.data);
+        // Ensure response.data is an array 
+        return Array.isArray(response.data) ? response.data : []; //
+    }
 });
 
 // Async thunk to fetch a single BusPayments record by buss_no
@@ -355,7 +362,9 @@ const busPaymentsSlice = createSlice({
             })
             .addCase(fetchBusPaymentByElectoralArea.fulfilled, (state, action) => {     
                 state.loading = false;
-                state.busPayments.push(action.payload); // Add the new BusPayments record
+                if (action.payload && Array.isArray(action.payload)) {
+                    state.busPayments.push(...action.payload); // Use spread operator if payload is an array
+                }
                 state.error = null;
             })
             .addCase(fetchBusPaymentByElectoralArea.rejected, (state, action) => {

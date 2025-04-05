@@ -183,10 +183,17 @@ export var fetchBusPaymentByElectoralArea = createAsyncThunk('busPayments/fetchB
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/").concat(electoralArea))];
+            case 0:
+                console.log('in fetchBusPaymentByElectoralArea: ', electoralArea);
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/busPayments/").concat(electoralArea))];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                if (Array.isArray(response.data)) {
+                    console.log('fetchBusPaymentByElectoralArea fulfilled::: ', response.data);
+                    // Ensure response.data is an array 
+                    return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //
+                }
+                return [2 /*return*/];
         }
     });
 }); });
@@ -401,8 +408,11 @@ var busPaymentsSlice = createSlice({
             state.loading = true;
         })
             .addCase(fetchBusPaymentByElectoralArea.fulfilled, function (state, action) {
+            var _a;
             state.loading = false;
-            state.busPayments.push(action.payload); // Add the new BusPayments record
+            if (action.payload && Array.isArray(action.payload)) {
+                (_a = state.busPayments).push.apply(_a, action.payload); // Use spread operator if payload is an array
+            }
             state.error = null;
         })
             .addCase(fetchBusPaymentByElectoralArea.rejected, function (state, action) {
