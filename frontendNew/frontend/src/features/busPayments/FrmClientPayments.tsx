@@ -3,7 +3,7 @@ import { Row, Col, Form, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAppDispatch } from '../../app/store';
 import { fetchBusinessById } from '../../features/business/businessSlice';
-import { createBusPayment, fetchBilledAmount, BusPaymentsData } from '../busPayments/busPaymentsSlice';
+import { createBusPayment, fetchBilledAmount, BusPaymentsData, fetchFiscalyearReceiptno } from '../busPayments/busPaymentsSlice';
 import { useAppSelector } from '../../hooks';
 
 
@@ -48,6 +48,23 @@ const FrmClientPayments = () => {
     }
   }, [businessNo]);
 
+  const checkReceiptNo = async (receiptNo: string) => { 
+     console.log('in checkReceiptNo')
+     
+     if (receiptNo) {
+      receiptNo = receiptNo.replace('/', '-');
+      console.log('receiptNo:', receiptNo)
+
+      const response = await dispatch(fetchFiscalyearReceiptno({ fiscalyear: fiscalYear, receiptno: receiptNo })).unwrap();
+        console.log('response.message:', response.message);
+
+        if (response && response.message) {
+          alert(response.message);
+          setReceiptNo('');
+        }
+     }
+  }
+
   const getBusiness = async (businessNo: string) => {
     console.log('in getBusiness')
 
@@ -87,8 +104,8 @@ const FrmClientPayments = () => {
         }
 
         // Generate a unique receipt number
-        const uniqueReceiptNo = generateUniqueNumber();
-        setReceiptNo(uniqueReceiptNo);
+        // const uniqueReceiptNo = generateUniqueNumber();
+        // setReceiptNo(uniqueReceiptNo);
      }else{
       console.log('data not found')
      }
@@ -100,11 +117,11 @@ const FrmClientPayments = () => {
     }
   };
 
-  const generateUniqueNumber = () => {
-    const randomNumber = Math.floor(Math.random() * 1000000) + 1;
-    const salt = Math.random().toString(36).substring(2, 15); // Generates a random string as a salt
-    return `${randomNumber}-${salt}`;
-  };
+  // const generateUniqueNumber = () => {
+  //   const randomNumber = Math.floor(Math.random() * 1000000) + 1;
+  //   const salt = Math.random().toString(36).substring(2, 15); // Generates a random string as a salt
+  //   return `${randomNumber}-${salt}`;
+  // };
 
   const setMonthString = (monthNumber: number) => {
     const monthNames = [
@@ -241,6 +258,7 @@ const FrmClientPayments = () => {
                 type="text"
                 value={receiptNo}
                 onChange={(e) => setReceiptNo(e.target.value)}
+                onBlur={(e) => checkReceiptNo(e.target.value)}
               />
             </Col>
           </Row>
@@ -251,7 +269,7 @@ const FrmClientPayments = () => {
                 type="text"
                 value={officerNo}
                 onChange={(e) => setOfficerNo(e.target.value)}
-                readOnly // Make the input read-only
+                readOnly // Make the input read-only 
               />
             </Col>
           </Row>

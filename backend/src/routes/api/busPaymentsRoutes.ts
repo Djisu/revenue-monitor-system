@@ -607,6 +607,73 @@ router.get('/defaulters/:electoralarea', async (req: Request, res: Response): Pr
     }
 });
 
+router.get('/:fiscalyear/:receiptno', async (req: Request, res: Response): Promise<void> => {
+ 
+
+    let {fiscalyear, receiptno} = req.params
+
+   let fiscalyearNew = parseInt(fiscalyear, 10)
+
+    console.log('in router.get(/:fiscalyear/:receiptno: ', fiscalyearNew, receiptno)
+
+    console.log('fiscalyearNew: ', fiscalyearNew) 
+    console.log('receiptno: ', receiptno)   
+
+    const varBatchNo = receiptno.substring(0,2)
+    console.log('varBatchNo: ', varBatchNo)
+
+    const varReceiptNo = parseInt(receiptno.split('-')[1], 10);
+    console.log('typeof varReceiptNo: ', typeof varReceiptNo)
+
+    try {   
+        if (!fiscalyearNew || !receiptno) {
+            res.status(404).send({message: 'Invalid parameters'})
+            return
+        }
+
+        console.log('about to SELECT * FROM buspayments WHERE fiscal_year = $1 AND receiptno = $2')
+
+        const client: PoolClient = await pool.connect();  
+        const result: QueryResult = await client.query('SELECT * FROM buspayments WHERE fiscal_year = $1 AND receiptno = $2', [fiscalyearNew, receiptno])
+
+        if (result.rows && result.rows.length > 0) {
+            res.status(200).send({message: 'Receipt number already entered. Enter another receipt number'})
+            return 
+        }
+
+        console.log('about to SELECT * FROM accreceipt WHERE batchno LIKE $1')
+       // Read from accreceipt
+        const query = `
+            SELECT * 
+            FROM accreceipt 
+            WHERE batchno = $1 
+            AND firstno <= $2 AND lastno >= $2 
+            AND fiscalyear = $3
+        `;
+
+       
+
+        const values = [varBatchNo, varReceiptNo, fiscalyearNew];
+        const batchResult = await pool.query(query, values);  
+
+        console.log('query: ', query)
+        console.log('Parameters:', values);
+
+        console.log('batchResult.rows.length: ', batchResult.rows.length)
+        
+        if (batchResult.rows.length > 0) {
+            console.log('Genuine receipt number');
+            res.status(200).send({message: 'Genuine receipt number'})
+            return
+        } else {
+            console.log('Fake receipt number');
+            res.status(200).send({message: "Fake receipt number"})
+        } 
+    } catch (error: any) {
+        res.status(500).send({message: 'Server error', error})
+    }
+})
+
 
 
 

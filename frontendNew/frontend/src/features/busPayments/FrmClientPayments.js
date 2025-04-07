@@ -40,7 +40,7 @@ import { Row, Col, Form, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAppDispatch } from '../../app/store';
 import { fetchBusinessById } from '../../features/business/businessSlice';
-import { createBusPayment, fetchBilledAmount } from '../busPayments/busPaymentsSlice';
+import { createBusPayment, fetchBilledAmount, fetchFiscalyearReceiptno } from '../busPayments/busPaymentsSlice';
 import { useAppSelector } from '../../hooks';
 var FrmClientPayments = function () {
     var _a = useState(0), businessNo = _a[0], setBusinessNo = _a[1];
@@ -76,8 +76,30 @@ var FrmClientPayments = function () {
             getBusiness(businessNo.toString());
         }
     }, [businessNo]);
+    var checkReceiptNo = function (receiptNo) { return __awaiter(void 0, void 0, void 0, function () {
+        var response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    console.log('in checkReceiptNo');
+                    if (!receiptNo) return [3 /*break*/, 2];
+                    receiptNo = receiptNo.replace('/', '-');
+                    console.log('receiptNo:', receiptNo);
+                    return [4 /*yield*/, dispatch(fetchFiscalyearReceiptno({ fiscalyear: fiscalYear, receiptno: receiptNo })).unwrap()];
+                case 1:
+                    response = _a.sent();
+                    console.log('response.message:', response.message);
+                    if (response && response.message) {
+                        alert(response.message);
+                        setReceiptNo('');
+                    }
+                    _a.label = 2;
+                case 2: return [2 /*return*/];
+            }
+        });
+    }); };
     var getBusiness = function (businessNo) { return __awaiter(void 0, void 0, void 0, function () {
-        var response, uniqueReceiptNo, error_1;
+        var response, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -112,8 +134,6 @@ var FrmClientPayments = function () {
                     else {
                         console.log('Billed Amount not found in response');
                     }
-                    uniqueReceiptNo = generateUniqueNumber();
-                    setReceiptNo(uniqueReceiptNo);
                     return [3 /*break*/, 5];
                 case 4:
                     console.log('data not found');
@@ -129,11 +149,11 @@ var FrmClientPayments = function () {
             }
         });
     }); };
-    var generateUniqueNumber = function () {
-        var randomNumber = Math.floor(Math.random() * 1000000) + 1;
-        var salt = Math.random().toString(36).substring(2, 15); // Generates a random string as a salt
-        return "".concat(randomNumber, "-").concat(salt);
-    };
+    // const generateUniqueNumber = () => {
+    //   const randomNumber = Math.floor(Math.random() * 1000000) + 1;
+    //   const salt = Math.random().toString(36).substring(2, 15); // Generates a random string as a salt
+    //   return `${randomNumber}-${salt}`;
+    // };
     var setMonthString = function (monthNumber) {
         var monthNames = [
             "January", "February", "March", "April", "May", "June",
@@ -235,7 +255,7 @@ var FrmClientPayments = function () {
             }
         });
     }); };
-    return (_jsx("div", { className: "container", style: { backgroundColor: '#add8e6' }, children: _jsxs("div", { children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h4", { className: "text-primary", children: "Collector's Payments Entry" }) }) }), _jsxs(Form, { onSubmit: handleSubmit, children: [_jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Business Number: ", businessName] }), _jsx(Form.Control, { type: "text", value: businessNo, onChange: function (e) { return setBusinessNo(Number(e.target.value)); }, onBlur: function (e) { return getBusiness(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Amount Payable: ", _jsx("span", { style: { color: 'red', fontWeight: 'bold' }, children: billedAmount })] }), _jsx(Form.Control, { type: "number", value: paidAmount, onChange: function (e) { return setPaidAmount(Number(e.target.value)); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Receipt Number:" }), _jsx(Form.Control, { type: "text", value: receiptNo, onChange: function (e) { return setReceiptNo(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Officer Number:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: function (e) { return setOfficerNo(e.target.value); }, readOnly // Make the input read-only
+    return (_jsx("div", { className: "container", style: { backgroundColor: '#add8e6' }, children: _jsxs("div", { children: [_jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx("h4", { className: "text-primary", children: "Collector's Payments Entry" }) }) }), _jsxs(Form, { onSubmit: handleSubmit, children: [_jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Business Number: ", businessName] }), _jsx(Form.Control, { type: "text", value: businessNo, onChange: function (e) { return setBusinessNo(Number(e.target.value)); }, onBlur: function (e) { return getBusiness(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsxs(Form.Label, { children: ["Amount Payable: ", _jsx("span", { style: { color: 'red', fontWeight: 'bold' }, children: billedAmount })] }), _jsx(Form.Control, { type: "number", value: paidAmount, onChange: function (e) { return setPaidAmount(Number(e.target.value)); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Receipt Number:" }), _jsx(Form.Control, { type: "text", value: receiptNo, onChange: function (e) { return setReceiptNo(e.target.value); }, onBlur: function (e) { return checkReceiptNo(e.target.value); } })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Officer Number:" }), _jsx(Form.Control, { type: "text", value: officerNo, onChange: function (e) { return setOfficerNo(e.target.value); }, readOnly // Make the input read-only 
                                         : true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Month Paid:" }), _jsx(Form.Control, { value: monthPaid, readOnly // If you want it to be read-only
                                         : true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Transaction Date:" }), _jsx(Form.Control, { value: transDate, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Fiscal Year:" }), _jsx(Form.Control, { value: fiscalYear, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Email:" }), _jsx(Form.Control, { value: email, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsxs(Col, { children: [_jsx(Form.Label, { children: "Electoral Area:" }), _jsx(Form.Control, { value: electoralArea, readOnly: true })] }) }), _jsx(Row, { className: "mb-3", children: _jsx(Col, { children: _jsx(Button, { type: "submit", variant: "primary", children: "Click to pay" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", style: { textDecoration: "none" }, children: "Go Back" }) }) })] })] }) }));
 };

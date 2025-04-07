@@ -322,6 +322,32 @@ export var fetchDailyPayments = createAsyncThunk('businessType/dailypayments', f
         }
     });
 }); });
+export var fetchFiscalyearReceiptno = createAsyncThunk('businessType/fetchFiscalyearReceiptno', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
+    var year, response;
+    var fiscalyear = _b.fiscalyear, receiptno = _b.receiptno;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                console.log('inside fetchFiscalyearReceiptno thunk');
+                console.log('fiscalyear: ', fiscalyear);
+                console.log('receiptno: ', receiptno);
+                year = fiscalyear.split('-')[0];
+                fiscalyear = year;
+                console.log('fiscalyear: ', fiscalyear);
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/").concat(fiscalyear, "/").concat(receiptno), {
+                        headers: { 'Content-Type': 'application/json' },
+                    })];
+            case 1:
+                response = _c.sent();
+                console.log('after fetchFiscalyearReceiptno thunk, Response data:', response.data);
+                if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
+                console.log('fetchFiscalyearReceiptno thunk, response data.data:', response.data.data);
+                return [4 /*yield*/, response.data.data];
+            case 2: return [2 /*return*/, _c.sent()]; // This data will be available as `action.payload`
+            case 3: throw new Error("Error fetching one business types: ".concat(response.statusText));
+        }
+    });
+}); });
 // Create the slice 
 var busPaymentsSlice = createSlice({
     name: 'busPayments',
@@ -464,13 +490,26 @@ var busPaymentsSlice = createSlice({
         })
             .addCase(deleteBusPayment.fulfilled, function (state, action) {
             state.loading = false;
-            // Remove the deleted BusPayments record from the state
+            // Remove the deleted BusPayments record from the state   
             state.busPayments = state.busPayments.filter(function (busPayment) { return busPayment.buss_no !== action.meta.arg; });
             state.error = null;
         })
             .addCase(deleteBusPayment.rejected, function (state, action) {
             state.loading = false;
             state.error = action.error.message || 'Failed to delete BusPayments record';
+        })
+            .addCase(fetchFiscalyearReceiptno.pending, function (state) {
+            state.loading = true;
+        })
+            .addCase(fetchFiscalyearReceiptno.fulfilled, function (state, action) {
+            var _a;
+            state.loading = false;
+            (_a = state.busPayments).push.apply(_a, action.payload); // Add the new BusPayments record
+            state.error = null;
+        })
+            .addCase(fetchFiscalyearReceiptno.rejected, function (state, action) {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to fetch BusPayments record';
         });
     },
 });
