@@ -42,12 +42,14 @@ var initialState = {
     loading: false,
     error: null,
 };
+var BASE_URL = import.meta.env.VITE_BASE_URL ||
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
 // Async thunk to fetch all receipts
 export var fetchReceipts = createAsyncThunk('receipt/fetchReceipts', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get('/api/receipt')];
+            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/receipt"))];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -60,9 +62,12 @@ export var fetchReceiptById = createAsyncThunk('receipt/fetchReceiptById', funct
     var buss_no = _b.buss_no, receiptno = _b.receiptno;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.get("/api/receipt/".concat(buss_no, "/").concat(receiptno))];
+            case 0:
+                console.log('in fetchReceiptById: ', { buss_no: buss_no, receiptno: receiptno });
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/receipt/").concat(buss_no, "/").concat(receiptno))];
             case 1:
                 response = _c.sent();
+                console.log('response.data: ', response.data);
                 return [2 /*return*/, response.data];
         }
     });
@@ -72,7 +77,7 @@ export var createReceipt = createAsyncThunk('receipt/createReceipt', function (r
     var response;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post('/api/receipt', receiptData)];
+            case 0: return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/receipt"), receiptData)];
             case 1:
                 response = _a.sent();
                 return [2 /*return*/, response.data];
@@ -85,7 +90,7 @@ export var updateReceipt = createAsyncThunk('receipt/updateReceipt', function (_
     var buss_no = _b.buss_no, receiptno = _b.receiptno, receiptData = _b.receiptData;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.put("/api/receipt/".concat(buss_no, "/").concat(receiptno), receiptData)];
+            case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/receipt/").concat(buss_no, "/").concat(receiptno), receiptData)];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];
@@ -98,7 +103,7 @@ export var deleteReceipt = createAsyncThunk('receipt/deleteReceipt', function (_
     var buss_no = _b.buss_no, receiptno = _b.receiptno;
     return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, axios.delete("/api/receipt/".concat(buss_no, "/").concat(receiptno))];
+            case 0: return [4 /*yield*/, axios.delete("".concat(BASE_URL, "/api/receipt/").concat(buss_no, "/").concat(receiptno))];
             case 1:
                 response = _c.sent();
                 return [2 /*return*/, response.data];

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAppDispatch } from '../../app/store';
 import { fetchBusinessById } from '../../features/business/businessSlice';
 import { createBusPayment, fetchBilledAmount, BusPaymentsData, fetchFiscalyearReceiptno } from '../busPayments/busPaymentsSlice';
+//import { fetchReceiptById } from '../receipt/receiptSlice';
 import { useAppSelector } from '../../hooks';
 
 
@@ -39,7 +40,7 @@ const FrmClientPayments = () => {
     if (billedAmountData !== undefined) {
       setBilledAmount(billedAmountData as number);
     }
-  }, [billedAmountData]); // Dependency array includes billedAmountData
+  }, [billedAmountData]); // Dependency array includes billedAmountData   --------fetchReceiptById
 
   useEffect(() => {
     // This effect will run every time businessNo changes
@@ -49,21 +50,39 @@ const FrmClientPayments = () => {
   }, [businessNo]);
 
   const checkReceiptNo = async (receiptNo: string) => { 
-     console.log('in checkReceiptNo')
-     
-     if (receiptNo) {
+    console.log('in checkReceiptNo');
+    
+    if (receiptNo) {
       receiptNo = receiptNo.replace('/', '-');
-      console.log('receiptNo:', receiptNo)
-
+      console.log('receiptNo:', receiptNo);
+  
       const response = await dispatch(fetchFiscalyearReceiptno({ fiscalyear: fiscalYear, receiptno: receiptNo })).unwrap();
-        console.log('response.message:', response.message);
-
-        if (response && response.message) {
-          alert(response.message);
-          setReceiptNo('');
-        }
-     }
+      console.log('response.message:', response.message);
+  
+      if (response && response.message) {
+        alert(response.message);
+        setReceiptNo('');
+        return false; // Invalid receipt
+      }
+    }
+    return true; // Valid receipt
   }
+
+  // const checkBussNoReceiptNo = async (receiptNo: string) => { 
+  //   console.log('in checkReceiptNo');
+    
+  //   if (receiptNo && businessNo) { 
+  //     const response = await dispatch(fetchReceiptById({ buss_no: businessNo.toString(), receiptno: receiptNo })).unwrap();
+  //     console.log('response.message:', response.message);
+  
+  //     if (response && response.message) {
+  //       alert(response.message);
+  //       setReceiptNo('');
+  //       return false; // Invalid receipt
+  //     }
+  //   }
+  //   return true; // Valid receipt
+  // }
 
   const getBusiness = async (businessNo: string) => {
     console.log('in getBusiness')
@@ -174,6 +193,19 @@ const FrmClientPayments = () => {
       setErrorMessage('Electoral Area is required');
       return;
     }
+
+    // Check if receiptNo is valid before proceeding
+    const isReceiptValid = await checkReceiptNo(receiptNo);
+    if (!isReceiptValid) {
+      setErrorMessage('Invalid receipt number. Please check and try again.');
+      return; // Stop further execution if invalid
+    }
+
+    // const isReceiptCorrect = await checkBussNoReceiptNo(receiptNo);
+    // if (!isReceiptCorrect) {
+    //   setErrorMessage('Receipt number already exists. Please check and try again.');
+    //   return; // Stop further execution if invalid
+    // }
 
     // Create the busPayment object with the correct field names
     const busPayment: BusPaymentsData = {

@@ -41,6 +41,7 @@ import { Link } from 'react-router-dom';
 import { useAppDispatch } from '../../app/store';
 import { fetchBusinessById } from '../../features/business/businessSlice';
 import { createBusPayment, fetchBilledAmount, fetchFiscalyearReceiptno } from '../busPayments/busPaymentsSlice';
+//import { fetchReceiptById } from '../receipt/receiptSlice';
 import { useAppSelector } from '../../hooks';
 var FrmClientPayments = function () {
     var _a = useState(0), businessNo = _a[0], setBusinessNo = _a[1];
@@ -69,7 +70,7 @@ var FrmClientPayments = function () {
         if (billedAmountData !== undefined) {
             setBilledAmount(billedAmountData);
         }
-    }, [billedAmountData]); // Dependency array includes billedAmountData
+    }, [billedAmountData]); // Dependency array includes billedAmountData   --------fetchReceiptById
     useEffect(function () {
         // This effect will run every time businessNo changes
         if (businessNo > 0) {
@@ -92,12 +93,26 @@ var FrmClientPayments = function () {
                     if (response && response.message) {
                         alert(response.message);
                         setReceiptNo('');
+                        return [2 /*return*/, false]; // Invalid receipt
                     }
                     _a.label = 2;
-                case 2: return [2 /*return*/];
+                case 2: return [2 /*return*/, true]; // Valid receipt
             }
         });
     }); };
+    // const checkBussNoReceiptNo = async (receiptNo: string) => { 
+    //   console.log('in checkReceiptNo');
+    //   if (receiptNo && businessNo) { 
+    //     const response = await dispatch(fetchReceiptById({ buss_no: businessNo.toString(), receiptno: receiptNo })).unwrap();
+    //     console.log('response.message:', response.message);
+    //     if (response && response.message) {
+    //       alert(response.message);
+    //       setReceiptNo('');
+    //       return false; // Invalid receipt
+    //     }
+    //   }
+    //   return true; // Valid receipt
+    // }
     var getBusiness = function (businessNo) { return __awaiter(void 0, void 0, void 0, function () {
         var response, error_1;
         return __generator(this, function (_a) {
@@ -162,7 +177,7 @@ var FrmClientPayments = function () {
         return monthNames[monthNumber];
     };
     var handleSubmit = function (e) { return __awaiter(void 0, void 0, void 0, function () {
-        var busPayment, response, error_2;
+        var isReceiptValid, busPayment, response, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -206,6 +221,13 @@ var FrmClientPayments = function () {
                         setErrorMessage('Electoral Area is required');
                         return [2 /*return*/];
                     }
+                    return [4 /*yield*/, checkReceiptNo(receiptNo)];
+                case 1:
+                    isReceiptValid = _a.sent();
+                    if (!isReceiptValid) {
+                        setErrorMessage('Invalid receipt number. Please check and try again.');
+                        return [2 /*return*/]; // Stop further execution if invalid
+                    }
                     busPayment = {
                         buss_no: businessNo.toString(),
                         officer_no: officerNo,
@@ -218,11 +240,11 @@ var FrmClientPayments = function () {
                         electoral_area: electoralArea,
                     };
                     console.log('busPayment:', busPayment);
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, dispatch(createBusPayment(busPayment)).unwrap()];
+                    _a.label = 2;
                 case 2:
+                    _a.trys.push([2, 4, , 5]);
+                    return [4 /*yield*/, dispatch(createBusPayment(busPayment)).unwrap()];
+                case 3:
                     response = _a.sent();
                     console.log('XXXXXXXXXXX', response);
                     // Log the response to verify
@@ -244,14 +266,14 @@ var FrmClientPayments = function () {
                         // Handle unexpected response structure
                         setErrorMessage('Unexpected response received.');
                     }
-                    return [3 /*break*/, 4];
-                case 3:
+                    return [3 /*break*/, 5];
+                case 4:
                     error_2 = _a.sent();
                     // Handle error, e.g., show error message
                     setErrorMessage('Failed to create payment. Please try again.');
                     console.error('Error creating payment:', error_2);
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
             }
         });
     }); };

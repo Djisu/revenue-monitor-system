@@ -289,9 +289,9 @@ const GradeRateForm: React.FC = () => {
               {gradeRates.map((gr, index) => (
                 <tr key={index} data-grade={gr.grade} onClick={handleSelectGradeRate}>
                   <td>{gr.grade}</td>
-                  <td>{gr.minValuex.toString()}</td> 
-                  <td>{gr.maxValuex.toString()}</td>
-                  <td>{gr.rate.toString()}</td>
+                  <td>{gr.minValuex}</td> 
+                  <td>{gr.maxValuex}</td>
+                  <td>{gr.rate}</td>
                 </tr>
               ))}
             </tbody>

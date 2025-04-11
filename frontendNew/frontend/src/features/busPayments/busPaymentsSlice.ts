@@ -289,7 +289,7 @@ export const fetchFiscalyearReceiptno = createAsyncThunk(
         console.log('receiptno: ', receiptno)
 
         // get year from system date
-        
+
         const year = fiscalyear.split('-')[0];
         fiscalyear = year;
 
@@ -307,7 +307,7 @@ export const fetchFiscalyearReceiptno = createAsyncThunk(
         if (response.status >= 200 && response.status < 300) {
             console.log('fetchFiscalyearReceiptno thunk, response data.data:', response.data.data);
 
-            return await response.data.data; // This data will be available as `action.payload`
+            return await response.data; // This data will be available as `action.payload`
         } else {
             throw new Error(`Error fetching one business types: ${response.statusText}`);
         }

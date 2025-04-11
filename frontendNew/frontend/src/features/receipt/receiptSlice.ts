@@ -25,33 +25,42 @@ const initialState: ReceiptState = {
     error: null,
 };
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+
+
 // Async thunk to fetch all receipts
 export const fetchReceipts = createAsyncThunk('receipt/fetchReceipts', async () => {
-    const response = await axios.get('/api/receipt');
+    const response = await axios.get(`${BASE_URL}/api/receipt`);
     return response.data;
 });
 
 // Async thunk to fetch a single receipt by buss_no and receiptno
-export const fetchReceiptById = createAsyncThunk('receipt/fetchReceiptById', async ({ buss_no, receiptno }: { buss_no: string; receiptno: string }) => {
-    const response = await axios.get(`/api/receipt/${buss_no}/${receiptno}`);
+export const fetchReceiptById = createAsyncThunk('receipt/fetchReceiptById', 
+    async ({ buss_no, receiptno }: { buss_no: string; receiptno: string }) => {
+    console.log('in fetchReceiptById: ', { buss_no, receiptno })
+
+    const response = await axios.get(`${BASE_URL}/api/receipt/${buss_no}/${receiptno}`);   
+
+    console.log('response.data: ', response.data) 
     return response.data;
 });
 
 // Async thunk to create a new receipt
 export const createReceipt = createAsyncThunk('receipt/createReceipt', async (receiptData: ReceiptData) => {
-    const response = await axios.post('/api/receipt', receiptData);
+    const response = await axios.post(`${BASE_URL}/api/receipt`, receiptData);
     return response.data;
 });
 
 // Async thunk to update a receipt
 export const updateReceipt = createAsyncThunk('receipt/updateReceipt', async ({ buss_no, receiptno, receiptData }: { buss_no: string; receiptno: string; receiptData: ReceiptData }) => {
-    const response = await axios.put(`/api/receipt/${buss_no}/${receiptno}`, receiptData);
+    const response = await axios.put(`${BASE_URL}/api/receipt/${buss_no}/${receiptno}`, receiptData);
     return response.data;
 });
 
 // Async thunk to delete a receipt
 export const deleteReceipt = createAsyncThunk('receipt/deleteReceipt', async ({ buss_no, receiptno }: { buss_no: string; receiptno: string }) => {
-    const response = await axios.delete(`/api/receipt/${buss_no}/${receiptno}`);
+    const response = await axios.delete(`${BASE_URL}/api/receipt/${buss_no}/${receiptno}`);
     return response.data;
 });
 

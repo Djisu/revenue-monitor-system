@@ -342,7 +342,7 @@ export var fetchFiscalyearReceiptno = createAsyncThunk('businessType/fetchFiscal
                 console.log('after fetchFiscalyearReceiptno thunk, Response data:', response.data);
                 if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
                 console.log('fetchFiscalyearReceiptno thunk, response data.data:', response.data.data);
-                return [4 /*yield*/, response.data.data];
+                return [4 /*yield*/, response.data];
             case 2: return [2 /*return*/, _c.sent()]; // This data will be available as `action.payload`
             case 3: throw new Error("Error fetching one business types: ".concat(response.statusText));
         }

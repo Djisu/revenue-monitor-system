@@ -45,6 +45,7 @@ const varSerialNo = baseSerialNo.toString().padStart(10, '0');
         }
     };
 
+    console.log('in generatePdf: about to enter const pdfDoc = pdfMake.createPdf(templateJson);')
     // Generate the PDF
     const pdfDoc = pdfMake.createPdf(templateJson);
 

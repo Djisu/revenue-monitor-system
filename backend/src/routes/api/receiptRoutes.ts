@@ -82,6 +82,8 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:buss_no/:receiptno', async (req: Request, res: Response) => {
     const { buss_no, receiptno } = req.params;
 
+    console.log('in router.get(/:buss_no/:receiptno', { buss_no, receiptno })
+
     try {
         const { rows } = await pool.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
              [buss_no, receiptno]

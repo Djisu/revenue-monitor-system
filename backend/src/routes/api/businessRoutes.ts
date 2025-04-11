@@ -602,11 +602,11 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
         //  }
 
         // Select all businesses in the electoral area
-        let businessRows = await client.query('SELECT * FROM business WHERE electroral_area = $1', [electoral_area]);
+        let businessRows = await client.query('SELECT * FROM business WHERE electroral_area ILIKE $1', [electoral_area]);
 
-       //console.log('after SELECT * FROM business WHERE electroral_area = $1')
+       console.log('after SELECT * FROM business WHERE electroral_area = $1')
 
-       //console.log('businessRows.rows.length === 0: ', businessRows.rows.length === 0)
+       console.log('businessRows.rows.length === 0: ', businessRows.rows.length === 0)
 
         if (businessRows.rows.length === 0) {
             res.status(404).json({ message: 'No businesses found for the electoral area' });
@@ -642,7 +642,7 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
         let tmpBusinessRows = await client.query(`
             INSERT INTO tmpbusiness 
             SELECT * FROM business 
-            WHERE electroral_area = $1 
+            WHERE electroral_area ILIKE $1 
               AND current_rate > 0 
               AND status = 'Active' 
             ORDER BY buss_name ASC 
@@ -651,9 +651,9 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
 
         console.log('after insert into tmpbusiness');
 
-        const recReport = await client.query('SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2', [fiscal_year, electoral_area]);
+        const recReport = await client.query('SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea ILIKE  $2', [fiscal_year, electoral_area]);
 
-        console.log('after SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2');
+        console.log('after SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea ILIKE  $2');
         console.log('recReport.rows.length:', recReport.rows.length);
 
         if (recReport.rows.length === 0) {
@@ -661,12 +661,17 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
             return;
         }
 
-        await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea = $2', [fiscal_year, electoral_area]);
+        await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea ILIKE  $2', [fiscal_year, electoral_area]);
 
         console.log('after INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance');
 
         // Add serial numbers
         let recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
+
+        if (recBusiness.rows.length === 0) {
+            res.status(404).json({ message: 'No buainesses found for the electoral area' });
+            return;
+        }
 
         let permitNo = 1;
 

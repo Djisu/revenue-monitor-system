@@ -54,6 +54,7 @@ router.get('/', async (req, res) => {
 // Read a single receipt record by buss_no
 router.get('/:buss_no/:receiptno', async (req, res) => {
     const { buss_no, receiptno } = req.params;
+    console.log('in router.get(/:buss_no/:receiptno', { buss_no, receiptno });
     try {
         const { rows } = await pool.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2', [buss_no, receiptno]);
         if (rows.length == 0) {
