@@ -50,17 +50,23 @@ export const fetchOfficerBudget = createAsyncThunk(
         };
     }
 );
-
 // Async thunk to fetch officer budget data
 export const fetchOfficerBudgetAll = createAsyncThunk(
     'officerBudget/fetchOfficerBudgetAll',
-    async () => {
-        const response = await axios.get(`${BASE_URL}/officerbudget/all`);
+    async (_, thunkAPI) => {
+        try {
+            console.log('in fetchOfficerBudgetAll thunk');
+             const response = await apiClient.get(`${BASE_URL}/api/OfficerBudget/all`);
+            // response = await axios.get(`${BASE_URL}/api/OfficerBudget/all`);
 
-        if (response.status !== 200) {
-            throw new Error('Failed to fetch officer budgets');
+            if (response.status !== 200) {
+                throw new Error('Failed to fetch officer budgets');
+            }
+            return response.data; // Return the data from the response
+        } catch (error: any) {
+            console.error('Error fetching officer budgets:', error);
+            return thunkAPI.rejectWithValue(error.response.data);
         }
-        return response.data.data; // Return the data from the response
     }
 );
 
@@ -138,6 +144,17 @@ const officerBudgetSlice = createSlice({
                 state.loading = false;
                 state.error = action.error.message || 'Failed to add budget';
             })
+            .addCase(fetchOfficerBudgetAll.pending, (state) => {
+                state.error = null; // Reset error on new fetch
+            })
+            .addCase(fetchOfficerBudgetAll.fulfilled, (state, action) => {
+                state.data = action.payload;
+                state.error = null;
+            })
+            .addCase(fetchOfficerBudgetAll.rejected, (state, action) => {
+                state.error = action.error.message ?? 'Failed to fetch officer budget';
+            });
+
             // .addCase(updateBudget.pending, (state) => {
             //     state.loading = true;
             //     state.error = null;

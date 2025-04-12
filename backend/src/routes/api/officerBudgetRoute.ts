@@ -107,6 +107,8 @@ const router = Router();
 dotenv.config();
 
 router.get('/all', async (req: Request, res: Response): Promise<void> => {
+    console.log('in router.get(/all')
+
     const client: PoolClient = await pool.connect();
     try {
         const result = await client.query(`SELECT * FROM officerbudget`);
@@ -266,6 +268,9 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
             return
          }
 
+         console.log('officer budget found!!!')
+         console.log('about to SELECT * FROM office WHERE officer_no = $1, [officer_no]')
+
          // Find officer name from officer_no
          const officerName = await client.query(`
             SELECT * FROM officer 
@@ -273,7 +278,8 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
 
         if (officerName.rows.length === 0) {
             console.log('Officer not found')
-             res.status(400).json({
+
+            res.status(400).json({
                 status: 'fail',
                 message: 'Officer not found',
                 data: {}
@@ -283,12 +289,18 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
 
         console.log('officerName.rows[0].officer_name:', officerName.rows[0].officer_name)
 
+        console.log('about to  SELECT SUM(current_rate) AS totsum FROM business WHERE assessmentby = $1')
+
         // Find Annual Budget
         const annual_budget = await client.query(`
-            SELECT SUM(current_rate) AS totsum FROM business 
-            WHERE assessmentby = $1`, [officerName.rows[0].officer_name]);
+            SELECT SUM(current_balance) AS totsum FROM busscurrbalance
+            WHERE assessmentby = $1 AND fiscalyear = $2`, [officer_no, fiscal_year]);
 
-        if (annual_budget.rows[0].length === 0) {
+        console.log('annual_budget.rows[0].totsum:', annual_budget.rows[0].totsum)
+
+        if (annual_budget.rows[0].totsum === null) {
+            console.log('Annual budget not found for officer')
+
              res.status(400).json({
                 status: 'fail',
                 message: 'Annual budget not found for officer ' + officerName.rows[0].officer_name,
@@ -297,8 +309,18 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
             return
         }
 
+        // if (annual_budget.rows[0].length === 0) {
+        //      res.status(400).json({
+        //         status: 'fail',
+        //         message: 'Annual budget not found for officer ' + officerName.rows[0].officer_name,
+        //         data: {}
+        //     });
+        //     return
+        // }
+
         console.log('annual_budget.rows[0].totsum:', annual_budget.rows[0].totsum)
 
+        console.log('about to Find monthly budget')
         // Find Monthly Budget
         const monthly_budget = parseFloat(annual_budget.rows[0].totsum) / 12;
         console.log('monthly_budget:', monthly_budget)
@@ -368,10 +390,12 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
         newAnnualBudget
     ]);
         
+       console.log('about to SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2')
+       console.log('Find out if officerbudget record was inserted successfully')
+
        // Find out if officerbudget record was inserted successfully
        const officerExists = await client.query(`
-         SELECT * FROM officerbudget 
-         WHERE officer_no = $1 AND fiscal_year = $2`, [officer_no, fiscal_year]);
+         SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2`, [officer_no, fiscal_year]);
 
          console.log('officerExists.rows:', officerExists.rows)
 
@@ -412,6 +436,7 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
             
             if (budget.length === 0) {
                 console.log('No budget found for officer_no: ', officerName.rows[0].officer_name, 'in fiscal year: ', fiscal_year);
+
                  res.status(400).json({
                     status: 'fail',
                     message: 'No budget found for officerName.rows[0].officer_name: ' + officerName.rows[0].officer_name + 'in fiscal year: ' + fiscal_year,
@@ -419,7 +444,9 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
                 });
                 return
             }
-            else if (budget.length > 1) {
+
+            console.log('budget.length:', budget.length)
+            if (budget.length > 1) {
                 console.error('Multiple budget records found for officerName.rows[0].officer_name: ', officerName.rows[0].officer_name, 'in fiscal year: ', fiscal_year);
             }
 
@@ -432,12 +459,14 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
 
         // Step 4: Fetch all payments for the given officer and fiscal year
         console.log('about to loop through payments')
+
+        // Find all payments for the given officer and fiscal year
         const paymentsQuery = `
         SELECT monthpaid, paidAmount, officer_no, fiscal_year
         FROM buspayments 
         WHERE officer_no = $1 AND fiscal_year = $2
         `;
-        const paymentsResult = await client.query(paymentsQuery, [officerName.rows[0].officer_name, fiscal_year]); 
+        const paymentsResult = await client.query(paymentsQuery, [officer_no, fiscal_year]); 
         const payments = paymentsResult.rows;
 
         if (payments.length === 0) {
@@ -455,8 +484,6 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
 
         for (let i = 0; i < payments.length; i++) {
             console.log('payment:', payments[i].monthpaid, payments[i].paidamount, payments[i].officer_no)
-
-           
 
             const payment = payments[i]; // Get the payment object
             const { monthpaid, paidamount, fiscal_year } = payment;
@@ -488,13 +515,12 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
             `;
 
             // Log the constructed query and parameters for debugging
-            // console.log('Update Query:', updateQuery);
-            // console.log('Parameters:', [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
+            console.log('Update Query:', updateQuery);
+            console.log('Parameters:', [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
 
             // Execute the update query
             await client.query(updateQuery, [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
 
-            console.log('final totActuals: ', totActuals)
 
             // Check if the update query was successful
             console.log('updateQuery.length: ', updateQuery.length)
@@ -508,9 +534,12 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
             }
         }
     
+        console.log('update officerbudget successful!!!!')
+
+        console.log('final totActuals: ', totActuals)
        //////////////End of the updateOfficerBudget function//////////////////
 
-
+       
         // // Send email to officer
         // const officerEmail = await pool.query(`
         //     SELECT email FROM officer 

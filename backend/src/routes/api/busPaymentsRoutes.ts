@@ -718,9 +718,8 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
     console.log('bussName:', bussName);
 
     try {
-        // Delete all from transsavings
-        await client.query('DELETE FROM transsavings');
-
+        
+        // Balance brought forward
         // Select from busscurrbalance
         const bussCurrbalanceResult: QueryResult = await client.query(
             'SELECT DISTINCT SUM(current_balance) AS totdebit FROM busscurrbalance WHERE buss_no = $1 AND transdate < $2',
@@ -752,43 +751,58 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
 
         console.log('varbalance:', varbalance);
 
+        // Delete all from transsavings
+        await client.query('DELETE FROM transsavings');
+
+        let termCount: number = 0
         // Enter the balance bf detailed line
-        if (varbalance > 0) {         
+        if (varbalance > 0) {  
+            console.log('Credit the account ')
+            // Credit the account       
             const transsavingsDebit: QueryResult = await client.query(
                 'INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-                [intBussNo, formattedToday, 'BALANCE BROUGHT FORWARD', 0, varbalance, varbalance, 5, currentYear, 0]
+                [intBussNo, formattedToday, 'BALANCE BROUGHT FORWARD', 0, varbalance, varbalance, 5, currentYear, termCount++]
             );
         } else {
+            console.log('Debit the account')
+            // Debit the account
             const transsavingsCredit: QueryResult = await client.query(
                 'INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-                [intBussNo, formattedToday, 'BALANCE BROUGHT FORWARD', varbalance, 0, varbalance, 5, currentYear, 0]
+                [intBussNo, formattedToday, 'BALANCE BROUGHT FORWARD', varbalance, 0, varbalance, 5, currentYear, termCount++]
             );
         }
 
+        // Current details
         const busscurrbalanceResult: QueryResult = await client.query(
             'SELECT * FROM busscurrbalance WHERE buss_no = $1 AND transdate BETWEEN $2 AND $3 ORDER BY transdate ASC',
             [intBussNo, formattedStartDate, formattedEndDate]
         );
 
+        console.log('busscurrbalanceResult.rows.length: ', busscurrbalanceResult.rows.length);
+
         if (busscurrbalanceResult.rows.length === 0) {
-            console.log('Business not billed yet');
-            //return res.status(404).json({ message: 'Business not billed yet', data: [] });
+            console.log('Business transactions not found for dates');
+            res.status(404).json({ message: 'Business transactions not found for dates', data: [] });
+            return 
         }
 
        // loop through busscurrbalanceResult.rows and insert into transsavings
         for (const bussCurrbalanceRow of busscurrbalanceResult.rows) {
+
+            varbalance = varbalance - parseFloat(bussCurrbalanceRow.current_balance)
+
             const transsavingsResult: QueryResult = await client.query(
                 'INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
                 [
                     bussCurrbalanceRow.buss_no,
                     bussCurrbalanceRow.transdate,
                     'Annual Revenue Billing for Fiscal Year ' + bussCurrbalanceRow.fiscalyear,
-                    bussCurrbalanceRow.current_balance,
+                    bussCurrbalanceRow.current_balance * -1,
                     0, // credit
-                    bussCurrbalanceRow.current_balance,
+                    varbalance,
                     5,
                     currentYear,
-                    generateRandomTerm()
+                    termCount++
                 ]
             );
         }
@@ -807,7 +821,10 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
 
         // loop through busPaymentsDetailedResult.rows and insert into transsavings
         if (busPaymentsDetailedResult.rows.length > 0) {
-            for (const busPaymentRow of busPaymentsDetailedResult.rows) {    
+            for (const busPaymentRow of busPaymentsDetailedResult.rows) {  
+
+                varbalance = varbalance + parseFloat(busPaymentRow.paidamount) || 0
+
                 const transsavingsResult: QueryResult = await client.query(
                     'INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
                     [
@@ -819,7 +836,7 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
                         varbalance,
                         5,
                         currentYear,
-                        generateRandomTerm()
+                        termCount++
                     ]
                 );           
             }
@@ -828,8 +845,8 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
         console.log('after looping through busscurrbalanceResult.rows and busPaymentsDetailedResult.rows')
 
         const result = await client.query(
-            'SELECT * FROM transsavings WHERE buss_no = $1 AND transdate BETWEEN $2 AND $3 ORDER BY transdate ASC',
-            [intBussNo, formattedStartDate, formattedEndDate]
+            'SELECT * FROM transsavings WHERE buss_no = $1 ORDER BY term ASC',
+            [intBussNo]
         );
 
         if (result.rows.length === 0) {

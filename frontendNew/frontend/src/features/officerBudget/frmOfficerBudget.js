@@ -38,7 +38,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/store';
-import { addBudget, resetError, resetBudgetState } from './officerBudgetSlice'; // Adjust the path as necessary
+import { addBudget, resetError, resetBudgetState, fetchOfficerBudgetAll } from './officerBudgetSlice'; // Adjust the path as necessary
 import { fetchOfficers } from '../officer/officerSlice';
 var FrmOfficerBudget = function () {
     var dispatch = useAppDispatch();
@@ -49,6 +49,12 @@ var FrmOfficerBudget = function () {
     console.log('officers', officers);
     var _a = useState(''), officerNo = _a[0], setOfficerNo = _a[1];
     var _b = useState(0), fiscalYear = _b[0], setFiscalYear = _b[1];
+    // Get officer budget state for the table
+    var officerBudget = useAppSelector(function (state) { return state.officerBudget.data; });
+    useEffect(function () {
+        console.log('in useEffect dispatch(fetchOfficerBudgetAll())');
+        dispatch(fetchOfficerBudgetAll());
+    }, [dispatch]);
     // Optionally reset state on unmount
     useEffect(function () {
         return function () {
@@ -108,6 +114,6 @@ var FrmOfficerBudget = function () {
         // Reset error state on component mount
         dispatch(resetError());
     }, [dispatch]);
-    return (_jsx("div", { className: "container mt-4", children: _jsxs("form", { onSubmit: handleSubmit, children: [_jsx("p", { className: "mb-4", children: "Create Annual Budget Record" }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "officer", className: "form-label", children: "Officer:" }), _jsxs("select", { id: "officer", className: "form-select", value: officerNo, onChange: function (e) { return setOfficerNo(e.target.value); }, children: [_jsx("option", { value: "", children: "Select Officer" }), officers.map(function (officer, index) { return (_jsx("option", { value: officer.officer_no, children: officer.officer_name }, index)); })] })] }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "fiscalYear", className: "form-label", children: "Fiscal Year:" }), _jsx("input", { id: "fiscalYear", type: "number", className: "form-control", value: fiscalYear, onChange: function (e) { return setFiscalYear(parseInt(e.target.value)); }, placeholder: "Enter Fiscal Year" })] }), error && _jsx("p", { className: "text-danger", children: error }), _jsx("button", { type: "submit", className: "btn btn-primary me-2", children: "Submit" }), _jsx("button", { className: "primary m-3", onClick: handleExit, children: "Go Back" })] }) }));
+    return (_jsxs("div", { className: "container mt-4", children: [_jsx("div", { children: _jsxs("form", { onSubmit: handleSubmit, children: [_jsx("p", { className: "mb-4", children: "Create Annual Budget Record" }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "officer", className: "form-label", children: "Officer:" }), _jsxs("select", { id: "officer", className: "form-select", value: officerNo, onChange: function (e) { return setOfficerNo(e.target.value); }, children: [_jsx("option", { value: "", children: "Select Officer" }), officers.map(function (officer, index) { return (_jsx("option", { value: officer.officer_no, children: officer.officer_name }, index)); })] })] }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "fiscalYear", className: "form-label", children: "Fiscal Year:" }), _jsx("input", { id: "fiscalYear", type: "number", className: "form-control", value: fiscalYear, onChange: function (e) { return setFiscalYear(parseInt(e.target.value)); }, placeholder: "Enter Fiscal Year" })] }), error && _jsx("p", { className: "text-danger", children: error }), _jsx("button", { type: "submit", className: "btn btn-primary me-2", children: "Submit" }), _jsx("button", { className: "btn btn-primary me-2", onClick: handleExit, children: "Go Back" }), _jsxs("table", { className: "table table-striped mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Officer No" }), _jsx("th", { children: "Officer Name" }), _jsx("th", { children: "Fiscal Year" }), _jsx("th", { children: "Annual Budget" }), _jsx("th", { children: "Actual Total" }), _jsx("th", { children: "Outstanding" })] }) }), _jsx("tbody", { children: officerBudget && officerBudget.length > 0 ? (officerBudget.map(function (budget, index) { return (_jsxs("tr", { children: [_jsx("td", { children: budget.officer_no }), _jsx("td", { children: budget.officer_name }), _jsx("td", { children: budget.fiscal_year }), _jsx("td", { children: budget.annual_budget }), _jsx("td", { children: budget.actual_total }), _jsx("td", { children: budget.outstanding })] }, index)); })) : (_jsx("tr", { children: _jsx("td", { colSpan: 5, className: "text-center", children: "No budget records available." }) })) })] })] }) }), _jsx("div", {})] }));
 };
 export default FrmOfficerBudget;

@@ -41,7 +41,7 @@ import transSavingsRoutes from './routes/api/transSavingsRoutes.js';
 import photosRoute from './routes/api/photosRoutes.js'; 
 import businessTypeRoute from './routes/api/businessTypeRoutes.js';
 import busPaymentsRoutes from './routes/api/busPaymentsRoutes.js'; 
-import OfficerBudgetRoute  from './routes/api/officerBudgetRoute.js';
+import officerBudgetRoute  from './routes/api/officerBudgetRoute.js';
 import CollectorElectoralAreaRoute  from './routes/api/collectorElectoralarea.js';
 import bustypeDetailedReportRoute from './routes/api/bustypeDetailedReportRoute.js'
 import bustypeSummaryReportRoute from './routes/api/busTypeSummaryReportRoute.js'
@@ -151,7 +151,7 @@ app.use('/api/transSavings', transSavingsRoutes);
 app.use('/api/photos', photosRoute);
 app.use('/api/businessType', businessTypeRoute);
 app.use('/api/busPayments', busPaymentsRoutes);
-app.use('/api/OfficerBudget', OfficerBudgetRoute);
+app.use('/api/OfficerBudget', officerBudgetRoute);
 app.use('/api/CollectorElectoralArea', CollectorElectoralAreaRoute);
 app.use('/api/bustypeDetailedReport', bustypeDetailedReportRoute);
 app.use('/api/bustypeSummaryReport', bustypeSummaryReportRoute);

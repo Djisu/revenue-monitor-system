@@ -27,6 +27,7 @@ const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 router.get('/all', async (req, res) => {
+    console.log('in router.get(/all');
     const client = await pool.connect();
     try {
         const result = await client.query(`SELECT * FROM officerbudget`);
@@ -151,6 +152,8 @@ router.post('/addBudget', async (req, res) => {
             });
             return;
         }
+        console.log('officer budget found!!!');
+        console.log('about to SELECT * FROM office WHERE officer_no = $1, [officer_no]');
         // Find officer name from officer_no
         const officerName = await client.query(`
             SELECT * FROM officer 
@@ -165,11 +168,14 @@ router.post('/addBudget', async (req, res) => {
             return;
         }
         console.log('officerName.rows[0].officer_name:', officerName.rows[0].officer_name);
+        console.log('about to  SELECT SUM(current_rate) AS totsum FROM business WHERE assessmentby = $1');
         // Find Annual Budget
         const annual_budget = await client.query(`
-            SELECT SUM(current_rate) AS totsum FROM business 
-            WHERE assessmentby = $1`, [officerName.rows[0].officer_name]);
-        if (annual_budget.rows[0].length === 0) {
+            SELECT SUM(current_balance) AS totsum FROM busscurrbalance
+            WHERE assessmentby = $1 AND fiscalyear = $2`, [officer_no, fiscal_year]);
+        console.log('annual_budget.rows[0].totsum:', annual_budget.rows[0].totsum);
+        if (annual_budget.rows[0].totsum === null) {
+            console.log('Annual budget not found for officer');
             res.status(400).json({
                 status: 'fail',
                 message: 'Annual budget not found for officer ' + officerName.rows[0].officer_name,
@@ -177,7 +183,16 @@ router.post('/addBudget', async (req, res) => {
             });
             return;
         }
+        // if (annual_budget.rows[0].length === 0) {
+        //      res.status(400).json({
+        //         status: 'fail',
+        //         message: 'Annual budget not found for officer ' + officerName.rows[0].officer_name,
+        //         data: {}
+        //     });
+        //     return
+        // }
         console.log('annual_budget.rows[0].totsum:', annual_budget.rows[0].totsum);
+        console.log('about to Find monthly budget');
         // Find Monthly Budget
         const monthly_budget = parseFloat(annual_budget.rows[0].totsum) / 12;
         console.log('monthly_budget:', monthly_budget);
@@ -241,10 +256,11 @@ router.post('/addBudget', async (req, res) => {
             0,
             newAnnualBudget
         ]);
+        console.log('about to SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2');
+        console.log('Find out if officerbudget record was inserted successfully');
         // Find out if officerbudget record was inserted successfully
         const officerExists = await client.query(`
-         SELECT * FROM officerbudget 
-         WHERE officer_no = $1 AND fiscal_year = $2`, [officer_no, fiscal_year]);
+         SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2`, [officer_no, fiscal_year]);
         console.log('officerExists.rows:', officerExists.rows);
         if (officerExists.rows.length === 0) {
             console.log('Officer budget not found');
@@ -281,7 +297,8 @@ router.post('/addBudget', async (req, res) => {
             });
             return;
         }
-        else if (budget.length > 1) {
+        console.log('budget.length:', budget.length);
+        if (budget.length > 1) {
             console.error('Multiple budget records found for officerName.rows[0].officer_name: ', officerName.rows[0].officer_name, 'in fiscal year: ', fiscal_year);
         }
         const budgetRecord = budget[0]; // Get the first (and expected only) budget record   
@@ -290,12 +307,13 @@ router.post('/addBudget', async (req, res) => {
         let actualTotal = parseFloat(budgetRecord.actual_total) || 0;
         // Step 4: Fetch all payments for the given officer and fiscal year
         console.log('about to loop through payments');
+        // Find all payments for the given officer and fiscal year
         const paymentsQuery = `
         SELECT monthpaid, paidAmount, officer_no, fiscal_year
         FROM buspayments 
         WHERE officer_no = $1 AND fiscal_year = $2
         `;
-        const paymentsResult = await client.query(paymentsQuery, [officerName.rows[0].officer_name, fiscal_year]);
+        const paymentsResult = await client.query(paymentsQuery, [officer_no, fiscal_year]);
         const payments = paymentsResult.rows;
         if (payments.length === 0) {
             console.log('No payments found for officer_no: ', officer_no, 'in fiscal year: ', fiscal_year);
@@ -333,11 +351,10 @@ router.post('/addBudget', async (req, res) => {
                 WHERE officer_name = $3 AND fiscal_year = $4
             `;
             // Log the constructed query and parameters for debugging
-            // console.log('Update Query:', updateQuery);
-            // console.log('Parameters:', [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
+            console.log('Update Query:', updateQuery);
+            console.log('Parameters:', [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
             // Execute the update query
             await client.query(updateQuery, [paidAmountNum, actualTotal, officerName.rows[0].officer_name, fiscal_year]);
-            console.log('final totActuals: ', totActuals);
             // Check if the update query was successful
             console.log('updateQuery.length: ', updateQuery.length);
             if (updateQuery.length === 0) {
@@ -349,6 +366,8 @@ router.post('/addBudget', async (req, res) => {
                 });
             }
         }
+        console.log('update officerbudget successful!!!!');
+        console.log('final totActuals: ', totActuals);
         //////////////End of the updateOfficerBudget function//////////////////
         // // Send email to officer
         // const officerEmail = await pool.query(`

@@ -71,17 +71,26 @@ export var fetchOfficerBudget = createAsyncThunk('officerBudget/fetchOfficerBudg
     });
 }); });
 // Async thunk to fetch officer budget data
-export var fetchOfficerBudgetAll = createAsyncThunk('officerBudget/fetchOfficerBudgetAll', function () { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
+export var fetchOfficerBudgetAll = createAsyncThunk('officerBudget/fetchOfficerBudgetAll', function (_, thunkAPI) { return __awaiter(void 0, void 0, void 0, function () {
+    var response, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/officerbudget/all"))];
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                console.log('in fetchOfficerBudgetAll thunk');
+                return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/OfficerBudget/all"))];
             case 1:
                 response = _a.sent();
+                // response = await axios.get(`${BASE_URL}/api/OfficerBudget/all`);
                 if (response.status !== 200) {
                     throw new Error('Failed to fetch officer budgets');
                 }
-                return [2 /*return*/, response.data.data]; // Return the data from the response
+                return [2 /*return*/, response.data]; // Return the data from the response
+            case 2:
+                error_1 = _a.sent();
+                console.error('Error fetching officer budgets:', error_1);
+                return [2 /*return*/, thunkAPI.rejectWithValue(error_1.response.data)];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
@@ -153,6 +162,17 @@ var officerBudgetSlice = createSlice({
             .addCase(addBudget.rejected, function (state, action) {
             state.loading = false;
             state.error = action.error.message || 'Failed to add budget';
+        })
+            .addCase(fetchOfficerBudgetAll.pending, function (state) {
+            state.error = null; // Reset error on new fetch
+        })
+            .addCase(fetchOfficerBudgetAll.fulfilled, function (state, action) {
+            state.data = action.payload;
+            state.error = null;
+        })
+            .addCase(fetchOfficerBudgetAll.rejected, function (state, action) {
+            var _a;
+            state.error = (_a = action.error.message) !== null && _a !== void 0 ? _a : 'Failed to fetch officer budget';
         });
         // .addCase(updateBudget.pending, (state) => {
         //     state.loading = true;
