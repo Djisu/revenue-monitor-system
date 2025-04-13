@@ -71,6 +71,28 @@ export var fetchBusinesses = createAsyncThunk('business/fetchBusinesses', functi
         }
     });
 }); });
+// Async thunk to fetch the last buss_no
+export var fetchLastBussNo = createAsyncThunk('business/fetchLastBussNo', function () { return __awaiter(void 0, void 0, void 0, function () {
+    var response;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log('in fetchLastBussNo thunk, Fetching last buss_no');
+                return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/business/last"))];
+            case 1:
+                response = _a.sent();
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('fetchLastBussNo fulfilled: ', response.data);
+                    // Return the new buss_no from the response
+                    return [2 /*return*/, response.data.newBussNo];
+                }
+                else {
+                    throw new Error("Error fetching last buss_no. Status: ".concat(response.status, " - Error: ").concat(response.statusText));
+                }
+                return [2 /*return*/];
+        }
+    });
+}); });
 // Async thunk to process operating permits electoralArea, fiscalYear
 export var processOperatingPermits = createAsyncThunk('business/processOperatingPermits', function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
     var data, response, error_1;

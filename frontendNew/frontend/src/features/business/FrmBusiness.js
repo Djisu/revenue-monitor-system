@@ -47,12 +47,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { Button, Form, FormGroup, Label, Input, Card, CardBody, CardHeader, Col, Row } from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Card, CardBody, CardHeader, Col, Row, Spinner } from 'reactstrap';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
 import { fetchOfficers } from '../officer/officerSlice';
-import { createBusiness, fetchBusinesses } from './businessSlice';
+import { createBusiness, fetchLastBussNo } from './businessSlice';
 import { useAppDispatch, useAppSelector } from '../../app/store';
 import { Link } from 'react-router-dom';
 export var FrmBusiness = function () {
@@ -67,7 +67,7 @@ export var FrmBusiness = function () {
         landmark: '',
         electroral_area: '',
         property_class: '',
-        tot_grade: "",
+        tot_grade: '',
         ceo: '',
         telno: '',
         strategiclocation: 0,
@@ -96,7 +96,7 @@ export var FrmBusiness = function () {
     var _c = useState([]), bussTypes = _c[0], setBussTypes = _c[1];
     var _d = useState([]), propertyClasses = _d[0], setPropertyClasses = _d[1];
     var _e = useState([]), assessments = _e[0], setAssessments = _e[1];
-    var _f = useState(0), busCount = _f[0], setBusCount = _f[1];
+    var _f = useState(false), loading = _f[0], setLoading = _f[1]; // Loading state
     var dispatch = useAppDispatch();
     // Fetch data on component mount
     useEffect(function () {
@@ -105,146 +105,126 @@ export var FrmBusiness = function () {
         dispatch(fetchPropertyClasses());
         dispatch(fetchOfficers());
     }, [dispatch]);
-    useEffect(function () {
-        dispatch(fetchElectoralAreas());
-    }, [dispatch]);
-    // Get businesses from the Redux store
-    var business = useAppSelector(function (state) { return state.business.businesses; });
-    // Get electoral areas from the Redux store // as ElectoralArea[];
     var electoralAreaData = useAppSelector(function (state) { return state.electoralArea.electoralAreas; });
-    console.log('typeof electoralAreaData:', typeof electoralAreaData);
+    var businessTypes = useAppSelector(function (state) { return state.businessType.businessTypes; });
+    var propertyClass = useAppSelector(function (state) { return state.propertyClass.propertyClasses; });
+    var officer = useAppSelector(function (state) { return state.officer.officers; });
     useEffect(function () {
         if (electoralAreaData && Array.isArray(electoralAreaData)) {
             setElectoralAreas(electoralAreaData.map(function (area) { return area.electoral_area; }));
-            console.log('electoralAreas: ', electoralAreas);
         }
-        else {
-            console.error('Expected electoralAreaData to be an array but got:', electoralAreaData);
-        }
-    }, [electoralAreaData, setElectoralAreas]);
-    var businessTypes = useAppSelector(function (state) { return state.businessType.businessTypes; }); // as BusinessTypeData[]
-    console.log('businessTypes: ', businessTypes);
+    }, [electoralAreaData]);
     useEffect(function () {
         if (Array.isArray(businessTypes)) {
-            setBussTypes(businessTypes); // Update local state with fetched data
+            setBussTypes(businessTypes);
         }
-    }, [businessTypes]); // Dependency array includes businessTypes
-    var propertyClass = useAppSelector(function (state) { return state.propertyClass.propertyClasses; });
+    }, [businessTypes]);
     useEffect(function () {
         setPropertyClasses(propertyClass.map(function (classType) { return classType.property_class; }));
     }, [propertyClass]);
-    var officer = useAppSelector(function (state) { return state.officer.officers; });
-    "";
     useEffect(function () {
         setAssessments(officer.map(function (officer) { return "".concat(officer.officer_name); }));
     }, [officer]);
-    // Get businesses from the Redux store //${officer.officer_no}
-    useEffect(function () {
-        if (business) {
-            var newBusCount = business.length + 1;
-            setBusCount(newBusCount);
-            setFormData(__assign(__assign({}, formData), { buss_no: newBusCount }));
-            console.log('in FrmBusiness.tsx: busCount:', newBusCount);
-        }
-        else {
-            setBusCount(0);
-            setFormData(__assign(__assign({}, formData), { buss_no: 0 }));
-            console.log('in FrmBusiness.tsx: busCount:', 0);
-        }
-    }, [business]);
-    var getBussNo = function () {
-        console.log('getBussNo called');
-        dispatch(fetchBusinesses());
-        if (business) {
-            var newBusCount = business.length + 1;
-            busCount;
-            setBusCount(busCount);
-            setFormData(__assign(__assign({}, formData), { buss_no: newBusCount }));
-            console.log('in FrmBusiness.tsx: busCount:', newBusCount);
-        }
-        else {
-            setBusCount(0);
-            setFormData(__assign(__assign({}, formData), { buss_no: 0 }));
-            console.log('in FrmBusiness.tsx: busCount:', 0);
-        }
-    };
+    var getBussNo = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var newBussNo_1, error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    console.log('getBussNo called');
+                    setLoading(true); // Set loading to true
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, 4, 5]);
+                    return [4 /*yield*/, dispatch(fetchLastBussNo()).unwrap()];
+                case 2:
+                    newBussNo_1 = _a.sent();
+                    setFormData(function (prevData) { return (__assign(__assign({}, prevData), { buss_no: newBussNo_1 })); });
+                    console.log('in FrmBusiness.tsx: buss_no:', newBussNo_1);
+                    return [3 /*break*/, 5];
+                case 3:
+                    error_1 = _a.sent();
+                    console.error('Failed to fetch last buss_no:', error_1);
+                    setFormData(function (prevData) { return (__assign(__assign({}, prevData), { buss_no: 0 })); });
+                    console.log('in FrmBusiness.tsx: buss_no:', 0);
+                    return [3 /*break*/, 5];
+                case 4:
+                    setLoading(false); // Set loading to false
+                    return [7 /*endfinally*/];
+                case 5: return [2 /*return*/];
+            }
+        });
+    }); };
     var handleChange = function (e) {
         var _a = e.target, name = _a.name, value = _a.value;
-        console.log('handleChange called with name:', name, 'value:', value);
         setFormData(function (prevData) {
             var _a;
             return (__assign(__assign({}, prevData), (_a = {}, _a[name] = value, _a)));
         });
     };
     var handleAddClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_1;
+        var response, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log('handleAddClick called');
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
+                    _a.trys.push([0, 2, , 3]);
                     if (!formData.buss_no) {
                         alert('Enter the business number');
                         return [2 /*return*/];
                     }
                     return [4 /*yield*/, dispatch(createBusiness(formData))];
-                case 2:
+                case 1:
                     response = _a.sent();
-                    console.log(response);
                     if (createBusiness.fulfilled.match(response)) {
                         alert('Record successfully added');
-                        setFormData(__assign(__assign({}, formData), { buss_no: 0 })); // Reset specific fields as needed
+                        setFormData({
+                            buss_no: 0,
+                            buss_name: '',
+                            buss_address: '',
+                            buss_type: '',
+                            buss_town: '',
+                            buss_permitNo: '',
+                            street_name: '',
+                            landmark: '',
+                            electroral_area: '',
+                            property_class: '',
+                            tot_grade: '',
+                            ceo: '',
+                            telno: '',
+                            strategiclocation: 0,
+                            productvariety: 0,
+                            businesspopularity: 0,
+                            businessenvironment: 0,
+                            sizeofbusiness: 0,
+                            numberofworkingdays: 0,
+                            businessoperatingperiod: 0,
+                            competitorsavailable: 0,
+                            assessmentby: '',
+                            transdate: new Date(),
+                            balance: 0,
+                            status: 'Active',
+                            current_rate: 0,
+                            property_rate: 0,
+                            totalmarks: 0,
+                            emailaddress: '',
+                            postaladdress: '',
+                            noofemployees: 0,
+                            noofbranches: 0,
+                            BALANCENEW: 0,
+                            gps_address: '',
+                        });
                     }
                     else {
                         throw new Error(response.error.message);
                     }
-                    setFormData({
-                        buss_no: 0,
-                        buss_name: '',
-                        buss_address: '',
-                        buss_type: '',
-                        buss_town: '',
-                        buss_permitNo: '',
-                        street_name: '',
-                        landmark: '',
-                        electroral_area: '',
-                        property_class: '',
-                        tot_grade: '',
-                        ceo: '',
-                        telno: '',
-                        strategiclocation: 0,
-                        productvariety: 0,
-                        businesspopularity: 0,
-                        businessenvironment: 0,
-                        sizeofbusiness: 0,
-                        numberofworkingdays: 0,
-                        businessoperatingperiod: 0,
-                        competitorsavailable: 0,
-                        assessmentby: '',
-                        transdate: new Date(),
-                        balance: 0,
-                        status: 'Active',
-                        current_rate: 0,
-                        property_rate: 0,
-                        totalmarks: 0,
-                        emailaddress: '',
-                        postaladdress: '',
-                        noofemployees: 0,
-                        noofbranches: 0,
-                        BALANCENEW: 0,
-                        gps_address: '',
-                    });
-                    return [3 /*break*/, 4];
-                case 3:
-                    error_1 = _a.sent();
-                    console.error(error_1);
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_2 = _a.sent();
+                    console.error(error_2);
                     alert('Error in adding a record');
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
             }
         });
     }); };
-    return (_jsxs(Card, { style: { backgroundColor: '#add8e6' }, children: [_jsx(CardHeader, { children: _jsx("h3", { children: "Business Data Entry" }) }), _jsx(CardBody, { children: _jsxs(Form, { children: [_jsxs(Row, { children: [_jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_no", children: "Business Number:" }), _jsx(Input, { type: "text", name: "buss_no", id: "buss_no", value: formData.buss_no, onChange: handleChange, onFocus: getBussNo })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_name", children: "Business Name:" }), _jsx(Input, { type: "text", name: "buss_name", id: "buss_name", value: formData.buss_name, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_address", children: "Business Address:" }), _jsx(Input, { type: "text", name: "buss_address", id: "buss_address", value: formData.buss_address, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "street_name", children: "Street Name:" }), _jsx(Input, { type: "text", name: "street_name", id: "street_name", value: formData.street_name, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_town", children: "Town:" }), _jsx(Input, { type: "text", name: "buss_town", id: "buss_town", value: formData.buss_town, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_town", children: "CEO:" }), _jsx(Input, { type: "text", name: "ceo", id: "ceo", value: formData.ceo, onChange: handleChange })] }) })] }), _jsxs(Row, { children: [_jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "landmark", children: "Land Mark:" }), _jsx(Input, { type: "text", name: "landmark", id: "landmark", value: formData.landmark, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "electoral_area", children: "Electoral Area:" }), _jsxs(Input, { type: "select", name: "electroral_area", id: "electoral_area", value: formData.electroral_area, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_permitNo", children: "Property No:" }), _jsx(Input, { type: "text", name: "buss_permitNo", id: "buss_permitNo", value: formData.buss_permitNo, onChange: handleChange })] }) })] }), _jsxs(Row, { children: [_jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_type", children: "Business Type:" }), _jsxs(Input, { type: "select", name: "buss_type", id: "buss_type", value: formData.buss_type, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }) }), _jsxs(Col, { md: 4, children: [_jsxs(FormGroup, { children: [_jsx(Label, { for: "telno", children: "Tel:" }), _jsx(Input, { type: "text", name: "telno", id: "telno", value: formData.telno, onChange: handleChange })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "electoral_area", children: "Status:" }), _jsxs(Input, { type: "select", name: "status", id: "status", value: formData.status, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), _jsx("option", { value: "Active", children: "Active" }), _jsx("option", { value: "Dormant", children: "Dormant" })] })] })] }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "emailaddress", children: "Email Address:" }), _jsx(Input, { type: "email", name: "emailaddress", id: "emailaddress", value: formData.emailaddress, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "emailaddress", children: "GPS Address:" }), _jsx(Input, { type: "text", name: "gps_address", id: "gps_address", placeholder: "Enter GPS Address", value: formData.gps_address, onChange: handleChange })] }) })] }), _jsxs(Row, { children: [_jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "property_class", children: "Property Class:" }), _jsxs(Input, { type: "select", name: "property_class", id: "property_class", value: formData.property_class, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), propertyClasses.map(function (classType, index) { return (_jsx("option", { value: classType, children: classType }, index)); })] })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "assessmentby", children: "Collector:" }), _jsxs(Input, { type: "select", name: "assessmentby", id: "assessmentby", value: formData.assessmentby, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), assessments.map(function (assessment, index) { return (_jsx("option", { value: assessment, children: assessment }, index)); })] })] }) })] }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { md: 12, children: _jsx(Button, { color: "primary", onClick: handleAddClick, children: "Add New Record" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) })] }) })] }));
+    return (_jsxs(Card, { style: { backgroundColor: '#add8e6' }, children: [_jsx(CardHeader, { children: _jsx("h3", { children: "New Business Data Entry" }) }), _jsx(CardBody, { children: _jsxs(Form, { children: [_jsxs(Row, { children: [_jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_no", children: "Business Number:" }), _jsx(Input, { type: "text", name: "buss_no", id: "buss_no", value: formData.buss_no, onChange: handleChange, onFocus: getBussNo }), loading && _jsx(Spinner, { size: "sm", color: "primary" }), " "] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_name", children: "Business Name:" }), _jsx(Input, { type: "text", name: "buss_name", id: "buss_name", value: formData.buss_name, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_address", children: "Business Address:" }), _jsx(Input, { type: "text", name: "buss_address", id: "buss_address", value: formData.buss_address, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "street_name", children: "Street Name:" }), _jsx(Input, { type: "text", name: "street_name", id: "street_name", value: formData.street_name, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_town", children: "Town:" }), _jsx(Input, { type: "text", name: "buss_town", id: "buss_town", value: formData.buss_town, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "ceo", children: "CEO:" }), _jsx(Input, { type: "text", name: "ceo", id: "ceo", value: formData.ceo, onChange: handleChange })] }) })] }), _jsxs(Row, { children: [_jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "landmark", children: "Land Mark:" }), _jsx(Input, { type: "text", name: "landmark", id: "landmark", value: formData.landmark, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "electoral_area", children: "Electoral Area:" }), _jsxs(Input, { type: "select", name: "electroral_area", id: "electoral_area", value: formData.electroral_area, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_permitNo", children: "Property No:" }), _jsx(Input, { type: "text", name: "buss_permitNo", id: "buss_permitNo", value: formData.buss_permitNo, onChange: handleChange })] }) })] }), _jsxs(Row, { children: [_jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "buss_type", children: "Business Type:" }), _jsxs(Input, { type: "select", name: "buss_type", id: "buss_type", value: formData.buss_type, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }) }), _jsxs(Col, { md: 4, children: [_jsxs(FormGroup, { children: [_jsx(Label, { for: "telno", children: "Tel:" }), _jsx(Input, { type: "text", name: "telno", id: "telno", value: formData.telno, onChange: handleChange })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "status", children: "Status:" }), _jsxs(Input, { type: "select", name: "status", id: "status", value: formData.status, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), _jsx("option", { value: "Active", children: "Active" }), _jsx("option", { value: "Dormant", children: "Dormant" })] })] })] }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "emailaddress", children: "Email Address:" }), _jsx(Input, { type: "email", name: "emailaddress", id: "emailaddress", value: formData.emailaddress, onChange: handleChange })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "gps_address", children: "GPS Address:" }), _jsx(Input, { type: "text", name: "gps_address", id: "gps_address", placeholder: "Enter GPS Address", value: formData.gps_address, onChange: handleChange })] }) })] }), _jsxs(Row, { children: [_jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "property_class", children: "Property Class:" }), _jsxs(Input, { type: "select", name: "property_class", id: "property_class", value: formData.property_class, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), propertyClasses.map(function (classType, index) { return (_jsx("option", { value: classType, children: classType }, index)); })] })] }) }), _jsx(Col, { md: 4, children: _jsxs(FormGroup, { children: [_jsx(Label, { for: "assessmentby", children: "Collector:" }), _jsxs(Input, { type: "select", name: "assessmentby", id: "assessmentby", value: formData.assessmentby, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), assessments.map(function (assessment, index) { return (_jsx("option", { value: assessment, children: assessment }, index)); })] })] }) })] }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { md: 12, children: _jsx(Button, { color: "primary", onClick: handleAddClick, children: "Add New Record" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) })] }) })] }));
 };

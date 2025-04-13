@@ -299,7 +299,7 @@ export var billOneBusiness = createAsyncThunk('businessType/billoneBusiness', fu
     });
 }); });
 export var fetchDailyPayments = createAsyncThunk('businessType/dailypayments', function (args) { return __awaiter(void 0, void 0, void 0, function () {
-    var firstDate, lastDate, electoralarea, bussType, formattedFirstDate, formattedLastDate, response;
+    var firstDate, lastDate, electoralarea, bussType, formattedFirstDate, formattedLastDate, response, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -308,17 +308,33 @@ export var fetchDailyPayments = createAsyncThunk('businessType/dailypayments', f
                 formattedFirstDate = new Date(firstDate).toISOString().split('T')[0];
                 formattedLastDate = new Date(lastDate).toISOString().split('T')[0];
                 console.log('formattedFirstDate:', formattedFirstDate, 'formattedLastDate:', formattedLastDate);
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
                 return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/busPayments/dailypayments/").concat(formattedFirstDate, "/").concat(formattedLastDate, "/").concat(electoralarea, "/").concat(bussType), {
                         headers: { 'Content-Type': 'application/json' },
                     })];
-            case 1:
+            case 2:
                 response = _a.sent();
                 console.log('after fetchDailyPayments thunk, Response data:', response.data);
-                if (!(response.status >= 200 && response.status < 300)) return [3 /*break*/, 3];
-                console.log('fetchDailyPayments thunk, response data.data:', response.data.data);
-                return [4 /*yield*/, response.data.data];
-            case 2: return [2 /*return*/, _a.sent()]; // This data will be available as `action.payload`
-            case 3: throw new Error("Error fetching one business types: ".concat(response.statusText));
+                if (response.status >= 200 && response.status < 300) {
+                    console.log('fetchDailyPayments thunk, response data.data:', response.data.data);
+                    return [2 /*return*/, response.data.data];
+                }
+                else {
+                    throw new Error("Error fetching one business types: ".concat(response.statusText));
+                }
+                return [3 /*break*/, 4];
+            case 3:
+                error_2 = _a.sent();
+                if (error_2.response && error_2.response.status === 404) {
+                    throw new Error('Payment not found for the specified criteria.');
+                }
+                else {
+                    throw new Error("Error fetching daily payments: ".concat(error_2.message));
+                }
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });

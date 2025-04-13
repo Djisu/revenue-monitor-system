@@ -32,7 +32,8 @@ interface AccReceiptData {
 // Create a new AccReceipt record
 router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
-    console.log('router.post(/create)')
+    console.log('router.post(/create)', req.body)
+    
     const accReceiptData: AccReceiptData = req.body;
     console.log(accReceiptData)
 

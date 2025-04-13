@@ -63,13 +63,22 @@ export var fetchAccReceipts = createAsyncThunk('accReceipts/fetchAccReceipts', f
 }); });
 // Async thunk to create a new AccReceipt
 export var createAccReceipt = createAsyncThunk('accReceipts/createAccReceipt', function (data) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
+    var response, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/accReceipts/create"), data)];
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                console.log('in createAccReceipt');
+                return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/accReceipts/create"), data)];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response.data];
+                console.log('in createAccReceipt after response: ', response.data.data);
+                return [2 /*return*/, response.data.data];
+            case 2:
+                error_1 = _a.sent();
+                console.log('in createAccReceipt error: ', error_1);
+                throw error_1; // Rethrow the error to be caught in the slice
+            case 3: return [2 /*return*/];
         }
     });
 }); });
@@ -82,7 +91,7 @@ export var fetchAccReceiptById = createAsyncThunk('accReceipts/fetchAccReceiptBy
             case 0: return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/accReceipts/").concat(batchno, "/").concat(fiscalyear))];
             case 1:
                 response = _c.sent();
-                return [2 /*return*/, response.data];
+                return [2 /*return*/, response.data.data];
         }
     });
 }); });
@@ -95,7 +104,7 @@ export var updateAccReceipt = createAsyncThunk('accReceipts/updateAccReceipt', f
             case 0: return [4 /*yield*/, axios.put("".concat(BASE_URL, "/api/accReceipts/").concat(batchno), data)];
             case 1:
                 response = _c.sent();
-                return [2 /*return*/, response.data];
+                return [2 /*return*/, response.data.data];
         }
     });
 }); });
@@ -136,7 +145,7 @@ var accReceiptSlice = createSlice({
         })
             .addCase(createAccReceipt.fulfilled, function (state, action) {
             state.loading = false;
-            state.accReceipts.push(action.payload); // Add the new receipt to the list
+            state.accReceipts = action.payload; // Add the new receipt to the list
             state.error = null;
         })
             .addCase(createAccReceipt.rejected, function (state, action) {

@@ -16,7 +16,7 @@ const dbConfig = {
 const pool = new Pool(dbConfig);
 // Create a new AccReceipt record
 router.post('/create', async (req, res) => {
-    console.log('router.post(/create)');
+    console.log('router.post(/create)', req.body);
     const accReceiptData = req.body;
     console.log(accReceiptData);
     try {

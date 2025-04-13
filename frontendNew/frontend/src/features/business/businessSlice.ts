@@ -80,6 +80,21 @@ export const fetchBusinesses = createAsyncThunk('business/fetchBusinesses', asyn
     }
 });
 
+// Async thunk to fetch the last buss_no
+export const fetchLastBussNo = createAsyncThunk('business/fetchLastBussNo', async () => {
+    console.log('in fetchLastBussNo thunk, Fetching last buss_no');
+
+    const response = await axios.get(`${BASE_URL}/api/business/last`);
+
+    if (response.status >= 200 && response.status < 300) {
+        console.log('fetchLastBussNo fulfilled: ', response.data);
+        // Return the new buss_no from the response
+        return response.data.newBussNo;
+    } else {
+        throw new Error(`Error fetching last buss_no. Status: ${response.status} - Error: ${response.statusText}`);
+    }
+});
+
 // Async thunk to process operating permits electoralArea, fiscalYear
 export const processOperatingPermits = createAsyncThunk(
     'business/processOperatingPermits',

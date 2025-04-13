@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../../app/store';
-import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Button, Alert, Spinner } from 'reactstrap';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { fetchDailyPayments, selectBusPayments } from './busPaymentsSlice';
@@ -80,12 +80,39 @@ var FrmDailyPayments = function () {
     useEffect(function () {
         console.log('Fetched business types:', businessTypes);
     }, [businessTypes]);
+    var generateRequestId = function () {
+        var timestamp = Date.now(); // Current timestamp in milliseconds
+        var randomNum = Math.floor(Math.random() * 1000000); // Random number between 0 and 999999
+        return "req-".concat(timestamp, "-").concat(randomNum); // Format: req-<timestamp>-<randomNumber>
+    };
+    // Example usage
+    var requestId = generateRequestId();
+    console.log(requestId); // e.g., "req-1671234567890-123456"
+    var handlePaymentError = function (criteria) {
+        var errorResponse = {
+            type: 'businessType/dailypayments/rejected',
+            payload: null, // Use null instead of undefined for clarity
+            meta: {
+                requestId: generateRequestId(), // Function to generate a unique request ID
+                requestStatus: 'rejected',
+                criteria: criteria, // Include the criteria that caused the error
+                timestamp: new Date().toISOString(), // Add a timestamp for tracking
+            },
+            error: {
+                name: 'PaymentNotFoundError',
+                message: "No payment data found for the specified criteria: ".concat(JSON.stringify(criteria)),
+                stack: new Error().stack, // Capture the stack trace
+            },
+        };
+        return errorResponse;
+    };
     var handleViewClick = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var DailyPaymentsData, answer, error_1;
+        var DailyPaymentsData, answer, criteria, error_2, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     console.log('Inside handleViewClick');
+                    // Validate input fields
                     if (!electoralArea) {
                         setErrorx("Please select an electoral area");
                         return [2 /*return*/];
@@ -119,25 +146,51 @@ var FrmDailyPayments = function () {
                     if (answer.payload) {
                         busPaymentsData = answer.payload;
                         setBusPaymentsData(busPaymentsData);
+                        console.log('busPaymentsData:', busPaymentsData);
                     }
-                    console.log('busPaymentsData:', busPaymentsData);
+                    else {
+                        criteria = {
+                            constituency: electoralArea,
+                            bussType: selectedBusinessType,
+                            firstDate: new Date(firstDate),
+                            lastDate: new Date(lastDate),
+                        };
+                        console.log('criteria:', criteria);
+                        error_2 = handlePaymentError(criteria);
+                        console.error(error_2); // Log the error for debugging
+                        //alert(JSON.stringify(error.error, null, 2))
+                        alert('Payment not found.');
+                    }
                     return [3 /*break*/, 4];
                 case 3:
                     error_1 = _a.sent();
                     console.error("Error fetching daily payments:", error_1);
-                    setErrorx("Error fetching daily payments");
-                    alert("Error fetching daily payments");
+                    if (error_1.response) {
+                        // Check for a 404 error specifically
+                        if (error_1.response.status === 404) {
+                            setErrorx("Requested data not found.");
+                            alert("Requested data not found.");
+                        }
+                        else {
+                            setErrorx("Error fetching daily payments: " + error_1.message);
+                            alert("Error fetching daily payments: " + error_1.message);
+                        }
+                    }
+                    else {
+                        setErrorx("Error fetching daily payments");
+                        alert("Error fetching daily payments");
+                    }
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
         });
     }); };
     if (loading) {
-        return _jsx("div", { children: "Loading..." });
+        return (_jsxs("div", { className: "text-center mt-5", children: [_jsx(Spinner, { style: { width: '3rem', height: '3rem' } }), _jsx("p", { children: "Loading..." })] }));
     }
     if (error || errorx) {
         return _jsxs("div", { children: ["Error: ", error || errorx] });
     }
-    return (_jsxs("div", { className: "container mt-5", children: [errorx && _jsx(Alert, { color: "danger", children: errorx }), _jsxs(Form, { children: [_jsxs(FormGroup, { children: [_jsx("p", { className: "text-center text-underline", children: "Produce Daily Payments Report" }), _jsx(Label, { for: "zone", className: "font-weight-bold", children: "Electoral Area:" }), _jsxs(Input, { type: "select", name: "electoral_area", id: "electoral_area", value: electoralArea, onChange: function (e) { return setElectoralArea(e.target.value); }, children: [_jsx("option", { value: "", children: "Select..." }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area.electoral_area, children: area.electoral_area }, index)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "bussType", className: "font-weight-bold", children: "Business Type/Profession:" }), _jsxs(Input, { type: "select", name: "bussType", id: "bussType", value: selectedBusinessType, onChange: function (e) { return setSelectedBusinessType(e.target.value); }, children: [_jsx("option", { value: "", children: "Select Business Type" }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "firstDate", className: "font-weight-bold", children: "First Payment Date:" }), _jsx(Input, { type: "date", name: "firstDate", id: "firstDate", value: firstDate, onChange: function (e) { return setFirstDate(e.target.value); } })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "lastDate", className: "font-weight-bold", children: "Last Payment Date:" }), _jsx(Input, { type: "date", name: "lastDate", id: "lastDate", value: lastDate, onChange: function (e) { return setLastDate(e.target.value); } })] }), _jsxs(FormGroup, { children: [_jsx("div", { className: "d-flex justify-content-between", children: _jsx(Button, { color: "primary", onClick: handleViewClick, children: "Produce Report" }) }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] })] }), _jsx(PaymentsTable, { busPaymentsData: busPaymentsData })] }));
+    return (_jsxs("div", { className: "container mt-5", children: [errorx && _jsx(Alert, { color: "danger", children: errorx }), _jsxs(Form, { children: [_jsxs(FormGroup, { children: [_jsx("p", { className: "text-center text-underline", children: "Produce Daily Payments Report" }), _jsx(Label, { for: "zone", className: "font-weight-bold", children: "Electoral Area:" }), _jsxs(Input, { type: "select", name: "electoral_area", id: "electoral_area", value: electoralArea, onChange: function (e) { return setElectoralArea(e.target.value); }, children: [_jsx("option", { value: "All electoral areas", children: "Select..." }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area.electoral_area, children: area.electoral_area }, index)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "bussType", className: "font-weight-bold", children: "Business Type/Profession:" }), _jsxs(Input, { type: "select", name: "bussType", id: "bussType", value: selectedBusinessType, onChange: function (e) { return setSelectedBusinessType(e.target.value); }, children: [_jsx("option", { value: "", children: "Select Business Type" }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "firstDate", className: "font-weight-bold", children: "First Payment Date:" }), _jsx(Input, { type: "date", name: "firstDate", id: "firstDate", value: firstDate, onChange: function (e) { return setFirstDate(e.target.value); } })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "lastDate", className: "font-weight-bold", children: "Last Payment Date:" }), _jsx(Input, { type: "date", name: "lastDate", id: "lastDate", value: lastDate, onChange: function (e) { return setLastDate(e.target.value); } })] }), _jsxs(FormGroup, { children: [_jsx("div", { className: "d-flex justify-content-between", children: _jsx(Button, { color: "primary", onClick: handleViewClick, children: "Produce Report" }) }), _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" })] }), _jsx(PaymentsTable, { busPaymentsData: busPaymentsData })] })] }));
 };
 export default FrmDailyPayments;

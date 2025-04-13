@@ -168,7 +168,7 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
         client = await pool.connect();
 
         const result = await client.query(
-            `SELECT * FROM buspayments WHERE transdate >= $1 AND transdate <= $2 AND electroral_area = $3 AND buss_type LIKE $4`,
+            `SELECT * FROM buspayments WHERE transdate >= $1 AND transdate <= $2 AND electroral_area ILIKE $3 AND buss_type ILIKE $4 ORDER BY transdate`,
             [formattedFirstDate, lastformattedLastDate, electoralarea, bussType + '%']
         );
 
@@ -429,7 +429,7 @@ router.post('/:electoralArea', async (req: Request, res: Response) => {
             return
         } else {
             console.log('Executing query for electoral area:', electoralArea);
-            const result = await client.query('SELECT * FROM "buspayments" WHERE "electroral_area" = $1', [electoralArea]);
+            const result = await client.query('SELECT * FROM "buspayments" WHERE "electroral_area" ILIKE $1', [electoralArea]);
 
             if (result.rows.length === 0) {
                 res.status(404).json({ message: 'Business Payments record not found', data: [] });
@@ -513,7 +513,7 @@ router.get('/defaulters/:electoralarea', async (req: Request, res: Response): Pr
         console.log('after DELETE FROM balance');
 
         const electoralareaResult: QueryResult = await client.query(
-            'SELECT * FROM business WHERE electroral_area = $1 and status = $2',
+            'SELECT * FROM business WHERE electroral_area ILIKE $1 and status = $2',
             [electoralarea, 'Active']
         );
 
@@ -674,12 +674,7 @@ router.get('/:fiscalyear/:receiptno', async (req: Request, res: Response): Promi
     }
 })
 
-
-
-
-
-
-const generateRandomTerm = () => Math.floor(Math.random() * 10000).toString(); // Generates a random number between 0-9999
+//const generateRandomTerm = () => Math.floor(Math.random() * 10000).toString(); // Generates a random number between 0-9999
 
 // Read a single BusPayments record by date range
 router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request, res: Response): Promise<void> => {
@@ -1102,12 +1097,7 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
 
             // Insert into tmp_business
             let tmpBusinessRows = await client.query(`
-                INSERT INTO tmpbusiness 
-                SELECT * FROM business 
-                WHERE buss_no = $1 
-                  AND current_rate > 0 
-                ORDER BY buss_name ASC 
-                RETURNING *;
+                INSERT INTO tmpbusiness SELECT * FROM business WHERE buss_no = $1 AND current_rate > 0 ORDER BY buss_name ASC RETURNING *;
             `, [bussNo]);
 
             console.log('after insert into tmpbusiness and tmpBusinessRows.rows.length: ', tmpBusinessRows.rows.length);
@@ -1118,7 +1108,7 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
             console.log('recReport.rows.length:', recReport.rows.length);
 
             if (recReport.rows.length === 0) {
-                res.status(404).json({ message: 'No paid bills found for the electoral area' });
+                res.status(404).json({ message: 'No paid bills found for the business client' });
                 return;
             }
 
@@ -1167,7 +1157,7 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
                 }
             }
 
-            console.log('Bills generated successfully');
+            console.log('Clients Bill generated successfully');
 
             ////////End of permits production///////////
             res.status(200).json({ success: true, message: 'One business billed successfully' });
@@ -1429,18 +1419,18 @@ async function findBusinessBalance(bussNo: number): Promise<number> {
         // Get current year and previous fiscal year
         const currentYear = new Date().getFullYear();
 
-        // Find all payments
+        // Find all previous payments
         const prevPaymentsResult = await client.query('SELECT SUM(paidAmount) AS totsum FROM buspayments WHERE buss_no = $1 AND fiscal_year < $2', 
         [bussNo, currentYear]);
         const prevPayments = prevPaymentsResult.rows[0]?.totsum ?? 0;
 
-        // Find all billings
-        const prevBalancesResult = await client.query('SELECT SUM(current_balance) AS totPrevBal FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear < $2', 
+        // Find all previous billings
+        const prevBillingsResult = await client.query('SELECT SUM(current_balance) AS totPrevBal FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear < $2', 
         [bussNo, currentYear]);
-        const prevBalances = prevBalancesResult.rows[0]?.totPrevBal ?? 0;
+        const prevBills = prevBillingsResult.rows[0]?.totPrevBal ?? 0;
 
         // Calculate balance
-        return prevBalances - prevPayments;
+        return prevBills - prevPayments;
     } catch (error) {
         console.error(error);
         throw new Error('Error fetching business balance');

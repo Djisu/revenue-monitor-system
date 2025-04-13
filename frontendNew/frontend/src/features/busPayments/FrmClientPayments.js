@@ -237,7 +237,7 @@ var FrmClientPayments = function () {
                         fiscal_year: fiscalYear,
                         ReceiptNo: receiptNo,
                         email: email,
-                        electoral_area: electoralArea,
+                        electroral_area: electoralArea,
                     };
                     console.log('busPayment:', busPayment);
                     _a.label = 2;

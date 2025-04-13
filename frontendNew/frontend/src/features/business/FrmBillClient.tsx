@@ -88,7 +88,7 @@ export const FrmBillClient: React.FC = () => {
      
       {error && <Alert variant="danger">{error}</Alert>}
       <Form>
-      <p className="bold-blue">Bill a Business</p>
+      <p className="bold-blue">Bill a Business for Current Fiscal Year</p>
         <Form.Group controlId="formBussNo">
           <Form.Label>Business Number:</Form.Label>
           <Form.Control
@@ -96,7 +96,7 @@ export const FrmBillClient: React.FC = () => {
             value={bussNo}
             onChange={(e) => setBussNo(Number(e.target.value))}
             onBlur={(e) => getBusiness(e.target.value)}
-            placeholder="Enter business number"
+            placeholder="Click to get the next business number"
             min="0" // Optional: set minimum value
           />
         </Form.Group>

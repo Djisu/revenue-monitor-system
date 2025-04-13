@@ -217,7 +217,7 @@ const FrmClientPayments = () => {
       fiscal_year: fiscalYear,
       ReceiptNo: receiptNo,
       email: email,
-      electoral_area: electoralArea,
+      electroral_area: electoralArea,
     };
 
     console.log('busPayment:', busPayment);

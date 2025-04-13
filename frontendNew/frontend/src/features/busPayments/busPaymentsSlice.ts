@@ -14,7 +14,7 @@ export interface BusPaymentsData {
     fiscal_year: string;
     ReceiptNo: string;
     email: string;
-    electoral_area: string;
+    electroral_area: string;
 }
 
 // Define the initial state for the slice
@@ -231,8 +231,6 @@ export const billAllBusinesses = createAsyncThunk('businessType/billAllBusinesse
 export const billOneBusiness = createAsyncThunk('businessType/billoneBusiness', async (bussNo: number) => {
     console.log('inside billOneBusiness thunk');
 
-    //const response = await axios.post(`${BASE_URL}/api/busPayments/billonebusiness/${bussNo}/${amount}`);
-
     const response = await axios.post(
         `${BASE_URL}/api/busPayments/billonebusiness/${bussNo}`,
         {
@@ -256,27 +254,34 @@ export const fetchDailyPayments = createAsyncThunk('businessType/dailypayments',
 
     const { firstDate, lastDate, electoralarea, bussType } = args;
 
-     // Format the dates to YYYY-MM-DD
-     const formattedFirstDate = new Date(firstDate).toISOString().split('T')[0]; // Get date part only
-     const formattedLastDate = new Date(lastDate).toISOString().split('T')[0]; // Get date part only
+    // Format the dates to YYYY-MM-DD
+    const formattedFirstDate = new Date(firstDate).toISOString().split('T')[0];
+    const formattedLastDate = new Date(lastDate).toISOString().split('T')[0];
 
-     console.log('formattedFirstDate:', formattedFirstDate, 'formattedLastDate:', formattedLastDate)
+    console.log('formattedFirstDate:', formattedFirstDate, 'formattedLastDate:', formattedLastDate);
 
-    const response = await axios.get(
-        `${BASE_URL}/api/busPayments/dailypayments/${formattedFirstDate}/${formattedLastDate}/${electoralarea}/${bussType}`,
-        {
-            headers: { 'Content-Type': 'application/json' },
+    try {
+        const response = await axios.get(
+            `${BASE_URL}/api/busPayments/dailypayments/${formattedFirstDate}/${formattedLastDate}/${electoralarea}/${bussType}`,
+            {
+                headers: { 'Content-Type': 'application/json' },
+            }
+        );
+
+        console.log('after fetchDailyPayments thunk, Response data:', response.data);
+
+        if (response.status >= 200 && response.status < 300) {
+            console.log('fetchDailyPayments thunk, response data.data:', response.data.data);
+            return response.data.data; 
+        } else {
+            throw new Error(`Error fetching one business types: ${response.statusText}`);
         }
-    );
-
-    console.log('after fetchDailyPayments thunk, Response data:', response.data)
-
-    if (response.status >= 200 && response.status < 300) {
-        console.log('fetchDailyPayments thunk, response data.data:', response.data.data);
-
-        return await response.data.data; // This data will be available as `action.payload`
-    } else {
-        throw new Error(`Error fetching one business types: ${response.statusText}`);
+    } catch (error: any) {
+        if (error.response && error.response.status === 404) {
+            throw new Error('Payment not found for the specified criteria.');
+        } else {
+            throw new Error(`Error fetching daily payments: ${error.message}`);
+        }
     }
 });
 

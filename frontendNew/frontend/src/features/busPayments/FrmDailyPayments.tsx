@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../../app/store';
-import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Button, Alert, Spinner } from 'reactstrap';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { BusPaymentsData, fetchDailyPayments, FetchDailyPaymentsArgs, selectBusPayments } from './busPaymentsSlice';
@@ -14,6 +14,13 @@ interface BusinessTypeData {
     buss_type?: string; // Optional if it's not always present
     business_type?: string
   }
+
+  interface Criteria {
+    constituency: string; // Assuming electoralArea is a string
+    bussType: string;     // Assuming selectedBusinessType is a string
+    firstDate: Date;     // firstDate is a Date object
+    lastDate: Date;      // lastDate is a Date object
+}
   
 const FrmDailyPayments: React.FC = () => {
     let [electoralArea, setElectoralArea] = useState<string>('');
@@ -64,9 +71,40 @@ const FrmDailyPayments: React.FC = () => {
         console.log('Fetched business types:', businessTypes);
     }, [businessTypes]);
 
+    const generateRequestId = () => {
+        const timestamp = Date.now(); // Current timestamp in milliseconds
+        const randomNum = Math.floor(Math.random() * 1000000); // Random number between 0 and 999999
+        return `req-${timestamp}-${randomNum}`; // Format: req-<timestamp>-<randomNumber>
+    };
+    
+    // Example usage
+    const requestId = generateRequestId();
+    console.log(requestId); // e.g., "req-1671234567890-123456"
+
+    const handlePaymentError = (criteria: Criteria) => {
+    const errorResponse = {
+        type: 'businessType/dailypayments/rejected',
+        payload: null, // Use null instead of undefined for clarity
+        meta: {
+            requestId: generateRequestId(), // Function to generate a unique request ID
+            requestStatus: 'rejected',
+            criteria, // Include the criteria that caused the error
+            timestamp: new Date().toISOString(), // Add a timestamp for tracking
+        },
+        error: {
+            name: 'PaymentNotFoundError',
+            message: `No payment data found for the specified criteria: ${JSON.stringify(criteria)}`,
+            stack: new Error().stack, // Capture the stack trace
+        },
+    };
+
+    return errorResponse;
+};
 
     const handleViewClick = async () => {
         console.log('Inside handleViewClick');
+        
+        // Validate input fields
         if (!electoralArea) {
             setErrorx("Please select an electoral area");
             return;
@@ -83,7 +121,7 @@ const FrmDailyPayments: React.FC = () => {
             setErrorx("Please select a last date");
             return;
         }
-
+    
         try {
             const DailyPaymentsData: FetchDailyPaymentsArgs = {
                 firstDate: new Date(firstDate),
@@ -91,26 +129,58 @@ const FrmDailyPayments: React.FC = () => {
                 electoralarea: electoralArea,
                 bussType: selectedBusinessType,
             };
-
-            console.log('DailyPaymentsData:', DailyPaymentsData)
-
+    
+            console.log('DailyPaymentsData:', DailyPaymentsData);
+    
             const answer = await dispatch(fetchDailyPayments(DailyPaymentsData));
-            console.log('answer:', answer)
+            console.log('answer:', answer);
+    
+            if (answer.payload) {
+                busPaymentsData = answer.payload;
+                setBusPaymentsData(busPaymentsData);
+                console.log('busPaymentsData:', busPaymentsData);
+            } else {
+                const criteria: Criteria = {
+                    constituency: electoralArea,
+                    bussType: selectedBusinessType,
+                    firstDate: new Date(firstDate),
+                    lastDate: new Date(lastDate),
+                };
+                console.log('criteria:', criteria);
 
-            if (answer.payload){
-                busPaymentsData = answer.payload
-                setBusPaymentsData(busPaymentsData)
+                // Handle the error case
+                const error = handlePaymentError(criteria);
+                console.error(error); // Log the error for debugging
+                //alert(JSON.stringify(error.error, null, 2))
+                alert('Payment not found.')
             }
-            console.log('busPaymentsData:', busPaymentsData)
-        } catch (error) {
+            
+        } catch (error: any) {
             console.error("Error fetching daily payments:", error);
-            setErrorx("Error fetching daily payments");
-            alert("Error fetching daily payments");
+    
+            if (error.response) {
+                // Check for a 404 error specifically
+                if (error.response.status === 404) {
+                    setErrorx("Requested data not found.");
+                    alert("Requested data not found.");
+                } else {
+                    setErrorx("Error fetching daily payments: " + error.message);
+                    alert("Error fetching daily payments: " + error.message);
+                }
+            } else {
+                setErrorx("Error fetching daily payments");
+                alert("Error fetching daily payments");
+            }
         }
     };
-
+    
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <div className="text-center mt-5">
+                <Spinner style={{ width: '3rem', height: '3rem' }} />
+                <p>Loading...</p>
+            </div>
+        );
     }
 
     if (error || errorx) {
@@ -131,7 +201,7 @@ const FrmDailyPayments: React.FC = () => {
                         value={electoralArea} 
                         onChange={(e) => setElectoralArea(e.target.value)}
                     >
-                        <option value="">Select...</option>
+                        <option value="All electoral areas">Select...</option>
                         {electoralAreas.map((area, index) => (
                             <option key={index} value={area.electoral_area}>
                                 {area.electoral_area}
@@ -183,9 +253,8 @@ const FrmDailyPayments: React.FC = () => {
                     </div>
                     <Link to="/main" className="primary m-3">Go Back</Link>
                 </FormGroup>
-            </Form>
-
-            <PaymentsTable busPaymentsData={busPaymentsData} />
+                 <PaymentsTable busPaymentsData={busPaymentsData} />
+            </Form>          
         </div>
     );
 };

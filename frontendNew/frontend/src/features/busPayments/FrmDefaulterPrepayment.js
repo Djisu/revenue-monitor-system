@@ -37,76 +37,56 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/store';
-import { Button, Form, Container, Row, Col } from 'react-bootstrap';
+import { Button, Form, Container, Row, Col, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-//import { fetchElectoralAreas, ElectoralArea } from '../electoralArea/electoralAreaSlice';
 import { fetchPaymentDefaulters } from './busPaymentsSlice';
 import { fetchBalances } from '../balance/balanceSlice';
-import BalanceTable from '../balance/BalanceTable';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
+import BalanceTable from '../balance/BalanceTable';
 var DefaulterPrepaymentForm = function () {
     var _a = useState(''), electoralArea = _a[0], setElectoralArea = _a[1];
-    //let [electoralAreasData, setElectoralAreasData] = useState<ElectoralArea[]>([]);
     var _b = useState([]), electoralAreas = _b[0], setElectoralAreas = _b[1];
+    var _c = useState(false), loading = _c[0], setLoading = _c[1]; // Loading state
     var dispatch = useAppDispatch();
-    //let {electoralAreas, loading, error} = useAppSelector(state => state.electoralArea)
-    // Get electoral areas from the Redux store // as ElectoralArea[];
-    // Get electoral areas from the Redux store // as ElectoralArea[];
     var electoralAreaData = useAppSelector(function (state) { return state.electoralArea.electoralAreas; });
-    if (electoralAreaData) {
-        console.log('electoralAreaData: ', electoralAreaData);
-    }
+    var balanceData = useAppSelector(function (state) { return state.balance.balances; });
     useEffect(function () {
-        dispatch(fetchElectoralAreas());
+        setLoading(true); // Set loading to true
+        dispatch(fetchElectoralAreas()).finally(function () { return setLoading(false); }); // Fetch electoral areas
     }, [dispatch]);
     useEffect(function () {
         if (electoralAreaData && Array.isArray(electoralAreaData)) {
             setElectoralAreas(electoralAreaData.map(function (area) { return area.electoral_area; }));
-            console.log('electoralAreas: ', electoralAreas);
         }
         else {
             console.error('Expected electoralAreaData to be an array but got:', electoralAreaData);
         }
-    }, [electoralAreaData, setElectoralAreas]);
-    var balanceData = useAppSelector(function (state) { return state.balance.balances; }); // Should be an array of Balance
-    //console.log('THIS IS THE balanceData.data: ', balanceData);
-    useEffect(function () {
-        var fetchBalancesData = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var resDB, error_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, dispatch(fetchBalances())];
-                    case 1:
-                        resDB = _a.sent();
-                        console.log('fetchBalancesData resDB:', resDB.payload); //data)
-                        return [3 /*break*/, 3];
-                    case 2:
-                        error_1 = _a.sent();
-                        console.error("Error fetching balances:", error_1);
-                        alert("Error fetching balances");
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
-                }
-            });
-        }); };
-        fetchBalancesData();
-    }, [dispatch]); // Dependency array includes dispatch
-    useEffect(function () {
-        if (electoralAreaData && Array.isArray(electoralAreaData)) {
-            setElectoralAreas(electoralAreaData.map(function (area) { return area.electoral_area; }));
-            console.log('electoralAreas: ', electoralAreas);
-        }
-        else {
-            console.error('Expected electoralAreaData to be an array but got:', electoralAreaData);
-        }
-    }, [electoralAreaData, setElectoralAreas]);
-    var handleChange = function (e) {
-        var target = e.target;
-        var selectedArea = target.value;
-        setElectoralArea(selectedArea);
-    };
+    }, [electoralAreaData]);
+    var fetchBalancesData = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    setLoading(true); // Set loading to true
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, 4, 5]);
+                    return [4 /*yield*/, dispatch(fetchBalances())];
+                case 2:
+                    _a.sent();
+                    return [3 /*break*/, 5];
+                case 3:
+                    error_1 = _a.sent();
+                    console.error("Error fetching balances:", error_1);
+                    alert("Error fetching balances");
+                    return [3 /*break*/, 5];
+                case 4:
+                    setLoading(false); // Set loading to false after fetching
+                    return [7 /*endfinally*/];
+                case 5: return [2 /*return*/];
+            }
+        });
+    }); };
     var handleDefaultersClick = function () { return __awaiter(void 0, void 0, void 0, function () {
         var response, error_2;
         return __generator(this, function (_a) {
@@ -116,35 +96,35 @@ var DefaulterPrepaymentForm = function () {
                         alert("Select the electoral area");
                         return [2 /*return*/];
                     }
+                    setLoading(true); // Set loading to true
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 6, , 7]);
+                    _a.trys.push([1, 6, 7, 8]);
                     return [4 /*yield*/, dispatch(fetchPaymentDefaulters(electoralArea)).unwrap()];
                 case 2:
                     response = _a.sent();
                     if (!(response.data.length > 0)) return [3 /*break*/, 4];
-                    // window.open('/report/defaulters-list.rpt', '_blank');
-                    // alert(`This is the report for ${electoralArea}`);
-                    return [4 /*yield*/, dispatch(fetchBalances())];
+                    return [4 /*yield*/, fetchBalancesData()];
                 case 3:
-                    // window.open('/report/defaulters-list.rpt', '_blank');
-                    // alert(`This is the report for ${electoralArea}`);
                     _a.sent();
                     alert("This is the report for ".concat(electoralArea));
                     return [3 /*break*/, 5];
                 case 4:
                     alert("No records found");
                     _a.label = 5;
-                case 5: return [3 /*break*/, 7];
+                case 5: return [3 /*break*/, 8];
                 case 6:
                     error_2 = _a.sent();
                     console.error("Error fetching defaulters list:", error_2);
                     alert("Error fetching defaulters list");
-                    return [3 /*break*/, 7];
-                case 7: return [2 /*return*/];
+                    return [3 /*break*/, 8];
+                case 7:
+                    setLoading(false); // Set loading to false after fetching
+                    return [7 /*endfinally*/];
+                case 8: return [2 /*return*/];
             }
         });
     }); };
-    return (_jsxs(Container, { fluid: true, className: "bg-light", children: [_jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx("h2", { style: { textDecoration: 'underline', color: '#0000C0' }, children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { children: [_jsx(Form.Label, { htmlFor: "electoral_area", children: "Electoral Area:" }), _jsxs(Form.Select, { name: "electoral_area", id: "electoral_area", value: electoralArea, onChange: handleChange, children: [_jsx("option", { children: "Select..." }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "primary", onClick: handleDefaultersClick, children: "Defaulters List" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) }), balanceData.length > 0 && _jsx(BalanceTable, { balanceData: balanceData })] }));
+    return (_jsxs(Container, { fluid: true, className: "bg-light", children: [loading && (_jsx("div", { className: "text-center", children: _jsx(Spinner, { animation: "border", role: "status", children: _jsx("span", { className: "visually-hidden", children: "Loading..." }) }) })), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx("h2", { style: { textDecoration: 'underline', color: '#0000C0' }, children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { children: [_jsx(Form.Label, { htmlFor: "electoral_area", children: "Electoral Area:" }), _jsxs(Form.Select, { name: "electoral_area", id: "electoral_area", value: electoralArea, onChange: function (e) { return setElectoralArea(e.target.value); }, children: [_jsx("option", { children: "Select..." }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "primary", onClick: handleDefaultersClick, disabled: loading, children: "Defaulters List" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Link, { to: "/main", className: "primary m-3", children: "Go Back" }) }) }), balanceData.length > 0 && _jsx(BalanceTable, { balanceData: balanceData })] }));
 };
 export default DefaulterPrepaymentForm;

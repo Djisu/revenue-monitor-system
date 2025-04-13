@@ -18,12 +18,12 @@ const PaymentsTable: React.FC<{ busPaymentsData: BusPaymentsData[] }> = ({ busPa
                     </tr>
                     <tr>
                         <th style={{ fontSize: '0.8em' }}>Business Number</th>
-                        <th style={{ fontSize: '0.8em' }}>Officer Name</th>
+                        <th style={{ fontSize: '0.8em' }}>Officer Number</th>
                         <th style={{ fontSize: '0.8em' }}>Paid Amount</th>
                         <th style={{ fontSize: '0.8em' }}>Month Paid</th>
                         <th style={{ fontSize: '0.8em' }}>Transaction Date</th>
                         <th style={{ fontSize: '0.8em' }}>Fiscal Year</th>
-                       
+                        <th style={{ fontSize: '0.8em' }}>Electoral Area</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,7 +36,7 @@ const PaymentsTable: React.FC<{ busPaymentsData: BusPaymentsData[] }> = ({ busPa
                                 <td style={{ fontSize: '0.8em' }}>{payment.monthpaid}</td>
                                 <td style={{ fontSize: '0.8em' }}>{new Date(payment.transdate).toLocaleDateString()}</td>
                                 <td style={{ fontSize: '0.8em' }}>{payment.fiscal_year}</td>
-                                <td style={{ fontSize: '0.8em' }}>{payment.electoral_area}</td>
+                                <td style={{ fontSize: '0.8em' }}>{payment.electroral_area}</td>
                             </tr>
                         ))
                     ) : (

@@ -117,7 +117,7 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query(`SELECT * FROM buspayments WHERE transdate >= $1 AND transdate <= $2 AND electroral_area = $3 AND buss_type LIKE $4`, [formattedFirstDate, lastformattedLastDate, electoralarea, bussType + '%']);
+        const result = await client.query(`SELECT * FROM buspayments WHERE transdate >= $1 AND transdate <= $2 AND electroral_area ILIKE $3 AND buss_type ILIKE $4 ORDER BY transdate`, [formattedFirstDate, lastformattedLastDate, electoralarea, bussType + '%']);
         if (result.rows.length === 0) {
             console.log('No BusPayments records found');
             res.status(404).json({ message: 'No BusPayments records found', data: [] });
@@ -338,7 +338,7 @@ router.post('/:electoralArea', async (req, res) => {
         }
         else {
             console.log('Executing query for electoral area:', electoralArea);
-            const result = await client.query('SELECT * FROM "buspayments" WHERE "electroral_area" = $1', [electoralArea]);
+            const result = await client.query('SELECT * FROM "buspayments" WHERE "electroral_area" ILIKE $1', [electoralArea]);
             if (result.rows.length === 0) {
                 res.status(404).json({ message: 'Business Payments record not found', data: [] });
                 return;
@@ -408,7 +408,7 @@ router.get('/defaulters/:electoralarea', async (req, res) => {
         const currentYear = new Date().getFullYear();
         await client.query('DELETE FROM balance');
         console.log('after DELETE FROM balance');
-        const electoralareaResult = await client.query('SELECT * FROM business WHERE electroral_area = $1 and status = $2', [electoralarea, 'Active']);
+        const electoralareaResult = await client.query('SELECT * FROM business WHERE electroral_area ILIKE $1 and status = $2', [electoralarea, 'Active']);
         if (electoralareaResult.rows.length === 0) {
             console.log('No records found from business table for ', electoralarea);
             res.status(404).json({ message: 'No records found', data: [] });
@@ -525,7 +525,7 @@ router.get('/:fiscalyear/:receiptno', async (req, res) => {
         res.status(500).send({ message: 'Server error', error });
     }
 });
-const generateRandomTerm = () => Math.floor(Math.random() * 10000).toString(); // Generates a random number between 0-9999
+//const generateRandomTerm = () => Math.floor(Math.random() * 10000).toString(); // Generates a random number between 0-9999
 // Read a single BusPayments record by date range
 router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req, res) => {
     const { bussNo, formattedStartDate, formattedEndDate } = req.params;
@@ -833,19 +833,14 @@ router.post('/billonebusiness/:bussNo', async (req, res) => {
         await client.query('DELETE FROM tmpbusscurrbalance');
         // Insert into tmp_business
         let tmpBusinessRows = await client.query(`
-                INSERT INTO tmpbusiness 
-                SELECT * FROM business 
-                WHERE buss_no = $1 
-                  AND current_rate > 0 
-                ORDER BY buss_name ASC 
-                RETURNING *;
+                INSERT INTO tmpbusiness SELECT * FROM business WHERE buss_no = $1 AND current_rate > 0 ORDER BY buss_name ASC RETURNING *;
             `, [bussNo]);
         console.log('after insert into tmpbusiness and tmpBusinessRows.rows.length: ', tmpBusinessRows.rows.length);
         const recReport = await client.query('SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
         console.log('after SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2');
         console.log('recReport.rows.length:', recReport.rows.length);
         if (recReport.rows.length === 0) {
-            res.status(404).json({ message: 'No paid bills found for the electoral area' });
+            res.status(404).json({ message: 'No paid bills found for the business client' });
             return;
         }
         await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
@@ -882,7 +877,7 @@ router.post('/billonebusiness/:bussNo', async (req, res) => {
                 return;
             }
         }
-        console.log('Bills generated successfully');
+        console.log('Clients Bill generated successfully');
         ////////End of permits production///////////
         res.status(200).json({ success: true, message: 'One business billed successfully' });
         return;
@@ -1086,14 +1081,14 @@ async function findBusinessBalance(bussNo) {
         client = await pool.connect();
         // Get current year and previous fiscal year
         const currentYear = new Date().getFullYear();
-        // Find all payments
+        // Find all previous payments
         const prevPaymentsResult = await client.query('SELECT SUM(paidAmount) AS totsum FROM buspayments WHERE buss_no = $1 AND fiscal_year < $2', [bussNo, currentYear]);
         const prevPayments = prevPaymentsResult.rows[0]?.totsum ?? 0;
-        // Find all billings
-        const prevBalancesResult = await client.query('SELECT SUM(current_balance) AS totPrevBal FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear < $2', [bussNo, currentYear]);
-        const prevBalances = prevBalancesResult.rows[0]?.totPrevBal ?? 0;
+        // Find all previous billings
+        const prevBillingsResult = await client.query('SELECT SUM(current_balance) AS totPrevBal FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear < $2', [bussNo, currentYear]);
+        const prevBills = prevBillingsResult.rows[0]?.totPrevBal ?? 0;
         // Calculate balance
-        return prevBalances - prevPayments;
+        return prevBills - prevPayments;
     }
     catch (error) {
         console.error(error);

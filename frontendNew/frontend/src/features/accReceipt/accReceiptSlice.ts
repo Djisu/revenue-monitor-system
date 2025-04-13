@@ -43,20 +43,29 @@ export const fetchAccReceipts = createAsyncThunk('accReceipts/fetchAccReceipts',
 
 // Async thunk to create a new AccReceipt
 export const createAccReceipt = createAsyncThunk('accReceipts/createAccReceipt', async (data: AccReceiptData) => {
-    const response = await axios.post(`${BASE_URL}/api/accReceipts/create`, data); 
-    return response.data;
+    try {
+        console.log('in createAccReceipt')
+        const response = await axios.post(`${BASE_URL}/api/accReceipts/create`, data); 
+
+        console.log('in createAccReceipt after response: ', response.data.data)
+        return response.data.data;
+    } catch (error) {
+        console.log('in createAccReceipt error: ', error)
+        throw error; // Rethrow the error to be caught in the slice
+    }
+   
 });
 
 // Async thunk to fetch a single AccReceipt
 export const fetchAccReceiptById = createAsyncThunk('accReceipts/fetchAccReceiptById', async ({ batchno, fiscalyear }: { batchno: string; fiscalyear: string; }) => {
     const response = await axios.get(`${BASE_URL}/api/accReceipts/${batchno}/${fiscalyear}`);
-    return response.data;
+    return response.data.data;
 });
 
 // Async thunk to update an AccReceipt
 export const updateAccReceipt = createAsyncThunk('accReceipts/updateAccReceipt', async ({ batchno, data }: { batchno: string; data: AccReceiptData }) => {
     const response = await axios.put(`${BASE_URL}/api/accReceipts/${batchno}`, data);
-    return response.data;
+    return response.data.data;
 });
 
 // Async thunk to delete an AccReceipt
@@ -89,7 +98,7 @@ const accReceiptSlice = createSlice({
             })
             .addCase(createAccReceipt.fulfilled, (state, action) => {
                 state.loading = false;
-                state.accReceipts.push(action.payload); // Add the new receipt to the list
+                state.accReceipts = action.payload; // Add the new receipt to the list
                 state.error = null;
             })
             .addCase(createAccReceipt.rejected, (state, action) => {

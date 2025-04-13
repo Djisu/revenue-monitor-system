@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch } from '../../app/store';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
 import {fetchAccReceipts, createAccReceipt, AccReceiptData, deleteAccReceipt} from './accReceiptSlice'
 
@@ -87,7 +86,7 @@ export const FrmReceipts: React.FC = () => {
 
             const response = await dispatch(createAccReceipt(data));
 
-            if (response.payload.message) {
+            if (response.payload.success) {
                 alert("Record successfully added");
                 // Clear input fields
                 setFiscalYear(0);
@@ -154,27 +153,27 @@ export const FrmReceipts: React.FC = () => {
     //     // history.push('/main-form');
     // };
 
-    const handleBatchNoClick = async () => {
-        if (!fiscalYear) {
-            alert("Enter the fiscal year");
-            return;
-        }
+    // const handleBatchNoClick = async () => {
+    //     if (!fiscalYear) {
+    //         alert("Enter the fiscal year");
+    //         return;
+    //     }
 
-        try {
-            const response = await axios.get('/api/next-batch-no', {
-                params: { fiscalyear: fiscalYear }
-            });
+    //     try {
+    //         const response = await axios.get('/api/next-batch-no', {
+    //             params: { fiscalyear: fiscalYear }
+    //         });
 
-            if (response.data.nextBatchNo) {
-                setBatchNo(response.data.nextBatchNo);
-            } else {
-                alert("Record not found");
-            }
-        } catch (error) {
-            console.error("Error fetching next batch number", error);
-            alert("An error occurred while fetching the next batch number");
-        }
-    };
+    //         if (response.data.nextBatchNo) {
+    //             setBatchNo(response.data.nextBatchNo);
+    //         } else {
+    //             alert("Record not found");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching next batch number", error);
+    //         alert("An error occurred while fetching the next batch number");
+    //     }
+    // };
 
     return (
         <Container fluid>
@@ -185,7 +184,7 @@ export const FrmReceipts: React.FC = () => {
             </Row> */}
             <Row>
                 <Col>
-                <p className="text-center text-primary">MARCORY MUNICIPAL ASSEMBLY</p>
+                {/* <p className="text-center text-primary">MARCORY MUNICIPAL ASSEMBLY</p> */}
                     <Form.Group controlId="formFiscalYear">
                         <Form.Label>Fiscal Year:</Form.Label>
                         <Form.Control
@@ -203,7 +202,7 @@ export const FrmReceipts: React.FC = () => {
                             type="number"
                             value={batchNo}
                             onChange={handleBatchNoChange}
-                            onClick={handleBatchNoClick}
+                            // onClick={handleBatchNoClick}
                             required
                         />
                     </Form.Group>
@@ -244,11 +243,11 @@ export const FrmReceipts: React.FC = () => {
                         Delete
                     </Button>
                 </Col>
-                {/* <Col>
-                    <Button variant="secondary" onClick={handleExitClick}>
-                        Exit
-                    </Button>
-                </Col> */}
+                <Col>
+                    <Link to="/main" className="primary m-3">
+                        Go Back
+                    </Link>
+                </Col>
             </Row>
             <Row className="mt-3">
                 <Col>

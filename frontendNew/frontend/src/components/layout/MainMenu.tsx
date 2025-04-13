@@ -41,23 +41,23 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                     <Nav className="me-auto justify-content-center w-100">
                         <NavDropdown title="BOP Setup" id="basic-nav-dropdown">
                             <NavDropdown.Item onClick={() => handleMenuClick('ST', 'SetupBusiness')}>
-                                ST_Setup Business Client
+                                ST_Setup Business Client--1
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('UC', 'UpdateBusinessClient')}>
-                                UC_Update Business Client
+                                UC_Update Existing Business Client--2
                             </NavDropdown.Item>
                             {/*Hidden menu items are commented out for now */}
                             {/* <NavDropdown.Item onClick={() => handleMenuClick('PP', 'UpdateBusinessClientsBarometers')}>
                                 PP_Update Business Client's Barometers
                             </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('BY', 'ListOfBusinesses')}>
-                                BY_List of Business 
+                                BY_List of All Business Clients
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('SB', 'SetupBusinessType')}>
                                 SB_Setup Business Type
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('SE', 'SetupElectoralArea')}>
-                                SE_Setup Electoral Area
+                                SE_Setup Electoral Area/Zones
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('ZO', 'PropertyClass')}>
                                 SE_Setup Property Class
@@ -75,13 +75,13 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 EM_Setup Collector
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('AE', 'AssignCollectorToElectoralArea')}>
-                                AE_Assign Collector To Electoral Area
+                                AE_Assign Collector To Electoral Area/Zone
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('DD', 'OperatorDefinition')}>
-                                DD_User Definition
+                                DD_User Definition- Create a New User
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('VZ', 'OperatorPermission')}>
-                                VZ_User Permission
+                                VZ_User Permission- Give a New User Permissions to the System
                             </NavDropdown.Item>
 
                             {/* <NavDropdown.Item onClick={() => handleMenuClick('SB', 'ChangeBusinessType')}>
@@ -93,24 +93,25 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
 
                         <NavDropdown title="BOP Finances" id="basic-nav-dropdown">
                             <NavDropdown.Item onClick={() => handleMenuClick('OB', 'OfficerBudget')}>
-                                OB_Collector Budget
+                                OB_Collector Budget- Setup Budget for a Collector
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'CollectorPayment')}>
-                                CP_Collector Payment
+                                CP_Collector Payment- Collector pays on behalf of a Client--4
                             </NavDropdown.Item>
                             {/* Hidden menu items are commented out for now */}
                              {/* <NavDropdown.Item onClick={() => handleMenuClick('CP', 'TemporalCollectorPayment')}>
                                 CP_Temporal Collector Payment
                             </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('PB', 'ProcessClientNewBalances')}>
-                                PB_Use this option to bill all businesses for the new fiscal year
+                                PB_Bill All Businesses for the CURRENT Fiscal Year--3
+                            </NavDropdown.Item>
+                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'BillClient')}>
+                                CP_Bill One Business Client for the CURRENT Fiscal Year--3
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('RR', 'EnterReceiptNumbers')}>
                                 RR_Enter Receipt Numbers From Accountant General
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('CP', 'BillClient')}>
-                                CP_Bill a Business
-                            </NavDropdown.Item>
+                           
                             {/* <NavDropdown.Item onClick={() => handleMenuClick('CP', 'ChangeLastYearRate')}>
                                 CP_Change Last Year Rate For a Business
                             </NavDropdown.Item>
@@ -124,7 +125,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 BN_Produce Business Operating Permits (Business Numbers)
                             </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('BO', 'BusinessOperatingPermit')}>
-                                BO_Produce Business Operating Permits (Electoral Areas)
+                                BO_Produce Business Operating Permits for all Electoral Areas/Zones
                             </NavDropdown.Item>
                             {/* Hidden menu items are commented out for now */}
                             {/* <NavDropdown.Item onClick={() => handleMenuClick('MJ', 'BusinessOperatingPermitBusstypes')}>
@@ -134,7 +135,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 MJ_Produce Business Operationg Permits (Print Different Numbers at the Same)
                             </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('RM', 'RevenueMobilisationRegister')}>
-                                RM_Produce Business Client Statement
+                                RM_Produce Business Client Transactions Statement
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('LK', 'ListOfPaymentDefaulters')}>
                                 LK_List Of Payment Defaulters

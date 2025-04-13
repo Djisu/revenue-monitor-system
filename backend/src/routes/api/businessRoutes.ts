@@ -186,6 +186,37 @@ router.get('/all', async (req: Request, res: Response) => {
     }
 });
 
+// Read last business
+router.get('/last', async (req: Request, res: Response) => {
+    console.log('in router.get(/last')
+    
+    try {
+        const client: PoolClient = await pool.connect();
+        
+        // Fetch the last business
+        const result = await client.query('SELECT * FROM business ORDER BY buss_no DESC LIMIT 1');
+        
+        let newBussNo = 1; // Default value if no businesses are found
+
+        if (result.rows.length > 0) {
+            // Get the last business's buss_no and increment it
+            const lastBussNo = result.rows[0].buss_no;
+            newBussNo = lastBussNo + 1;
+        }
+
+        client.release();
+
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        res.status(200).json({ newBussNo }); // Return the new buss_no
+    } catch (error: any) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+    }
+});
+
 // Read a single business by buss_no
 router.get('/:buss_no', async (req: Request, res: Response): Promise<void> => {
     const { buss_no } = req.params;
