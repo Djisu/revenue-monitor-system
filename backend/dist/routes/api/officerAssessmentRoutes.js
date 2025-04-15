@@ -268,9 +268,16 @@ router.post('/create', async (req, res) => {
             res.status(400).send('Missing required fields');
             return;
         }
-        const deleteQuery = `DELETE FROM officerassessment WHERE officer_no = $1 AND bus_year = $2`;
-        const deleteResult = await client.query(deleteQuery, [params.officerNo, busYear]);
-        console.log('Delete result:', deleteResult.rowCount); // Should log how many rows were deleted
+        console.log('about to SELECT');
+        const selectQuery = `SELECT * FROM officerassessment WHERE officer_no = $1 AND bus_year = $2`;
+        const selectResult = await client.query(selectQuery, [params.officerNo, busYear]);
+        if (selectResult.rows.length > 0) {
+            const deleteQuery = `DELETE FROM officerassessment WHERE officer_no = $1 AND bus_year = $2`;
+            const deleteResult = await client.query(deleteQuery, [params.officerNo, busYear]);
+            console.log('Delete result:', deleteResult.rowCount); // Should log how many rows were deleted
+        }
+        console.log('after SELECT');
+        console.log('about to INSERT');
         // Insert new record
         const insertQuery = `
             INSERT INTO officerassessment (
