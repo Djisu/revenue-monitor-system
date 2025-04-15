@@ -93,8 +93,13 @@ const DefaulterPrepaymentForm: React.FC = () => {
         <Col>
           <Form.Group>
             <Form.Label htmlFor="electoral_area">Electoral Area:</Form.Label>
-            <Form.Select name="electoral_area" id="electoral_area" value={electoralArea} onChange={(e) => setElectoralArea(e.target.value)}>
-              <option>Select...</option>
+            <Form.Select
+              name="electoral_area"
+              id="electoral_area"
+              value={electoralArea}
+              onChange={(e) => setElectoralArea(e.target.value)}
+            >
+              <option value="All electoral areas">All electoral areas</option>
               {electoralAreas.map((area, index) => (
                 <option key={index} value={area}>{area}</option>
               ))}

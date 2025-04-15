@@ -133,7 +133,7 @@ const FrmOfficerAssessment = () => {
     try {
         const budgetResponse: OfficerBudgetResponse = await dispatch(fetchOfficerBudget({ officer_no: firstOfficer, fiscal_year: parseInt(firstFiscalYear, 10) })).unwrap();
 
-        console.log('budgetResponse.data: ', budgetResponse.data);
+        console.log('budgetResponse.data.data: ', budgetResponse.data)
 
         // Check if the response indicates that the data exists
         if (budgetResponse.exists) {

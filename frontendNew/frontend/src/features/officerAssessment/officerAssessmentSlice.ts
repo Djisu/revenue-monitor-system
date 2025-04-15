@@ -451,12 +451,12 @@ export const fetchOfficerAssessment = createAsyncThunk<OfficerAssessment, { offi
     'officerAssessment/fetchOfficerAssessment',
     async ({ officerNo, fiscalYear }): Promise<OfficerAssessment> => {
 
-        console.log('in fetchOfficerAssessment: ',  officerNo, fiscalYear )
+        console.log('in fetchOfficerAssessment thunk: ',  officerNo, fiscalYear )
 
         const response = await apiClient.get(`${BASE_URL}/api/officerAssessment/${officerNo}/${fiscalYear}`);
-        console.log('fetchOfficerAssessment response', response.data)
+        console.log('fetchOfficerAssessment response.data.data', response.data.data)
 
-        return response.data; // Ensure this matches OfficerAssessment structure
+        return response.data.data; // Ensure this matches OfficerAssessment structure
     }
 );
 

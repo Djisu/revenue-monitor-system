@@ -982,7 +982,7 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response) => {
     const { officer_no, fiscal_year } = req.params;
 
     try {
-        console.log('XXxXXXXVVVVVVVTTTTTTT')
+        console.log('XXXXXXXVVVVVVVTTTTTTT')
         console.log('in router.get(/:officer_no/:fiscal_year): ', req.params )
         console.log('====================================')
         console.log('officer_no: ', officer_no)
@@ -992,14 +992,14 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response) => {
 
         if (!officer_no ||!fiscal_year){
             console.log('invalid officer_no or fiscal_year')
-            res.status(404).json([]);
+            res.status(404).json({message: 'Invalid officer_no or fiscal_year', data: []});
             return;
         }
 
         console.log('Valid officer_no AND fiscal_year')
 
         const { rows } = await pool.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND bus_year = $2', 
-        [officer_no, fiscal_year]);
+        [officer_no, parseInt(fiscal_year, 10)]);
 
         if (rows.length == 0) {
             console.log('officer not found in officerassessment')
@@ -1007,9 +1007,9 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response) => {
             return;
         }
 
-        console.log('fetched rows[0]: ', rows[0])
+        console.log('officerassessment fetched rows[0]: ', rows[0])
 
-        res.status(200).send(rows[0]);
+        res.status(200).send({message: 'Data found', data: rows[0]});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching officer assessment record', error });

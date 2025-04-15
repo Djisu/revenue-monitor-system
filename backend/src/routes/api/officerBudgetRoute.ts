@@ -164,8 +164,10 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response): Pro
     console.log('in router.get(/:officer_no/:fiscal_year): ', req.params)
 
    
-    const officerNoNew = parseInt(officer_no.split(' ')[0], 10)
-    console.log('officerNoNew: ', officerNoNew)
+    // const officerNoNew = parseInt(officer_no.split(' ')[0], 10)
+    // console.log('officerNoNew: ', officerNoNew)
+
+    const fiscalYearInt = parseInt(fiscal_year, 10)
 
     const client: PoolClient = await pool.connect();
 
@@ -173,7 +175,7 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response): Pro
 
     try {
         const result = await client.query(`SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2`, 
-             [officerNoNew, fiscal_year]
+             [officer_no, fiscalYearInt]
         );
 
         console.log('after SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2')
@@ -181,6 +183,8 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response): Pro
         if (result.rows.length > 0) {
 
             console.log('Data found!!!!')
+            console.log('result.rows.length: ', result.rows.length)
+            console.log('result.rows: ', result.rows)
 
             res.status(200).json({ message: "Data found", data: result.rows });
             return

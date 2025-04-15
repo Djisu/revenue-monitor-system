@@ -154,19 +154,22 @@ router.get('/:zone/:businessType/:newFiscalYear', async (req, res) => {
         console.log('about to delete');
         await client.query('DELETE FROM bustypedetailedreport');
         let businessesResult;
+        // Adjusting the query based on zone and businessType
         if (zone === 'All electoral areas') {
-            businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 ORDER BY electroral_area ASC', ['Active']);
-        }
-        else if (zone) {
-            if (!businessType) {
-                businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND electroral_area = $2 ORDER BY electroral_area ASC', ['Active', zone]);
+            if (businessType === 'All business types') {
+                businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 ORDER BY electroral_area ASC', ['Active']);
             }
             else {
-                businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND buss_type = $2 AND electroral_area = $3 ORDER BY electroral_area ASC', ['Active', businessType, zone]);
+                businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND buss_type ILIKE $2 ORDER BY electroral_area ASC', ['Active', businessType]);
             }
         }
         else {
-            businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 ORDER BY electroral_area ASC', ['Active']);
+            if (businessType === 'All business types') {
+                businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND electroral_area ILIKE $  AND current_rate IS NOT NULL AND tot_grade IS NOT NULL ORDER BY electroral_area ASC', ['Active', zone]);
+            }
+            else {
+                businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND buss_type = $2 AND electroral_area = $3 AND current_rate IS NOT NULL AND tot_grade IS NOT NULL ORDER BY electroral_area ASC', ['Active', businessType, zone]);
+            }
         }
         if (businessesResult.rowCount === 0) {
             console.log('No businesses found');
@@ -180,7 +183,10 @@ router.get('/:zone/:businessType/:newFiscalYear', async (req, res) => {
             const query = await client.query(`SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2`, [businesses[i].buss_no, fiscalyear]);
             varCurrRate = query.rowCount === 0 ? 0 : query.rows[0].totsum;
             const paymentsResult = await client.query(`SELECT SUM(paidamount) AS totsum FROM buspayments WHERE buss_no = $1 AND fiscal_year = $2`, [businesses[i].buss_no, fiscalyear]);
-            varTotPaid = paymentsResult.rowCount === 0 ? 0 : paymentsResult.rows[0].totsum;
+            // Ensure varTotPaid is set to 0 if no results are found
+            varTotPaid = paymentsResult.rowCount === 0 ? 0 : paymentsResult.rows[0].totsum || 0;
+            // Safely handle tot_grade
+            const totGrade = businesses[i].tot_grade ?? 0; // Fallback to 0 if undefined
             const query2 = `    
                 INSERT INTO bustypedetailedreport (electoral_area, buss_no, buss_name, buss_type, amountdue, amountpaid, balance, tot_grade) 
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -190,15 +196,16 @@ router.get('/:zone/:businessType/:newFiscalYear', async (req, res) => {
                 businesses[i].buss_no,
                 businesses[i].buss_name,
                 businesses[i].buss_type,
-                varCurrRate,
-                varTotPaid,
-                varCurrRate - varTotPaid,
-                businesses[i].tot_grade
+                varCurrRate | 0,
+                varTotPaid | 0, // This will be 0 if the query returns null
+                varCurrRate - varTotPaid | 0,
+                totGrade
             ];
             await client.query(query2, values2);
         }
+        console.log('after the loop');
         console.log('Executing query: SELECT * FROM public.bustypedetailedreport');
-        let result = await client.query(`SELECT * FROM public.bustypedetailedreport`);
+        let result = await client.query(`SELECT * FROM public.bustypedetailedreport ORDER BY buss_type ASC`);
         let businessTypeDetailedReports = result.rows;
         if (businessTypeDetailedReports.length > 0) {
             console.log('BusTypeDetailedReport fetched');
@@ -214,5 +221,91 @@ router.get('/:zone/:businessType/:newFiscalYear', async (req, res) => {
         return res.status(500).json({ message: 'Error retrieving reports', error: error.message });
     }
 });
+// router.get('/:zone/:businessType/:newFiscalYear', async (req: Request<{ zone: string, businessType: string, newFiscalYear: string }>, res: Response): Promise<Response | void | any> => {
+//     try {
+//         const zone = req.params.zone;   
+//         const businessType = req.params.businessType; 
+//         const fiscalyear = parseInt(req.params.newFiscalYear, 10);
+//         console.log('zone: ', zone);
+//         console.log('businessType: ', businessType);
+//         console.log('fiscalyear: ', fiscalyear);
+//         // Check if fiscalyear is a valid integer
+//         if (isNaN(fiscalyear)) {
+//             console.log('Invalid fiscal year provided');
+//             return res.status(400).json({ message: 'Invalid fiscal year provided' });
+//         }
+//         const client: PoolClient = await pool.connect();
+//         console.log('about to delete');
+//         await client.query('DELETE FROM bustypedetailedreport');
+//         let businessesResult: any;
+//         if (zone === 'All electoral areas') {
+//             businessesResult = await client.query(
+//                 'SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 ORDER BY electroral_area ASC',
+//                 ['Active']
+//             );
+//         } else if (zone) {
+//             if (!businessType) {
+//                 businessesResult = await client.query(
+//                     'SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND electroral_area ILIKE $2 ORDER BY electroral_area ASC',
+//                     ['Active', zone]
+//                 );
+//             } else {
+//                 businessesResult = await client.query(
+//                     'SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND buss_type = $2 AND electroral_area = $3 ORDER BY electroral_area ASC',
+//                     ['Active', businessType, zone]
+//                 );
+//             }
+//         } else {
+//             businessesResult = await client.query(
+//                 'SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 ORDER BY electroral_area ASC',
+//                 ['Active']
+//             );
+//         }
+//         if (businessesResult.rowCount === 0) {
+//             console.log('No businesses found');
+//             return res.status(404).json({ message: 'No businesses found', data: [] });
+//         }
+//         const businesses: Business[] = businessesResult.rows;
+//         let varCurrRate: number = 0;
+//         let varTotPaid: number = 0;
+//         console.log('about to loop');
+//         for (let i = 0; i < businesses.length; i++) {
+//             const query = await client.query(`SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2`, 
+//             [businesses[i].buss_no, fiscalyear]);
+//             varCurrRate = query.rowCount === 0 ? 0 : query.rows[0].totsum;
+//             const paymentsResult = await client.query(`SELECT SUM(paidamount) AS totsum FROM buspayments WHERE buss_no = $1 AND fiscal_year = $2`, 
+//             [businesses[i].buss_no, fiscalyear]);
+//             varTotPaid = paymentsResult.rowCount === 0 ? 0 : paymentsResult.rows[0].totsum;
+//             const query2 = `    
+//                 INSERT INTO bustypedetailedreport (electoral_area, buss_no, buss_name, buss_type, amountdue, amountpaid, balance, tot_grade) 
+//                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+//             `;
+//             const values2 = [
+//                 businesses[i].electroral_area, 
+//                 businesses[i].buss_no, 
+//                 businesses[i].buss_name, 
+//                 businesses[i].buss_type, 
+//                 varCurrRate,                             
+//                 varTotPaid, 
+//                 varCurrRate - varTotPaid, 
+//                 businesses[i].tot_grade
+//             ];
+//             await client.query(query2, values2); 
+//         } 
+//         console.log('Executing query: SELECT * FROM public.bustypedetailedreport');
+//         let result: QueryResult<BusTypeDetailedReport> = await client.query(`SELECT * FROM public.bustypedetailedreport`);
+//         let businessTypeDetailedReports: BusTypeDetailedReport[] = result.rows;
+//         if (businessTypeDetailedReports.length > 0) {
+//             console.log('BusTypeDetailedReport fetched');
+//             return res.status(200).json({ message: 'BusTypeDetailedReport fetched', data: businessTypeDetailedReports });
+//         } else {
+//             console.log('No data found in bustypedetailedreport');
+//             return res.status(404).json({ message: 'No data found in bustypedetailedreport', data: [] });
+//         }
+//     } catch (error: any) {
+//         console.error(error);
+//         return res.status(500).json({ message: 'Error retrieving reports', error: error.message });
+//     }
+// });
 export default router;
 //# sourceMappingURL=bustypeDetailedReportRoute.js.map

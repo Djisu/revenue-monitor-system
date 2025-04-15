@@ -37,11 +37,13 @@ export const fetchOfficerBudget = createAsyncThunk(
 
         const response = await apiClient.get(`${BASE_URL}/api/officerbudget/${officer_no}/${fiscal_year}`);
 
-        console.log('response data: ', response.data)
+        console.log('response.data.data: ', response.data.data)
 
         if (response.status!== 200){
             throw new Error('Failed to fetch officer budget');
         }
+        //return response.data.data; // Return the data from the response
+
         return {
             exists: response.data.exists, // Include exists from the API response
             data: response.data.data,      // Include only the data part

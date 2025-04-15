@@ -151,7 +151,7 @@ async function sendEmail(receiptPath: string, busPaymentsData: BusPaymentsData):
     }
 }
 
-router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoralarea/:bussType', async (req: Request, res: Response) => {
+router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoralarea/:bussType', async (req: Request, res: Response): Promise<void> => {
    
     console.log('router.get(/dailypayments/:formattedFirstDate/:formattedLastDate/:electoralarea/:bussType');
 
@@ -167,43 +167,58 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
     try {
         client = await pool.connect();
 
-        const result = await client.query(
-            `SELECT * FROM buspayments WHERE transdate >= $1 AND transdate <= $2 AND electroral_area ILIKE $3 AND buss_type ILIKE $4 ORDER BY transdate`,
-            [formattedFirstDate, lastformattedLastDate, electoralarea, bussType + '%']
-        );
+        // Prepare the base query and parameters
+        let query = `SELECT * FROM buspayments WHERE transdate >= $1 AND transdate <= $2`;
+        const params = [formattedFirstDate, lastformattedLastDate];
 
-        if (result.rows.length === 0) {
-            console.log('No BusPayments records found')
-
-            res.status(404).json({ message: 'No BusPayments records found', data: [] });
-            return;
+        // Conditional handling for electoralarea
+        if (electoralarea !== "All electoral areas") {
+            query += ` AND electroral_area ILIKE $3`;
+            params.push(electoralarea);
         }
 
-        const busPaymentsData = result.rows.map((row) => {
-            return {
-                buss_no: row.buss_no,
-                officer_no: row.officer_no,
-                paidAmount: parseFloat(row.paidamount),
-                monthpaid: row.monthpaid,
-                transdate: row.transdate,
-                fiscal_year: row.fiscal_year,
-                ReceiptNo: row.receiptno,
-                email: row.email,
-                electroral_area: row.electroral_area
-            };
-        });
-        console.log('Payments fetched: ', busPaymentsData)
+        // Conditional handling for bussType
+        if (bussType !== "All business types") {
+            query += ` AND buss_type ILIKE $4`;
+            params.push(bussType + '%');
+        }
+
+        query += ` ORDER BY transdate`; // Add ordering at the end
+
+        // Execute the query
+        const result = await client.query(query, params);
+
+        if (result.rows.length === 0) {
+            console.log('No BusPayments records found');
+            res.status(404).json({ message: 'No BusPayments records found', data: [] });
+            return 
+        }
+
+        const busPaymentsData = result.rows.map((row) => ({
+            buss_no: row.buss_no,
+            officer_no: row.officer_no,
+            paidAmount: parseFloat(row.paidamount),
+            monthpaid: row.monthpaid,
+            transdate: row.transdate,
+            fiscal_year: row.fiscal_year,
+            ReceiptNo: row.receiptno,
+            email: row.email,
+            electroral_area: row.electoral_area
+        }));
+
+        console.log('Payments fetched: ', busPaymentsData);
         res.status(200).json({ message: 'Payments fetched', data: busPaymentsData });
+        return
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching BusPayments records', error });
+        return
     } finally {
         if (client) {
             client.release();
         }
     }
 });
-
 
 router.post('/create', async (req: Request, res: Response) => {
     console.log('router.post(/create XXXXXXXXX ');

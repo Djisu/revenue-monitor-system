@@ -201,7 +201,7 @@ const FrmDailyPayments: React.FC = () => {
                         value={electoralArea} 
                         onChange={(e) => setElectoralArea(e.target.value)}
                     >
-                        <option value="All electoral areas">Select...</option>
+                        <option value="All electoral areas">All electoral areas</option>
                         {electoralAreas.map((area, index) => (
                             <option key={index} value={area.electoral_area}>
                                 {area.electoral_area}
@@ -219,7 +219,7 @@ const FrmDailyPayments: React.FC = () => {
                            onChange={(e) => setSelectedBusinessType(e.target.value)} 
                           
                     >
-                        <option value="">Select Business Type</option>
+                        <option value="All business types">All business types</option>
                         {bussTypes.map((businessType, index) => (
                         <option key={index} value={businessType.business_type}>
                         {businessType.business_type}

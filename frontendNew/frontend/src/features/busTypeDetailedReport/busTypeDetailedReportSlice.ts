@@ -124,9 +124,13 @@ export const fetchDetailedReports = createAsyncThunk<BusTypeDetailedReport[], Fe
             
             console.log('response.data.data XXXXXXX: ', response.data.data);
 
-            // Access the `data` property of the response
+            // Check for successful response
             if (response.data.message === 'BusTypeDetailedReport fetched') {
                 return response.data.data; // Return the array of reports
+            } else if (response.data.message === 'No businesses found') {
+                // Handle the case where no businesses are found
+                console.warn('No businesses found');
+                return rejectWithValue('No businesses found');
             } else {
                 // Handle unexpected message
                 console.warn('Unexpected response message: ', response.data.message);
@@ -141,7 +145,6 @@ export const fetchDetailedReports = createAsyncThunk<BusTypeDetailedReport[], Fe
         }
     }
 );
-
 
    
 

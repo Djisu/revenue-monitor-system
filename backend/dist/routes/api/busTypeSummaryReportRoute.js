@@ -40,7 +40,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
         console.log('User ID: ', userId);
         const thisYear = lastDate.substring(0, 4);
         console.log('This year: ', thisYear);
-        console.log('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND electoral_area = $2 AND user_id = $2');
+        console.log('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND electoral_area ILIKE $2 AND user_id = $2');
         // Delete from bustypesummaryreport table for the specific user
         await client.query('DELETE FROM bustypesummaryreport WHERE user_id = $1', [userId]);
         let searchResult = await client.query('SELECT * FROM bustypesummaryreport WHERE user_id = $1', [userId]);
@@ -53,7 +53,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
             result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1', ['Active']);
         }
         else {
-            result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND electroral_area = $2', ['Active', zone]);
+            result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND electroral_area ILIKE $2', ['Active', zone]);
         }
         console.log('result.rows.length: ', result.rows.length);
         if (result.rows.length === 0) {
@@ -72,7 +72,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
             //     recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2', [thisYear, bussType]);
             //     varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
             // } else {
-            recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, zone]);
+            recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea ILIKE $3', [thisYear, bussType, zone]);
             varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
             console.log('standalone varCurrRate: ', varCurrRate);
             // }
@@ -81,8 +81,8 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
             //     recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2', [thisYear, bussType]);
             //     varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
             // } else {
-            console.log('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electoralarea = $3');
-            recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electroral_area = $3', [thisYear, bussType, zone]);
+            console.log('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electoralarea  ILIKE  $3');
+            recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electroral_area  ILIKE  $3', [thisYear, bussType, zone]);
             varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
             console.log('standalone varPayment: ', varPayment);
             //}
@@ -112,7 +112,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
                 console.log('==========================================');
                 // if (zone === 'All electoral areas') {
                 console.log('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2', [thisYear, bussType]);
-                recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea = $3', [thisYear, bussType, row.electroral_area]);
+                recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type = $2 AND electoralarea  ILIKE  $3', [thisYear, bussType, row.electroral_area]);
                 varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
                 console.log('IN MULTIPLE MODE varCurrRate: ', varCurrRate);
                 // }
@@ -123,7 +123,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
                 // }
                 //  if (zone === 'All electoral areas') {
                 console.log('in the loop SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2');
-                recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electroral_area = $3', [thisYear, bussType, row.electroral_area]);
+                recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type = $2 AND electroral_area  ILIKE  $3', [thisYear, bussType, row.electroral_area]);
                 varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
                 console.log('IN MULTIPLE MODE varPayment: ', varPayment);
                 //} 

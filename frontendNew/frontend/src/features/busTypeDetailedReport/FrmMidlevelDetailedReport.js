@@ -136,6 +136,9 @@ var FrmMidlevelDetailedReport = function () {
         // You can log or handle the selected value here
         //console.log('Selected Zone:', selectedZone);
     };
+    //   const handleLastDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     setFiscalYear(e.target.value);
+    //   };
     var handleLastDateChange = function (e) {
         setFiscalYear(e.target.value);
     };
@@ -149,11 +152,6 @@ var FrmMidlevelDetailedReport = function () {
                         setError('Please select the current fiscal year');
                         return [2 /*return*/];
                     }
-                    //  const reportAdd = {
-                    //     zone,
-                    //     businessType,
-                    //     fiscalYear: fiscalYear
-                    //   }
                     setLoading(true); // Set loading to true
                     _a.label = 1;
                 case 1:
@@ -163,22 +161,25 @@ var FrmMidlevelDetailedReport = function () {
                     answer = _a.sent();
                     console.log('answer from the thunk: ', answer.payload);
                     if (answer && answer.payload) {
-                        // console.log('RECORDS FOUND action.payload: ', answer.payload)
-                        // Extract the payload from the action
+                        // Handle successful response
                         reportData = answer.payload;
                         console.log('reportData::::::: ', reportData);
                         setBusDetailedReport(reportData);
                         console.log('busDetailedReport: ', busDetailedReport);
                         setError(''); // Clear error if request is successful
                         setSuccessMessage('Report produced successfully');
-                        //fetchDetailedReports();
                     }
                     else if (answer.meta.requestStatus === 'rejected') {
-                        // Type guard to ensure action is of type PayloadAction<..., ..., ..., unknown>
+                        // Handle rejected case
                         if ('error' in answer) {
-                            // Handle the case where the answer was rejected
                             console.error('Error fetching reports:', answer.error);
-                            setError('Error producing report');
+                            // Check if the error message is in the error object
+                            if (typeof answer.error === 'string' && answer.error === 'No businesses found') {
+                                setError('No businesses found for the selected criteria.');
+                            }
+                            else {
+                                setError('Error producing report');
+                            }
                             setSuccessMessage('');
                         }
                     }
@@ -245,7 +246,7 @@ var FrmMidlevelDetailedReport = function () {
     }, {});
     var summarizedList = Object.values(groupedData);
     console.log('summarizedList: ', summarizedList);
-    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs("div", { children: [_jsxs(Form, { children: [_jsx("p", { className: "text-center mb-4", children: "Mid Level Detailed Report" }), _jsxs(Form.Group, { controlId: "formZone", children: [_jsx(Form.Label, { children: "Electoral Area:- Select any electoral area then select All electoral areas " }), _jsxs(Form.Select, { value: zone, onChange: handleZoneChange, children: [_jsx("option", { value: "All electoral areas", children: "All electoral areas" }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }), _jsxs(Form.Group, { controlId: "formBussType", children: [_jsx(Form.Label, { children: "Business Type/Profession:" }), _jsxs(Form.Select, { value: businessType, onChange: handleBusinessTypeChange, children: [_jsx("option", { value: "", children: "Select business types/professions" }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }), _jsxs(Form.Group, { controlId: "formFiscalYear", children: [_jsx(Form.Label, { children: "Current Fiscal Year:" }), _jsx(Form.Control, { type: "text", value: fiscalYear, onChange: handleLastDateChange, readOnly: true })] }), _jsxs("div", { children: [_jsx(Button, { variant: "primary", onClick: handleViewClick, style: { marginTop: '10px' }, children: "Produce Report" }), _jsx(Button, { variant: "secondary", onClick: function () { return navigate("/main"); }, style: { marginLeft: '40px', marginTop: '10px' }, children: "Go Back" })] }), loading && (_jsx("div", { className: "text-center mt-3", children: _jsx(Spinner, { animation: "border", role: "status", children: _jsx("span", { className: "visually-hidden", children: "Loading..." }) }) }))] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Electoral Area" }), _jsx("th", { children: "Business Name" }), _jsx("th", { children: "Business Type/Profession" }), _jsx("th", { children: "Amount Due" }), _jsx("th", { children: "Amount Paid" }), _jsx("th", { children: "Balance" })] }) }), _jsxs("tbody", { children: [summarizedList.map(function (area, index) {
+    return (_jsxs(Container, { children: [error && _jsx(Alert, { variant: "danger", children: error }), successMessage && _jsx(Alert, { variant: "success", children: successMessage }), _jsxs("div", { children: [_jsxs(Form, { children: [_jsx("p", { className: "text-center mb-4", children: "Mid Level Detailed Report" }), _jsxs(Form.Group, { controlId: "formZone", children: [_jsx(Form.Label, { children: "Electoral Area:- Select any electoral area then select All electoral areas " }), _jsxs(Form.Select, { value: zone, onChange: handleZoneChange, children: [_jsx("option", { value: "All electoral areas", children: "All electoral areas" }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }), _jsxs(Form.Group, { controlId: "formBussType", children: [_jsx(Form.Label, { children: "Business Type/Profession:" }), _jsxs(Form.Select, { value: businessType, onChange: handleBusinessTypeChange, children: [_jsx("option", { value: "All business types", children: "All business types" }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }), _jsxs(Form.Group, { controlId: "formFiscalYear", children: [_jsx(Form.Label, { children: "Current Fiscal Year:" }), _jsx(Form.Control, { type: "text", value: fiscalYear, onChange: handleLastDateChange })] }), _jsxs("div", { children: [_jsx(Button, { variant: "primary", onClick: handleViewClick, style: { marginTop: '10px' }, children: "Produce Report" }), _jsx(Button, { variant: "secondary", onClick: function () { return navigate("/main"); }, style: { marginLeft: '40px', marginTop: '10px' }, children: "Go Back" })] }), loading && (_jsx("div", { className: "text-center mt-3", children: _jsx(Spinner, { animation: "border", role: "status", children: _jsx("span", { className: "visually-hidden", children: "Loading..." }) }) }))] }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Electoral Area" }), _jsx("th", { children: "Business Name" }), _jsx("th", { children: "Business Type/Profession" }), _jsx("th", { children: "Amount Due" }), _jsx("th", { children: "Amount Paid" }), _jsx("th", { children: "Balance" })] }) }), _jsxs("tbody", { children: [summarizedList.map(function (area, index) {
                                         var _a, _b;
                                         var isFirstBusiness = index === 0 || area.electoral_area !== summarizedList[index - 1].electoral_area;
                                         if (isFirstBusiness) {

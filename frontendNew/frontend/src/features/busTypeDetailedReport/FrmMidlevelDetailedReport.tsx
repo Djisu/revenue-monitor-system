@@ -154,65 +154,64 @@ const FrmMidlevelDetailedReport: React.FC = () => {
   };
 
 
-  const handleLastDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFiscalYear(e.target.value);
-  };
+//   const handleLastDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     setFiscalYear(e.target.value);
+//   };
 
-  const handleViewClick = async () => {
-    console.log('in handleViewClick')
+const handleLastDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFiscalYear(e.target.value);
+};
+
+const handleViewClick = async () => {
+    console.log('in handleViewClick');
 
     if (!fiscalYear) {
-      setError('Please select the current fiscal year');
-      return;
+        setError('Please select the current fiscal year');
+        return;
     }
-
-    //  const reportAdd = {
-    //     zone,
-    //     businessType,
-    //     fiscalYear: fiscalYear
-    //   }
 
     setLoading(true); // Set loading to true
 
-      try {
-         const answer = await dispatch(fetchDetailedReports(reportData));
+    try {
+        const answer = await dispatch(fetchDetailedReports(reportData));
 
-         console.log('answer from the thunk: ', answer.payload);
-         
+        console.log('answer from the thunk: ', answer.payload);
 
         if (answer && answer.payload) {
-          // console.log('RECORDS FOUND action.payload: ', answer.payload)
+            // Handle successful response
+            reportData = answer.payload;
 
-          // Extract the payload from the action
-          reportData = answer.payload;
+            console.log('reportData::::::: ', reportData);
 
-          console.log('reportData::::::: ', reportData)
+            setBusDetailedReport(reportData);
+            console.log('busDetailedReport: ', busDetailedReport);
 
-          setBusDetailedReport(reportData);
-          console.log('busDetailedReport: ', busDetailedReport)
-
-          setError(''); // Clear error if request is successful
-          setSuccessMessage('Report produced successfully');
-          //fetchDetailedReports();
+            setError(''); // Clear error if request is successful
+            setSuccessMessage('Report produced successfully');
         } else if (answer.meta.requestStatus === 'rejected') {
-          // Type guard to ensure action is of type PayloadAction<..., ..., ..., unknown>
-          if ('error' in answer) {
-            // Handle the case where the answer was rejected
-            console.error('Error fetching reports:', answer.error);
-            setError('Error producing report');
-            setSuccessMessage('');
-          }
+            // Handle rejected case
+            if ('error' in answer) {
+                console.error('Error fetching reports:', answer.error);
+
+                // Check if the error message is in the error object
+                if (typeof answer.error === 'string' && answer.error === 'No businesses found') {
+                    setError('No businesses found for the selected criteria.');
+                } else {
+                    setError('Error producing report');
+                }
+
+                setSuccessMessage('');
+            }
         }
-      } catch (error) {
+    } catch (error) {
         console.error(error);
         setError('An unexpected error occurred');
         setSuccessMessage('');
-      }finally {
-      setLoading(false); // Set loading to false after the fetch completes
+    } finally {
+        setLoading(false); // Set loading to false after the fetch completes
     }
+};
 
-      
-  };
 
   // const handleExitClick = () => {
   //   window.location.href = '/'; // Redirect to main page or hide the form
@@ -297,14 +296,13 @@ console.log('summarizedList: ', summarizedList);
         <Form.Group controlId="formBussType">
           <Form.Label>Business Type/Profession:</Form.Label>
           <Form.Select value={businessType} onChange={handleBusinessTypeChange}>
-            <option value="">Select business types/professions</option>
+            <option value="All business types">All business types</option>
             {bussTypes.map((businessType, index) => (
               <option key={index} value={businessType.business_type}>
                 {businessType.business_type}
               </option>
             ))}
           </Form.Select>
-
         </Form.Group>
 
         <Form.Group controlId="formFiscalYear">
@@ -313,7 +311,6 @@ console.log('summarizedList: ', summarizedList);
             type="text"
             value={fiscalYear}
             onChange={handleLastDateChange}
-            readOnly
           />
         </Form.Group>
         <div>
