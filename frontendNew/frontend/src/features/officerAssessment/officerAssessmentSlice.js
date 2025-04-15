@@ -489,12 +489,12 @@ export var fetchOfficerAssessment = createAsyncThunk('officerAssessment/fetchOff
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                console.log('in fetchOfficerAssessment: ', officerNo, fiscalYear);
+                console.log('in fetchOfficerAssessment thunk: ', officerNo, fiscalYear);
                 return [4 /*yield*/, apiClient.get("".concat(BASE_URL, "/api/officerAssessment/").concat(officerNo, "/").concat(fiscalYear))];
             case 1:
                 response = _c.sent();
-                console.log('fetchOfficerAssessment response', response.data);
-                return [2 /*return*/, response.data]; // Ensure this matches OfficerAssessment structure
+                console.log('fetchOfficerAssessment response.data.data', response.data.data);
+                return [2 /*return*/, response.data.data]; // Ensure this matches OfficerAssessment structure
         }
     });
 }); });

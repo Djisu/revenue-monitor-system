@@ -195,9 +195,8 @@ async function GetOfficerName(officerNo) {
 router.get('/billsDistributed/:officer_no/:fiscal_year', async (req, res) => {
     console.log('in router.get(/:officer_no/:fiscal_year');
     const { officer_no, fiscal_year } = req.params;
-    const officerName = await GetOfficerName(officer_no);
     try {
-        const result = await pool.query('SELECT SUM(current_balance) as totsum FROM busscurrbalance WHERE assessmentby = $1 AND fiscalyear = $2', [officerName, fiscal_year]);
+        const result = await pool.query('SELECT SUM(current_balance) as totsum FROM busscurrbalance WHERE assessmentby = $1 AND fiscalyear = $2', [officer_no, fiscal_year]);
         if (result.rows.length == 0) {
             res.status(404).json(0);
             return;
@@ -269,6 +268,9 @@ router.post('/create', async (req, res) => {
             res.status(400).send('Missing required fields');
             return;
         }
+        const deleteQuery = `DELETE FROM officerassessment WHERE officer_no = $1 AND bus_year = $2`;
+        const deleteResult = await client.query(deleteQuery, [params.officerNo, busYear]);
+        console.log('Delete result:', deleteResult.rowCount); // Should log how many rows were deleted
         // Insert new record
         const insertQuery = `
             INSERT INTO officerassessment (
@@ -394,11 +396,11 @@ router.get('/January/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'January'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    //const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -423,11 +425,11 @@ router.get('/February/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'February'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    // const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -453,11 +455,11 @@ router.get('/March/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'March'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    //const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -483,11 +485,11 @@ router.get('/April/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'April'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    // const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -513,11 +515,11 @@ router.get('/May/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'May'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    // const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -543,11 +545,11 @@ router.get('/June/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'June'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    //const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -573,11 +575,11 @@ router.get('/July/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'July'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    //const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -602,11 +604,11 @@ router.get('/August/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'August'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    //const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -632,11 +634,11 @@ router.get('/September/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'September'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    //const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -662,11 +664,11 @@ router.get('/October/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'October'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    //const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -691,11 +693,11 @@ router.get('/November/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'November'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    //const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows[0]); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -721,11 +723,11 @@ router.get('/December/:officerNo/:fiscalYear', async (req, res) => {
     const client = await pool.connect();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'December'; // Hard-coded for this endpoint
-    const officerName = await GetOfficerName(officerNo);
+    //const officerName = await GetOfficerName(officerNo)
     try {
         const newFiscalYear = Number(fiscalYear);
         const query = `SELECT SUM(paidamount) AS totsum FROM "buspayments" WHERE "officer_no" = $1 AND "fiscal_year" = $2 AND monthpaid = $3 `;
-        const result = await client.query(query, [officerName, newFiscalYear, monthPaidx]);
+        const result = await client.query(query, [officerNo, newFiscalYear, monthPaidx]);
         console.log('Query executed. Rows returned:', result.rows); // Log all rows
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -753,10 +755,11 @@ router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req, res) => {
         return;
     }
     const client = await pool.connect();
-    const officerName = await GetOfficerName(officerNo.toString());
-    console.log('officerName: ', officerName);
+    const newFiscalYear = Number(fiscalYear);
+    // const officerName = await GetOfficerName(officerNo.toString());
+    // console.log('officerName: ', officerName)
     try {
-        const result = await client.query(`SELECT COUNT(buss_no) AS totcount FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2`, [officerName, fiscalYear]);
+        const result = await client.query(`SELECT COUNT(buss_no) AS totcount FROM buspayments WHERE officer_no = $1 AND fiscal_year = $2`, [officerNo, newFiscalYear]);
         // Check if the query returned any results
         if (result.rows.length === 0) {
             res.status(404).json(0); // Return 0 if no records found
@@ -804,7 +807,7 @@ router.get('/', async (req, res) => {
 router.get('/:officer_no/:fiscal_year', async (req, res) => {
     const { officer_no, fiscal_year } = req.params;
     try {
-        console.log('XXxXXXXVVVVVVVTTTTTTT');
+        console.log('XXXXXXXVVVVVVVTTTTTTT');
         console.log('in router.get(/:officer_no/:fiscal_year): ', req.params);
         console.log('====================================');
         console.log('officer_no: ', officer_no);
@@ -813,18 +816,18 @@ router.get('/:officer_no/:fiscal_year', async (req, res) => {
         console.log('====================================');
         if (!officer_no || !fiscal_year) {
             console.log('invalid officer_no or fiscal_year');
-            res.status(404).json([]);
+            res.status(404).json({ message: 'Invalid officer_no or fiscal_year', data: [] });
             return;
         }
         console.log('Valid officer_no AND fiscal_year');
-        const { rows } = await pool.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND bus_year = $2', [officer_no, fiscal_year]);
+        const { rows } = await pool.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND bus_year = $2', [officer_no, parseInt(fiscal_year, 10)]);
         if (rows.length == 0) {
             console.log('officer not found in officerassessment');
             res.status(404).json([]);
             return;
         }
-        console.log('fetched rows[0]: ', rows[0]);
-        res.status(200).send(rows[0]);
+        console.log('officerassessment fetched rows[0]: ', rows[0]);
+        res.status(200).send({ message: 'Data found', data: rows[0] });
     }
     catch (error) {
         console.error(error);

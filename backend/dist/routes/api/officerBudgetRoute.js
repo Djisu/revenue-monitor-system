@@ -83,7 +83,8 @@ router.get('/:officer_no/:fiscal_year', async (req, res) => {
         // Check if there are any rows returned
         if (result.rows.length > 0) {
             console.log('Data found!!!!');
-            console.log('result.rows.lenggth: ', result.rows.length);
+            console.log('result.rows.length: ', result.rows.length);
+            console.log('result.rows: ', result.rows);
             res.status(200).json({ message: "Data found", data: result.rows });
             return;
         }

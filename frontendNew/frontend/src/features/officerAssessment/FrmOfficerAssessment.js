@@ -57,7 +57,7 @@ var FrmOfficerAssessment = function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        console.log('in fetchData');
+                        console.log('in fetchData dispatch(fetchOfficerAssessment');
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
@@ -124,9 +124,9 @@ var FrmOfficerAssessment = function () {
                     return [4 /*yield*/, dispatch(fetchOfficerBudget({ officer_no: firstOfficer, fiscal_year: parseInt(firstFiscalYear, 10) })).unwrap()];
                 case 2:
                     budgetResponse = _a.sent();
-                    console.log('budgetResponse.data: ', budgetResponse.data);
+                    console.log('budgetResponse.data.data: ', budgetResponse.data);
                     // Check if the response indicates that the data exists
-                    if (budgetResponse.exists) {
+                    if (budgetResponse.data.length > 0) {
                         // Data was successfully fetched
                         console.log('Budget Data:', budgetResponse.data);
                         // You can further process the budget data here
@@ -135,9 +135,10 @@ var FrmOfficerAssessment = function () {
                         // Handle the case where the data doesn't exist
                         console.error("No budget data found for the officer:", budgetResponse);
                         alert("No budget data found for the officer.");
+                        return [2 /*return*/];
                     }
                     console.log('about to access variable of createClientsServedParams object');
-                    if (!(budgetResponse && budgetResponse.exists && Array.isArray(budgetResponse.data))) return [3 /*break*/, 4];
+                    if (!(budgetResponse && Array.isArray(budgetResponse.data))) return [3 /*break*/, 4];
                     return [4 /*yield*/, Promise.all(budgetResponse.data.map(function (officer) { return __awaiter(void 0, void 0, void 0, function () {
                             var officerNo, officerName, fiscalYearValue, noOfClientsServed, valueOfBillsDistributed, januaryAmount, error_3, februaryAmount, error_4, marchAmount, error_5, aprilAmount, error_6, mayAmount, error_7, juneAmount, error_8, julyAmount, error_9, augustAmount, error_10, septemberAmount, error_11, octoberAmount, error_12, novemberAmount, error_13, decemberAmount, error_14, totalReceiptToDate, balance, remarks, createClientsServedParams, answer;
                             return __generator(this, function (_a) {
@@ -411,6 +412,6 @@ var FrmOfficerAssessment = function () {
     var handleExitClick = function () {
         navigate('/main');
     };
-    return (_jsxs(Container, { fluid: true, className: "bg-light", children: [_jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx("p", { style: { textDecoration: 'underline', color: '#0000C0' }, children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstFiscalYear", children: [_jsx(Form.Label, { children: "First Fiscal Year:" }), _jsx(Form.Control, { type: "number", value: firstFiscalYear, onChange: handleFirstFiscalYearChange, placeholder: "Enter a fiscal year" })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstOfficer", children: [_jsxs(Form.Label, { children: ["First Officer:   ", _jsx("p", { style: { textDecoration: 'underline', color: '#0000C0' }, children: firstOfficer })] }), _jsxs(Form.Control, { as: "select", value: firstOfficer, onChange: handleFirstOfficerChange, children: [_jsx("option", { value: "", children: "Select an officer" }), officersData.map(function (officer) { return (_jsxs("option", { value: "".concat(officer.officer_no, " ").concat(officer.officer_name), children: [officer.officer_no, "  ", officer.officer_name] }, officer.officer_no)); })] })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "primary", onClick: handlePreviewClick, children: "Preview Monitoring Report (Monthly)" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(Button, { variant: "secondary", onClick: handleExitClick, children: "Exit" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(OfficerAssessmentBarChart, { data: chartData }) }) })] }));
+    return (_jsxs(Container, { fluid: true, className: "bg-light", children: [_jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx("p", { style: { textDecoration: 'underline', color: '#0000C0' }, children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstFiscalYear", children: [_jsx(Form.Label, { children: "First Fiscal Year:" }), _jsx(Form.Control, { type: "number", value: firstFiscalYear, onChange: handleFirstFiscalYearChange, placeholder: "Enter a fiscal year" })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstOfficer", children: [_jsxs(Form.Label, { children: ["First Officer:   ", _jsx("p", { style: { textDecoration: 'underline', color: '#0000C0' }, children: firstOfficer })] }), _jsxs(Form.Control, { as: "select", value: firstOfficer, onChange: handleFirstOfficerChange, children: [_jsx("option", { value: "", children: "Select an officer" }), officersData.map(function (officer) { return (_jsxs("option", { value: "".concat(officer.officer_no, " ").concat(officer.officer_name), children: [officer.officer_no, "  ", officer.officer_name] }, officer.officer_no)); })] })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "primary", onClick: handlePreviewClick, children: "Preview Monitoring Report (Monthly)" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "secondary", onClick: handleExitClick, children: "Exit" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(OfficerAssessmentBarChart, { data: chartData }) }) })] }));
 };
 export default FrmOfficerAssessment;

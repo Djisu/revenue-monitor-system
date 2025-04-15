@@ -70,7 +70,7 @@ const FrmOfficerAssessment = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log('in fetchData');
+      console.log('in fetchData dispatch(fetchOfficerAssessment');
   
       try {
         const action = await dispatch(fetchOfficerAssessment({ officerNo: firstOfficer, fiscalYear: parseInt(firstFiscalYear, 10) }));
@@ -136,7 +136,7 @@ const FrmOfficerAssessment = () => {
         console.log('budgetResponse.data.data: ', budgetResponse.data)
 
         // Check if the response indicates that the data exists
-        if (budgetResponse.exists) {
+        if (budgetResponse.data.length > 0) {
             // Data was successfully fetched
             console.log('Budget Data:', budgetResponse.data);
             // You can further process the budget data here
@@ -144,11 +144,12 @@ const FrmOfficerAssessment = () => {
             // Handle the case where the data doesn't exist
             console.error("No budget data found for the officer:", budgetResponse);
             alert("No budget data found for the officer.");
+            return
         }
 
         console.log('about to access variable of createClientsServedParams object');
 
-        if (budgetResponse && budgetResponse.exists && Array.isArray(budgetResponse.data)) {
+        if (budgetResponse && Array.isArray(budgetResponse.data)) {
             await Promise.all(budgetResponse.data.map(async officer => {
                 let officerNo = officer.officer_no; // Officer number from your existing data
                 console.log('officerNo: ', officerNo);
@@ -420,8 +421,8 @@ const FrmOfficerAssessment = () => {
       </Row>
     
       <Row className="mt-3">
-        <Col>
-        <Button variant="secondary" onClick={handleExitClick}>
+        <Col className="text-center">
+          <Button variant="secondary" onClick={handleExitClick}>
             Exit
           </Button>
         </Col>

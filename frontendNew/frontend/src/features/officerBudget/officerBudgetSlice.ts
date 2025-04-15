@@ -42,7 +42,7 @@ export const fetchOfficerBudget = createAsyncThunk(
         if (response.status!== 200){
             throw new Error('Failed to fetch officer budget');
         }
-        //return response.data.data; // Return the data from the response
+       console.log('response.data.data: ', response.data.data)
 
         return {
             exists: response.data.exists, // Include exists from the API response
