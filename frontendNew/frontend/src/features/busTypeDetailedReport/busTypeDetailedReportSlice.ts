@@ -118,7 +118,9 @@ export const fetchAllRecords = createAsyncThunk('reports/fetchAllRecords', async
 export const fetchDetailedReports = createAsyncThunk<BusTypeDetailedReport[], FetchReportsParams, { rejectValue: string }>(
     'reports/fetchDetailedReports',
     async ({ zone, businessType, fiscalYear }: FetchReportsParams, { rejectWithValue }) => {
+
         console.log('in fetchDetailedReports thunk');
+
         try {
             const response = await axios.get(`${BASE_URL}/api/bustypeDetailedReport/${zone}/${businessType}/${fiscalYear}`);
             
@@ -126,8 +128,9 @@ export const fetchDetailedReports = createAsyncThunk<BusTypeDetailedReport[], Fe
 
             // Check for successful response
             if (response.data.message === 'BusTypeDetailedReport fetched') {
-                return response.data.data; // Return the array of reports
-            } else if (response.data.message === 'No businesses found') {
+                console.log('')
+                return response.data.data; // Return the array of reports && response.data.message === 'No businesses found'
+            } else if (response.status === 404 ) {
                 // Handle the case where no businesses are found
                 console.warn('No businesses found');
                 return rejectWithValue('No businesses found');

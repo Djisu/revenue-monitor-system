@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/store';
-import { Button, Form, Container, Row, Col } from 'react-bootstrap';
+import { Button, Form, Container, Row, Col, Table } from 'react-bootstrap';
 
 import { useNavigate } from 'react-router-dom';
 import { fetchOfficers } from '../officer/officerSlice'; 
@@ -66,6 +66,10 @@ const FrmOfficerAssessment = () => {
   const [chartData, setChartData] = useState<any[]>([]); // Initialize as an empty array
 
   const [shouldFetchChartData, setShouldFetchChartData] = useState(false);
+
+  let [createClientsServedParams, setCreateClientsServedParams] = useState<CreateClientsServedParams | null>(null);
+
+  //let [clientsServed, setClientsServed] = useState<number | null>(null);
 
 
   useEffect(() => {
@@ -345,6 +349,10 @@ const FrmOfficerAssessment = () => {
                   remarks, // Keep as a number (float)
                 };
 
+
+                console.log('createClientsServedParams: ', createClientsServedParams);
+
+                setCreateClientsServedParams(createClientsServedParams); // Update state to trigger table rendering
                 console.log('createClientsServedParams processed values: ', createClientsServedParams);
 
                 // Now you can dispatch the thunk with this object
@@ -356,6 +364,7 @@ const FrmOfficerAssessment = () => {
 
                 console.log('All data fetched and processed.');
                 // Set to trigger fetching chart data
+                
                 setShouldFetchChartData(true);
             }));
 
@@ -427,12 +436,36 @@ const FrmOfficerAssessment = () => {
           </Button>
         </Col>
       </Row>
-        {/* Add the OfficerAssessmentBarChart here */}
-        <Row className="mt-3">
+       {/* Add the OfficerAssessmentBarChart here */}
+       <Row className="mt-3">
         <Col>
         <OfficerAssessmentBarChart data={chartData} />
         </Col>
       </Row>
+      {/* Render the table if createClientsServedParams is not null */}
+      {createClientsServedParams && (
+        <Row className="mt-3">
+          <Col>
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(createClientsServedParams).map(([key, value]) => (
+                  <tr key={key}>
+                    <td>{key}</td>
+                    <td>{value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Col>
+        </Row>
+      )}
+     
     </Container>
   );
 };

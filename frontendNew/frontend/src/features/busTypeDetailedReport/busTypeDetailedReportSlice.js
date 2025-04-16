@@ -157,9 +157,10 @@ export var fetchDetailedReports = createAsyncThunk('reports/fetchDetailedReports
                 console.log('response.data.data XXXXXXX: ', response.data.data);
                 // Check for successful response
                 if (response.data.message === 'BusTypeDetailedReport fetched') {
-                    return [2 /*return*/, response.data.data]; // Return the array of reports
+                    console.log('');
+                    return [2 /*return*/, response.data.data]; // Return the array of reports && response.data.message === 'No businesses found'
                 }
-                else if (response.data.message === 'No businesses found') {
+                else if (response.status === 404) {
                     // Handle the case where no businesses are found
                     console.warn('No businesses found');
                     return [2 /*return*/, rejectWithValue('No businesses found')];

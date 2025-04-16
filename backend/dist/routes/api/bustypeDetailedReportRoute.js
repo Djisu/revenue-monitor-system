@@ -154,21 +154,26 @@ router.get('/:zone/:businessType/:newFiscalYear', async (req, res) => {
         console.log('about to delete');
         await client.query('DELETE FROM bustypedetailedreport');
         let businessesResult;
+        console.log('about to test zone and businessType');
         // Adjusting the query based on zone and businessType
         if (zone === 'All electoral areas') {
+            console.log('zone is all, businessType is specific');
             if (businessType === 'All business types') {
                 businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 ORDER BY electroral_area ASC', ['Active']);
             }
             else {
+                console.log('zone is all, businessType is specific');
                 businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND buss_type ILIKE $2 ORDER BY electroral_area ASC', ['Active', businessType]);
             }
         }
         else {
             if (businessType === 'All business types') {
-                businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND electroral_area ILIKE $  AND current_rate IS NOT NULL AND tot_grade IS NOT NULL ORDER BY electroral_area ASC', ['Active', zone]);
+                console.log('zone is specific, businessType is all');
+                businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND electroral_area ILIKE $2  AND current_rate IS NOT NULL AND tot_grade IS NOT NULL ORDER BY electroral_area ASC', ['Active', zone]);
             }
             else {
-                businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND buss_type = $2 AND electroral_area = $3 AND current_rate IS NOT NULL AND tot_grade IS NOT NULL ORDER BY electroral_area ASC', ['Active', businessType, zone]);
+                console.log('zone is specific, businessType is specific');
+                businessesResult = await client.query('SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND buss_type ILIKE $2 AND electroral_area ILIKE $3 AND current_rate IS NOT NULL AND tot_grade IS NOT NULL ORDER BY electroral_area ASC', ['Active', businessType, zone]);
             }
         }
         if (businessesResult.rowCount === 0) {

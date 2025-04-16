@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/store';
-import { Button, Form, Container, Row, Col } from 'react-bootstrap';
+import { Button, Form, Container, Row, Col, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { fetchOfficers } from '../officer/officerSlice';
 import { fetchJanuaryAmount, fetchFebruaryAmount, fetchMarchAmount, fetchAprilAmount, fetchMayAmount, fetchJuneAmount, fetchJulyAmount, fetchAugustAmount, fetchSeptemberAmount, fetchOctoberAmount, fetchNovemberAmount, fetchDecemberAmount, fetchClientsServed, fetchBillsDistributed, createClientsServed, fetchOfficerAssessment } from './officerAssessmentSlice';
@@ -51,6 +51,8 @@ var FrmOfficerAssessment = function () {
     var _b = useState(''), firstOfficer = _b[0], setFirstOfficer = _b[1];
     var _c = useState([]), chartData = _c[0], setChartData = _c[1]; // Initialize as an empty array
     var _d = useState(false), shouldFetchChartData = _d[0], setShouldFetchChartData = _d[1];
+    var _e = useState(null), createClientsServedParams = _e[0], setCreateClientsServedParams = _e[1];
+    //let [clientsServed, setClientsServed] = useState<number | null>(null);
     useEffect(function () {
         var fetchData = function () { return __awaiter(void 0, void 0, void 0, function () {
             var action, fetchedData, error_1;
@@ -381,6 +383,8 @@ var FrmOfficerAssessment = function () {
                                             balance: balance, // Must be defined as a number
                                             remarks: remarks,
                                         };
+                                        console.log('createClientsServedParams: ', createClientsServedParams);
+                                        setCreateClientsServedParams(createClientsServedParams); // Update state to trigger table rendering
                                         console.log('createClientsServedParams processed values: ', createClientsServedParams);
                                         return [4 /*yield*/, dispatch(createClientsServed(createClientsServedParams)).unwrap()];
                                     case 51:
@@ -412,6 +416,9 @@ var FrmOfficerAssessment = function () {
     var handleExitClick = function () {
         navigate('/main');
     };
-    return (_jsxs(Container, { fluid: true, className: "bg-light", children: [_jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx("p", { style: { textDecoration: 'underline', color: '#0000C0' }, children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstFiscalYear", children: [_jsx(Form.Label, { children: "First Fiscal Year:" }), _jsx(Form.Control, { type: "number", value: firstFiscalYear, onChange: handleFirstFiscalYearChange, placeholder: "Enter a fiscal year" })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstOfficer", children: [_jsxs(Form.Label, { children: ["First Officer:   ", _jsx("p", { style: { textDecoration: 'underline', color: '#0000C0' }, children: firstOfficer })] }), _jsxs(Form.Control, { as: "select", value: firstOfficer, onChange: handleFirstOfficerChange, children: [_jsx("option", { value: "", children: "Select an officer" }), officersData.map(function (officer) { return (_jsxs("option", { value: "".concat(officer.officer_no, " ").concat(officer.officer_name), children: [officer.officer_no, "  ", officer.officer_name] }, officer.officer_no)); })] })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "primary", onClick: handlePreviewClick, children: "Preview Monitoring Report (Monthly)" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "secondary", onClick: handleExitClick, children: "Exit" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(OfficerAssessmentBarChart, { data: chartData }) }) })] }));
+    return (_jsxs(Container, { fluid: true, className: "bg-light", children: [_jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx("p", { style: { textDecoration: 'underline', color: '#0000C0' }, children: "MARCORY MUNICIPAL ASSEMBLY" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstFiscalYear", children: [_jsx(Form.Label, { children: "First Fiscal Year:" }), _jsx(Form.Control, { type: "number", value: firstFiscalYear, onChange: handleFirstFiscalYearChange, placeholder: "Enter a fiscal year" })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Form.Group, { controlId: "formFirstOfficer", children: [_jsxs(Form.Label, { children: ["First Officer:   ", _jsx("p", { style: { textDecoration: 'underline', color: '#0000C0' }, children: firstOfficer })] }), _jsxs(Form.Control, { as: "select", value: firstOfficer, onChange: handleFirstOfficerChange, children: [_jsx("option", { value: "", children: "Select an officer" }), officersData.map(function (officer) { return (_jsxs("option", { value: "".concat(officer.officer_no, " ").concat(officer.officer_name), children: [officer.officer_no, "  ", officer.officer_name] }, officer.officer_no)); })] })] }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "primary", onClick: handlePreviewClick, children: "Preview Monitoring Report (Monthly)" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { className: "text-center", children: _jsx(Button, { variant: "secondary", onClick: handleExitClick, children: "Exit" }) }) }), _jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsx(OfficerAssessmentBarChart, { data: chartData }) }) }), createClientsServedParams && (_jsx(Row, { className: "mt-3", children: _jsx(Col, { children: _jsxs(Table, { striped: true, bordered: true, hover: true, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Parameter" }), _jsx("th", { children: "Value" })] }) }), _jsx("tbody", { children: Object.entries(createClientsServedParams).map(function (_a) {
+                                    var key = _a[0], value = _a[1];
+                                    return (_jsxs("tr", { children: [_jsx("td", { children: key }), _jsx("td", { children: value })] }, key));
+                                }) })] }) }) }))] }));
 };
 export default FrmOfficerAssessment;
