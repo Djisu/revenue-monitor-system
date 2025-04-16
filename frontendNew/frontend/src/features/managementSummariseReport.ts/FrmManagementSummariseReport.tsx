@@ -14,7 +14,7 @@ interface BusinessTypeData {
     business_type?: string;
 }
 
-const DailyPayments: React.FC = () => {
+const FrmManagementSummariseReport: React.FC = () => {
     let [zone, setZone] = useState<string>('');
     let [electoralAreas, setElectoralAreas] = useState<string[]>([]);
     let [bussType, setBussType] = useState<string>('');
@@ -161,7 +161,7 @@ const DailyPayments: React.FC = () => {
                         <FormGroup>
                             <Label for="bussType" className="font-weight-bold">Business Type/Profession:</Label>
                             <Input type="select" name="bussType" id="bussType" value={bussType} onChange={(e) => setBussType(e.target.value)}>
-                                <option value="">Select Business Type</option>
+                                <option value="All business types">All business types</option>
                                 {bussTypes.map((businessType, index) => (
                                     <option key={index} value={businessType.business_type}>
                                         {businessType.business_type}
@@ -228,7 +228,7 @@ const DailyPayments: React.FC = () => {
     );
 };
 
-export default DailyPayments;
+export default FrmManagementSummariseReport;
 
 
 
