@@ -72,14 +72,16 @@ router.get('/:officer_no/:fiscal_year', async (req, res) => {
     const { officer_no, fiscal_year } = req.params;
     //console.clear();
     console.log('in router.get(/:officer_no/:fiscal_year): ', req.params);
+    // Get the first character of officer_no 
+    const officerNoFirstChar = officer_no.charAt(0);
     // const officerNoNew = parseInt(officer_no.split(' ')[0], 10)
     // console.log('officerNoNew: ', officerNoNew)
     const fiscalYearInt = parseInt(fiscal_year, 10);
     const client = await pool.connect();
     console.log('about to SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2');
     try {
-        const result = await client.query(`SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2`, [officer_no, fiscalYearInt]);
-        console.log('after SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2');
+        const result = await client.query(`SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2`, [officerNoFirstChar, fiscalYearInt]);
+        console.log('after SELECT * FROM officerbudget WHERE officerNoFirstChar = $1 AND fiscal_year = $2');
         // Check if there are any rows returned
         if (result.rows.length > 0) {
             console.log('Data found!!!!');
