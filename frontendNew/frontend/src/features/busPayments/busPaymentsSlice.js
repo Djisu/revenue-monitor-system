@@ -188,10 +188,17 @@ export var fetchBusPaymentByElectoralArea = createAsyncThunk('busPayments/fetchB
                 return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/busPayments/").concat(electoralArea))];
             case 1:
                 response = _a.sent();
-                if (Array.isArray(response.data)) {
-                    console.log('fetchBusPaymentByElectoralArea fulfilled::: ', response.data);
+                // Check if data found
+                if (response.data.data.length > 0) {
+                    console.log('Data found: ', response.data.data);
+                }
+                else {
+                    console.log('No data fetched');
+                }
+                if (Array.isArray(response.data.data)) {
+                    console.log('fetchBusPaymentByElectoralArea fulfilled::: ', response.data.data);
                     // Ensure response.data is an array 
-                    return [2 /*return*/, Array.isArray(response.data) ? response.data : []]; //
+                    return [2 /*return*/, Array.isArray(response.data.data) ? response.data.data : []]; //
                 }
                 return [2 /*return*/];
         }

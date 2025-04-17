@@ -40,7 +40,7 @@ import { Bar } from 'react-chartjs-2';
 import { useAppDispatch, useAppSelector } from '../../app/store';
 import { fetchBusPaymentByElectoralArea } from './busPaymentsSlice';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
-import { Button } from 'react-bootstrap';
+import { Button, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import aggregatePaymentsByElectoralArea from '../../utilities/aggregatePaymentsByElectoralArea';
 var FrmElectoralAreasPaymentsGraph = function () {
@@ -50,6 +50,7 @@ var FrmElectoralAreasPaymentsGraph = function () {
     var _a = useState([]), localBudgetData = _a[0], setLocalBudgetData = _a[1];
     var _b = useState([]), electoralAreas = _b[0], setElectoralAreas = _b[1];
     var _c = useState(''), electoralArea = _c[0], setElectoralArea = _c[1];
+    var _d = useState(false), loading = _d[0], setLoading = _d[1]; // Loading state
     // const BusPaymentsData = useAppSelector((state) => state.busPayments.busPayments);
     useEffect(function () {
         dispatch(fetchElectoralAreas());
@@ -64,17 +65,24 @@ var FrmElectoralAreasPaymentsGraph = function () {
         }
     }, [electoralAreaData]);
     var handleFetchData = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var answer;
+        var action;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     if (!electoralArea) return [3 /*break*/, 2];
+                    setLoading(true); // Set loading to true
                     return [4 /*yield*/, dispatch(fetchBusPaymentByElectoralArea(electoralArea))];
                 case 1:
-                    answer = _a.sent();
-                    console.log('answer.payload: ', answer.payload);
-                    //if (Array.isArray(action.payload)) {
-                    setLocalBudgetData(answer.payload);
+                    action = _a.sent();
+                    console.log('action.payload: ', action.payload);
+                    // Check if the payload is an array
+                    if (Array.isArray(action.payload)) {
+                        setLocalBudgetData(action.payload);
+                    }
+                    else {
+                        console.error('Payload is not an array:', action.payload);
+                    }
+                    setLoading(false); // Set loading to true
                     return [3 /*break*/, 3];
                 case 2:
                     alert('Please select the electoral area.');
@@ -94,9 +102,9 @@ var FrmElectoralAreasPaymentsGraph = function () {
                 backgroundColor: 'rgba(54, 162, 235, 0.6)',
             }],
     };
-    return (_jsxs("div", { className: "container mt-4", children: [_jsxs("div", { children: [_jsx("p", { className: "mb-4", children: "Electoral Areas Payments Graph" }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "electoral_area", children: "Electoral Area:" }), _jsxs("select", { name: "electoralArea", id: "electoralArea", value: electoralArea, onChange: function (e) { return setElectoralArea(e.target.value); }, children: [_jsx("option", { value: "All electoral areas", children: "All electoral areas" }), " ", electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }), _jsx("button", { className: "btn btn-primary", onClick: handleFetchData, children: "Fetch Data" }), _jsx(Button, { variant: "secondary", onClick: function () { return navigate('/main'); }, children: "Exit" })] }), Object.keys(aggregatedData).length > 0 && (_jsxs("div", { className: "mt-4", children: [_jsx(Bar, { data: chartData, options: { scales: { y: { beginAtZero: true } } } }), _jsxs("table", { className: "mt-4", style: { width: '100%', borderCollapse: 'collapse' }, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { style: { border: '1px solid #000', padding: '8px' }, children: "Electoral Area" }), _jsx("th", { style: { border: '1px solid #000', padding: '8px' }, children: "Total Paid Amount" })] }) }), _jsx("tbody", { children: Object.entries(aggregatedData).map(function (_a, index) {
-                                    var area = _a[0], total = _a[1];
-                                    return (_jsxs("tr", { children: [_jsx("td", { style: { border: '1px solid #000', padding: '8px' }, children: area }), _jsx("td", { style: { border: '1px solid #000', padding: '8px' }, children: typeof total === 'number' && !isNaN(total) ? total : '-' })] }, index));
-                                }) })] })] }))] }));
+    return (_jsxs("div", { className: "container mt-4", children: [loading && (_jsx("div", { className: "text-center", children: _jsx(Spinner, { animation: "border", role: "status", children: _jsx("span", { className: "visually-hidden", children: "Loading..." }) }) })), _jsxs("div", { children: [_jsx("p", { className: "mb-4", children: "Electoral Areas Payments Graph" }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "electoral_area", children: "Electoral Area:" }), _jsxs("select", { name: "electoralArea", id: "electoralArea", value: electoralArea, onChange: function (e) { return setElectoralArea(e.target.value); }, children: [_jsx("option", { value: "All electoral areas", children: "All electoral areas" }), " ", electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }), _jsx("button", { className: "btn btn-primary", onClick: handleFetchData, children: "Fetch Data" }), _jsx(Button, { variant: "secondary", onClick: function () { return navigate('/main'); }, children: "Exit" }), Object.keys(aggregatedData).length > 0 && (_jsxs("div", { className: "mt-4", children: [_jsx(Bar, { data: chartData, options: { scales: { y: { beginAtZero: true } } } }), _jsxs("table", { className: "mt-4", style: { width: '100%', borderCollapse: 'collapse' }, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { style: { border: '1px solid #000', padding: '8px' }, children: "Electoral Area" }), _jsx("th", { style: { border: '1px solid #000', padding: '8px' }, children: "Total Paid Amount" })] }) }), _jsx("tbody", { children: Object.entries(aggregatedData).map(function (_a, index) {
+                                            var area = _a[0], total = _a[1];
+                                            return (_jsxs("tr", { children: [_jsx("td", { style: { border: '1px solid #000', padding: '8px' }, children: area }), _jsx("td", { style: { border: '1px solid #000', padding: '8px' }, children: typeof total === 'number' && !isNaN(total) ? total : '-' })] }, index));
+                                        }) })] })] }))] })] }));
 };
 export default FrmElectoralAreasPaymentsGraph;

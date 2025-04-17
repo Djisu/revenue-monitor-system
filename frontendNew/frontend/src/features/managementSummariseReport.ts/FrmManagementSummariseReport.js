@@ -38,12 +38,12 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../hooks';
 import { useNavigate } from 'react-router-dom';
-import { Form, FormGroup, Label, Input, Button, Alert, Table } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Button, Alert, Table, Spinner } from 'reactstrap';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { fetchBusTypeSummaryReports } from './BusTypeSummaryReportSlice';
 import { Bar } from 'react-chartjs-2';
-var DailyPayments = function () {
+var FrmManagementSummariseReport = function () {
     var _a = useState(''), zone = _a[0], setZone = _a[1];
     var _b = useState([]), electoralAreas = _b[0], setElectoralAreas = _b[1];
     var _c = useState(''), bussType = _c[0], setBussType = _c[1];
@@ -64,13 +64,6 @@ var DailyPayments = function () {
     useEffect(function () {
         setManagementReport(managementReportData);
     }, [managementReportData]);
-    // const businessList = managementReport.map((report) => ({
-    //     electoral_area: report.electoral_area,
-    //     buss_type: report.buss_type,
-    //     amountdue: report.amountdue,
-    //     amountpaid: report.amountpaid,
-    //     balance: report.amountdue - report.amountpaid,
-    // }));
     useEffect(function () {
         var total = managementReport.reduce(function (acc, curr) { return acc + (curr.amountdue - curr.amountpaid); }, 0);
         totalBalance = total;
@@ -118,9 +111,7 @@ var DailyPayments = function () {
                         }))];
                 case 2:
                     answer = _a.sent();
-                    console.log('answer: ', answer);
                     if (answer && answer.payload) {
-                        console.log('answer.payload: ', answer.payload);
                         setManagementReport(answer.payload);
                     }
                     return [3 /*break*/, 5];
@@ -163,6 +154,6 @@ var DailyPayments = function () {
             },
         ],
     };
-    return (_jsx("div", { children: _jsxs("div", { className: "container mt-5", children: [error && _jsx(Alert, { color: "danger", children: error }), _jsx("div", { children: _jsxs(Form, { children: [_jsxs(FormGroup, { children: [_jsx("p", { className: "text-center text-underline", children: "Produce Daily Payments Report" }), _jsx(Bar, { data: chartData }), _jsx(Label, { for: "zone", className: "font-weight-bold", children: "Electoral Area:" }), _jsxs(Input, { type: "select", name: "zone", id: "zone", value: zone, onChange: handleZoneChange, children: [_jsx("option", { value: "All electoral areas", children: "All electoral areas" }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "bussType", className: "font-weight-bold", children: "Business Type/Profession:" }), _jsxs(Input, { type: "select", name: "bussType", id: "bussType", value: bussType, onChange: function (e) { return setBussType(e.target.value); }, children: [_jsx("option", { value: "All business types", children: "All business types" }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "firstDate", className: "font-weight-bold", children: "First Payment Date:" }), _jsx(Input, { type: "date", name: "firstDate", id: "firstDate", value: firstDate, onChange: handleFirstDateChange })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "lastDate", className: "font-weight-bold", children: "Last Payment Date:" }), _jsx(Input, { type: "date", name: "lastDate", id: "lastDate", value: lastDate, onChange: handleLastDateChange })] }), _jsx(FormGroup, { children: _jsxs("div", { className: "d-flex justify-content-between", children: [_jsx(Button, { color: "success", onClick: handleProduceReport, disabled: isLoading, children: "Produce Summarized Report" }), _jsx(Button, { variant: "secondary", onClick: function () { return navigate("/main"); }, style: { marginLeft: '40px', marginTop: '10px' }, children: "Go Back" }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Electoral Area" }), _jsx("th", { children: "Business Type/Profession" }), _jsx("th", { children: "Amount Due" }), _jsx("th", { children: "Amount Paid" }), _jsx("th", { children: "Balance" })] }) }), _jsx("tbody", { children: businessList.map(function (business, index) { return (_jsxs("tr", { children: [_jsx("td", { children: business.electoral_area }), _jsx("td", { children: business.buss_type }), _jsx("td", { children: business.amountdue }), _jsx("td", { children: business.amountpaid }), _jsx("td", { children: business.balance })] }, index)); }) })] })] }) })] }) })] }) }));
+    return (_jsx("div", { children: _jsxs("div", { className: "container mt-5", children: [error && _jsx(Alert, { color: "danger", children: error }), isLoading ? (_jsx("div", { className: "text-center", children: _jsx(Spinner, { style: { width: '3rem', height: '3rem' } }) })) : (_jsx("div", { children: _jsxs(Form, { children: [_jsxs(FormGroup, { children: [_jsx("p", { className: "text-center text-underline", children: "Produce Daily Payments Report" }), _jsx(Bar, { data: chartData }), _jsx(Label, { for: "zone", className: "font-weight-bold", children: "Electoral Area:" }), _jsxs(Input, { type: "select", name: "zone", id: "zone", value: zone, onChange: handleZoneChange, children: [_jsx("option", { value: "All electoral areas", children: "All electoral areas" }), electoralAreas.map(function (area, index) { return (_jsx("option", { value: area, children: area }, index)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "bussType", className: "font-weight-bold", children: "Business Type/Profession:" }), _jsxs(Input, { type: "select", name: "bussType", id: "bussType", value: bussType, onChange: function (e) { return setBussType(e.target.value); }, children: [_jsx("option", { value: "All business types", children: "All business types" }), bussTypes.map(function (businessType, index) { return (_jsx("option", { value: businessType.business_type, children: businessType.business_type }, index)); })] })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "firstDate", className: "font-weight-bold", children: "First Payment Date:" }), _jsx(Input, { type: "date", name: "firstDate", id: "firstDate", value: firstDate, onChange: handleFirstDateChange })] }), _jsxs(FormGroup, { children: [_jsx(Label, { for: "lastDate", className: "font-weight-bold", children: "Last Payment Date:" }), _jsx(Input, { type: "date", name: "lastDate", id: "lastDate", value: lastDate, onChange: handleLastDateChange })] }), _jsx(FormGroup, { children: _jsxs("div", { className: "d-flex justify-content-between", children: [_jsx(Button, { color: "success", onClick: handleProduceReport, disabled: isLoading, children: "Produce Summarized Report" }), _jsx(Button, { variant: "secondary", onClick: function () { return navigate("/main"); }, style: { marginLeft: '40px', marginTop: '10px' }, children: "Go Back" }), _jsxs(Table, { striped: true, bordered: true, hover: true, className: "mt-3", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Electoral Area" }), _jsx("th", { children: "Business Type/Profession" }), _jsx("th", { children: "Amount Due" }), _jsx("th", { children: "Amount Paid" }), _jsx("th", { children: "Balance" })] }) }), _jsx("tbody", { children: businessList.map(function (business, index) { return (_jsxs("tr", { children: [_jsx("td", { children: business.electoral_area }), _jsx("td", { children: business.buss_type }), _jsx("td", { children: business.amountdue }), _jsx("td", { children: business.amountpaid }), _jsx("td", { children: business.balance })] }, index)); }) })] })] }) })] }) }))] }) }));
 };
-export default DailyPayments;
+export default FrmManagementSummariseReport;

@@ -119,8 +119,8 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
             console.log('busscurrbalance')
             if (bussType === 'All business types') {
                 console.log('All business types')
-                let recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea ILIKE $3', 
-                    [thisYear, bussType, row.electroral_area]
+                let recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea ILIKE $2', 
+                    [thisYear, row.electroral_area]
                 );
                 varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
             } else {
@@ -136,8 +136,8 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
             console.log('buspayments')
             if (bussType === 'All business types') {
                 console.log('All business types')
-                let recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND electroral_area ILIKE $3', 
-                   [thisYear, bussType, row.electroral_area]
+                let recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND electroral_area ILIKE $2', 
+                   [thisYear, row.electroral_area]
                 );
                 varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
             } else {

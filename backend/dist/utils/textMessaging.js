@@ -1,57 +1,29 @@
+import express from 'express';
 import axios from 'axios';
-import * as dotenv from 'dotenv';
-// Load environment variables from .env file
-dotenv.config();
-const HUBTEL_API_KEY = process.env.HUBTEL_API_KEY || 'your_hubtel_api_key';
-const HUBTEL_API_SECRET = process.env.HUBTEL_API_SECRET || 'your_hubtel_api_secret';
-const HUBTEL_SENDER_ID = process.env.HUBTEL_SENDER_ID || 'your_hubtel_sender_id';
-async function sendTextMessage(phoneNumber, message) {
+const app = express();
+const port = 3000;
+const router = express.Router();
+// Middleware to parse JSON bodies
+//app.use(express.json());
+// POST endpoint to send SMS
+router.post('/send-sms', async (req, res) => {
+    const { api_key, to, from, sms, use_case } = req.body;
+    if (!api_key || !to || !from || !sms) {
+        res.status(400).json({ error: 'api_key, to, from, and sms are required' });
+        return;
+    }
     try {
-        const response = await axios.post('https://api.hubtel.com/v1/messages/send', {
-            From: HUBTEL_SENDER_ID,
-            To: phoneNumber,
-            Content: message,
-        }, {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Auth-ApiKey': HUBTEL_API_KEY,
-                'X-Auth-ApiSecret': HUBTEL_API_SECRET,
-            },
-        });
-        console.log('Text message sent successfully:', response.data);
+        const url = `https://sms.arkesel.com/sms/api?action=send-sms&api_key=${api_key}&to=${to}&from=${from}&sms=${encodeURIComponent(sms)}` +
+            (use_case ? `&use_case=${use_case}` : '');
+        const response = await axios.get(url);
+        res.status(200).json(response.data);
+        return;
     }
     catch (error) {
-        console.error('Error sending text message:', error);
-        throw error;
+        console.error('Error sending SMS:', error);
+        res.status(500).json({ error: 'Failed to send SMS', details: error.message });
+        return;
     }
-}
-export { sendTextMessage };
-// import axios from 'axios';
-// const HUBTEL_API_KEY = 'your_hubtel_api_key';
-// const HUBTEL_API_SECRET = 'your_hubtel_api_secret';
-// const HUBTEL_SENDER_ID = 'your_hubtel_sender_id';
-// async function sendTextMessage(phoneNumber: string, message: string): Promise<void> {
-//   try {
-//     const response = await axios.post(
-//       'https://api.hubtel.com/v1/messages/send',
-//       {
-//         From: HUBTEL_SENDER_ID,
-//         To: phoneNumber,
-//         Content: message,
-//       },
-//       {
-//         headers: {
-//           'Content-Type': 'application/json',
-//           'X-Auth-ApiKey': HUBTEL_API_KEY,
-//           'X-Auth-ApiSecret': HUBTEL_API_SECRET,
-//         },
-//       }
-//     );
-//     console.log('Text message sent successfully:', response.data);
-//   } catch (error) {
-//     console.error('Error sending text message:', error);
-//     throw error;
-//   }
-// }
-// export { sendTextMessage };
+});
+export default router;
 //# sourceMappingURL=textMessaging.js.map

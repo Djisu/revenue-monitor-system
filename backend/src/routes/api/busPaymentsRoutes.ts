@@ -450,7 +450,7 @@ router.post('/:electoralArea', async (req: Request, res: Response) => {
                 res.status(404).json({ message: 'Business Payments record not found', data: [] });
                 return;
             }
-            console.log('data: ', result.rows)
+            console.log('Business Payments record found for electoral area:', electoralArea);
             res.status(200).json({ message: 'Data found', data: result.rows});
             return
         }

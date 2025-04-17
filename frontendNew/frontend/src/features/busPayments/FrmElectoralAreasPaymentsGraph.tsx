@@ -4,9 +4,11 @@ import { ChartData } from 'chart.js';
 import { useAppDispatch, useAppSelector } from '../../app/store';
 import { fetchBusPaymentByElectoralArea } from './busPaymentsSlice';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
-import { Button } from 'react-bootstrap';
+import { Button, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import aggregatePaymentsByElectoralArea from '../../utilities/aggregatePaymentsByElectoralArea';
+
+
 
 interface BusPaymentsData {
     electroral_area: string;
@@ -21,7 +23,8 @@ const FrmElectoralAreasPaymentsGraph = () => {
     const [localBudgetData, setLocalBudgetData] = useState<BusPaymentsData[]>([]);
     const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
     const [electoralArea, setElectoralArea] = useState<string>('');
-    
+    const [loading, setLoading] = useState<boolean>(false); // Loading state
+
    // const BusPaymentsData = useAppSelector((state) => state.busPayments.busPayments);
 
     useEffect(() => {
@@ -42,13 +45,17 @@ const FrmElectoralAreasPaymentsGraph = () => {
 
     const handleFetchData = async () => {
         if (electoralArea) {
-            const answer = await dispatch(fetchBusPaymentByElectoralArea(electoralArea));
-
-            console.log('answer.payload: ', answer.payload);
-
-            //if (Array.isArray(action.payload)) {
-                setLocalBudgetData(answer.payload as BusPaymentsData[]);
-            //}
+            setLoading(true); // Set loading to true
+            const action = await dispatch(fetchBusPaymentByElectoralArea(electoralArea));
+            console.log('action.payload: ', action.payload);
+    
+            // Check if the payload is an array
+            if (Array.isArray(action.payload)) {
+                setLocalBudgetData(action.payload as BusPaymentsData[]);
+            } else {
+                console.error('Payload is not an array:', action.payload);
+            }
+             setLoading(false); // Set loading to true
         } else {
             alert('Please select the electoral area.');
         }
@@ -69,6 +76,13 @@ const FrmElectoralAreasPaymentsGraph = () => {
 
     return (
         <div className="container mt-4">
+            {loading && (
+                <div className="text-center">
+                <Spinner animation="border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </Spinner>
+                </div>
+            )}
             <div>
                 <p className="mb-4">Electoral Areas Payments Graph</p>
                 {/* <div className="mb-3">
@@ -102,33 +116,32 @@ const FrmElectoralAreasPaymentsGraph = () => {
                 <Button variant="secondary" onClick={() => navigate('/main')}>
                     Exit
                 </Button>
-            </div>
-
-            {/* Render the graph */}
-            {Object.keys(aggregatedData).length > 0 && (
-                <div className="mt-4">
-                    <Bar data={chartData} options={{ scales: { y: { beginAtZero: true } } }} />
-                    <table className="mt-4" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr>
-                                <th style={{ border: '1px solid #000', padding: '8px' }}>Electoral Area</th>
-                                <th style={{ border: '1px solid #000', padding: '8px' }}>Total Paid Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Object.entries(aggregatedData).map(([area, total], index) => (
-                                <tr key={index}>
-                                    <td style={{ border: '1px solid #000', padding: '8px' }}>{area}</td>
-                                    <td style={{ border: '1px solid #000', padding: '8px' }}>
-                                        {typeof total === 'number' && !isNaN(total) ? total : '-'}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                   {/* Render the graph */}
+                    {Object.keys(aggregatedData).length > 0 && (
+                        <div className="mt-4">
+                            <Bar data={chartData} options={{ scales: { y: { beginAtZero: true } } }} />
+                            <table className="mt-4" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ border: '1px solid #000', padding: '8px' }}>Electoral Area</th>
+                                        <th style={{ border: '1px solid #000', padding: '8px' }}>Total Paid Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Object.entries(aggregatedData).map(([area, total], index) => (
+                                        <tr key={index}>
+                                            <td style={{ border: '1px solid #000', padding: '8px' }}>{area}</td>
+                                            <td style={{ border: '1px solid #000', padding: '8px' }}>
+                                                {typeof total === 'number' && !isNaN(total) ? total : '-'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
-            )}
-        </div>
+            </div>        
     );
 };
 
