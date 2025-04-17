@@ -34,7 +34,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { useAppDispatch, useAppSelector } from '../../app/store';
@@ -42,22 +42,13 @@ import { fetchOfficerBudget } from '../officerBudget/officerBudgetSlice';
 import { fetchOfficers } from '../officer/officerSlice';
 import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-// type MonthKeys = 
-//     | 'january'
-//     | 'february'
-//     | 'march'
-//     | 'april'
-//     | 'may'
-//     | 'june'
-//     | 'july'
-//     | 'august'
-//     | 'september'
-//     | 'october'
-//     | 'november'
-//     | 'december';
 var FrmOfficerBudgetActual = function () {
     var dispatch = useAppDispatch();
     var navigate = useNavigate();
+    var _a = useState(2023), fiscalYear = _a[0], setFiscalYear = _a[1];
+    var _b = useState([]), localBudgetData = _b[0], setLocalBudgetData = _b[1];
+    var _c = useState(''), selectedOfficer = _c[0], setSelectedOfficer = _c[1];
+    var officersData = useAppSelector(function (state) { return state.officer.officers; });
     useEffect(function () {
         var fetchData = function () { return __awaiter(void 0, void 0, void 0, function () {
             return __generator(this, function (_a) {
@@ -71,14 +62,6 @@ var FrmOfficerBudgetActual = function () {
         }); };
         fetchData();
     }, [dispatch]);
-    // Local state for fiscal year
-    var _a = useState(2023), fiscalYear = _a[0], setFiscalYear = _a[1]; // Default fiscal year
-    var _b = useState([]), localBudgetData = _b[0], setLocalBudgetData = _b[1];
-    var budgetData = useAppSelector(function (state) { return state.officerBudget.data; }); // Adjust according to your state structure 
-    console.log('budgetData: ', budgetData);
-    var officersData = useAppSelector(function (state) { return state.officer.officers; });
-    // const officers = useAppSelector((state: { officerBudget: { officers: Officer[] } }) => state.officerBudget.officers);
-    var _c = useState(''), selectedOfficer = _c[0], setSelectedOfficer = _c[1];
     useEffect(function () {
         var fetchData = function () { return __awaiter(void 0, void 0, void 0, function () {
             var data, error_1;
@@ -92,8 +75,7 @@ var FrmOfficerBudgetActual = function () {
                         return [4 /*yield*/, dispatch(fetchOfficerBudget({ officer_no: selectedOfficer, fiscal_year: fiscalYear })).unwrap()];
                     case 2:
                         data = _a.sent();
-                        console.log('Data fetched successfully: ', data.data);
-                        setLocalBudgetData(data.data); // Set the local state with the fetched data
+                        setLocalBudgetData(data.data);
                         return [3 /*break*/, 4];
                     case 3:
                         error_1 = _a.sent();
@@ -121,11 +103,6 @@ var FrmOfficerBudgetActual = function () {
             }
         });
     }); };
-    useEffect(function () {
-        if (localBudgetData && localBudgetData.length > 0) {
-            console.log('localBudgetData: ', localBudgetData);
-        }
-    }, [localBudgetData]);
     var handleExitClick = function () {
         navigate('/main');
     };
@@ -137,7 +114,7 @@ var FrmOfficerBudgetActual = function () {
             'June', 'July', 'August', 'September', 'October',
             'November', 'December'
         ];
-        var budgetData = data[0]; // Access the first item in the array
+        var budgetData = data[0];
         var budgets = monthlyLabels.map(function (month) {
             return parseFloat(budgetData["".concat(month.toLowerCase(), "_budget")]) || 0;
         });
@@ -161,6 +138,9 @@ var FrmOfficerBudgetActual = function () {
         };
     };
     var chartData = getChartData(localBudgetData);
-    return (_jsx("div", { className: "container mt-4", children: _jsxs("div", { children: [_jsx("p", { className: "mb-4", children: "Fetch Collector Budget" }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "fiscalYear", className: "form-label", children: "Fiscal Year:" }), _jsx("input", { type: "number", className: "form-control", id: "fiscalYear", value: fiscalYear, onChange: function (e) { return setFiscalYear(parseInt(e.target.value, 10)); }, min: 2025 })] }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "officerSelect", className: "form-label", children: "Select Officer:" }), _jsxs("select", { id: "officerSelect", className: "form-select", value: selectedOfficer, onChange: function (e) { return setSelectedOfficer(e.target.value); }, children: [_jsx("option", { value: "", children: "Select an officer" }), officersData.map(function (officer) { return (_jsxs("option", { value: "".concat(officer.officer_no, " ").concat(officer.officer_name), children: [officer.officer_no, "  ", officer.officer_name] }, officer.officer_no)); })] })] }), _jsx("button", { className: "btn btn-primary", onClick: function () { return handleFetchData(); }, children: "Fetch Data" }), _jsx(Button, { variant: "secondary", onClick: handleExitClick, children: "Exit" }), _jsx("div", { children: localBudgetData.length > 0 && (_jsxs("div", { className: "chart-container mt-4", children: [_jsx("h2", { children: "Monthly Budget vs Actuals" }), _jsx(Bar, { data: chartData, options: { responsive: true, maintainAspectRatio: false } })] })) })] }) }));
+    return (_jsx("div", { className: "container mt-4", children: _jsxs("div", { children: [_jsx("p", { className: "mb-4", children: "Fetch Collector Budget" }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "fiscalYear", className: "form-label", children: "Fiscal Year:" }), _jsx("input", { type: "number", className: "form-control", id: "fiscalYear", value: fiscalYear, onChange: function (e) { return setFiscalYear(parseInt(e.target.value, 10)); }, min: 2025 })] }), _jsxs("div", { className: "mb-3", children: [_jsx("label", { htmlFor: "officerSelect", className: "form-label", children: "Select Officer:" }), _jsxs("select", { id: "officerSelect", className: "form-select", value: selectedOfficer, onChange: function (e) { return setSelectedOfficer(e.target.value); }, children: [_jsx("option", { value: "", children: "Select an officer" }), officersData.map(function (officer) { return (_jsxs("option", { value: officer.officer_no, children: [officer.officer_no, " ", officer.officer_name] }, officer.officer_no)); })] })] }), _jsx("button", { className: "btn btn-primary", onClick: handleFetchData, children: "Fetch Data" }), _jsx(Button, { variant: "secondary", onClick: handleExitClick, children: "Exit" }), _jsx("div", { className: "chart-container mt-4", children: localBudgetData.length > 0 && (_jsxs(_Fragment, { children: [_jsx("h2", { children: "Monthly Budget vs Actuals" }), _jsx(Bar, { data: chartData, options: { responsive: true, maintainAspectRatio: false } }), _jsxs("table", { className: "table mt-4", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Month" }), _jsx("th", { children: "Budget" }), _jsx("th", { children: "Actual" })] }) }), _jsx("tbody", { children: Object.keys(localBudgetData[0]).filter(function (key) { return key.endsWith('_budget'); }).map(function (key, index) {
+                                            var month = key.split('_')[0]; // Extract month name and assert type
+                                            return (_jsxs("tr", { children: [_jsx("td", { children: month.charAt(0).toUpperCase() + month.slice(1) }), _jsx("td", { children: localBudgetData[0][key] }), _jsx("td", { children: localBudgetData[0]["".concat(month, "_actual")] })] }, index));
+                                        }) })] })] })) })] }) }));
 };
 export default FrmOfficerBudgetActual;
