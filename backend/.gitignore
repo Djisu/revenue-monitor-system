@@ -4,3 +4,4 @@
 /node_modules
 /package-lock.json
 /Users/pauljesufleischer/revmonitor/backend/dist/routes/api/permits
+.env.production
