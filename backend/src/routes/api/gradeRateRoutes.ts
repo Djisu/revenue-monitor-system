@@ -3,12 +3,29 @@ import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import pkg from 'pg';
+import { createClient } from '../../db.js';
+
+
 const { Pool } = pkg;
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -30,6 +47,7 @@ interface GradeRateData {
 // Create a new GradeRate record
 router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const gradeRateData: GradeRateData = req.body;
+    const client = createClient();
 
     console.log('in router.post /create GradeRate data:', gradeRateData);
 
@@ -40,7 +58,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     }
 
     try {
-        const { rows } = await pool.query(
+        const { rows } = await client.query(
             'SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', 
             [gradeRateData.grade, gradeRateData.minValue, gradeRateData.maxValue]
         );
@@ -51,7 +69,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Insert the new GradeRate data
-        const result = await pool.query(
+        const result = await client.query(
             `INSERT INTO graderate (grade, minValuex, maxValuex, rate) 
             VALUES ($1, $2, $3, $4)`,
             [
@@ -66,26 +84,32 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     } catch (error: any) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating GradeRate record', error: error.message });
+    }finally{
+        client.end()
     }
 });
 
 // Read all GradeRate records
 router.get('/all', async (req: Request, res: Response) => {
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM graderate');
+        const { rows } = await client.query('SELECT * FROM graderate');
         res.status(200).json({ success: true, data: rows });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching GradeRate records', error });
+    }finally{
+        client.end()
     }
 });
 
 // Read a single GradeRate record by grade
 router.get('/:grade/:minValuex/:maxValuex', async (req: Request, res: Response) => {
     const { grade, minValuex, maxValuex } = req.params;
+    const client = createClient();
 
     try {
-        const { rows } = await pool.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', 
+        const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', 
         [grade, minValuex, maxValuex]);
 
         if (Array.isArray(rows) && rows.length === 0) {
@@ -96,6 +120,8 @@ router.get('/:grade/:minValuex/:maxValuex', async (req: Request, res: Response) 
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching GradeRate record', error });
+    }finally{
+        client.end()
     }
 });
 
@@ -103,9 +129,10 @@ router.get('/:grade/:minValuex/:maxValuex', async (req: Request, res: Response) 
 router.put('/:grade/:minValuex/:maxValuex', async (req: Request, res: Response): Promise<void> => {
     const { grade, minValuex, maxValuex } = req.params;
     const gradeRateData: GradeRateData = req.body;
+    const client = createClient();
 
     try {
-        const { rows } = await pool.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', 
+        const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', 
         [grade, minValuex, maxValuex]);
 
         if (Array.isArray(rows) && rows.length == 0) {
@@ -114,7 +141,7 @@ router.put('/:grade/:minValuex/:maxValuex', async (req: Request, res: Response):
         }
         
         // Update the GradeRate data
-        await pool.query(
+        await client.query(
             `UPDATE graderate SET rate = $1 
             WHERE grade = $2 AND minValuex = $3 AND maxValuex = $4`,
             [
@@ -129,15 +156,17 @@ router.put('/:grade/:minValuex/:maxValuex', async (req: Request, res: Response):
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error updating GradeRate record', error });
+    }finally{
+        client.end()
     }
 });
 
 // Delete a GradeRate record
 router.delete('/delete/:grade/:minValuex/:maxValuex', async (req: Request, res: Response) => {
     const { grade, minValuex, maxValuex } = req.params;
-
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', 
+        const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', 
         [grade, minValuex, maxValuex]);
 
         if (Array.isArray(rows) && rows.length === 0) {
@@ -153,6 +182,8 @@ router.delete('/delete/:grade/:minValuex/:maxValuex', async (req: Request, res: 
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting GradeRate record', error });
+    }finally{
+        client.end()
     }
 });
 

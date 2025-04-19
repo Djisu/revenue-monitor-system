@@ -7,11 +7,27 @@ const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 import multer from 'multer';
+import { createClient } from '../../db';
+
 
 const router: Router = express.Router();
 
 // Load environment variables from .env file
 dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -45,10 +61,11 @@ router.use(express.json());
 router.post('/create', upload.single('photo'), async (req: CustomRequest, res: Response): Promise<void> => {
     const officerData: OfficerData = req.body;
 
-    let client = null;
+     const client = createClient();
 
     try {
-        client = await pool.connect();
+        
+       
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', 
         [officerData.officer_no])).rows;
 
@@ -86,7 +103,7 @@ router.post('/create', upload.single('photo'), async (req: CustomRequest, res: R
         res.status(500).json({ message: 'Error creating officer record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -96,11 +113,12 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
     const { officer_no } = req.params;
     const officerData: OfficerData = req.body;
 
-    let client = null;
+    const client = createClient();
 
     try {
         
-        client = await pool.connect();
+        
+
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
 
         if (existingOfficer.length == 0) {
@@ -120,12 +138,12 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
         );
 
         res.status(200).json({ message: 'Officer record updated successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error updating officer record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -134,10 +152,11 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
 router.delete('/delete/:officer_no', async (req: Request, res: Response): Promise<void> => {
     const { officer_no } = req.params;
 
-    let client = null;
+     const client = createClient();
 
     try {
-        client = await pool.connect();
+        
+       
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
 
         if (existingOfficer.length == 0) {
@@ -154,12 +173,12 @@ router.delete('/delete/:officer_no', async (req: Request, res: Response): Promis
         await client.query('DELETE FROM photos WHERE officer_no = $1', [officer_no]);
 
         res.status(200).json({ message: 'Officer record deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting officer record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -168,10 +187,11 @@ router.delete('/delete/:officer_no', async (req: Request, res: Response): Promis
 router.get('/all', async (req: Request, res: Response) => {
     console.log('router.get(/all XXXXXXXXX');
 
-    let client = null;
-
+    
+const client = createClient();
     try {
-        client = await pool.connect();
+        
+
 
         const result: QueryResult = await client.query(`
             SELECT o.*, p.photo_buffer, p.photo_name, p.photo_type 
@@ -193,12 +213,12 @@ router.get('/all', async (req: Request, res: Response) => {
         console.log('Fetched officers:');
 
         res.status(200).json(officers);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error getting officer records', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -209,10 +229,11 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
 
     console.log('in router.get(/retrieve/:officer_no: ', officer_no)
 
-    let client = null;
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+        
+
         const result: QueryResult = await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no]);
 
         if (result.rows.length == 0) {
@@ -229,12 +250,12 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
 
         // Send the binary photo data
         res.send(photoBuffer);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error getting officer record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -243,10 +264,11 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
 router.get('/retrieveByName/:officer_name', async (req: Request, res: Response) => {
     const { officer_name } = req.params;
 
-    let client = null;
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+        
+
         const result: QueryResult = await client.query('SELECT * FROM officer WHERE officer_name = $1', [officer_name]);
 
         if (result.rows.length == 0) {
@@ -255,12 +277,12 @@ router.get('/retrieveByName/:officer_name', async (req: Request, res: Response) 
         }
 
         res.json(result.rows);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error getting officer record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });

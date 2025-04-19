@@ -2,9 +2,24 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
+import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection configuration
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
@@ -21,19 +36,24 @@ const pool = new Pool({
     port: parseInt(process.env.DB_PORT || '5432', 10),
 });
 async function getOfficerAssessments() {
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM officerbudget ORDER BY officer_no ASC');
+        const { rows } = await client.query('SELECT * FROM officerbudget ORDER BY officer_no ASC');
         return rows.map(row => row.officer_no);
     }
     catch (err) {
         console.error('Error fetching fiscal years:', err);
         throw err;
     }
+    finally {
+        client.end();
+    }
 }
 async function getFiscalYears() {
     console.log('in getFiscalYears');
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year');
+        const { rows } = await client.query('SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year');
         console.log('rows: ', rows);
         return rows.map(row => row.fiscal_year);
     }
@@ -41,10 +61,14 @@ async function getFiscalYears() {
         console.error('Error fetching fiscal years:', err);
         throw err;
     }
+    finally {
+        client.end();
+    }
 }
 async function getOfficers() {
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT officer_no, officer_name FROM officer');
+        const { rows } = await client.query('SELECT officer_no, officer_name FROM officer');
         return rows;
     }
     catch (err) {
@@ -86,6 +110,7 @@ async function getAmountByOfficerAndMonth(monthPaid, officerNo, fiscalYear) {
     console.log('in getAmountByOfficerAndMonth helper function', officerNo);
     const officerName = await GetOfficerName(officerNo);
     const month = await getMonthName(Number(monthPaid));
+    const client = createClient();
     try {
         // Define the SQL query
         const query = `
@@ -99,7 +124,7 @@ async function getAmountByOfficerAndMonth(monthPaid, officerNo, fiscalYear) {
         // Log the query for debugging
         console.log('Executing query:', query, 'with parameters:', [officerName, fiscalYear, month]);
         // Execute the query
-        const { rows } = await pool.query(query, [officerNo, fiscalYear, month]);
+        const { rows } = await client.query(query, [officerNo, fiscalYear, month]);
         console.log('THIS IS THE paidamount: ', rows[0].paidamount);
         // Return the total sum or 0 if no rows were found
         return rows.length > 0 && rows[0].paidamount !== null ? rows[0].paidamount : 0;
@@ -108,32 +133,44 @@ async function getAmountByOfficerAndMonth(monthPaid, officerNo, fiscalYear) {
         console.error('Error fetching paidamount by officer and month:', err);
         throw err; // Rethrow the error for handling by the caller
     }
+    finally {
+        client.end();
+    }
 }
 async function deleteOfficerMonthAssess() {
+    const client = createClient();
     try {
-        await pool.query('DELETE FROM officermonthassess');
+        await client.query('DELETE FROM officermonthassess');
     }
     catch (err) {
         console.error('Error deleting officer month assess:', err);
         throw err;
     }
+    finally {
+        client.end();
+    }
 }
 async function insertOfficerMonthAssess(data) {
+    const client = createClient();
     try {
         const insertQuery = `
             INSERT INTO officermonthassess (officer_name, month, amount, fiscalyear) 
             VALUES ($1, $2, $3, $4)
         `;
         for (let item of data) {
-            await pool.query(insertQuery, [item.officer_name, item.month, item.amount, item.fiscalyear]);
+            await client.query(insertQuery, [item.officer_name, item.month, item.amount, item.fiscalyear]);
         }
     }
     catch (err) {
         console.error('Error inserting officer month assess:', err);
     }
+    finally {
+        client.end();
+    }
 }
 // Helper function to insert officer assessment
 async function insertOfficerAssessment(data) {
+    const client = createClient();
     console.log('in insertOfficerAssessment: ', data);
     const insertQuery = `
         INSERT INTO officer_assessment (
@@ -171,7 +208,7 @@ async function insertOfficerAssessment(data) {
         data.remarks,
     ];
     try {
-        const rows = await pool.query(insertQuery, values);
+        const rows = await client.query(insertQuery, values);
         if (rows.rowCount === 0) {
             throw new Error('Officer assessment record not inserted');
         }
@@ -181,10 +218,14 @@ async function insertOfficerAssessment(data) {
         console.error('Error inserting officer assessment:', err);
         throw err; // Re-throw the error to be caught by the calling function
     }
+    finally {
+        client.end();
+    }
 }
 async function GetOfficerName(officerNo) {
+    const client = createClient();
     console.log('in getOfficerName helper function', officerNo);
-    const result = await pool.query('SELECT officer_name FROM officer WHERE officer_no = $1', [officerNo]);
+    const result = await client.query('SELECT officer_name FROM officer WHERE officer_no = $1', [officerNo]);
     if (result.rows.length === 0) {
         return 'Officer name NOT FOUND!!';
     }
@@ -194,9 +235,10 @@ async function GetOfficerName(officerNo) {
 // Get bills distributed
 router.get('/billsDistributed/:officer_no/:fiscal_year', async (req, res) => {
     console.log('in router.get(/:officer_no/:fiscal_year');
+    const client = createClient();
     const { officer_no, fiscal_year } = req.params;
     try {
-        const result = await pool.query('SELECT SUM(current_balance) as totsum FROM busscurrbalance WHERE assessmentby = $1 AND fiscalyear = $2', [officer_no, fiscal_year]);
+        const result = await client.query('SELECT SUM(current_balance) as totsum FROM busscurrbalance WHERE assessmentby = $1 AND fiscalyear = $2', [officer_no, fiscal_year]);
         if (result.rows.length == 0) {
             res.status(404).json(0);
             return;
@@ -208,11 +250,15 @@ router.get('/billsDistributed/:officer_no/:fiscal_year', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching officer assessment record', error });
     }
+    finally {
+        client.end();
+    }
 });
 router.get('/fiscalYears', async (req, res) => {
     console.log('in router.get(/officerAssessment/fiscalYears)');
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year');
+        const { rows } = await client.query('SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year');
         const fiscalYears = rows.map(row => ({ fiscal_year: row.fiscal_year })); // Map to objects
         res.status(200).json(fiscalYears);
         return;
@@ -220,6 +266,9 @@ router.get('/fiscalYears', async (req, res) => {
     catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });
         return;
+    }
+    finally {
+        client.end();
     }
 });
 router.get('/officers', async (req, res) => {
@@ -252,7 +301,7 @@ router.delete('/officerMonthAssess', async (req, res) => {
     }
 });
 router.post('/create', async (req, res) => {
-    const client = await pool.connect();
+    const client = createClient();
     try {
         await client.query('BEGIN');
         const params = req.body;
@@ -327,7 +376,7 @@ router.post('/create', async (req, res) => {
         return;
     }
     finally {
-        client.release();
+        client.end();
     }
 });
 // router.post('/create', async (req: Request, res: Response) => {
@@ -400,7 +449,7 @@ router.post('/create', async (req, res) => {
 // January route
 router.get('/January/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/January/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'January'; // Hard-coded for this endpoint
     //const officerName = await GetOfficerName(officerNo)
@@ -423,13 +472,13 @@ router.get('/January/:officerNo/:fiscalYear', async (req, res) => {
         res.status(500).json({ message: 'Error fetching monthly amount', error: err.message });
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 // February route
 router.get('/February/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/February/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'February'; // Hard-coded for this endpoint
     // const officerName = await GetOfficerName(officerNo)
@@ -453,13 +502,13 @@ router.get('/February/:officerNo/:fiscalYear', async (req, res) => {
         return;
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool end
     }
 });
 // March route
 router.get('/March/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/March/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'March'; // Hard-coded for this endpoint
     //const officerName = await GetOfficerName(officerNo)
@@ -483,13 +532,13 @@ router.get('/March/:officerNo/:fiscalYear', async (req, res) => {
         return;
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 // April route
 router.get('/April/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/April/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'April'; // Hard-coded for this endpoint
     // const officerName = await GetOfficerName(officerNo)
@@ -513,13 +562,13 @@ router.get('/April/:officerNo/:fiscalYear', async (req, res) => {
         return;
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 // May route
 router.get('/May/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/May/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'May'; // Hard-coded for this endpoint
     // const officerName = await GetOfficerName(officerNo)
@@ -543,13 +592,13 @@ router.get('/May/:officerNo/:fiscalYear', async (req, res) => {
         return;
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 // June route
 router.get('/June/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/June/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'June'; // Hard-coded for this endpoint
     //const officerName = await GetOfficerName(officerNo)
@@ -573,13 +622,13 @@ router.get('/June/:officerNo/:fiscalYear', async (req, res) => {
         return;
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 // July route
 router.get('/July/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/July/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'July'; // Hard-coded for this endpoint
     //const officerName = await GetOfficerName(officerNo)
@@ -602,13 +651,13 @@ router.get('/July/:officerNo/:fiscalYear', async (req, res) => {
         res.status(500).json({ message: 'Error fetching monthly amount', error: err.message });
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 // August route
 router.get('/August/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/August/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'August'; // Hard-coded for this endpoint
     //const officerName = await GetOfficerName(officerNo)
@@ -632,13 +681,13 @@ router.get('/August/:officerNo/:fiscalYear', async (req, res) => {
         return;
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 // September route
 router.get('/September/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/September/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'September'; // Hard-coded for this endpoint
     //const officerName = await GetOfficerName(officerNo)
@@ -662,13 +711,13 @@ router.get('/September/:officerNo/:fiscalYear', async (req, res) => {
         return;
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 // October route
 router.get('/October/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/October/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'October'; // Hard-coded for this endpoint
     //const officerName = await GetOfficerName(officerNo)
@@ -691,13 +740,13 @@ router.get('/October/:officerNo/:fiscalYear', async (req, res) => {
         res.status(500).json({ message: 'Error fetching monthly amount', error: err.message });
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 // November route
 router.get('/November/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/November/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'November'; // Hard-coded for this endpoint
     //const officerName = await GetOfficerName(officerNo)
@@ -721,13 +770,13 @@ router.get('/November/:officerNo/:fiscalYear', async (req, res) => {
         return;
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 // December route
 router.get('/December/:officerNo/:fiscalYear', async (req, res) => {
     console.log('in router.get(/December/:officerNo/:fiscalYear)');
-    const client = await pool.connect();
+    const client = createClient();
     const { officerNo, fiscalYear } = req.params; // Use req.params
     const monthPaidx = 'December'; // Hard-coded for this endpoint
     //const officerName = await GetOfficerName(officerNo)
@@ -751,7 +800,7 @@ router.get('/December/:officerNo/:fiscalYear', async (req, res) => {
         return;
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is endd back to the pool
     }
 });
 router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req, res) => {
@@ -761,7 +810,7 @@ router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req, res) => {
         res.status(400).json({ error: 'Missing parameters' });
         return;
     }
-    const client = await pool.connect();
+    const client = createClient();
     const newFiscalYear = Number(fiscalYear);
     // const officerName = await GetOfficerName(officerNo.toString());
     // console.log('officerName: ', officerName)
@@ -782,10 +831,11 @@ router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req, res) => {
         res.status(500).json({ message: 'Error fetching BusPayments record', error });
     }
     finally {
-        client.release();
+        client.end();
     }
 });
 router.get('/all', async (req, res) => {
+    const client = createClient();
     try {
         const { officerNo, fiscalYear, monthPaid } = req.query;
         const rows = await getOfficerAssessments();
@@ -798,21 +848,29 @@ router.get('/all', async (req, res) => {
     catch (err) {
         res.status(500).send(err.message);
     }
+    finally {
+        client.end();
+    }
 });
 // Read all officer assessment records
 router.get('/', async (req, res) => {
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM officerassessment');
+        const { rows } = await client.query('SELECT * FROM officerassessment');
         res.json(rows);
     }
     catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching officer assessment records', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Read a single officer assessment record by officer_no
 router.get('/:officer_no/:fiscal_year', async (req, res) => {
     const { officer_no, fiscal_year } = req.params;
+    const client = createClient();
     try {
         console.log('XXXXXXXVVVVVVVTTTTTTT');
         console.log('in router.get(/:officer_no/:fiscal_year): ', req.params);
@@ -827,7 +885,7 @@ router.get('/:officer_no/:fiscal_year', async (req, res) => {
             return;
         }
         console.log('Valid officer_no AND fiscal_year');
-        const { rows } = await pool.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND bus_year = $2', [officer_no, parseInt(fiscal_year, 10)]);
+        const { rows } = await client.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND bus_year = $2', [officer_no, parseInt(fiscal_year, 10)]);
         if (rows.length == 0) {
             console.log('officer not found in officerassessment');
             res.status(404).json([]);
@@ -840,18 +898,22 @@ router.get('/:officer_no/:fiscal_year', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching officer assessment record', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Update an officer assessment record
 router.put('/:officer_no/:fiscal_year', async (req, res) => {
     const { officer_no, fiscal_year } = req.params;
     const officerAssessmentData = req.body;
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND fiscal_year = $2', [officer_no, fiscal_year]);
+        const { rows } = await client.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND fiscal_year = $2', [officer_no, fiscal_year]);
         if (rows.length == 0) {
             res.status(404).json({ message: 'Officer assessment record not found' });
             return;
         }
-        const { rows: result } = await pool.query(`UPDATE officerassessment SET 
+        const { rows: result } = await client.query(`UPDATE officerassessment SET 
             officer_name = $1, Noofclientsserved = $2, valueofbillsdistributed = $3, bus_year = $4, 
             JanuaryAmount = $5, FebruaryAmount = $6, MarchAmount = $7, AprilAmount = $8, 
             MayAmount = $9, JuneAmount = $10, JulyAmount = $11, AugustAmount = $12, 
@@ -886,17 +948,21 @@ router.put('/:officer_no/:fiscal_year', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error updating officer assessment record', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Delete an officer assessment record
 router.delete('/:officer_no/:fiscal_year', async (req, res) => {
     const { officer_no, fiscal_year } = req.params;
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND fiscal_year = $2', [officer_no, fiscal_year]);
+        const { rows } = await client.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND fiscal_year = $2', [officer_no, fiscal_year]);
         if (rows.length == 0) {
             res.status(409).json({ message: 'Officer assessment record does not exists' });
             return;
         }
-        await pool.query('DELETE FROM officerassessment WHERE officer_no = $1', [officer_no]);
+        await client.query('DELETE FROM officerassessment WHERE officer_no = $1', [officer_no]);
         res.status(200).json({ message: 'Officer assessment record deleted successfully' });
         return;
     }
@@ -905,11 +971,15 @@ router.delete('/:officer_no/:fiscal_year', async (req, res) => {
         res.status(500).json({ message: 'Error deleting officer assessment record', error });
         return;
     }
+    finally {
+        client.end();
+    }
 });
 // Endpoint to find the number of clients served
 router.get('/clients-served/:officerNo/:fiscalYear', async (req, res) => {
     const { officerNo } = req.params;
     const fiscalYear = parseInt(req.params.fiscalYear, 10);
+    const client = createClient();
     // Validate fiscal year
     if (isNaN(fiscalYear)) {
         res.status(400).json({ error: 'Invalid fiscal year format' });
@@ -922,7 +992,7 @@ router.get('/clients-served/:officerNo/:fiscalYear', async (req, res) => {
     `;
     const values = [officerNo, fiscalYear];
     try {
-        const result = await pool.query(query, values);
+        const result = await client.query(query, values);
         if (result.rows.length > 0) {
             const totalClientsServed = parseInt(result.rows[0].totsum, 10);
             res.json({ totalClientsServed });
@@ -938,11 +1008,15 @@ router.get('/clients-served/:officerNo/:fiscalYear', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
         return;
     }
+    finally {
+        client.end();
+    }
 });
 // Endpoint to find the value of bills distributed
 router.get('/bills-distributed/:officerNo/:fiscalYear', async (req, res) => {
     const { officerNo } = req.params;
     const fiscalYear = parseInt(req.params.fiscalYear, 10);
+    const client = createClient();
     // Validate fiscal year
     if (isNaN(fiscalYear)) {
         res.status(400).json({ error: 'Invalid fiscal year format' });
@@ -955,7 +1029,7 @@ router.get('/bills-distributed/:officerNo/:fiscalYear', async (req, res) => {
     `;
     const values = [officerNo, fiscalYear];
     try {
-        const result = await pool.query(query, values);
+        const result = await client.query(query, values);
         if (result.rows.length > 0) {
             const totalValueOfBillsDistributed = result.rows[0].totsum !== null ? parseFloat(result.rows[0].totsum) : 0;
             res.json({ totalValueOfBillsDistributed });
@@ -970,6 +1044,9 @@ router.get('/bills-distributed/:officerNo/:fiscalYear', async (req, res) => {
         console.error('Error querying database:', error);
         res.status(500).json({ error: 'Internal server error' });
         return;
+    }
+    finally {
+        client.end();
     }
 });
 // Endpoint to get amounts for each month
@@ -996,6 +1073,7 @@ router.get('/amount/:month/:officerNo/:fiscalYear', async (req, res) => {
         res.status(400).json({ error: 'Invalid month or fiscal year format' });
         return;
     }
+    const client = createClient();
     try {
         const totalAmount = await findMonthlyAmount(officerNo, fiscalYear, monthMap[month]);
         res.json({ totalAmount });
@@ -1005,9 +1083,13 @@ router.get('/amount/:month/:officerNo/:fiscalYear', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
         return;
     }
+    finally {
+        client.end();
+    }
 });
 // Helper function to find monthly amounts
 const findMonthlyAmount = async (officerNo, fiscalYear, month) => {
+    const client = createClient();
     const query = `
         SELECT SUM(amount) AS totsum 
         FROM buspayments 
@@ -1017,7 +1099,7 @@ const findMonthlyAmount = async (officerNo, fiscalYear, month) => {
     `;
     const values = [officerNo, fiscalYear, month, month.charAt(0)]; // month name and number
     try {
-        const result = await pool.query(query, values);
+        const result = await client.query(query, values);
         return result.rows.length > 0 && result.rows[0].totsum !== null
             ? parseFloat(result.rows[0].totsum)
             : 0;
@@ -1025,6 +1107,9 @@ const findMonthlyAmount = async (officerNo, fiscalYear, month) => {
     catch (error) {
         console.error('Error querying database:', error);
         throw error;
+    }
+    finally {
+        client.end();
     }
 };
 export default router;

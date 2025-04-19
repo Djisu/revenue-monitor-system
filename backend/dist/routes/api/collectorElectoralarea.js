@@ -2,8 +2,23 @@ import express from 'express';
 import * as dotenv from 'dotenv';
 import pg from 'pg';
 const { Pool } = pg;
+import { createClient } from '../../db.js';
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection pool configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -16,7 +31,7 @@ const router = express.Router();
 // Create a new "collectorElectoralArea"
 router.post('/create', async (req, res) => {
     console.log('Creating a new collector electoral area...', req.body);
-    const client = await pool.connect();
+    const client = createClient();
     try {
         const { officer_no, electoralarea } = req.body;
         console.log('officer_no, electoralarea ', officer_no, electoralarea);
@@ -47,13 +62,13 @@ router.post('/create', async (req, res) => {
         return;
     }
     finally {
-        client.release(); // Ensure the client is released back to the pool
+        client.end(); // Ensure the client is end back to the pool
     }
 });
 // GET endpoint to retrieve all collector electoral areas
 router.get('/all', async (req, res) => {
     console.log('Retrieving all collector electoral areas...');
-    const client = await pool.connect();
+    const client = createClient();
     console.log('I AM HERE, HERE');
     try {
         // Execute the database query
@@ -69,11 +84,14 @@ router.get('/all', async (req, res) => {
         console.error('Error retrieving collector electoral areas:', error);
         res.status(500).json({ message: 'An error occurred while retrieving collector electoral areas.' });
     }
+    finally {
+        client.end();
+    }
 });
 // Update a "collectorelectoralarea"
 router.put('/update/:officer_no', async (req, res) => {
     console.log('Updating a collector electoral area...');
-    const client = await pool.connect();
+    const client = createClient();
     try {
         const { officer_no } = req.params;
         const { electoralarea } = req.body;
@@ -91,11 +109,14 @@ router.put('/update/:officer_no', async (req, res) => {
         console.error('Error updating collector electoral area:', error);
         res.status(500).json({ message: 'An error occurred while updating the collector electoral area.' });
     }
+    finally {
+        client.end();
+    }
 });
 // Delete a "collectorElectoralArea"
 router.delete('/delete/:officer_no', async (req, res) => {
     console.log('Deleting a collector electoral area...');
-    const client = await pool.connect();
+    const client = createClient();
     try {
         const { officer_no } = req.params;
         // Execute the database query
@@ -111,6 +132,9 @@ router.delete('/delete/:officer_no', async (req, res) => {
     catch (error) {
         console.error('Error deleting collector electoral area:', error);
         res.status(500).json({ message: 'An error occurred while deleting the collector electoral area.' });
+    }
+    finally {
+        client.end();
     }
 });
 export default router;

@@ -5,11 +5,26 @@ import { QueryResult, PoolClient } from 'pg';
 
 import pkg from 'pg';
 const { Pool } = pkg;
+import { createClient } from '../../db.js';
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection pool configuration
 const dbConfig = {
@@ -36,11 +51,13 @@ interface BalanceData {
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const balanceData: BalanceData = req.body;
 
-    let client: PoolClient | null = null;
+    //let client: PoolClient | null = null;
+
+    const client = createClient();
+    
 
     try {
-        client = await pool.connect();
-
+   
         // Check if a balance record with the same business number already exists
         const result: QueryResult = await client.query(
             'SELECT * FROM balance WHERE buss_no = $1', 
@@ -73,19 +90,19 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: 'Error creating balance record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 
 // Read all balance records
 router.get('/all', async (req: Request, res: Response) => {
-    let client: PoolClient | null = null;
+    const client = createClient();
 
     console.log('in router.get(/all)')
 
     try {
-        client = await pool.connect();
+       // client = await pool.connect();
 
         const result: QueryResult = await client.query('SELECT * FROM balance');
 
@@ -102,7 +119,7 @@ router.get('/all', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching balance records', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -111,10 +128,10 @@ router.get('/all', async (req: Request, res: Response) => {
 router.get('/:buss_no', async (req: Request, res: Response) => {
     const { buss_no } = req.params;
 
-    let client: PoolClient | null = null;
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+        //client = await pool.connect();
 
         const result: QueryResult = await client.query('SELECT * FROM balance WHERE buss_no = $1', [buss_no]);
 
@@ -128,7 +145,7 @@ router.get('/:buss_no', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching balance record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -138,10 +155,10 @@ router.put('/:buss_no', async (req: Request, res: Response): Promise<void> => {
     const { buss_no } = req.params;
     const balanceData: BalanceData = req.body;
 
-    let client: PoolClient | null = null;
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+        //client = await pool.connect();
 
         // Check if a balance record with the same business number exists
         const result: QueryResult = await client.query(
@@ -175,7 +192,7 @@ router.put('/:buss_no', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: 'Error updating balance record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -184,10 +201,10 @@ router.put('/:buss_no', async (req: Request, res: Response): Promise<void> => {
 router.delete('/:buss_no', async (req: Request, res: Response) => {
     const { buss_no } = req.params;
 
-    let client: PoolClient | null = null;
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+        //client = await pool.connect();
 
         // Check if a balance record with the same business number exists
         const result: QueryResult = await client.query(
@@ -209,7 +226,7 @@ router.delete('/:buss_no', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error deleting balance record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });

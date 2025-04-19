@@ -2,9 +2,24 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
+import { createClient } from '../../db';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection pool configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -16,12 +31,11 @@ const pool = new Pool({
 // Create a new transaction savings record
 router.post('/', async (req, res) => {
     const transSavingsData = req.body;
+    const client = createClient();
     try {
-        const client = await pool.connect();
         const rows = await client.query('SELECT * FROM tb_transSavings WHERE buss_no = $1 AND transdate = $2', [transSavingsData.buss_no, transSavingsData.transdate]);
         if (rows.rowCount > 0) {
             res.status(409).json({ message: 'Transaction Savings record already exists' });
-            client.release();
             return;
         }
         // Insert the new transaction savings data
@@ -39,31 +53,35 @@ router.post('/', async (req, res) => {
             transSavingsData.term,
         ]);
         res.status(201).json({ message: 'Transaction Savings record created successfully' });
-        client.release();
     }
     catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating Transaction Savings record', error: error.message });
     }
+    finally {
+        client.end();
+    }
 });
 // Read all transaction savings records
 router.get('/', async (req, res) => {
+    const client = createClient();
     try {
-        const client = await pool.connect();
         const rows = await client.query('SELECT * FROM transsavings');
         res.json(rows.rows);
-        client.release();
     }
     catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching Transaction Savings records', error: error.message });
     }
+    finally {
+        client.end();
+    }
 });
 // Read a single transaction savings record by buss_no and transdate
 router.get('/:buss_no/:transdate', async (req, res) => {
     const { buss_no, transdate } = req.params;
+    const client = createClient();
     try {
-        const client = await pool.connect();
         const rows = await client.query('SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         if (rows.rowCount > 0) {
             res.json(rows.rows[0]); // Return the first row
@@ -71,23 +89,24 @@ router.get('/:buss_no/:transdate', async (req, res) => {
         else {
             res.status(404).json({ message: 'Transaction Savings record not found' });
         }
-        client.release();
     }
     catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching Transaction Savings record', error: error.message });
+    }
+    finally {
+        client.end();
     }
 });
 // Update a transaction savings record
 router.put('/:buss_no/:transdate', async (req, res) => {
     const { buss_no, transdate } = req.params;
     const transSavingsData = req.body;
+    const client = createClient();
     try {
-        const client = await pool.connect();
         const rows = await client.query('SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         if (rows.rowCount == 0) {
             res.status(404).json({ message: 'Transaction Savings record not found' });
-            client.release();
             return;
         }
         // Update the transaction savings data
@@ -105,32 +124,35 @@ router.put('/:buss_no/:transdate', async (req, res) => {
             buss_no
         ]);
         res.status(200).json({ message: 'Transaction Savings record updated successfully' });
-        client.release();
     }
     catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error updating Transaction Savings record', error: error.message });
     }
+    finally {
+        client.end();
+    }
 });
 // Delete a transaction savings record
 router.delete('/:buss_no/:transdate', async (req, res) => {
     const { buss_no, transdate } = req.params;
+    const client = createClient();
     try {
-        const client = await pool.connect();
         const rows = await client.query('SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         if (rows.rowCount == 0) {
             res.status(404).json({ message: 'Transaction Savings record not found' });
-            client.release();
             return;
         }
         // Delete the transaction savings record
         await client.query('DELETE FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         res.status(200).json({ message: 'Transaction Savings record deleted successfully' });
-        client.release();
     }
     catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting Transaction Savings record', error: error.message });
+    }
+    finally {
+        client.end();
     }
 });
 export default router;

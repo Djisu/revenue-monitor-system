@@ -3,9 +3,24 @@ import express from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
 import multer from 'multer';
+import { createClient } from '../../db';
 const router = express.Router();
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -22,9 +37,8 @@ router.use(express.json());
 // Create a new officer record
 router.post('/create', upload.single('photo'), async (req, res) => {
     const officerData = req.body;
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officerData.officer_no])).rows;
         if (existingOfficer.length > 0) {
             res.status(409).json({ message: 'Officer record already exists' });
@@ -55,7 +69,7 @@ router.post('/create', upload.single('photo'), async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -63,9 +77,8 @@ router.post('/create', upload.single('photo'), async (req, res) => {
 router.put('/update/:officer_no', upload.single('photo'), async (req, res) => {
     const { officer_no } = req.params;
     const officerData = req.body;
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
         if (existingOfficer.length == 0) {
             res.status(409).json({ message: 'Officer record does not exist' });
@@ -86,16 +99,15 @@ router.put('/update/:officer_no', upload.single('photo'), async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 // Delete an officer record
 router.delete('/delete/:officer_no', async (req, res) => {
     const { officer_no } = req.params;
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
         if (existingOfficer.length == 0) {
             res.status(409).json({ message: 'Officer record does not exist' });
@@ -114,16 +126,15 @@ router.delete('/delete/:officer_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 // Read all officer records
 router.get('/all', async (req, res) => {
     console.log('router.get(/all XXXXXXXXX');
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         const result = await client.query(`
             SELECT o.*, p.photo_buffer, p.photo_name, p.photo_type 
             FROM officer o
@@ -147,7 +158,7 @@ router.get('/all', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -155,9 +166,8 @@ router.get('/all', async (req, res) => {
 router.get('/retrieve/:officer_no', async (req, res) => {
     const { officer_no } = req.params;
     console.log('in router.get(/retrieve/:officer_no: ', officer_no);
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         const result = await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no]);
         if (result.rows.length == 0) {
             res.status(404).json({ message: 'Officer record not found' });
@@ -177,16 +187,15 @@ router.get('/retrieve/:officer_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 // Read a single officer record by officer_name
 router.get('/retrieveByName/:officer_name', async (req, res) => {
     const { officer_name } = req.params;
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         const result = await client.query('SELECT * FROM officer WHERE officer_name = $1', [officer_name]);
         if (result.rows.length == 0) {
             res.status(404).json({ message: 'Officer record not found' });
@@ -200,7 +209,7 @@ router.get('/retrieveByName/:officer_name', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });

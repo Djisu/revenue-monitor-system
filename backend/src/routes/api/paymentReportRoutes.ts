@@ -5,11 +5,28 @@ import { Router, Request, Response } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
+import { createClient } from '../../db';
+
+
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -34,8 +51,10 @@ interface PaymentReportData {
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const paymentReportData: PaymentReportData = req.body;
 
+
+const client = createClient();
     try {
-        const result = await pool.query(
+        const result = await client.query(
             'SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2',
             [paymentReportData.buss_no, paymentReportData.fiscalyear]
         );
@@ -45,7 +64,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        await pool.query(
+        await client.query(
             `INSERT INTO paymentreport 
             (transdate, buss_name, amount, receiptno, fiscalyear, officer_no, buss_no) 
             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -61,20 +80,26 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(201).json({ message: 'Payment report record created successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating payment report record', error });
+    }finally{
+        client.end()
     }
 });
 
 // Read all payment report records
 router.get('/', async (req: Request, res: Response) => {
+
+const client = createClient();
     try {
-        const result = await pool.query('SELECT * FROM paymentreport');
+        const result = await client.query('SELECT * FROM paymentreport');
         res.json(result.rows);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching payment report records', error });
+    }finally{
+        client.end()
     }
 });
 
@@ -82,8 +107,10 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
     const { buss_no, fiscalyear } = req.params;
 
+
+const client = createClient();
     try {
-        const result = await pool.query(
+        const result = await client.query(
             'SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2',
             [buss_no, fiscalyear]
         );
@@ -93,9 +120,11 @@ router.get('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
         } else {
             res.status(404).json({ message: 'Payment report record not found' });
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching payment report record', error });
+    }finally{
+        client.end()
     }
 });
 
@@ -104,8 +133,10 @@ router.put('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
     const { buss_no, fiscalyear } = req.params;
     const paymentReportData: PaymentReportData = req.body;
 
+const client = createClient();
+
     try {
-        const result = await pool.query(
+        const result = await client.query(
             'SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2',
             [buss_no, fiscalyear]
         );
@@ -115,7 +146,7 @@ router.put('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
             return;
         }
 
-        await pool.query(
+        await client.query(
             `UPDATE paymentreport 
             SET transdate = $1, buss_name = $2, amount = $3, receiptno = $4, fiscalyear = $5, officer_no = $6 
             WHERE buss_no = $7`,
@@ -131,9 +162,11 @@ router.put('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
         );
 
         res.status(200).json({ message: 'Payment report record updated successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error updating payment report record', error });
+    }finally{
+        client.end()
     }
 });
 
@@ -141,8 +174,10 @@ router.put('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
 router.delete('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
     const { buss_no, fiscalyear } = req.params;
 
+const client = createClient();
+
     try {
-        const result = await pool.query(
+        const result = await client.query(
             'SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2',
             [buss_no, fiscalyear]
         );
@@ -152,14 +187,16 @@ router.delete('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
             return;
         }
 
-        await pool.query('DELETE FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', 
+        await client.query('DELETE FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', 
             [buss_no, fiscalyear]
         );
 
         res.status(200).json({ message: 'Payment report record deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting payment report record', error });
+    }finally{
+        client.end()
     }
 });
 

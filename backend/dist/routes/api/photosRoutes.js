@@ -6,11 +6,26 @@ import * as dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createClient } from '../../db';
 // Load environment variables from .env file
 dotenv.config();
 const BASE_URL = process.env.BASE_URL ||
-    (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+    (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'revenue-monitor-system.onrender.com');
 console.log('Base URL:', BASE_URL);
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // Get the directory name from the current module URL
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,7 +58,7 @@ const upload = multer({
 });
 // Function to retrieve all photos
 const getAllPhotos = async () => {
-    const client = await pool.connect();
+    const client = createClient();
     const sql = 'SELECT officer_no, photo FROM photos';
     try {
         const result = await client.query(sql);
@@ -53,12 +68,12 @@ const getAllPhotos = async () => {
         throw err;
     }
     finally {
-        client.release();
+        client.end();
     }
 };
 // Function to retrieve a photo
 const getPhoto = async (officer_no) => {
-    const client = await pool.connect();
+    const client = createClient();
     const sql = 'SELECT photo FROM photos WHERE officer_no = $1';
     try {
         const result = await client.query(sql, [officer_no]);
@@ -71,12 +86,12 @@ const getPhoto = async (officer_no) => {
         throw err;
     }
     finally {
-        client.release();
+        client.end();
     }
 };
 // Function to delete a photo
 const deletePhoto = async (officer_no) => {
-    const client = await pool.connect();
+    const client = createClient();
     const sql = 'DELETE FROM photos WHERE officer_no = $1 RETURNING *';
     try {
         const result = await client.query(sql, [officer_no]);
@@ -86,7 +101,7 @@ const deletePhoto = async (officer_no) => {
         throw err;
     }
     finally {
-        client.release();
+        client.end();
     }
 };
 // Endpoint to retrieve all photos
@@ -114,7 +129,7 @@ router.post('/store', upload.single('photo'), async (req, res) => {
         // Convert Base64 string to Buffer
         const photoBuffer = Buffer.from(photo, 'base64');
         console.log('about to check if photo already exists for officer_no:', officer_no);
-        const client = await pool.connect();
+        const client = createClient();
         try {
             // Check if the photo already exists for the given officer_no and photo_name
             const result = await client.query('SELECT * FROM photos WHERE officer_no = $1', [officer_no]);
@@ -141,7 +156,7 @@ router.post('/store', upload.single('photo'), async (req, res) => {
             return;
         }
         finally {
-            client.release();
+            client.end();
         }
     }
     catch (err) {
@@ -158,7 +173,7 @@ router.get('/retrieve/:officer_no', async (req, res) => {
         return;
     }
     try {
-        const client = await pool.connect();
+        const client = createClient();
         const sql = 'SELECT photo_buffer, photo_name, photo_type FROM photos WHERE officer_no = $1';
         try {
             const result = await client.query(sql, [officer_no]);
@@ -180,7 +195,7 @@ router.get('/retrieve/:officer_no', async (req, res) => {
             return;
         }
         finally {
-            client.release();
+            client.end();
         }
     }
     catch (err) {
@@ -257,7 +272,8 @@ export default router;
 // });
 // // Function to retrieve all photos
 // const getAllPhotos = async (): Promise<Buffer[]> => {
-//     const client = await pool.connect();
+//     
+//const client = createClient();
 //     const sql = 'SELECT officer_no, photo FROM photos';
 //     try {
 //         const result = await client.query(sql);
@@ -265,7 +281,7 @@ export default router;
 //     } catch (err) {
 //         throw err;
 //     } finally {
-//         client.release();
+//         client.end();
 //     }
 // };
 // // Function to retrieve a photo
@@ -281,7 +297,7 @@ export default router;
 //     } catch (err) {
 //         throw err;
 //     } finally {
-//         client.release();
+//         client.end();
 //     }
 // };
 // // Function to delete a photo

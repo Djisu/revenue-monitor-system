@@ -1,10 +1,25 @@
 import { Router } from 'express';
 import * as dotenv from 'dotenv';
 import pkg from 'pg';
+import { createClient } from '../../db.js'; // Adjust the path as needed
 const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection configuration
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
@@ -17,17 +32,18 @@ const pool = new Pool(dbConfig);
 // Create a new AccReceipt record
 router.post('/create', async (req, res) => {
     console.log('router.post(/create)', req.body);
+    const client = createClient();
     const accReceiptData = req.body;
     console.log(accReceiptData);
     try {
         // Check if an operator permission with the same OperatorID already exists
-        const accReceipt = await pool.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [accReceiptData.batchno, accReceiptData.fiscalyear]);
+        const accReceipt = await client.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [accReceiptData.batchno, accReceiptData.fiscalyear]);
         if (accReceipt.rows.length > 0) {
             res.status(409).json({ message: 'Account reception with this batch number and fiscal year already exists.' });
             return;
         }
         // Insert the new AccReceipt data
-        const result = await pool.query(`INSERT INTO accreceipt (fiscalyear, batchno, firstno, lastno) 
+        const result = await client.query(`INSERT INTO accreceipt (fiscalyear, batchno, firstno, lastno) 
             VALUES ($1, $2, $3, $4)`, [
             accReceiptData.fiscalyear,
             accReceiptData.batchno,
@@ -45,8 +61,9 @@ router.post('/create', async (req, res) => {
 // Read all AccReceipt records
 router.get('/all', async (req, res) => {
     console.log('in router.get(/all)');
+    const client = createClient();
     try {
-        const rows = await pool.query('SELECT * FROM accreceipt');
+        const rows = await client.query('SELECT * FROM accreceipt');
         console.log(rows.rows);
         res.status(200).json({ message: 'AccReceipts fetched successfully', data: rows.rows });
     }
@@ -58,9 +75,10 @@ router.get('/all', async (req, res) => {
 // Read a single AccReceipt by ID (batchno)
 router.get('/:batchno/:fiscalyear', async (req, res) => {
     const { batchno, fiscalyear } = req.params;
+    const client = createClient();
     try {
         // Check if an operator permission with the same OperatorID already exists
-        const accReceipt = await pool.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [batchno, fiscalyear]);
+        const accReceipt = await client.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [batchno, fiscalyear]);
         if (accReceipt.rows.length == 0) {
             res.status(404).json({ message: 'Account reception with this batch number and fiscal year does not exist.' });
             return;
@@ -76,15 +94,16 @@ router.get('/:batchno/:fiscalyear', async (req, res) => {
 router.put('/:batchno/:fiscalyear', async (req, res) => {
     const { batchno, fiscalyear } = req.params;
     const accReceiptData = req.body;
+    const client = createClient();
     try {
         // Check if an operator permission with the same OperatorID already exists
-        const accReceipt = await pool.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [accReceiptData.batchno, accReceiptData.fiscalyear]);
+        const accReceipt = await client.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [accReceiptData.batchno, accReceiptData.fiscalyear]);
         if (accReceipt.rows.length > 0 && (accReceipt.rows[0].batchno != batchno || accReceipt.rows[0].fiscalyear != Number(fiscalyear))) {
             res.status(409).json({ message: 'Operator permission with this OperatorID already exists.' });
             return;
         }
         // Update the AccReceipt data
-        const result = await pool.query(`UPDATE accreceipt SET fiscalyear = $1, firstno = $2, lastno = $3 
+        const result = await client.query(`UPDATE accreceipt SET fiscalyear = $1, firstno = $2, lastno = $3 
             WHERE batchno = $4 AND fiscalyear = $5`, [
             accReceiptData.fiscalyear,
             accReceiptData.firstno,
@@ -109,7 +128,8 @@ router.delete('/:batchno/:fiscalyear', async (req, res) => {
     const { batchno, fiscalyear } = req.params;
     try {
         // Delete the AccReceipt record
-        const result = await pool.query('DELETE FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [batchno, fiscalyear]);
+        const client = createClient();
+        const result = await client.query('DELETE FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [batchno, fiscalyear]);
         if (result.rowCount > 0) {
             res.status(200).json({ message: 'AccReceipt deleted successfully' });
         }

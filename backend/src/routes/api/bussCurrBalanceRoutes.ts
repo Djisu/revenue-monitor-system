@@ -5,12 +5,27 @@ import { Router, Request, Response } from 'express';
 import pg from 'pg'
 const { Pool } = pg
 import {PoolClient} from 'pg'
+import { createClient } from '../../db.js';
 
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection pool configuration
 const pool = new Pool({
@@ -36,7 +51,7 @@ interface BussCurrBalanceData {
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const bussCurrBalanceData: BussCurrBalanceData = req.body;
 
-    const client: PoolClient = await pool.connect();
+    const client = createClient();
     
     try {
         const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2',
@@ -70,13 +85,14 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: 'Error creating BussCurrBalance record', error });
         return
     } finally {
-        client.release();
+        client.end();
     }
 });
 
 // Read all BussCurrBalance records
 router.get('/', async (req: Request, res: Response) => {
-    const client: PoolClient = await pool.connect();
+    const client = createClient();
+
     try {
         const { rows } = await client.query('SELECT * FROM busscurrbalance');
         res.json(rows);
@@ -86,7 +102,7 @@ router.get('/', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching busscurrbalance records', error });
         return
     } finally {
-        client.release();
+        client.end();
     }
 });
 
@@ -94,7 +110,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
     const { buss_no, fiscalyear } = req.params;
 
-    const client: PoolClient = await pool.connect();
+   const client = createClient();
 
     try {
         const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
@@ -111,7 +127,7 @@ router.get('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching busscurrbalance record', error });
         return
     } finally {
-        client.release();
+        client.end();
     }
 });
 
@@ -120,7 +136,8 @@ router.put('/:buss_no/:fiscalyear', async (req: Request, res: Response): Promise
     const { buss_no } = req.params;
     const bussCurrBalanceData: BussCurrBalanceData = req.body;
 
-    const client: PoolClient = await pool.connect();
+    const client = createClient();
+
     try {
         const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2',
          [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]
@@ -155,7 +172,7 @@ router.put('/:buss_no/:fiscalyear', async (req: Request, res: Response): Promise
         res.status(500).json({ message: 'Error updating BussCurrBalance record', error });
         return
     } finally {
-        client.release();
+        client.end();
     }
 });
 
@@ -163,7 +180,7 @@ router.put('/:buss_no/:fiscalyear', async (req: Request, res: Response): Promise
 router.delete('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
     const { buss_no, fiscalyear } = req.params;
 
-    const client: PoolClient = await pool.connect();
+    const client = createClient();
 
     try {
         const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2',
@@ -185,7 +202,7 @@ router.delete('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error deleting BussCurrBalance record', error });
         return
     } finally {
-        client.release();
+        client.end();
     }
 });
 

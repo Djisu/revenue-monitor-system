@@ -6,11 +6,28 @@ import pkg from 'pg';
 import type { PoolClient } from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
+import { createClient } from '../../db';
+
+
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // Postgres connection configuration
 const pool = new Pool({
@@ -35,8 +52,10 @@ interface ReceiptData {
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const receiptData: ReceiptData = req.body;
 
+
+const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
+        const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
                 [receiptData.buss_no, receiptData.receiptno]
         );
 
@@ -46,7 +65,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Insert the new receipt data
-        await pool.query(
+        await client.query(
             `INSERT INTO receipt 
             (buss_no, receiptno, description, transdate, amount, buss_name) 
             VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -61,20 +80,26 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(201).json({ message: 'Receipt record created successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating receipt record', error });
+    }finally{
+        client.end()
     }
 });
 
 // Read all receipt records
 router.get('/', async (req: Request, res: Response) => {
+
+const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM receipt');
+        const { rows } = await client.query('SELECT * FROM receipt');
         res.json(rows);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching receipt records', error });
+    }finally{
+        client.end()
     }
 });
 
@@ -84,8 +109,10 @@ router.get('/:buss_no/:receiptno', async (req: Request, res: Response) => {
 
     console.log('in router.get(/:buss_no/:receiptno', { buss_no, receiptno })
 
+const client = createClient();
+
     try {
-        const { rows } = await pool.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
+        const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
              [buss_no, receiptno]
         );
 
@@ -94,9 +121,11 @@ router.get('/:buss_no/:receiptno', async (req: Request, res: Response) => {
             return;
         }
         res.json(rows[0]); // Return the first row
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching receipt record', error });
+    }finally{
+        client.end()
     }
 });
 
@@ -105,8 +134,10 @@ router.put('/:buss_no/:receiptno', async (req: Request, res: Response): Promise<
     const { receiptno } = req.params;
     const receiptData: ReceiptData = req.body;
 
+const client = createClient();
+
     try {
-        const { rows } = await pool.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
+        const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
              [receiptData.buss_no, receiptno]
         );
 
@@ -116,7 +147,7 @@ router.put('/:buss_no/:receiptno', async (req: Request, res: Response): Promise<
         }
 
         // Update the receipt data
-        await pool.query(
+        await client.query(
             `UPDATE receipt 
             SET buss_no = $1, description = $2, transdate = $3, amount = $4, buss_name = $5 
             WHERE receiptno = $6`,
@@ -131,9 +162,11 @@ router.put('/:buss_no/:receiptno', async (req: Request, res: Response): Promise<
         );
     
         res.status(200).json({ message: 'Receipt record updated successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error updating receipt record', error });
+    }finally{
+        client.end()
     }
 });
 
@@ -141,8 +174,10 @@ router.put('/:buss_no/:receiptno', async (req: Request, res: Response): Promise<
 router.delete('/:buss_no/:receiptno', async (req: Request, res: Response) => {
     const { receiptno, buss_no } = req.params;
 
+const client = createClient();
+
     try {
-        const { rows } = await pool.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
+        const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
             [buss_no, receiptno]
         );
 
@@ -155,9 +190,11 @@ router.delete('/:buss_no/:receiptno', async (req: Request, res: Response) => {
         await pool.query('DELETE FROM receipt WHERE receiptno = $1', [receiptno]);
      
         res.status(200).json({ message: 'Receipt record deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting receipt record', error });
+    }finally{
+        client.end()
     }
 });
 

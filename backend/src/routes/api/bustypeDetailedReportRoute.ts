@@ -6,9 +6,26 @@ import { QueryResult, PoolClient } from 'pg';
 
 import pkg from 'pg';
 import { Business } from '../../models/Business';
+import { createClient } from '../../db.js';
+
+
 const { Pool } = pkg;
 
 dotenv.config(); // Load .env file from the default location
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection configuration
 const dbConfig = {
@@ -54,6 +71,7 @@ const pool = new Pool({
 // Create
 router.post('/', async (req: Request<{}, {}, BusTypeDetailedReport>, res: Response) => {
     const report: BusTypeDetailedReport = req.body;
+    const client = createClient();
 
     const query = `
         INSERT INTO bustypedetailedreport (electoral_area, buss_no, buss_name, buss_type, amountdue, amountpaid, balance, tot_grade) 
@@ -62,18 +80,18 @@ router.post('/', async (req: Request<{}, {}, BusTypeDetailedReport>, res: Respon
     const values = [report.electoral_area, report.buss_no, report.buss_name, report.buss_type, report.amountdue, report.amountpaid, report.balance, report.tot_grade];
     
     try {
-        const client: PoolClient = await pool.connect();
-
         await client.query(query, values);
         res.status(201).send('Report created');
     } catch (error) {
         console.error(error);
         res.status(500).send('Error creating report');
+    }finally{
+        client.end()
     }
 });
 
 router.get('/', async (req: Request, res: Response): Promise<void> => {
-    const client: PoolClient = await pool.connect();
+    const client = createClient();
     
     try {
         const result = await client.query('SELECT * FROM bustypedetailedreport');
@@ -90,7 +108,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         res.status(500).send('Error fetching records');
         return 
     } finally {
-        client.release();
+        client.end();
     }
 });
 
@@ -116,9 +134,9 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // Read One
 router.get('/:buss_no', async (req: Request<{ buss_no: string }>, res: Response) => {
     const buss_no = parseInt(req.params.buss_no);
-    try {
-        const client: PoolClient = await pool.connect();
 
+     const client = createClient();
+    try {
         const result = await client.query('SELECT * FROM bustypedetailedreport WHERE buss_no = $1', [buss_no]);
         if (result.rows.length > 0) {
             res.status(200).json(result.rows[0]);
@@ -128,6 +146,8 @@ router.get('/:buss_no', async (req: Request<{ buss_no: string }>, res: Response)
     } catch (error) {
         console.error(error);
         res.status(500).send('Error retrieving report');
+    }finally{
+        client.end()
     }
 });
 
@@ -141,10 +161,8 @@ router.put('/:buss_no', async (req: Request<{ buss_no: string }, {}, BusTypeDeta
         WHERE buss_no = $8
     `;
     const values = [report.electoral_area, report.buss_name, report.buss_type, report.amountdue, report.amountpaid, report.balance, report.tot_grade, buss_no];
-
+    const client = createClient();
     try {
-        const client: PoolClient = await pool.connect();
-
         const result = await client.query(query, values);
 
         if (result.rowCount === 0) {
@@ -152,18 +170,20 @@ router.put('/:buss_no', async (req: Request<{ buss_no: string }, {}, BusTypeDeta
         } else {
             res.status(200).send({message: 'Report updated', data: result});
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).send({message: 'Error updating report', data: 0});
+    }finally{
+        client.end()
     }
 });
 
 // Delete
 router.delete('/:buss_no', async (req: Request<{ buss_no: string }>, res: Response) => {
     const buss_no = parseInt(req.params.buss_no);
-    try {
-        const client: PoolClient = await pool.connect();
+     const client = createClient();
 
+    try {
         const result = await client.query('DELETE FROM bustypedetailedreport WHERE buss_no = $1', [buss_no]);
 
         if (result.rowCount === 0) {
@@ -174,11 +194,15 @@ router.delete('/:buss_no', async (req: Request<{ buss_no: string }>, res: Respon
     } catch (error) {
         console.error(error);
         res.status(500).send({message: 'Error deleting report', data: 0});
+    }finally{
+        client.end()
     }
 });
 
 
 router.get('/:zone/:businessType/:newFiscalYear', async (req: Request<{ zone: string, businessType: string, newFiscalYear: string }>, res: Response): Promise<Response | void | any> => {
+    
+    const client = createClient();
     try {
         const zone = req.params.zone;   
         const businessType = req.params.businessType; 
@@ -194,7 +218,7 @@ router.get('/:zone/:businessType/:newFiscalYear', async (req: Request<{ zone: st
             return res.status(400).json({ message: 'Invalid fiscal year provided' });
         }
 
-        const client: PoolClient = await pool.connect();
+        
         console.log('about to delete');
         await client.query('DELETE FROM bustypedetailedreport');
 
@@ -295,6 +319,8 @@ router.get('/:zone/:businessType/:newFiscalYear', async (req: Request<{ zone: st
     } catch (error: any) {
         console.error(error);
         return res.status(500).json({ message: 'Error retrieving reports', error: error.message });
+    }finally{
+        client.end()
     }
 });
 

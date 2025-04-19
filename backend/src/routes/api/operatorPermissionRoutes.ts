@@ -7,11 +7,27 @@ const { Pool } = pkg;
 //import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 import bcrypt from 'bcrypt';
+import { createClient } from '../../db';
+
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -36,10 +52,11 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const operatorPermissionData: OperatorPermissionData = req.body;
     console.log('in router.post(/create) permission:', operatorPermissionData.operatorid);    
 
-    let client = null;
-
+    
+  const client = createClient();
     try {
-        client = await pool.connect();
+       
+     
 
         // Check if an operator permission with the same operatorid already exists
         const existingPermissionResult = await client.query(
@@ -80,22 +97,23 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(201).json({ message: 'Operator permission created successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating operator permission' });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 
 // Read all operator permissions
 router.get('/all', async (req: Request, res: Response) => {
-    let client = null;
-
+    
+const client = createClient();
     try {
-        client = await pool.connect();
+       
+
         const result = await client.query('SELECT * FROM operatorpermission');
 
         if (result.rows.length === 0) {
@@ -104,12 +122,12 @@ router.get('/all', async (req: Request, res: Response) => {
         }
 
         res.status(200).json({ message: 'Records found', data: result.rows });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching operator permissions' });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -118,10 +136,11 @@ router.get('/all', async (req: Request, res: Response) => {
 router.get('/:OperatorID', async (req: Request, res: Response) => {
     const { operatorid } = req.params;
 
-    let client = null;
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
+
         const result = await client.query('SELECT * FROM operatorpermission WHERE operatorid = $1', [operatorid]);
 
         if (result.rowCount === 0) {
@@ -130,12 +149,12 @@ router.get('/:OperatorID', async (req: Request, res: Response) => {
         }
 
         res.status(200).json({ message: 'Successfully retrieved', data: result.rows[0] });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching operator permission' });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -145,10 +164,11 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
     const { OperatorID } = req.params;
     const operatorPermissionData: OperatorPermissionData = req.body;
 
-    let client = null;
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
+
 
         // Check if an operator permission with the same OperatorID exists
         const existingPermissionResult = await client.query(
@@ -178,12 +198,12 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
         );
 
         res.status(200).json({ message: 'Operator permission updated successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error updating operator permission' });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -191,11 +211,10 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
 // Delete an operator permission record
 router.delete('/:operatorID', async (req: Request, res: Response) => {
     const { operatorID } = req.params;
-
-    let client = null;
-
+ const client = createClient();
     try {
-        client = await pool.connect();
+       
+       
 
         // Check if an operator permission with the same OperatorID exists
         const existingPermissionResult = await client.query(
@@ -210,12 +229,12 @@ router.delete('/:operatorID', async (req: Request, res: Response) => {
 
         await client.query('DELETE FROM operatorpermission WHERE operatorid = $1', [operatorID]);
         res.status(200).json({ message: 'Operator permission deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting operator permission' });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
