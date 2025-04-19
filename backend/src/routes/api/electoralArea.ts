@@ -6,6 +6,9 @@ import { Router, Request, Response } from 'express';
 import { QueryResult, PoolClient } from 'pg';
 
 import pkg from 'pg'
+import { createClient } from '../../db.js';
+
+
 const { Pool } = pkg
 
 // import { QueryResult, PoolClient } from 'pg';
@@ -18,6 +21,20 @@ const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection pool configuration
 const dbConfig = {
@@ -41,9 +58,10 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
     const electoralAreaData: ElectoralAreaData = req.body;
 
-    let client = null;
+    
+    const client = createClient();
     try {
-        client = await pool.connect();
+       
 
         // Check for existing electoral area record
         const result: QueryResult = await client.query(
@@ -69,16 +87,17 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 
 // Read all electoral area records
 router.get('/all', async (req: Request, res: Response): Promise<void> => {
-    let client = null;
+    
+     const client = createClient();
     try {
-        client = await pool.connect();
+      
 
         const result: QueryResult = await client.query('SELECT * FROM electoralarea');
 
@@ -94,7 +113,7 @@ router.get('/all', async (req: Request, res: Response): Promise<void> => {
         return
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -103,9 +122,10 @@ router.get('/all', async (req: Request, res: Response): Promise<void> => {
 router.get('/:electoral_area', async (req: Request, res: Response) => {
     const { electoral_area } = req.params;
 
-    let client = null;
+  
+     const client = createClient();
     try {
-        client = await pool.connect();
+      
 
         const result: QueryResult = await client.query(
             'SELECT * FROM electoralarea WHERE electoral_area = $1',
@@ -122,7 +142,7 @@ router.get('/:electoral_area', async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: 'Error fetching electoral area record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -132,10 +152,8 @@ router.put('/:electoral_area', async (req: Request, res: Response): Promise<void
     const { electoral_area } = req.params;
     const electoralAreaData: ElectoralAreaData = req.body;
 
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
-
         // Check for existing electoral area record
         const result: QueryResult = await client.query(
             'SELECT * FROM electoralarea WHERE electoral_area = $1',
@@ -162,7 +180,7 @@ router.put('/:electoral_area', async (req: Request, res: Response): Promise<void
         res.status(500).json({ success: false, message: 'Error updating electoral area record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -173,9 +191,9 @@ router.delete('/delete/:electoral_area', async (req: Request, res: Response) => 
 
     const { electoral_area } = req.params;
 
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
+      
 
         // Check for existing electoral area record
         const result: QueryResult = await client.query(
@@ -200,7 +218,7 @@ router.delete('/delete/:electoral_area', async (req: Request, res: Response) => 
         res.status(500).json({ success: false, message: 'Error deleting electoral area record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });

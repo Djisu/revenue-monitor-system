@@ -6,11 +6,27 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 import bcrypt from 'bcrypt';
+import { createClient } from '../../db';
+
+
 
 const router: Router = express.Router();
 
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -39,7 +55,8 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
     console.log('operatorData:', operatorData);
 
-    let client = null;
+    
+const client = createClient();
 
     try {
         // Validate required fields
@@ -51,7 +68,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
             }
         }
 
-        client = await pool.connect();
+       
 
         // Check if an operator with the same OperatorID already exists
         const existingOperatorByOperatorID = await client.query(
@@ -126,12 +143,12 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(201).json({ message: 'Operator created successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating operator', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -140,10 +157,11 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 router.get('/all', async (req: Request, res: Response) => {
     console.log('in operator definition router.get(all');
 
-    let client = null;
+    
+const client = createClient();
 
     try {
-        client = await pool.connect();
+       
 
         const rows = await client.query('SELECT * FROM operatordefinition');
         if (rows.rows.length == 0) {
@@ -152,12 +170,12 @@ router.get('/all', async (req: Request, res: Response) => {
         }
 
         res.status(200).json(rows.rows);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching operators', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -166,10 +184,11 @@ router.get('/all', async (req: Request, res: Response) => {
 router.get('/:OperatorID', async (req: Request, res: Response) => {
     const { OperatorID } = req.params;
 
-    let client = null;
+    
+const client = createClient();
 
     try {
-        client = await pool.connect();
+       
 
         const result = await client.query(
             'SELECT * FROM operatordefinition WHERE OperatorID = $1', 
@@ -182,12 +201,12 @@ router.get('/:OperatorID', async (req: Request, res: Response) => {
         }
         res.status(200).json(result.rows[0]); // Return the first row
         return;
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching operator', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -197,10 +216,11 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
     const { OperatorID } = req.params;
     const operatorData: OperatorDefinition = req.body;
 
-    let client = null;
+    
+const client = createClient();
 
     try {
-        client = await pool.connect();
+       
 
         // Check if an operator with the same OperatorID already exists
         const result = await client.query(
@@ -228,13 +248,13 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
       
         res.status(200).json({ message: 'Operator updated successfully' });
         return;
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error updating operator', error });
         return;
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -243,10 +263,11 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
 router.delete('/:OperatorID', async (req: Request, res: Response): Promise<void> => {
     const { OperatorID } = req.params;
 
-    let client = null;
+    
+const client = createClient();
 
     try {
-        client = await pool.connect();
+       
 
         // Check if an operator with the same OperatorID already exists
         const result = await client.query(
@@ -264,12 +285,12 @@ router.delete('/:OperatorID', async (req: Request, res: Response): Promise<void>
        
         res.status(200).json({ message: 'Operator deleted successfully' });
        
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting operator', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });

@@ -1,10 +1,25 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
+import { createClient } from '../../db.js';
 const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -17,6 +32,7 @@ const pool = new Pool({
 router.post('/create', async (req, res) => {
     const gradeFeesData = req.body;
     console.log('in router.post(/create gradeFeesData: ', gradeFeesData);
+    const client = createClient();
     // Validate request values
     if (!gradeFeesData.buss_type || !gradeFeesData.grade || !gradeFeesData.description || !gradeFeesData.fees) {
         res.status(400).json({ message: 'Grade Fees data is missing' });
@@ -43,9 +59,13 @@ router.post('/create', async (req, res) => {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating GradeFees record', error: error.message });
     }
+    finally {
+        client.end();
+    }
 });
 // Read all GradeFees records
 router.get('/all', async (req, res) => {
+    const client = createClient();
     try {
         const result = await pool.query('SELECT * FROM gradefees');
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -58,10 +78,14 @@ router.get('/all', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching GradeFees records', error: error.message });
     }
+    finally {
+        client.end();
+    }
 });
 // Read a single GradeFees record by buss_type and grade
 router.get('/:buss_type/:grade', async (req, res) => {
     const { buss_type, grade } = req.params;
+    const client = createClient();
     try {
         const result = await pool.query('SELECT * FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
         if (result.rows.length === 0) {
@@ -75,11 +99,15 @@ router.get('/:buss_type/:grade', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching Grade Fees record', error: error.message });
     }
+    finally {
+        client.end();
+    }
 });
 // Update a GradeFees record
 router.put('/:buss_type/:grade', async (req, res) => {
     const { buss_type, grade } = req.params;
     const gradeFeesData = req.body;
+    const client = createClient();
     try {
         const result = await pool.query('SELECT * FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
         if (result.rows.length > 0) {
@@ -100,10 +128,14 @@ router.put('/:buss_type/:grade', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error updating GradeFees record', error: error.message });
     }
+    finally {
+        client.end();
+    }
 });
 // Delete a GradeFees record
 router.delete('/:buss_type/:grade', async (req, res) => {
     const { buss_type, grade } = req.params;
+    const client = createClient();
     try {
         const result = await pool.query('SELECT * FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
         if (result.rows.length === 0) {
@@ -117,6 +149,9 @@ router.delete('/:buss_type/:grade', async (req, res) => {
     catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting GradeFees record', error: error.message });
+    }
+    finally {
+        client.end();
     }
 });
 export default router;

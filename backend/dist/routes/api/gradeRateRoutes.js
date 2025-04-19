@@ -1,10 +1,25 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
+import { createClient } from '../../db.js';
 const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -16,6 +31,7 @@ const pool = new Pool({
 // Create a new GradeRate record
 router.post('/create', async (req, res) => {
     const gradeRateData = req.body;
+    const client = createClient();
     console.log('in router.post /create GradeRate data:', gradeRateData);
     // Validate request values
     if (!gradeRateData.grade || !gradeRateData.minValue || !gradeRateData.maxValue || !gradeRateData.rate) {
@@ -23,13 +39,13 @@ router.post('/create', async (req, res) => {
         return;
     }
     try {
-        const { rows } = await pool.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [gradeRateData.grade, gradeRateData.minValue, gradeRateData.maxValue]);
+        const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [gradeRateData.grade, gradeRateData.minValue, gradeRateData.maxValue]);
         if (Array.isArray(rows) && rows.length > 0) {
             res.status(409).json({ success: true, message: 'GradeRate record already exists', rate: 0 });
             return;
         }
         // Insert the new GradeRate data
-        const result = await pool.query(`INSERT INTO graderate (grade, minValuex, maxValuex, rate) 
+        const result = await client.query(`INSERT INTO graderate (grade, minValuex, maxValuex, rate) 
             VALUES ($1, $2, $3, $4)`, [
             gradeRateData.grade,
             gradeRateData.minValue,
@@ -42,23 +58,31 @@ router.post('/create', async (req, res) => {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating GradeRate record', error: error.message });
     }
+    finally {
+        client.end();
+    }
 });
 // Read all GradeRate records
 router.get('/all', async (req, res) => {
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM graderate');
+        const { rows } = await client.query('SELECT * FROM graderate');
         res.status(200).json({ success: true, data: rows });
     }
     catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching GradeRate records', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Read a single GradeRate record by grade
 router.get('/:grade/:minValuex/:maxValuex', async (req, res) => {
     const { grade, minValuex, maxValuex } = req.params;
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [grade, minValuex, maxValuex]);
+        const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [grade, minValuex, maxValuex]);
         if (Array.isArray(rows) && rows.length === 0) {
             res.status(404).json({ success: false, message: 'GradeRate record not found' });
         }
@@ -70,19 +94,23 @@ router.get('/:grade/:minValuex/:maxValuex', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching GradeRate record', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Update a GradeRate record
 router.put('/:grade/:minValuex/:maxValuex', async (req, res) => {
     const { grade, minValuex, maxValuex } = req.params;
     const gradeRateData = req.body;
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [grade, minValuex, maxValuex]);
+        const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [grade, minValuex, maxValuex]);
         if (Array.isArray(rows) && rows.length == 0) {
             res.status(400).json({ message: 'GradeRate record does not exist' });
             return;
         }
         // Update the GradeRate data
-        await pool.query(`UPDATE graderate SET rate = $1 
+        await client.query(`UPDATE graderate SET rate = $1 
             WHERE grade = $2 AND minValuex = $3 AND maxValuex = $4`, [
             gradeRateData.rate,
             grade,
@@ -95,12 +123,16 @@ router.put('/:grade/:minValuex/:maxValuex', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error updating GradeRate record', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Delete a GradeRate record
 router.delete('/delete/:grade/:minValuex/:maxValuex', async (req, res) => {
     const { grade, minValuex, maxValuex } = req.params;
+    const client = createClient();
     try {
-        const { rows } = await pool.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [grade, minValuex, maxValuex]);
+        const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [grade, minValuex, maxValuex]);
         if (Array.isArray(rows) && rows.length === 0) {
             res.status(400).json({ message: 'GradeRate record does not exist' });
             return;
@@ -112,6 +144,9 @@ router.delete('/delete/:grade/:minValuex/:maxValuex', async (req, res) => {
     catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting GradeRate record', error });
+    }
+    finally {
+        client.end();
     }
 });
 export default router;

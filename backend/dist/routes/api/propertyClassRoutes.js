@@ -3,9 +3,24 @@ import { Router } from 'express';
 import * as dotenv from 'dotenv';
 import pkg from 'pg';
 const { Pool } = pkg;
+import { createClient } from '../../db';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -23,38 +38,47 @@ router.post('/create', async (req, res) => {
         res.status(400).json({ success: false, message: 'Property class and rate are required' });
         return;
     }
+    const client = createClient();
     try {
-        const result = await pool.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
+        const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
         if (result.rows.length > 0) {
             res.status(409).json({ message: 'Property class record already exists' });
             return;
         }
         // Insert the new property class data
-        await pool.query(`INSERT INTO propertyclass (property_class, rate) 
+        await client.query(`INSERT INTO propertyclass (property_class, rate) 
             VALUES ($1, $2)`, [property_class, rate]);
         res.status(201).json({ success: true, message: 'Property class record created successfully' });
     }
     catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ success: false, message: 'Error creating property class record', error });
+        res.status(500).json({ success: false, message: 'Error creating property class record', error: error.message });
+    }
+    finally {
+        client.end();
     }
 });
 // Read all property class records
 router.get('/all', async (req, res) => {
+    const client = createClient();
     try {
-        const result = await pool.query('SELECT * FROM propertyclass');
+        const result = await client.query('SELECT * FROM propertyclass');
         res.status(200).json({ success: true, data: result.rows });
     }
     catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Error fetching property class records', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Read a single property class record by property_class
 router.get('/:property_class', async (req, res) => {
     const { property_class } = req.params;
+    const client = createClient();
     try {
-        const result = await pool.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
+        const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
         if (result.rows.length > 0) {
             res.status(200).json({ success: true, data: result.rows[0] });
         }
@@ -66,19 +90,23 @@ router.get('/:property_class', async (req, res) => {
         console.error(error);
         res.status(500).json({ success: false, message: 'Error fetching property class record', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Update a property class record
 router.put('/:property_class', async (req, res) => {
     const { property_class } = req.params;
     const propertyClassData = req.body;
+    const client = createClient();
     try {
-        const result = await pool.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
+        const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
         if (result.rows.length === 0) {
             res.status(404).json({ success: false, message: 'Property class record not found' });
             return;
         }
         // Update the property class data
-        await pool.query(`UPDATE propertyclass 
+        await client.query(`UPDATE propertyclass 
             SET rate = $1 
             WHERE property_class = $2`, [propertyClassData.rate, property_class]);
         res.status(200).json({ success: true, message: 'Property class record updated successfully' });
@@ -91,14 +119,15 @@ router.put('/:property_class', async (req, res) => {
 // Delete a property class record
 router.delete('/delete/:property_class', async (req, res) => {
     const { property_class } = req.params;
+    const client = createClient();
     try {
-        const result = await pool.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
+        const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
         if (result.rows.length === 0) {
             res.status(404).json({ success: false, message: 'Property class record not found' });
             return;
         }
         // Delete the property class record
-        await pool.query('DELETE FROM propertyclass WHERE property_class = $1', [property_class]);
+        await client.query('DELETE FROM propertyclass WHERE property_class = $1', [property_class]);
         res.status(200).json({ success: true, message: 'Property class record deleted successfully' });
     }
     catch (error) {

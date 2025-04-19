@@ -7,11 +7,28 @@ import pkg from 'pg';
 import type { PoolClient } from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
+import { createClient } from '../../db';
+
+
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -134,10 +151,11 @@ interface OfficerBudgetWeeklyData {
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const officerBudgetWeeklyData: OfficerBudgetWeeklyData = req.body;
 
-    let client: PoolClient | null = null;
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
+       
         const existingRecord = await client.query(
             `SELECT * FROM officerbudgetweekly WHERE officer_no = $1 AND fiscal_year = $2`,
             [officerBudgetWeeklyData.officer_no, officerBudgetWeeklyData.fiscal_year]
@@ -287,22 +305,23 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(201).json({ message: 'Officer budget weekly record created successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating officer budget weekly record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 
 // Read all officer budget weekly records
 router.get('/', async (req: Request, res: Response) => {
-    let client: PoolClient | null = null;
+   const client = createClient();
 
     try {
-        client = await pool.connect();
+       
+
         const result: QueryResult = await client.query('SELECT * FROM officerbudgetweekly');
         res.json(result.rows);
     } catch (error) {
@@ -310,7 +329,7 @@ router.get('/', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error in getting officer budget weekly records', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -319,10 +338,11 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:id/:fiscal_year', async (req: Request, res: Response) => {
     const { id, fiscal_year } = req.params;
 
-    let client: PoolClient | null = null;
-
+   
+const client = createClient();
     try {
-        client = await pool.connect();
+       
+
         const result: QueryResult = await client.query(
             'SELECT * FROM officerbudgetweekly WHERE id = $1 AND fiscal_year = $2',
             [id, fiscal_year]
@@ -338,7 +358,7 @@ router.get('/:id/:fiscal_year', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error in getting officer budget weekly record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -348,10 +368,11 @@ router.put('/:id/:fiscal_year', async (req: Request, res: Response): Promise<voi
     const { id, fiscal_year } = req.params;
     const officerBudgetWeeklyData: OfficerBudgetWeeklyData = req.body;
 
-    let client: PoolClient | null = null;
+          
+const client = createClient();
 
     try {
-        client = await pool.connect();
+
         const result: QueryResult = await client.query(
             'SELECT * FROM officerbudgetweekly WHERE id = $1 AND fiscal_year = $2',
             [id, fiscal_year]
@@ -507,7 +528,7 @@ router.put('/:id/:fiscal_year', async (req: Request, res: Response): Promise<voi
         res.status(500).json({ message: 'Error updating officer budget weekly record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -516,10 +537,11 @@ router.put('/:id/:fiscal_year', async (req: Request, res: Response): Promise<voi
 router.delete('/:id/:fiscal_year', async (req: Request, res: Response): Promise<void> => {
     const { id, fiscal_year } = req.params;
 
-    let client: PoolClient | null = null;
+   const client = createClient();
 
     try {
-        client = await pool.connect();
+       
+
         const result: QueryResult = await client.query(
             'SELECT * FROM officerbudgetweekly WHERE id = $1 AND fiscal_year = $2',
             [id, fiscal_year]
@@ -539,17 +561,18 @@ router.delete('/:id/:fiscal_year', async (req: Request, res: Response): Promise<
         res.status(500).json({ message: 'Error deleting officer budget weekly record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 
 // Helper function to get fiscal years
 async function getFiscalYears(): Promise<number[]> {
-    let client: PoolClient | null = null;
+   const client = createClient();
 
     try {
-        client = await pool.connect();
+       
+
         const result: QueryResult = await client.query(
             'SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year'
         );
@@ -560,17 +583,18 @@ async function getFiscalYears(): Promise<number[]> {
         throw err;
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 }
 
 // Helper function to get officers
 async function getOfficers(): Promise<Officer[]> {
-    let client: PoolClient | null = null;
-
+   
+const client = createClient();
     try {
-        client = await pool.connect();
+       
+
         const result: QueryResult = await client.query(
             'SELECT officer_no, officer_name FROM officer'
         );
@@ -581,17 +605,18 @@ async function getOfficers(): Promise<Officer[]> {
         throw err;
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 }
 
 // Helper function to get amount by officer and month
 async function getAmountByOfficerAndMonth(officerNo: string, fiscalYear: number, monthPaid: string): Promise<number | null> {
-    let client: PoolClient | null = null;
-
+   
+const client = createClient();
     try {
-        client = await pool.connect();
+       
+
         const result: QueryResult = await client.query(
             `SELECT 
                 SUM(amount) AS totsum 
@@ -608,34 +633,36 @@ async function getAmountByOfficerAndMonth(officerNo: string, fiscalYear: number,
         throw err;
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 }
 
 // Helper function to delete officer month assess
 async function deleteOfficerMonthAssess() {
-    let client: PoolClient | null = null;
+   const client = createClient();
 
     try {
-        client = await pool.connect();
+       
+
         await client.query('DELETE FROM officermonthassess');
     } catch (err) {
         console.error('Error deleting officer month assess:', err);
         throw err;
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 }
 
 // Helper function to insert officer month assess
 async function insertOfficerMonthAssess(data: OfficerMonthlyPerformance[]) {
-    let client: PoolClient | null = null;
+   const client = createClient();
 
     try {
-        client = await pool.connect();
+       
+
 
         const insertQuery = `
             INSERT INTO officermonthassess (officer_name, month, amount, fiscalyear) 
@@ -649,7 +676,7 @@ async function insertOfficerMonthAssess(data: OfficerMonthlyPerformance[]) {
         console.error('Error inserting officer month assess:', err);
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 }
@@ -671,7 +698,7 @@ router.get('/api/fiscalYears', async (req: Request, res: Response) => {
     try {
         const fiscalYears = await getFiscalYears();
         res.json(fiscalYears);
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).send((err as Error).message);
     }
 });
@@ -681,7 +708,7 @@ router.get('/api/officers', async (req: Request, res: Response) => {
     try {
         const officers = await getOfficers();
         res.json(officers);
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).send((err as Error).message);
     }
 });
@@ -692,7 +719,7 @@ router.get('/api/amountByOfficerAndMonth', async (req: Request, res: Response) =
         const { officerNo, fiscalYear, monthPaid } = req.query as { officerNo: string; fiscalYear: string; monthPaid: string };
         const amount = await getAmountByOfficerAndMonth(officerNo, Number(fiscalYear), monthPaid);
         res.json({ totsum: amount });
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).send((err as Error).message);
     }
 });
@@ -704,7 +731,7 @@ router.post('/api/officerMonthAssess', async (req: Request, res: Response) => {
         await deleteOfficerMonthAssess();
         await insertOfficerMonthAssess(data);
         res.send('Officer month assess records created successfully');
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).send((err as Error).message);
     }
 });
@@ -714,7 +741,7 @@ router.delete('/api/officerMonthAssess', async (req: Request, res: Response) => 
     try {
         await deleteOfficerMonthAssess();
         res.send('Officer month assess deleted');
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).send((err as Error).message);
     }
 });

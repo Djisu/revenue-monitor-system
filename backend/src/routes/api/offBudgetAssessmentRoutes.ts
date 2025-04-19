@@ -3,12 +3,27 @@ import express, { Request, Response, Router } from 'express';
 import * as dotenv from 'dotenv';
 
 import pkg from 'pg';
+import { createClient } from '../../db.js';
 const { Pool } = pkg;
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -135,10 +150,10 @@ router.post('/budgetAssess', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const assessmentData: OffBudgetAssessmentData = req.body;
 
-    let client = null
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
         // Insert the new OffBudgetAssessment data
         const result = await client.query(
             `INSERT INTO offbudgetassessment 
@@ -183,17 +198,17 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: 'Error creating OffBudgetAssessment record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 
 // Read all OffBudgetAssessment records
 router.get('/', async (req: Request, res: Response) => {
-    let client = null
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
         const result = await client.query('SELECT * FROM offbudgetassessment');
         res.json(result.rows);
     } catch (error) {
@@ -201,7 +216,7 @@ router.get('/', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching OffBudgetAssessment records', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -210,10 +225,10 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:officer_name', async (req: Request, res: Response) => {
     const { officer_name } = req.params;
 
-    let client = null
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
         const result = await client.query('SELECT * FROM offbudgetassessment WHERE officer_name = $1', [officer_name]);
 
         if (Array.isArray(result.rows) && result.rows.length > 0) {
@@ -226,7 +241,7 @@ router.get('/:officer_name', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching OffBudgetAssessment record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -235,10 +250,10 @@ router.get('/:officer_name', async (req: Request, res: Response) => {
 router.get('/:officer_no/:fiscalYear', async (req: Request, res: Response) => {
     const { officer_no, fiscalYear } = req.params;
 
-    let client = null
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
         const result = await client.query('SELECT * FROM offbudgetassessment WHERE officer_name = $1', [officer_no]);
 
         if (Array.isArray(result.rows) && result.rows.length > 0) {
@@ -251,7 +266,7 @@ router.get('/:officer_no/:fiscalYear', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching OffBudgetAssessment record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -261,10 +276,10 @@ router.put('/:officer_name', async (req: Request, res: Response): Promise<void> 
     const { officer_name } = req.params;
     const assessmentData: OffBudgetAssessmentData = req.body;
 
-    let client = null
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
         // Update the OffBudgetAssessment data
         await client.query(
             `UPDATE offbudgetassessment SET 
@@ -310,7 +325,7 @@ router.put('/:officer_name', async (req: Request, res: Response): Promise<void> 
         res.status(500).json({ message: 'Error updating OffBudgetAssessment record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -319,10 +334,10 @@ router.put('/:officer_name', async (req: Request, res: Response): Promise<void> 
 router.delete('/:officer_name', async (req: Request, res: Response) => {
     const { officer_name } = req.params;
 
-    let client = null
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
         // Delete the OffBudgetAssessment record
         await client.query('DELETE FROM offbudgetassessment WHERE officer_name = $1', [officer_name]);
         res.status(200).json({ message: 'OffBudgetAssessment record deleted successfully' });
@@ -331,17 +346,17 @@ router.delete('/:officer_name', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error deleting OffBudgetAssessment record', error });
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 
 // Fetch fiscal years from tb_officerbudget
 async function getFiscalYears(): Promise<number[]> {
-    let client = null
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
         const result = await client.query('SELECT DISTINCT fiscal_year FROM tb_officerbudget ORDER BY fiscal_year');
 
         return result.rows.map(row => row.fiscal_year);
@@ -350,16 +365,16 @@ async function getFiscalYears(): Promise<number[]> {
         throw err;
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 }
 
 // Fetch all officers from tb_officer
 async function getOfficers(): Promise<{ officer_no: string; officer_name: string }[]> {
-    let client = null
+    const client = createClient();
     try {
-        client = await pool.connect();
+       
         const result = await client.query('SELECT * FROM tb_officer');
 
         return result.rows;
@@ -368,17 +383,17 @@ async function getOfficers(): Promise<{ officer_no: string; officer_name: string
         throw err;
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 }
 
 // Get officer budget from tb_buspayments
 async function getOfficerBudget(fiscalYear: number, officerNo: string): Promise<OfficerBudget[]> {
-    let client = null
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
         const result = await client.query(
             `SELECT 
               SUM(CASE WHEN monthpaid IN ('1', 'January') THEN amount ELSE 0 END) AS januaryAmount,
@@ -406,34 +421,34 @@ async function getOfficerBudget(fiscalYear: number, officerNo: string): Promise<
         throw err;
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 }
 
 // Delete all records from tb_BudgetAssess
 async function deleteBudgetAssess() {
-    let client = null
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
         await client.query('DELETE FROM tb_budgetassess');
     } catch (err) {
         console.error('Error deleting budget assess:', err);
         throw err;
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 }
 
 // // Insert records into tb_BudgetAssess
 async function insertBudgetAssess(data: AssessmentData[]) {
-    let client = null
+    const client = createClient();
 
     try {
-        client = await pool.connect();
+       
         for (let item of data) {
             await client.query(
                 `INSERT INTO tb_budgetassess (month, budget, amount, variance, fiscalyear, assessmentby) 
@@ -453,7 +468,7 @@ async function insertBudgetAssess(data: AssessmentData[]) {
         throw err;
     } finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 }

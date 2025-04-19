@@ -13,8 +13,24 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'    //'../../utils/ensurePermitDirIsEmpty.js';
+import { createClient } from '../../db.js';
 
 dotenv.config(); // Load .env file from the default location
+
+const nodeEnv = process.env.NODE_ENV;
+
+let frontendUrl = "" // Set frontend URL based on node environment
+
+if (nodeEnv === 'development'){
+    frontendUrl = "http://localhost:5173";
+} else if (nodeEnv === 'production'){
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+} else if (nodeEnv === 'test'){
+    console.log('Just testing')
+} else {
+    console.log('Invalid node environment variable') //.slice()
+}
+
 
 const router: Router = express.Router();
 
@@ -119,7 +135,7 @@ const fsPromises = fs.promises;
 
 // Function to add record to tb_BussCurrBalance
 async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalanceBF: number, txtCurrentRate: number, txtRate: number, cboElectoralArea: string, cboAssessmentBy: string): Promise<boolean> {
-    const client: PoolClient = await pool.connect();
+    const client = createClient();
 
     try {
         // Get current year and previous fiscal year
@@ -164,16 +180,17 @@ async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalance
         console.error('Error in adding a record:', error);
         return false;
     } finally {
-        client.release();
+        client.end();
     }
 }
 
 // Read all businesses
 router.get('/all', async (req: Request, res: Response) => {
+     const client = createClient();
     try {
-        const client: PoolClient = await pool.connect();
+       
         const result = await client.query('SELECT * FROM business ORDER BY buss_no ASC');
-        client.release();
+       
 
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
@@ -183,15 +200,18 @@ router.get('/all', async (req: Request, res: Response) => {
     } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+    }finally{
+        client.end();
     }
 });
 
 // Read last business
 router.get('/last', async (req: Request, res: Response) => {
     console.log('in router.get(/last')
-    
+     const client = createClient();
+
     try {
-        const client: PoolClient = await pool.connect();
+       
         
         // Fetch the last business
         const result = await client.query('SELECT * FROM business ORDER BY buss_no DESC LIMIT 1');
@@ -204,8 +224,6 @@ router.get('/last', async (req: Request, res: Response) => {
             newBussNo = lastBussNo + 1;
         }
 
-        client.release();
-
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
@@ -214,6 +232,8 @@ router.get('/last', async (req: Request, res: Response) => {
     } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+    }finally{
+        client.end();
     }
 });
 
@@ -230,7 +250,7 @@ router.get('/:buss_no', async (req: Request, res: Response): Promise<void> => {
       
     }
 
-    const client: PoolClient = await pool.connect();
+    const client = createClient();
     
     try {
         // Debugging: Log the query being executed
@@ -238,7 +258,7 @@ router.get('/:buss_no', async (req: Request, res: Response): Promise<void> => {
 
         const newBuss_no = parseInt(buss_no);
         const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [newBuss_no]);
-        client.release();
+       // client.release();
 
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found', data: [] });
@@ -251,18 +271,20 @@ router.get('/:buss_no', async (req: Request, res: Response): Promise<void> => {
         console.error('Database query error:', error);
         res.status(500).json({ message: 'Error fetching business', data: error.message });
         return 
-    // } finally {
-    //     client.release(); // Ensure the client is released
+    } finally {
+        client.end(); // Ensure the client is released
     }
 });
 
 
 // Read all electoral_areas
 router.get('/electoralAreas', async (req: Request, res: Response) => {
+     const client = createClient();
     try {
-        const client: PoolClient = await pool.connect();
+       
+
         const result = await client.query('SELECT DISTINCT electroral_area FROM business');
-        client.release();
+       
 
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'No electoral areas found' });
@@ -272,17 +294,20 @@ router.get('/electoralAreas', async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching electoral areas', error });
+    }finally{
+         client.end();
     }
 });
 
 // Read a single electoral_area
 router.get('/electoral/:electoral_area', async (req: Request, res: Response) => {
     const { electoral_area } = req.params;
+    const client = createClient();
 
     try {
-        const client: PoolClient = await pool.connect();
+       
         const result = await client.query('SELECT * FROM business WHERE electroral_area = $1', [electoral_area]);
-        client.release();
+      
 
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'No businesses found for the electoral area' });
@@ -292,6 +317,8 @@ router.get('/electoral/:electoral_area', async (req: Request, res: Response) => 
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching businesses for electoral area', error });
+    }finally{
+          client.end();
     }
 });
 
@@ -299,10 +326,11 @@ router.get('/electoral/:electoral_area', async (req: Request, res: Response) => 
 router.get('/name/:buss_name', async (req: Request, res: Response) => {
     const { buss_name } = req.params;
 
+     const client = createClient();
     try {
-        const client: PoolClient = await pool.connect();
+       
         const result = await client.query('SELECT * FROM business WHERE buss_name = $1', [buss_name]);
-        client.release();
+      
 
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found' });
@@ -312,6 +340,8 @@ router.get('/name/:buss_name', async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching business by name', error });
+    }finally{
+          client.end();
     }
 });
 
@@ -323,8 +353,9 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const sanitizedData = sanitizeBusinessData(req.body);
    // console.log(sanitizedData);
 
+    const client = createClient();
     try {
-        const client: PoolClient = await pool.connect();
+      
 
         // Check if a business with the same buss_no already exists
         const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [sanitizedData.buss_no]);
@@ -403,12 +434,18 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     } catch (error: any) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating business', error });
+    }finally{
+        client.end()
     }
 });
 
 // Update a business record
 router.put('/:buss_no', async (req: Request, res: Response) => {
     console.log('in router.put(/:buss_no)');
+
+    const client = createClient();
+    try{
+        
 
     const { buss_no } = req.params;
     const businessData = req.body;
@@ -460,8 +497,7 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
         return;
     }
 
-    try {
-        const client: PoolClient = await pool.connect();
+  
 
         // Check if a business with the same buss_no already exists
         const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
@@ -561,6 +597,8 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error updating business', error });
+    }finally{
+        client.end()
     }
 });
 
@@ -568,8 +606,9 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
 router.delete('/delete/:buss_no', async (req: Request, res: Response) => {
     const { buss_no } = req.params;
 
+    const client = createClient();
     try {
-        const client: PoolClient = await pool.connect();
+        
 
         // Check if a business with the same buss_no already exists
         const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
@@ -586,6 +625,8 @@ router.delete('/delete/:buss_no', async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting business', error });
+    }finally{
+        client.end()
     }
 });
 
@@ -595,6 +636,7 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
    
     console.log('in router.post(/processOperatingPermits/:electoral_area/:fiscal_year)', req.params);
 
+    const client = createClient();
     try {
         // Ensure the permits directory is empty
         await ensurePermitDirIsEmpty();
@@ -605,7 +647,7 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
 
         console.log('electoral_area:', electoral_area, 'fiscal_year:', fiscal_year);
 
-        const client: PoolClient = await pool.connect();
+       
 
         //console.log('before SELECT * FROM business WHERE electroral_area = $1')
         // Delete fiscalyear from busscurrbalance table
@@ -746,15 +788,18 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
     } catch (error: any) {
         console.error('Error executing SQL query:', error);
         res.status(500).json({ message: 'Error processing operating permits', error });
+    }finally{
+        client.end()
     }
 });
 
 // Function to find business balance
 async function findBusinessBalance(bussNo: number): Promise<number> {
-    let client: PoolClient | null = null;
+    console.log('in findBusinessBalance()');  
 
+     const client = createClient();
     try {
-        client = await pool.connect();
+       
 
         // Get current year and previous fiscal year
         const currentYear = new Date().getFullYear();
@@ -776,15 +821,16 @@ async function findBusinessBalance(bussNo: number): Promise<number> {
         throw new Error('Error fetching business balance');
     } finally {
         if (client) {
-            client.release(); // Release the client instance
+            client.end(); // Release the client instance
         }
     }
 }
 
 // Function to find total payable based on business number
 export async function findTotalPayable(txtBussNo: number): Promise<number> {
+    const client = createClient();
     try {
-        const client: PoolClient = await pool.connect();
+       
 
         // Prepare the SQL query
         const query = `
@@ -795,20 +841,23 @@ export async function findTotalPayable(txtBussNo: number): Promise<number> {
 
         // Execute the query with the business number
         const result = await client.query(query, [txtBussNo]);
-        client.release();
+       
 
         // Extract the total sum from the result
         return result.rows[0]?.totsum ?? 0;
     } catch (error) {
         console.error('Error finding total payable:', error);
         throw error; // Re-throw the error after logging it
+    }finally{
+        client.end()
     }
 }
 
 // Function to find the current rate
 export async function findCurrentRate(txtBussNo: number): Promise<number> {
+    const client = createClient();
     try {
-        const client: PoolClient = await pool.connect();
+       
 
         // Get the current year
         const currentYear = new Date().getFullYear();
@@ -823,7 +872,7 @@ export async function findCurrentRate(txtBussNo: number): Promise<number> {
 
         // Execute the query
         const result = await client.query(query, [txtBussNo, currentYear]);
-        client.release();
+        
 
         // Check if results are returned and not null
         let varPrevBalances = 0;
@@ -835,7 +884,9 @@ export async function findCurrentRate(txtBussNo: number): Promise<number> {
     } catch (error) {
         console.error('Error:', error);
         return 0;
-    } 
+    } finally{
+        client.end()
+    }
 }
 
 

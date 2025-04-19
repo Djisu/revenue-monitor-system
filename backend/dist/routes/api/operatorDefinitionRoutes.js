@@ -4,9 +4,24 @@ import * as dotenv from 'dotenv';
 import pkg from 'pg';
 const { Pool } = pkg;
 import bcrypt from 'bcrypt';
+import { createClient } from '../../db';
 const router = express.Router();
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -20,7 +35,7 @@ router.post('/create', async (req, res) => {
     console.log('in operator definition router.post');
     const operatorData = req.body;
     console.log('operatorData:', operatorData);
-    let client = null;
+    const client = createClient();
     try {
         // Validate required fields
         const requiredFields = ['OperatorID', 'OperatorName', 'password', 'firstname', 'lastname', 'email'];
@@ -30,7 +45,6 @@ router.post('/create', async (req, res) => {
                 return;
             }
         }
-        client = await pool.connect();
         // Check if an operator with the same OperatorID already exists
         const existingOperatorByOperatorID = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [operatorData.OperatorID]);
         if (existingOperatorByOperatorID.rows.length > 0) {
@@ -92,16 +106,15 @@ router.post('/create', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 // Read all operators
 router.get('/all', async (req, res) => {
     console.log('in operator definition router.get(all');
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         const rows = await client.query('SELECT * FROM operatordefinition');
         if (rows.rows.length == 0) {
             res.status(200).json([]);
@@ -115,16 +128,15 @@ router.get('/all', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 // Read a single operator by OperatorID
 router.get('/:OperatorID', async (req, res) => {
     const { OperatorID } = req.params;
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         const result = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [OperatorID]);
         if (result.rows.length == 0) {
             res.status(200).json([]);
@@ -139,7 +151,7 @@ router.get('/:OperatorID', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -147,9 +159,8 @@ router.get('/:OperatorID', async (req, res) => {
 router.put('/:OperatorID', async (req, res) => {
     const { OperatorID } = req.params;
     const operatorData = req.body;
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         // Check if an operator with the same OperatorID already exists
         const result = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [OperatorID]);
         if (result.rows.length == 0) {
@@ -175,16 +186,15 @@ router.put('/:OperatorID', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 // Delete an operator record
 router.delete('/:OperatorID', async (req, res) => {
     const { OperatorID } = req.params;
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         // Check if an operator with the same OperatorID already exists
         const result = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [OperatorID]);
         if (result.rows.length == 0) {
@@ -201,7 +211,7 @@ router.delete('/:OperatorID', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });

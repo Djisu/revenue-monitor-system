@@ -2,9 +2,24 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pg from 'pg';
 const { Pool } = pg;
+import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection pool configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -16,7 +31,7 @@ const pool = new Pool({
 // Create a new BussCurrBalance record
 router.post('/', async (req, res) => {
     const bussCurrBalanceData = req.body;
-    const client = await pool.connect();
+    const client = createClient();
     try {
         const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]);
         if (rows.length > 0) {
@@ -43,12 +58,12 @@ router.post('/', async (req, res) => {
         return;
     }
     finally {
-        client.release();
+        client.end();
     }
 });
 // Read all BussCurrBalance records
 router.get('/', async (req, res) => {
-    const client = await pool.connect();
+    const client = createClient();
     try {
         const { rows } = await client.query('SELECT * FROM busscurrbalance');
         res.json(rows);
@@ -60,13 +75,13 @@ router.get('/', async (req, res) => {
         return;
     }
     finally {
-        client.release();
+        client.end();
     }
 });
 // Read a single BussCurrBalance record by buss_no and fiscalyear
 router.get('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no, fiscalyear } = req.params;
-    const client = await pool.connect();
+    const client = createClient();
     try {
         const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         if (rows.length > 0) {
@@ -84,14 +99,14 @@ router.get('/:buss_no/:fiscalyear', async (req, res) => {
         return;
     }
     finally {
-        client.release();
+        client.end();
     }
 });
 // Update a BussCurrBalance record
 router.put('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no } = req.params;
     const bussCurrBalanceData = req.body;
-    const client = await pool.connect();
+    const client = createClient();
     try {
         const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [bussCurrBalanceData.buss_no, bussCurrBalanceData.fiscalyear]);
         if (rows.length == 0) {
@@ -120,13 +135,13 @@ router.put('/:buss_no/:fiscalyear', async (req, res) => {
         return;
     }
     finally {
-        client.release();
+        client.end();
     }
 });
 // Delete a BussCurrBalance record
 router.delete('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no, fiscalyear } = req.params;
-    const client = await pool.connect();
+    const client = createClient();
     try {
         const { rows } = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         if (rows.length == 0) {
@@ -144,7 +159,7 @@ router.delete('/:buss_no/:fiscalyear', async (req, res) => {
         return;
     }
     finally {
-        client.release();
+        client.end();
     }
 });
 export default router;

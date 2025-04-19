@@ -2,9 +2,24 @@ import { Router } from 'express';
 import * as dotenv from 'dotenv';
 import pkg from 'pg';
 const { Pool } = pkg;
+import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 // PostgreSQL connection pool configuration
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
@@ -16,9 +31,9 @@ const pool = new Pool(dbConfig);
 // Create a new balance record
 router.post('/', async (req, res) => {
     const balanceData = req.body;
-    let client = null;
+    //let client: PoolClient | null = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
         // Check if a balance record with the same business number already exists
         const result = await client.query('SELECT * FROM balance WHERE buss_no = $1', [balanceData.buss_no]);
         if (result.rows.length > 0) {
@@ -44,16 +59,16 @@ router.post('/', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 // Read all balance records
 router.get('/all', async (req, res) => {
-    let client = null;
+    const client = createClient();
     console.log('in router.get(/all)');
     try {
-        client = await pool.connect();
+        // client = await pool.connect();
         const result = await client.query('SELECT * FROM balance');
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'No balance records found', data: [] });
@@ -68,16 +83,16 @@ router.get('/all', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 // Read a single balance record by buss_no
 router.get('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
+        //client = await pool.connect();
         const result = await client.query('SELECT * FROM balance WHERE buss_no = $1', [buss_no]);
         if (result.rows.length > 0) {
             res.json(result.rows[0]); // Return the first row
@@ -92,7 +107,7 @@ router.get('/:buss_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
@@ -100,9 +115,9 @@ router.get('/:buss_no', async (req, res) => {
 router.put('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
     const balanceData = req.body;
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
+        //client = await pool.connect();
         // Check if a balance record with the same business number exists
         const result = await client.query('SELECT * FROM balance WHERE buss_no = $1', [balanceData.buss_no]);
         if (result.rows.length === 0) {
@@ -128,16 +143,16 @@ router.put('/:buss_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });
 // Delete a balance record
 router.delete('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
-    let client = null;
+    const client = createClient();
     try {
-        client = await pool.connect();
+        //client = await pool.connect();
         // Check if a balance record with the same business number exists
         const result = await client.query('SELECT * FROM balance WHERE buss_no = $1', [buss_no]);
         if (result.rows.length === 0) {
@@ -154,7 +169,7 @@ router.delete('/:buss_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.release();
+            client.end();
         }
     }
 });

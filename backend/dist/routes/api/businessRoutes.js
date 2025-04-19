@@ -8,7 +8,22 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'; //'../../utils/ensurePermitDirIsEmpty.js';
+import { createClient } from '../../db.js';
 dotenv.config(); // Load .env file from the default location
+const nodeEnv = process.env.NODE_ENV;
+let frontendUrl = ""; // Set frontend URL based on node environment
+if (nodeEnv === 'development') {
+    frontendUrl = "http://localhost:5173";
+}
+else if (nodeEnv === 'production') {
+    frontendUrl = "https://revenue-monitor-system.onrender.com";
+}
+else if (nodeEnv === 'test') {
+    console.log('Just testing');
+}
+else {
+    console.log('Invalid node environment variable'); //.slice()
+}
 const router = express.Router();
 // PostgreSQL connection configuration
 const dbConfig = {
@@ -65,7 +80,7 @@ const permitDir = path.join(__dirname, 'permits');
 const fsPromises = fs.promises;
 // Function to add record to tb_BussCurrBalance
 async function addRecord(txtBussNo, dtTransdate, txtBalanceBF, txtCurrentRate, txtRate, cboElectoralArea, cboAssessmentBy) {
-    const client = await pool.connect();
+    const client = createClient();
     try {
         // Get current year and previous fiscal year
         const currentYear = new Date().getFullYear();
@@ -104,15 +119,14 @@ async function addRecord(txtBussNo, dtTransdate, txtBalanceBF, txtCurrentRate, t
         return false;
     }
     finally {
-        client.release();
+        client.end();
     }
 }
 // Read all businesses
 router.get('/all', async (req, res) => {
+    const client = createClient();
     try {
-        const client = await pool.connect();
         const result = await client.query('SELECT * FROM business ORDER BY buss_no ASC');
-        client.release();
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
@@ -122,12 +136,15 @@ router.get('/all', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching businesses', error: error.message });
     }
+    finally {
+        client.end();
+    }
 });
 // Read last business
 router.get('/last', async (req, res) => {
     console.log('in router.get(/last');
+    const client = createClient();
     try {
-        const client = await pool.connect();
         // Fetch the last business
         const result = await client.query('SELECT * FROM business ORDER BY buss_no DESC LIMIT 1');
         let newBussNo = 1; // Default value if no businesses are found
@@ -136,7 +153,6 @@ router.get('/last', async (req, res) => {
             const lastBussNo = result.rows[0].buss_no;
             newBussNo = lastBussNo + 1;
         }
-        client.release();
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
@@ -145,6 +161,9 @@ router.get('/last', async (req, res) => {
     catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+    }
+    finally {
+        client.end();
     }
 });
 // Read a single business by buss_no
@@ -156,13 +175,13 @@ router.get('/:buss_no', async (req, res) => {
         res.status(400).json({ message: 'Valid business number is required', data: [] });
         return;
     }
-    const client = await pool.connect();
+    const client = createClient();
     try {
         // Debugging: Log the query being executed
         console.log('Executing query for buss_no:', buss_no);
         const newBuss_no = parseInt(buss_no);
         const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [newBuss_no]);
-        client.release();
+        // client.release();
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found', data: [] });
             return;
@@ -174,16 +193,16 @@ router.get('/:buss_no', async (req, res) => {
         console.error('Database query error:', error);
         res.status(500).json({ message: 'Error fetching business', data: error.message });
         return;
-        // } finally {
-        //     client.release(); // Ensure the client is released
+    }
+    finally {
+        client.end(); // Ensure the client is released
     }
 });
 // Read all electoral_areas
 router.get('/electoralAreas', async (req, res) => {
+    const client = createClient();
     try {
-        const client = await pool.connect();
         const result = await client.query('SELECT DISTINCT electroral_area FROM business');
-        client.release();
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'No electoral areas found' });
         }
@@ -195,14 +214,16 @@ router.get('/electoralAreas', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching electoral areas', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Read a single electoral_area
 router.get('/electoral/:electoral_area', async (req, res) => {
     const { electoral_area } = req.params;
+    const client = createClient();
     try {
-        const client = await pool.connect();
         const result = await client.query('SELECT * FROM business WHERE electroral_area = $1', [electoral_area]);
-        client.release();
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'No businesses found for the electoral area' });
         }
@@ -214,14 +235,16 @@ router.get('/electoral/:electoral_area', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching businesses for electoral area', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Read a single business by buss_name
 router.get('/name/:buss_name', async (req, res) => {
     const { buss_name } = req.params;
+    const client = createClient();
     try {
-        const client = await pool.connect();
         const result = await client.query('SELECT * FROM business WHERE buss_name = $1', [buss_name]);
-        client.release();
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found' });
         }
@@ -233,6 +256,9 @@ router.get('/name/:buss_name', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching business by name', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Create a new business record
 router.post('/create', async (req, res) => {
@@ -240,8 +266,8 @@ router.post('/create', async (req, res) => {
     // Sanitize the input data
     const sanitizedData = sanitizeBusinessData(req.body);
     // console.log(sanitizedData);
+    const client = createClient();
     try {
-        const client = await pool.connect();
         // Check if a business with the same buss_no already exists
         const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [sanitizedData.buss_no]);
         if (existingBusinessResult.rows.length > 0) {
@@ -304,56 +330,59 @@ router.post('/create', async (req, res) => {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating business', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Update a business record
 router.put('/:buss_no', async (req, res) => {
     console.log('in router.put(/:buss_no)');
-    const { buss_no } = req.params;
-    const businessData = req.body;
-    //console.log('THIS IS THE businessData:', businessData);
-    // Sanitize the input data
-    const sanitizedData = sanitizeBusinessData(req.body);
-    //console.log('sanitizedData:', sanitizedData);
-    if (sanitizedData.buss_name === null || sanitizedData.buss_name === undefined ||
-        sanitizedData.buss_address === null || sanitizedData.buss_address === undefined ||
-        sanitizedData.buss_type === null || sanitizedData.buss_type === undefined ||
-        sanitizedData.buss_town === null || sanitizedData.buss_town === undefined ||
-        sanitizedData.buss_permitno === null || sanitizedData.buss_permitno === undefined ||
-        sanitizedData.street_name === null || sanitizedData.street_name === undefined ||
-        sanitizedData.landmark === null || sanitizedData.landmark === undefined ||
-        sanitizedData.electroral_area === null || sanitizedData.electroral_area === undefined ||
-        sanitizedData.property_class === null || sanitizedData.property_class === undefined ||
-        sanitizedData.tot_grade === null || sanitizedData.tot_grade === undefined ||
-        sanitizedData.ceo === null || sanitizedData.ceo === undefined ||
-        sanitizedData.telno === null || sanitizedData.telno === undefined ||
-        isNaN(sanitizedData.strategiclocation) ||
-        isNaN(sanitizedData.productvariety) ||
-        isNaN(sanitizedData.businesspopularity) ||
-        isNaN(sanitizedData.businessenvironment) ||
-        isNaN(sanitizedData.sizeofbusiness) ||
-        isNaN(sanitizedData.numberofworkingdays) ||
-        isNaN(sanitizedData.businessoperatingperiod) ||
-        isNaN(sanitizedData.competitorsavailable) ||
-        sanitizedData.assessmentby === null || sanitizedData.assessmentby === undefined ||
-        sanitizedData.transdate === null || sanitizedData.transdate === undefined ||
-        isNaN(sanitizedData.balance) ||
-        sanitizedData.status === null || sanitizedData.status === undefined ||
-        isNaN(sanitizedData.current_rate) ||
-        isNaN(sanitizedData.property_rate) ||
-        isNaN(sanitizedData.totalmarks) ||
-        sanitizedData.emailaddress === null || sanitizedData.emailaddress === undefined ||
-        isNaN(sanitizedData.noofemployees) ||
-        isNaN(sanitizedData.noofbranches) ||
-        isNaN(sanitizedData.BALANCENEW) ||
-        sanitizedData.gps_address === null || sanitizedData.gps_address === undefined ||
-        sanitizedData.serialNo === null || sanitizedData.serialNo === undefined ||
-        sanitizedData.buss_location === null || sanitizedData.buss_location === undefined) {
-        console.log('Invalid or missing input data');
-        res.status(400).json({ success: false, message: 'Invalid or missing input data' });
-        return;
-    }
+    const client = createClient();
     try {
-        const client = await pool.connect();
+        const { buss_no } = req.params;
+        const businessData = req.body;
+        //console.log('THIS IS THE businessData:', businessData);
+        // Sanitize the input data
+        const sanitizedData = sanitizeBusinessData(req.body);
+        //console.log('sanitizedData:', sanitizedData);
+        if (sanitizedData.buss_name === null || sanitizedData.buss_name === undefined ||
+            sanitizedData.buss_address === null || sanitizedData.buss_address === undefined ||
+            sanitizedData.buss_type === null || sanitizedData.buss_type === undefined ||
+            sanitizedData.buss_town === null || sanitizedData.buss_town === undefined ||
+            sanitizedData.buss_permitno === null || sanitizedData.buss_permitno === undefined ||
+            sanitizedData.street_name === null || sanitizedData.street_name === undefined ||
+            sanitizedData.landmark === null || sanitizedData.landmark === undefined ||
+            sanitizedData.electroral_area === null || sanitizedData.electroral_area === undefined ||
+            sanitizedData.property_class === null || sanitizedData.property_class === undefined ||
+            sanitizedData.tot_grade === null || sanitizedData.tot_grade === undefined ||
+            sanitizedData.ceo === null || sanitizedData.ceo === undefined ||
+            sanitizedData.telno === null || sanitizedData.telno === undefined ||
+            isNaN(sanitizedData.strategiclocation) ||
+            isNaN(sanitizedData.productvariety) ||
+            isNaN(sanitizedData.businesspopularity) ||
+            isNaN(sanitizedData.businessenvironment) ||
+            isNaN(sanitizedData.sizeofbusiness) ||
+            isNaN(sanitizedData.numberofworkingdays) ||
+            isNaN(sanitizedData.businessoperatingperiod) ||
+            isNaN(sanitizedData.competitorsavailable) ||
+            sanitizedData.assessmentby === null || sanitizedData.assessmentby === undefined ||
+            sanitizedData.transdate === null || sanitizedData.transdate === undefined ||
+            isNaN(sanitizedData.balance) ||
+            sanitizedData.status === null || sanitizedData.status === undefined ||
+            isNaN(sanitizedData.current_rate) ||
+            isNaN(sanitizedData.property_rate) ||
+            isNaN(sanitizedData.totalmarks) ||
+            sanitizedData.emailaddress === null || sanitizedData.emailaddress === undefined ||
+            isNaN(sanitizedData.noofemployees) ||
+            isNaN(sanitizedData.noofbranches) ||
+            isNaN(sanitizedData.BALANCENEW) ||
+            sanitizedData.gps_address === null || sanitizedData.gps_address === undefined ||
+            sanitizedData.serialNo === null || sanitizedData.serialNo === undefined ||
+            sanitizedData.buss_location === null || sanitizedData.buss_location === undefined) {
+            console.log('Invalid or missing input data');
+            res.status(400).json({ success: false, message: 'Invalid or missing input data' });
+            return;
+        }
         // Check if a business with the same buss_no already exists
         const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
         if (existingBusinessResult.rows.length === 0) {
@@ -449,12 +478,15 @@ router.put('/:buss_no', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error updating business', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Delete a business record
 router.delete('/delete/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
+    const client = createClient();
     try {
-        const client = await pool.connect();
         // Check if a business with the same buss_no already exists
         const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
         if (existingBusinessResult.rows.length === 0) {
@@ -469,17 +501,20 @@ router.delete('/delete/:buss_no', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error deleting business', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Process business operating permits for a fiscal year
 router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req, res) => {
     console.log('in router.post(/processOperatingPermits/:electoral_area/:fiscal_year)', req.params);
+    const client = createClient();
     try {
         // Ensure the permits directory is empty
         await ensurePermitDirIsEmpty();
         console.log('after ensurePermitDirIsEmpty()');
         const { electoral_area, fiscal_year } = req.params;
         console.log('electoral_area:', electoral_area, 'fiscal_year:', fiscal_year);
-        const client = await pool.connect();
         //console.log('before SELECT * FROM business WHERE electroral_area = $1')
         // Delete fiscalyear from busscurrbalance table
         //await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [fiscal_year]);
@@ -587,12 +622,15 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req,
         console.error('Error executing SQL query:', error);
         res.status(500).json({ message: 'Error processing operating permits', error });
     }
+    finally {
+        client.end();
+    }
 });
 // Function to find business balance
 async function findBusinessBalance(bussNo) {
-    let client = null;
+    console.log('in findBusinessBalance()');
+    const client = createClient();
     try {
-        client = await pool.connect();
         // Get current year and previous fiscal year
         const currentYear = new Date().getFullYear();
         // Find all payments
@@ -610,14 +648,14 @@ async function findBusinessBalance(bussNo) {
     }
     finally {
         if (client) {
-            client.release(); // Release the client instance
+            client.end(); // Release the client instance
         }
     }
 }
 // Function to find total payable based on business number
 export async function findTotalPayable(txtBussNo) {
+    const client = createClient();
     try {
-        const client = await pool.connect();
         // Prepare the SQL query
         const query = `
             SELECT SUM(current_balance) AS totsum
@@ -626,7 +664,6 @@ export async function findTotalPayable(txtBussNo) {
         `;
         // Execute the query with the business number
         const result = await client.query(query, [txtBussNo]);
-        client.release();
         // Extract the total sum from the result
         return result.rows[0]?.totsum ?? 0;
     }
@@ -634,11 +671,14 @@ export async function findTotalPayable(txtBussNo) {
         console.error('Error finding total payable:', error);
         throw error; // Re-throw the error after logging it
     }
+    finally {
+        client.end();
+    }
 }
 // Function to find the current rate
 export async function findCurrentRate(txtBussNo) {
+    const client = createClient();
     try {
-        const client = await pool.connect();
         // Get the current year
         const currentYear = new Date().getFullYear();
         // Query to find the current rate
@@ -650,7 +690,6 @@ export async function findCurrentRate(txtBussNo) {
         `;
         // Execute the query
         const result = await client.query(query, [txtBussNo, currentYear]);
-        client.release();
         // Check if results are returned and not null
         let varPrevBalances = 0;
         if (result.rows.length > 0 && result.rows[0].current_balance !== null) {
@@ -661,6 +700,9 @@ export async function findCurrentRate(txtBussNo) {
     catch (error) {
         console.error('Error:', error);
         return 0;
+    }
+    finally {
+        client.end();
     }
 }
 export default router;
