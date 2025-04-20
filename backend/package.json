@@ -47,7 +47,8 @@
     "pg": "^8.13.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "@types/multer": "^1.4.12"
   },
   "devDependencies": {
     "@edge-runtime/vm": "^5.0.0",
