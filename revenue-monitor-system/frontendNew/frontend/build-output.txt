@@ -1,0 +1,10 @@
+
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+src/features/busPayments/FrmClientPayments.tsx(69,22): error TS6133: 'setFiscalYear' is declared but its value is never read.
+src/features/officerAssessment/FrmOfficerAssessment.tsx(310,9): error TS6133: 'findMonthlyAmount' is declared but its value is never read.
+src/features/propertyBalance/FrmPropertyBillPayments.tsx(35,8): error TS6133: 'txtTotalPayment' is declared but its value is never read.
+src/features/propertyBalance/FrmPropertyBillPayments.tsx(36,8): error TS6133: 'txtCurrentBalance' is declared but its value is never read.
+src/features/propertyBalance/FrmPropertyBillPayments.tsx(39,8): error TS6133: 'dtTransDate' is declared but its value is never read.
+src/main.tsx(4,17): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
