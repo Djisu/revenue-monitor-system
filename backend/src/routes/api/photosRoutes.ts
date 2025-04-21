@@ -2,16 +2,16 @@ import express, { Router, Request, Response } from 'express';
 
 import pg from 'pg'
 const { Pool } = pg
-import {PoolClient} from 'pg'
+import multer, { diskStorage, StorageEngine } from 'multer';
 
-import multer from 'multer';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '../../db';
 
-
+// type DestinationCallback = (error: Error | null, destination: string) => void
+// type FileNameCallback = (error: Error | null, filename: string) => void
 
 // Define the function parameters type
 interface StorePhotoParams {
@@ -74,21 +74,40 @@ const pool = new Pool({
     port: 5432,
 });
 
-// Set up storage for multer
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
+// Set up multer storage
+const storage: StorageEngine = diskStorage({
+    destination: (req: Request, file: Express.Multer.File, cb: (error: any, destination: string) => void) => {
         cb(null, 'uploads/');
     },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
+    filename: (req: Request, file: Express.Multer.File, cb: (error: any, filename: string) => void) => {
+        cb(null, file.originalname);
+    },
 });
 
-// Initialize multer with the storage configuration
+// Initialize multer with storage and file size limit
 const upload = multer({ 
-    storage: storage, 
+    storage: storage,
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
+
+
+// // Set up storage for multer
+// const storage = multer.diskStorage({
+//     destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+//       cb(null, 'uploads/');
+//     },
+//     filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+//       cb(null, `${Date.now()}-${file.originalname}`);
+//     }
+//   });
+
+  
+
+// // Initialize multer with the storage configuration
+// const upload = multer({ 
+//     storage: storage, 
+//     limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+// });
 
 // Function to retrieve all photos
 const getAllPhotos = async (): Promise<Buffer[]> => {
@@ -175,7 +194,7 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
         console.log('about to check if photo already exists for officer_no:', officer_no);
 
         
-const client = createClient();
+        const client = createClient();
         try {
             // Check if the photo already exists for the given officer_no and photo_name
             const result = await client.query('SELECT * FROM photos WHERE officer_no = $1',
