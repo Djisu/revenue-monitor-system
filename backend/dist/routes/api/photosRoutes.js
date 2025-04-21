@@ -1,7 +1,7 @@
 import express from 'express';
 import pg from 'pg';
 const { Pool } = pg;
-import multer from 'multer';
+import multer, { diskStorage } from 'multer';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -42,20 +42,34 @@ const pool = new Pool({
     database: process.env.DB_NAME || 'revmonitor',
     port: 5432,
 });
-// Set up storage for multer
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
+// Set up multer storage
+const storage = diskStorage({
+    destination: (req, file, cb) => {
         cb(null, 'uploads/');
     },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    },
 });
-// Initialize multer with the storage configuration
+// Initialize multer with storage and file size limit
 const upload = multer({
     storage: storage,
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
+// // Set up storage for multer
+// const storage = multer.diskStorage({
+//     destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+//       cb(null, 'uploads/');
+//     },
+//     filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+//       cb(null, `${Date.now()}-${file.originalname}`);
+//     }
+//   });
+// // Initialize multer with the storage configuration
+// const upload = multer({ 
+//     storage: storage, 
+//     limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+// });
 // Function to retrieve all photos
 const getAllPhotos = async () => {
     const client = createClient();
