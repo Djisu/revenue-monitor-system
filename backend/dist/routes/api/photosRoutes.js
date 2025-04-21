@@ -6,7 +6,7 @@ import * as dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createClient } from '../../db';
+import { createClient } from '../../db.js';
 // Load environment variables from .env file
 dotenv.config();
 const BASE_URL = process.env.BASE_URL ||

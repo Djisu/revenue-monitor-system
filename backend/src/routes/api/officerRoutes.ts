@@ -7,8 +7,10 @@ const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 import multer from 'multer';
-import { createClient } from '../../db';
+import { createClient } from '../../db.js';
 
+// Define the File type from multer
+type File = Express.Multer.File;
 
 const router: Router = express.Router();
 
@@ -51,7 +53,7 @@ interface OfficerData {
 
 // Custom Request type to include photo buffer if needed
 interface CustomRequest extends Request {
-    file?: Express.Multer.File; // Adding the file property
+    file?: File; // Adding the file property
 }
 
 // Middleware
@@ -116,9 +118,7 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
     const client = createClient();
 
     try {
-        
-        
-
+ 
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
 
         if (existingOfficer.length == 0) {

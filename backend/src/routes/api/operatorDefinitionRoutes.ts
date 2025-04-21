@@ -6,7 +6,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 import bcrypt from 'bcrypt';
-import { createClient } from '../../db';
+import { createClient } from '../../db.js';
 
 
 

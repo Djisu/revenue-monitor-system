@@ -10,7 +10,7 @@ import nodemailer from 'nodemailer';
 // import { dirname } from 'path';
 import pg from 'pg';
 const { Pool } = pg;
-import { createClient } from '../../db';
+import { createClient } from '../../db.js';
 // PostgreSQL connection pool
 const emailPassword = process.env.EMAIL_PASSWORD;
 const appPassword = process.env.APP_PASSWORD;

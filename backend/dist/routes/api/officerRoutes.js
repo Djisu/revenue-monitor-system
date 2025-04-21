@@ -3,7 +3,7 @@ import express from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
 import multer from 'multer';
-import { createClient } from '../../db';
+import { createClient } from '../../db.js';
 const router = express.Router();
 // Load environment variables from .env file
 dotenv.config();

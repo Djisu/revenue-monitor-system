@@ -12,7 +12,7 @@ import nodemailer, { SendMailOptions } from 'nodemailer';
 import pg from 'pg'
 const { Pool } = pg
 import {PoolClient} from 'pg'
-import { createClient } from '../../db';
+import { createClient } from '../../db.js';
 
 
 export interface AddBudgetRequest {

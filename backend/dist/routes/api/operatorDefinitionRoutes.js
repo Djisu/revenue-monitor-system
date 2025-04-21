@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import pkg from 'pg';
 const { Pool } = pkg;
 import bcrypt from 'bcrypt';
-import { createClient } from '../../db';
+import { createClient } from '../../db.js';
 const router = express.Router();
 // Load environment variables from .env file
 dotenv.config();
