@@ -8,7 +8,7 @@ import * as dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createClient } from '../../db';
+import { createClient } from '../../db.js';
 
 // type DestinationCallback = (error: Error | null, destination: string) => void
 // type FileNameCallback = (error: Error | null, filename: string) => void

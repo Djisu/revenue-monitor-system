@@ -7,7 +7,7 @@ const { Pool } = pkg;
 //import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 import bcrypt from 'bcrypt';
-import { createClient } from '../../db';
+import { createClient } from '../../db.js';
 
 
 const router = Router();

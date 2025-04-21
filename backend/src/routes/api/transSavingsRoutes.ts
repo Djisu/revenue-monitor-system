@@ -6,7 +6,7 @@ import pkg from 'pg';
 import type { PoolClient } from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
-import { createClient } from '../../db';
+import { createClient } from '../../db.js';
 
 
 
