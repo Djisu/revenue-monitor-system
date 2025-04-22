@@ -1,25 +1,11 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
-import { createClient } from '../../db.js';
 const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -31,7 +17,7 @@ const pool = new Pool({
 // Create a new GradeRate record
 router.post('/create', async (req, res) => {
     const gradeRateData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     console.log('in router.post /create GradeRate data:', gradeRateData);
     // Validate request values
     if (!gradeRateData.grade || !gradeRateData.minValue || !gradeRateData.maxValue || !gradeRateData.rate) {
@@ -59,12 +45,12 @@ router.post('/create', async (req, res) => {
         res.status(500).json({ message: 'Error creating GradeRate record', error: error.message });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read all GradeRate records
 router.get('/all', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM graderate');
         res.status(200).json({ success: true, data: rows });
@@ -74,13 +60,13 @@ router.get('/all', async (req, res) => {
         res.status(500).json({ message: 'Error fetching GradeRate records', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read a single GradeRate record by grade
 router.get('/:grade/:minValuex/:maxValuex', async (req, res) => {
     const { grade, minValuex, maxValuex } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [grade, minValuex, maxValuex]);
         if (Array.isArray(rows) && rows.length === 0) {
@@ -95,14 +81,14 @@ router.get('/:grade/:minValuex/:maxValuex', async (req, res) => {
         res.status(500).json({ message: 'Error fetching GradeRate record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Update a GradeRate record
 router.put('/:grade/:minValuex/:maxValuex', async (req, res) => {
     const { grade, minValuex, maxValuex } = req.params;
     const gradeRateData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [grade, minValuex, maxValuex]);
         if (Array.isArray(rows) && rows.length == 0) {
@@ -124,13 +110,13 @@ router.put('/:grade/:minValuex/:maxValuex', async (req, res) => {
         res.status(500).json({ message: 'Error updating GradeRate record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Delete a GradeRate record
 router.delete('/delete/:grade/:minValuex/:maxValuex', async (req, res) => {
     const { grade, minValuex, maxValuex } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', [grade, minValuex, maxValuex]);
         if (Array.isArray(rows) && rows.length === 0) {
@@ -146,7 +132,7 @@ router.delete('/delete/:grade/:minValuex/:maxValuex', async (req, res) => {
         res.status(500).json({ message: 'Error deleting GradeRate record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 export default router;

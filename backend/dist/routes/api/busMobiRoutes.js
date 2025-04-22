@@ -7,24 +7,10 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
@@ -96,7 +82,7 @@ async function ensurePermitDirIsEmpty() {
 router.post('/', async (req, res) => {
     console.log('Creating a new BusMobi record');
     const busMobiData = sanitizeBusMobiData(req.body);
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if a BusMobi record with the same buss_no and fiscal_year already exists
         const existingResult = await client.query('SELECT * FROM busmobi WHERE buss_no = $1 AND fiscal_year = $2', [busMobiData.buss_no, busMobiData.fiscal_year]);
@@ -134,13 +120,13 @@ router.post('/', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read all BusMobi records
 router.get('/', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM busmobi');
         res.json(result.rows);
@@ -151,14 +137,14 @@ router.get('/', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read a single BusMobi record by buss_no
 router.get('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM busmobi WHERE buss_no = $1', [buss_no]);
         if (result.rows.length > 0) {
@@ -174,7 +160,7 @@ router.get('/:buss_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -182,7 +168,7 @@ router.get('/:buss_no', async (req, res) => {
 router.put('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
     const busMobiData = sanitizeBusMobiData(req.body);
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if a BusMobi record with the same buss_no already exists
         const result = await client.query('SELECT * FROM busmobi WHERE buss_no = $1', [buss_no]);
@@ -221,14 +207,14 @@ router.put('/:buss_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Delete a BusMobi record
 router.delete('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if a BusMobi record with the same buss_no already exists
         const result = await client.query('SELECT * FROM busmobi WHERE buss_no = $1', [buss_no]);
@@ -246,12 +232,12 @@ router.delete('/:buss_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 export default router;
-// // backend/src/routes/api/busMobiRoutes.ts
+// // backrelease/src/routes/api/busMobiRoutes.ts
 // import express from 'express';
 // import * as dotenv from 'dotenv';
 // import { Router, Request, Response } from 'express';

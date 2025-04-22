@@ -1,23 +1,9 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
-import { createClient } from '../../db.js';
+// import { createClient } from '../../db.js';
 const { Pool } = pkg;
 dotenv.config(); // Load .env file from the default location
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
@@ -43,7 +29,7 @@ const pool = new Pool({
 // CRUD Operations
 // Create
 router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { firstDate, lastDate, zone, bussType, user } = req.params;
         console.log('zone:', zone);
@@ -151,11 +137,12 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
         return res.status(500).json({ message: 'Internal Server Error' });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Request, res: Response): Promise<Response | void | any> => {
-//    const client = createClient();
+//    const client = await pool.connect()
+;
 //     try {
 //         const { firstDate, lastDate, zone, bussType, user } = req.params;
 //         console.log('zone:', zone)
@@ -302,7 +289,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
 //         console.error(error);
 //         return res.status(500).json({ message: 'Internal Server Error' });
 //     } finally {
-//         client.end();
+//         client.release();
 //     }
 // });
 // router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Request, res: Response): Promise<Response | void | any> => {
@@ -311,7 +298,8 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
 //         // Assuming 'user' is the user ID passed from the frontend
 //         console.log('User ID: ', user);
 //         const thisYear = lastDate.substring(0, 4);
-//        const client = createClient();
+//        const client = await pool.connect()
+;
 //             // Make sure to validate the user ID against your application logic here
 //             // Delete from bustypesummaryreport table for the specific user
 //             await client.query('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND electoral_area = $2 AND user_id = $3', [bussType, zone, user]);
@@ -399,7 +387,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
 //             console.error(error);
 //             return res.status(500).json({ message: 'Internal Server Error' });
 //         } finally {
-//             client.end();
+//             client.release();
 //         }
 //     });
 // router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Request, res: Response): Promise<Response | void | any> => {
@@ -414,7 +402,8 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
 //         // Check if the user is authorized to create reports
 //         // Find year from cbolastdate
 //         const thisYear = lastDate.substring(0, 4);
-//        const client = createClient();
+//        const client = await pool.connect()
+;
 //         try {
 //             // Delete from bustypesummaryreport table
 //             await client.query('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND electoral_area = $2', [bussType, zone]);
@@ -523,7 +512,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req, res
 //             console.error(error);
 //             return res.status(500).json({ message: 'Internal Server Error' });
 //         } finally {
-//             client.end();
+//             client.release();
 //         }
 //     } catch (error) {
 //         console.error(error);
@@ -536,7 +525,7 @@ router.put('/update/:firstDate/:lastDate/:zone/:bussType', async (req, res) => {
         const { firstDate, lastDate, zone, bussType } = req.params;
         // Find year from cbolastdate
         const thisYear = lastDate.substring(0, 4);
-        const client = createClient();
+        const client = await pool.connect();
         try {
             // Delete from bustypesummaryreport table
             await client.query('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND transdate >= $2 AND transdate <= $3 AND electoral_area = $4', [bussType, firstDate, lastDate, zone]);
@@ -627,7 +616,7 @@ router.put('/update/:firstDate/:lastDate/:zone/:bussType', async (req, res) => {
             return res.status(500).json({ message: 'Internal Server Error' });
         }
         finally {
-            client.end();
+            client.release();
         }
     }
     catch (error) {
@@ -639,7 +628,7 @@ router.put('/update/:firstDate/:lastDate/:zone/:bussType', async (req, res) => {
 router.delete('/delete/:firstDate/:lastDate/:zone/:bussType', async (req, res) => {
     try {
         const { firstDate, lastDate, zone, bussType } = req.params;
-        const client = createClient();
+        const client = await pool.connect();
         try {
             // Delete from bustypesummaryreport table
             await client.query('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND transdate >= $2 AND transdate <= $3 AND electoral_area = $4', [bussType, firstDate, lastDate, zone]);
@@ -660,7 +649,7 @@ router.delete('/delete/:firstDate/:lastDate/:zone/:bussType', async (req, res) =
             return res.status(500).json({ message: 'Internal Server Error' });
         }
         finally {
-            client.end();
+            client.release();
         }
     }
     catch (error) {
@@ -672,7 +661,7 @@ router.delete('/delete/:firstDate/:lastDate/:zone/:bussType', async (req, res) =
 router.get('/read/:firstDate/:lastDate/:zone/:bussType', async (req, res) => {
     try {
         const { firstDate, lastDate, zone, bussType } = req.params;
-        const client = createClient();
+        const client = await pool.connect();
         try {
             // Select from bustypesummaryreport table
             let result = await client.query(`SELECT * FROM bustypesummaryreport WHERE buss_type = $1 AND transdate >= $2 AND transdate <= $3 AND electoral_area = $4`, [bussType, firstDate, lastDate, zone]);
@@ -684,7 +673,7 @@ router.get('/read/:firstDate/:lastDate/:zone/:bussType', async (req, res) => {
             res.status(500).json({ message: 'Internal Server Error' });
         }
         finally {
-            client.end();
+            client.release();
         }
     }
     catch (error) {

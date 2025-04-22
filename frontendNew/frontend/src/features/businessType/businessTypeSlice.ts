@@ -27,7 +27,9 @@ const BASE_URL = import.meta.env.VITE_BASE_URL ||
 
 // Async thunk to fetch all BusinessType records
 export const fetchBusinessTypes = createAsyncThunk('businessType/fetchBusinessTypes', async () => {
+    
     console.log('inside fetchBusinessTypes thunk');
+
     const response = await axios.get(`${BASE_URL}/api/businessType/all`);
 
     console.log('after fetchBusinessTypes thunk, Response data:', response.data)

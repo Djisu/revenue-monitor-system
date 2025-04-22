@@ -7,7 +7,7 @@ const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 import multer from 'multer';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 // Define the File type from multer
 type File = Express.Multer.File;
@@ -16,20 +16,6 @@ const router: Router = express.Router();
 
 // Load environment variables from .env file
 dotenv.config();
-
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -63,7 +49,8 @@ router.use(express.json());
 router.post('/create', upload.single('photo'), async (req: CustomRequest, res: Response): Promise<void> => {
     const officerData: OfficerData = req.body;
 
-     const client = createClient();
+      const client = await pool.connect(); // Get a client from the pool
+
 
     try {
         
@@ -105,7 +92,7 @@ router.post('/create', upload.single('photo'), async (req: CustomRequest, res: R
         res.status(500).json({ message: 'Error creating officer record', error });
     } finally {
         if (client) {
-            client.end();
+             client.release();
         }
     }
 });
@@ -115,7 +102,8 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
     const { officer_no } = req.params;
     const officerData: OfficerData = req.body;
 
-    const client = createClient();
+     const client = await pool.connect(); // Get a client from the pool
+
 
     try {
  
@@ -143,7 +131,7 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
         res.status(500).json({ message: 'Error updating officer record', error });
     } finally {
         if (client) {
-            client.end();
+             client.release();
         }
     }
 });
@@ -152,7 +140,8 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
 router.delete('/delete/:officer_no', async (req: Request, res: Response): Promise<void> => {
     const { officer_no } = req.params;
 
-     const client = createClient();
+      const client = await pool.connect(); // Get a client from the pool
+
 
     try {
         
@@ -178,7 +167,7 @@ router.delete('/delete/:officer_no', async (req: Request, res: Response): Promis
         res.status(500).json({ message: 'Error deleting officer record', error });
     } finally {
         if (client) {
-            client.end();
+             client.release();
         }
     }
 });
@@ -188,16 +177,19 @@ router.get('/all', async (req: Request, res: Response) => {
     console.log('router.get(/all XXXXXXXXX');
 
     
-const client = createClient();
+ const client = await pool.connect(); // Get a client from the pool
+
     try {
         
-
+        console.log('about to client.query')
 
         const result: QueryResult = await client.query(`
             SELECT o.*, p.photo_buffer, p.photo_name, p.photo_type 
             FROM officer o
             LEFT JOIN photos p ON o.officer_no = p.officer_no::int
         `);
+
+        console.log('after const officers = result.rows.map(row => {')
 
         const officers = result.rows.map(row => {
             const photoBuffer = row.photo_buffer ? Buffer.from(row.photo_buffer) : null;
@@ -218,7 +210,7 @@ const client = createClient();
         res.status(500).json({ message: 'Error getting officer records', error });
     } finally {
         if (client) {
-            client.end();
+             client.release();
         }
     }
 });
@@ -229,7 +221,8 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
 
     console.log('in router.get(/retrieve/:officer_no: ', officer_no)
 
-    const client = createClient();
+     const client = await pool.connect(); // Get a client from the pool
+
 
     try {
         
@@ -255,7 +248,7 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error getting officer record', error });
     } finally {
         if (client) {
-            client.end();
+             client.release();
         }
     }
 });
@@ -264,7 +257,8 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
 router.get('/retrieveByName/:officer_name', async (req: Request, res: Response) => {
     const { officer_name } = req.params;
 
-    const client = createClient();
+     const client = await pool.connect(); // Get a client from the pool
+
 
     try {
         
@@ -282,7 +276,7 @@ router.get('/retrieveByName/:officer_name', async (req: Request, res: Response) 
         res.status(500).json({ message: 'Error getting officer record', error });
     } finally {
         if (client) {
-            client.end();
+             client.release();
         }
     }
 });

@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 
 import { QueryResult, PoolClient } from 'pg';
 import pkg from 'pg';
-import { createClient } from '../../db.js'; // Adjust the path as needed
+//import { createClient } from '../../db.js'; // Adjust the path as needed
 
 const { Pool } = pkg;
 
@@ -38,7 +38,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
     console.log('router.post(/create)', req.body)
 
-    const client = createClient();
+     const client = await pool.connect()
     
     const accReceiptData: AccReceiptData = req.body;
     console.log(accReceiptData)
@@ -78,7 +78,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 // Read all AccReceipt records
 router.get('/all', async (req: Request, res: Response) => {
     console.log('in router.get(/all)')
-    const client = createClient();
+     const client = await pool.connect()
     
     try {
         const rows = await client.query('SELECT * FROM accreceipt');
@@ -94,7 +94,7 @@ router.get('/all', async (req: Request, res: Response) => {
 // Read a single AccReceipt by ID (batchno)
 router.get('/:batchno/:fiscalyear', async (req: Request, res: Response) => {
     const { batchno, fiscalyear } = req.params;
-    const client = createClient();
+     const client = await pool.connect()
     
 
     try {
@@ -120,7 +120,7 @@ router.get('/:batchno/:fiscalyear', async (req: Request, res: Response) => {
 router.put('/:batchno/:fiscalyear', async (req: Request, res: Response): Promise<void> => {
     const { batchno, fiscalyear } = req.params;
     const accReceiptData: AccReceiptData = req.body;
-    const client = createClient();
+     const client = await pool.connect()
     
 
     try {
@@ -165,7 +165,7 @@ router.delete('/:batchno/:fiscalyear', async (req: Request, res: Response) => {
 
     try {
         // Delete the AccReceipt record
-        const client = createClient();
+         const client = await pool.connect()
     
         const result = await client.query('DELETE FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [batchno, fiscalyear]);
 

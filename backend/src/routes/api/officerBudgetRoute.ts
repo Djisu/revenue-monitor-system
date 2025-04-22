@@ -12,7 +12,7 @@ import nodemailer, { SendMailOptions } from 'nodemailer';
 import pg from 'pg'
 const { Pool } = pg
 import {PoolClient} from 'pg'
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 
 export interface AddBudgetRequest {
@@ -108,24 +108,12 @@ const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 router.get('/all', async (req: Request, res: Response): Promise<void> => {
     console.log('in router.get(/all')
 
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
         const result = await client.query(`SELECT * FROM officerbudget`);
 
@@ -142,14 +130,15 @@ router.get('/all', async (req: Request, res: Response): Promise<void> => {
         return
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 
 router.get('/officerbudget/:officer_no/:fiscal_year/:electoral_area', async (req: Request, res: Response): Promise<void> => {
     const {officer_no, fiscal_year, electoral_area} = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
         const result = await client.query(`SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2 AND electoral_area = $3`, 
@@ -171,7 +160,7 @@ router.get('/officerbudget/:officer_no/:fiscal_year/:electoral_area', async (req
         return
 
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -191,7 +180,8 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response): Pro
 
     const fiscalYearInt = parseInt(fiscal_year, 10)
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     console.log('about to SELECT * FROM officerbudget WHERE officer_no = $1 AND fiscal_year = $2')
 
@@ -222,7 +212,7 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response): Pro
         res.status(500).json({ exists: false, message: 'Error fetching officer budget' });
         return
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -230,7 +220,8 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response): Pro
 router.get('/electoralArea/:officerNo', async (req: Request, res: Response) => {
     const {officerNo} = req.params;
 
-      const client = createClient();
+      const client = await pool.connect()
+
 
     try {
         const result = await client.query(`
@@ -243,7 +234,7 @@ router.get('/electoralArea/:officerNo', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).send('Error fetching electoral areas');
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -251,7 +242,8 @@ router.get('/electoralArea/:officerNo', async (req: Request, res: Response) => {
 router.get('/businessCount/:electoralArea', async (req: Request, res: Response) => {
     const {electoralArea} = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
         const result = await client.query(`
@@ -263,7 +255,7 @@ router.get('/businessCount/:electoralArea', async (req: Request, res: Response) 
         console.error(error);
         res.status(500).send('Error fetching business count');
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -273,7 +265,8 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
 
     console.log("in router.post(/addBudget): ", req.body);
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try { 
         
@@ -618,7 +611,7 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
         res.status(500).send('Error adding budget record');
         return
     }finally {
-        client.end();
+        client.release();
     }
 });
 
@@ -627,7 +620,8 @@ router.post('/updateBudget', async (req: Request<{}, {}, UpdateBudgetRequest>, r
 
     console.log("in router.post(/updateBudget): ", req.body);
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
         // Find officer name from officer_no
@@ -763,14 +757,15 @@ router.post('/updateBudget', async (req: Request<{}, {}, UpdateBudgetRequest>, r
         res.status(500).send('Error updating budget record');
         return
     }finally {
-        client.end();
+        client.release();
     }
 });
 
 // Function to update Officer's budget based on bus payments
 async function updateOfficerBudget(officer_no: string, fiscal_year: number) {
     
-    const client = createClient();
+    const client = await pool.connect()
+
 
     console.log('Updating budget for officer_no:', officer_no, 'in fiscal year:', fiscal_year);
 
@@ -823,7 +818,7 @@ async function updateOfficerBudget(officer_no: string, fiscal_year: number) {
         console.error('Error updating officer budget:', error);
         return `Error updating budget for officer_no: ${officer_no} in fiscal year: ${fiscal_year}.`;
     } finally {
-        client.end();
+        client.release();
     }
 }
 

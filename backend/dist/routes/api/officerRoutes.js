@@ -3,24 +3,9 @@ import express from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
 import multer from 'multer';
-import { createClient } from '../../db.js';
 const router = express.Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -37,7 +22,7 @@ router.use(express.json());
 // Create a new officer record
 router.post('/create', upload.single('photo'), async (req, res) => {
     const officerData = req.body;
-    const client = createClient();
+    const client = await pool.connect(); // Get a client from the pool
     try {
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officerData.officer_no])).rows;
         if (existingOfficer.length > 0) {
@@ -69,7 +54,7 @@ router.post('/create', upload.single('photo'), async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -77,7 +62,7 @@ router.post('/create', upload.single('photo'), async (req, res) => {
 router.put('/update/:officer_no', upload.single('photo'), async (req, res) => {
     const { officer_no } = req.params;
     const officerData = req.body;
-    const client = createClient();
+    const client = await pool.connect(); // Get a client from the pool
     try {
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
         if (existingOfficer.length == 0) {
@@ -99,14 +84,14 @@ router.put('/update/:officer_no', upload.single('photo'), async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Delete an officer record
 router.delete('/delete/:officer_no', async (req, res) => {
     const { officer_no } = req.params;
-    const client = createClient();
+    const client = await pool.connect(); // Get a client from the pool
     try {
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
         if (existingOfficer.length == 0) {
@@ -126,20 +111,22 @@ router.delete('/delete/:officer_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read all officer records
 router.get('/all', async (req, res) => {
     console.log('router.get(/all XXXXXXXXX');
-    const client = createClient();
+    const client = await pool.connect(); // Get a client from the pool
     try {
+        console.log('about to client.query');
         const result = await client.query(`
             SELECT o.*, p.photo_buffer, p.photo_name, p.photo_type 
             FROM officer o
             LEFT JOIN photos p ON o.officer_no = p.officer_no::int
         `);
+        console.log('after const officers = result.rows.map(row => {');
         const officers = result.rows.map(row => {
             const photoBuffer = row.photo_buffer ? Buffer.from(row.photo_buffer) : null;
             const photoBlob = photoBuffer ? new Blob([photoBuffer], { type: row.photo_type }) : null; // Convert Buffer to Blob
@@ -158,7 +145,7 @@ router.get('/all', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -166,7 +153,7 @@ router.get('/all', async (req, res) => {
 router.get('/retrieve/:officer_no', async (req, res) => {
     const { officer_no } = req.params;
     console.log('in router.get(/retrieve/:officer_no: ', officer_no);
-    const client = createClient();
+    const client = await pool.connect(); // Get a client from the pool
     try {
         const result = await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no]);
         if (result.rows.length == 0) {
@@ -187,14 +174,14 @@ router.get('/retrieve/:officer_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read a single officer record by officer_name
 router.get('/retrieveByName/:officer_name', async (req, res) => {
     const { officer_name } = req.params;
-    const client = createClient();
+    const client = await pool.connect(); // Get a client from the pool
     try {
         const result = await client.query('SELECT * FROM officer WHERE officer_name = $1', [officer_name]);
         if (result.rows.length == 0) {
@@ -209,7 +196,7 @@ router.get('/retrieveByName/:officer_name', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });

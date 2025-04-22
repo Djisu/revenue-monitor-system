@@ -5,7 +5,7 @@ import { QueryResult, PoolClient } from 'pg';
 
 import pkg from 'pg';
 const { Pool } = pkg;
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 const router = Router();
 
@@ -53,7 +53,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
     //let client: PoolClient | null = null;
 
-    const client = createClient();
+     const client = await pool.connect()
     
 
     try {
@@ -90,14 +90,14 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: 'Error creating balance record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 
 // Read all balance records
 router.get('/all', async (req: Request, res: Response) => {
-    const client = createClient();
+     const client = await pool.connect()
 
     console.log('in router.get(/all)')
 
@@ -119,7 +119,7 @@ router.get('/all', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching balance records', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -128,7 +128,7 @@ router.get('/all', async (req: Request, res: Response) => {
 router.get('/:buss_no', async (req: Request, res: Response) => {
     const { buss_no } = req.params;
 
-    const client = createClient();
+     const client = await pool.connect()
 
     try {
         //client = await pool.connect();
@@ -145,7 +145,7 @@ router.get('/:buss_no', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching balance record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -155,7 +155,7 @@ router.put('/:buss_no', async (req: Request, res: Response): Promise<void> => {
     const { buss_no } = req.params;
     const balanceData: BalanceData = req.body;
 
-    const client = createClient();
+     const client = await pool.connect()
 
     try {
         //client = await pool.connect();
@@ -192,7 +192,7 @@ router.put('/:buss_no', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: 'Error updating balance record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -201,7 +201,7 @@ router.put('/:buss_no', async (req: Request, res: Response): Promise<void> => {
 router.delete('/:buss_no', async (req: Request, res: Response) => {
     const { buss_no } = req.params;
 
-    const client = createClient();
+     const client = await pool.connect()
 
     try {
         //client = await pool.connect();
@@ -226,7 +226,7 @@ router.delete('/:buss_no', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error deleting balance record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });

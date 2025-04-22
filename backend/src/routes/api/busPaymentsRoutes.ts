@@ -8,11 +8,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-import { QueryResult, PoolClient } from 'pg';
+import { QueryResult, Client } from 'pg';
+
 import pkg from 'pg';
+
 import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'   
 import { generatePdf } from '../../generatePdf.js';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const { Pool } = pkg;
 
 
@@ -32,19 +34,7 @@ const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 
-const nodeEnv = process.env.NODE_ENV;
 
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 const emailPassword = process.env.EMAIL_PASSWORD;
 const appPassword = process.env.APP_PASSWORD;
@@ -84,7 +74,7 @@ const transporter = nodemailer.createTransport({
 
 // Function to get Business name from buss_no
 async function getBusinessName(buss_no: string): Promise<string> {
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
@@ -98,7 +88,7 @@ async function getBusinessName(buss_no: string): Promise<string> {
         console.error('Error:', error);
         return 'Error getting business name';
     } finally {
-        client.end();
+        client.release();
     }
 }
 
@@ -178,7 +168,7 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
     console.log('electoralarea:', electoralarea);
     console.log('bussType:', bussType);
 
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
        
@@ -231,7 +221,7 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
         return
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -254,7 +244,7 @@ router.post('/create', async (req: Request, res: Response) => {
     }
 
     console.log('about to enter payment into buspayments table')
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         // Insert the new BusPayments data
@@ -324,7 +314,7 @@ router.post('/create', async (req: Request, res: Response) => {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating BusPayments record or sending email', error });
     } finally {
-        client.end();
+        client.release();
     }
 });
 
@@ -353,7 +343,7 @@ router.get('/billedAmount/:bussNo', async (req: Request, res: Response): Promise
 
     console.log('router.get(/billedAmount/:buss_no buss_no:', bussNo);
 
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [bussNo]);
@@ -388,7 +378,7 @@ router.get('/billedAmount/:bussNo', async (req: Request, res: Response): Promise
         res.status(500).json({ billedAmount: 0, message: 'Error fetching BusPayments record', error });
     } finally {
         if (client) {
-            client.end(); // Release the client back to the pool
+            client.release(); // Release the client back to the pool
         }
     }
 });
@@ -396,7 +386,7 @@ router.get('/billedAmount/:bussNo', async (req: Request, res: Response): Promise
 
 // Read all BusPayments records
 router.get('/all', async (req: Request, res: Response) => {
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         const result = await client.query('SELECT * FROM buspayments');
@@ -405,7 +395,7 @@ router.get('/all', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching BusPayments records', error });
     } finally {
-        client.end();
+        client.release();
     }
 });
 
@@ -413,7 +403,7 @@ router.get('/all', async (req: Request, res: Response) => {
 router.get('/:buss_no', async (req: Request, res: Response) => {
     const { buss_no } = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         const result = await client.query('SELECT * FROM buspayments WHERE buss_no = $1', [buss_no]);
@@ -427,7 +417,7 @@ router.get('/:buss_no', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching BusPayments record', error });
     } finally {
-        client.end();
+        client.release();
     }
 });
 
@@ -442,7 +432,7 @@ router.post('/:electoralArea', async (req: Request, res: Response) => {
         console.log('IT IS A NUMBER!!!!!')
     }
 
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         if (electoralArea === 'All electoral areas') {
@@ -473,7 +463,7 @@ router.post('/:electoralArea', async (req: Request, res: Response) => {
         console.error('Database error:', error);
         res.status(500).json({ message: 'Error fetching BusPayments record', error });
     } finally {
-        client.end();
+        client.release();
     }
 });
 
@@ -481,7 +471,7 @@ router.post('/:electoralArea', async (req: Request, res: Response) => {
 router.get('/:date', async (req: Request, res: Response) => {
     const { date } = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         const result = await client.query('SELECT * FROM buspayments WHERE transdate = $1', [date]);
@@ -495,12 +485,12 @@ router.get('/:date', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching BusPayments record', error });
     } finally {
-        client.end();
+        client.release();
     }
 });
 
 router.get('/transsavings', async (req: Request, res: Response) => {
-    const client = createClient();
+    const client = await pool.connect()
 
     console.log('in router.get(/transsavings ', req.body)
 
@@ -517,13 +507,13 @@ router.get('/transsavings', async (req: Request, res: Response) => {
 
         res.status(500).json({ message: 'Error fetching Transsavings records', error });
     } finally {
-        client.end();
+        client.release();
     }
 })
 
 // Defaulter's list
 router.get('/defaulters/:electoralarea', async (req: Request, res: Response): Promise<void> => {
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         console.log('in router.get(/defaulters/:electoralarea ', req.body);
@@ -632,13 +622,13 @@ router.get('/defaulters/:electoralarea', async (req: Request, res: Response): Pr
         console.error('Error in /defaulters/:electoralarea endpoint:', error);
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     } finally {
-        client.end(); // Ensure the client is released back to the pool
+        client.release(); // Ensure the client is released back to the pool
     }
 });
 
 router.get('/:fiscalyear/:receiptno', async (req: Request, res: Response): Promise<void> => {
  
-    const client = createClient();
+    const client = await pool.connect()
 
     let {fiscalyear, receiptno} = req.params
 
@@ -700,7 +690,7 @@ router.get('/:fiscalyear/:receiptno', async (req: Request, res: Response): Promi
     } catch (error: any) {
         res.status(500).send({message: 'Server error', error})
     }finally{
-        client.end()
+        client.release()
     }
 })
 
@@ -732,7 +722,7 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
 
     console.log('XXXXXXX in router.get(/:bussNo/:formattedStartDate/:formattedEndDate): ', req.params);
 
-    const client = createClient();
+    const client = await pool.connect()
 
     console.log("intBussNo: ", intBussNo);
     console.log("formattedStartDate: ", formattedStartDate);
@@ -887,7 +877,7 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req: Request
         res.status(500).json({ message: 'Error fetching BusPayments record', error });
         return
     } finally {
-        client.end();
+        client.release();
     }
 });
 
@@ -905,7 +895,7 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
     const isoDate = new Date(busPaymentsData.transdate);
     const pgDate = isoDate.toISOString().split('T')[0]; // Convert to YYYY-MM-DD
 
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         const result = await client.query('SELECT * FROM buspayments WHERE buss_no = $1', [buss_no]);
@@ -938,7 +928,7 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error updating BusPayments record', error });
         return
     } finally {
-        client.end();
+        client.release();
     }
 });
 
@@ -946,7 +936,7 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
 router.delete('/:buss_no', async (req: Request, res: Response) => {
     const { buss_no } = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         const result = await client.query('SELECT * FROM buspayments WHERE buss_no = $1', [buss_no]);
@@ -966,7 +956,7 @@ router.delete('/:buss_no', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error deleting BusPayments record', error });
         return
     } finally {
-        client.end();
+        client.release();
     }
 });
 
@@ -974,7 +964,7 @@ router.delete('/:buss_no', async (req: Request, res: Response) => {
 router.post('/billallbusinesses', async (req: Request, res: Response): Promise<void> => {
     console.log('in router.post(/billallbusinesses');
 
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [new Date().getFullYear()]);
@@ -1028,7 +1018,7 @@ router.post('/billallbusinesses', async (req: Request, res: Response): Promise<v
     } finally {
         // Ensure client is released
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -1049,7 +1039,7 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
       }
 
     const { bussNo } = req.params;
-    const client = createClient();
+    const client = await pool.connect()
 
     const thisYear = new Date().getFullYear();
     console.log('thisYear:', thisYear);
@@ -1199,7 +1189,7 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
         } finally {
             // Ensure client is released
             if (client) {
-                client.end();
+                client.release();
             }
         }
 });
@@ -1207,10 +1197,10 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
 
 
 // async function findPreviousBalance(bussNo: number): Promise<number> {
-// const client = createClient();
+// const client = await pool.connect()
 
 async function GetOfficerName(officerNo: number): Promise<string>  {
-    const client = createClient();
+    const client = await pool.connect()
 
     const result = await client.query('SELECT officer_name FROM officer WHERE officer_no = $1', [officerNo]);
 
@@ -1232,7 +1222,7 @@ router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req: Request, re
         return
     }
     
-const client = createClient();
+const client = await pool.connect()
 
     const officerName = await GetOfficerName(Number(officerNo));
 
@@ -1261,7 +1251,7 @@ const client = createClient();
         res.status(500).json({ message: 'Error fetching BusPayments record', error });
         return
     } finally {
-        client.end();
+        client.release();
     }
 });
 
@@ -1323,7 +1313,7 @@ router.post('/createPaymentsForAllBusinesses', async (req: Request, res: Respons
         console.log('Receipts directory already exists:', receiptsDir);
     }
 
-const client = createClient();
+const client = await pool.connect()
 
     try {
         // Fetch all buss_no from the business table
@@ -1405,11 +1395,11 @@ const client = createClient();
         res.status(500).json({ message: 'Error creating payments for all businesses', error });
         return
     } finally {
-        client.end();
+        client.release();
     }
 });
 async function findPreviousBalance(bussNo: number): Promise<number> {
-const client = createClient();
+const client = await pool.connect()
 
     try {
         const currentYear = new Date().getFullYear();
@@ -1436,12 +1426,12 @@ const client = createClient();
         console.error(error);
         throw new Error('Error fetching previous balance');
     } finally {
-        client.end();
+        client.release();
     }
 }
 
 async function findBusinessBalance(bussNo: number): Promise<number> {
-    const client = createClient();
+    const client = await pool.connect()
 
     try {
         // Get current year and previous fiscal year
@@ -1464,13 +1454,13 @@ async function findBusinessBalance(bussNo: number): Promise<number> {
         throw new Error('Error fetching business balance');
     } finally {
         if (client) {
-            client.end(); // end the client instance
+            client.release(); // end the client instance
         }
     }
 }
 
 async function updateOfficerBudget(params: Params): Promise<boolean> {
-const client = createClient();
+const client = await pool.connect()
 
     console.log('in updateOfficerBudget');
 
@@ -1559,7 +1549,7 @@ const client = createClient();
         console.error('Database operation failed:', error);
         return false;
     } finally {
-        client.end();
+        client.release();
     }
 }
 
@@ -1709,7 +1699,7 @@ export default router;
 //          console.log('Receipts directory already exists:', receiptsDir);
 //      }
 
-//  const client = createClient();
+//  const client = await pool.connect()
     
 //     try { 
 

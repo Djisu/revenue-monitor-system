@@ -7,26 +7,13 @@ import { QueryResult, PoolClient } from 'pg';
 import pkg from 'pg';
 import { Business } from '../../models/Business';
 import c from 'config';
-import { createClient } from '../../db.js';
+// import { createClient } from '../../db.js';
 const { Pool } = pkg;
 
 
 
 dotenv.config(); // Load .env file from the default location
 
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // PostgreSQL connection configuration
 const dbConfig = {
@@ -68,7 +55,8 @@ const pool = new Pool({
 
 // Create
 router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Request, res: Response): Promise<Response | void | any> => {
-   const client = createClient();
+   const client = await pool.connect()
+;
 
     try {
         const { firstDate, lastDate, zone, bussType, user } = req.params;
@@ -194,12 +182,13 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
         console.error(error);
         return res.status(500).json({ message: 'Internal Server Error' });
     } finally {
-        client.end();
+        client.release();
     }
 });
 
 // router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Request, res: Response): Promise<Response | void | any> => {
-//    const client = createClient();
+//    const client = await pool.connect()
+;
 
 //     try {
 //         const { firstDate, lastDate, zone, bussType, user } = req.params;
@@ -389,7 +378,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
 //         console.error(error);
 //         return res.status(500).json({ message: 'Internal Server Error' });
 //     } finally {
-//         client.end();
+//         client.release();
 //     }
 // });
 
@@ -402,7 +391,8 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
 //         console.log('User ID: ', user);
 
 //         const thisYear = lastDate.substring(0, 4);
-//        const client = createClient();
+//        const client = await pool.connect()
+;
        
 //             // Make sure to validate the user ID against your application logic here
 
@@ -510,7 +500,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
 //             console.error(error);
 //             return res.status(500).json({ message: 'Internal Server Error' });
 //         } finally {
-//             client.end();
+//             client.release();
 //         }
 //     });
 
@@ -534,7 +524,8 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
 //         // Find year from cbolastdate
 //         const thisYear = lastDate.substring(0, 4);
 
-//        const client = createClient();
+//        const client = await pool.connect()
+;
 //         try {
 //             // Delete from bustypesummaryreport table
 //             await client.query('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND electoral_area = $2', [bussType, zone]);
@@ -662,7 +653,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
 //             console.error(error);
 //             return res.status(500).json({ message: 'Internal Server Error' });
 //         } finally {
-//             client.end();
+//             client.release();
 //         }
 //     } catch (error) {
 //         console.error(error);
@@ -678,7 +669,8 @@ router.put('/update/:firstDate/:lastDate/:zone/:bussType', async (req: Request, 
         // Find year from cbolastdate
         const thisYear = lastDate.substring(0, 4);
 
-       const client = createClient();
+       const client = await pool.connect()
+;
         try {
             // Delete from bustypesummaryreport table
             await client.query('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND transdate >= $2 AND transdate <= $3 AND electoral_area = $4', [bussType, firstDate, lastDate, zone]);
@@ -786,7 +778,7 @@ router.put('/update/:firstDate/:lastDate/:zone/:bussType', async (req: Request, 
             console.error(error);
             return res.status(500).json({ message: 'Internal Server Error' });
         } finally {
-            client.end();
+            client.release();
         }
     } catch (error) {
         console.error(error);
@@ -799,7 +791,8 @@ router.delete('/delete/:firstDate/:lastDate/:zone/:bussType', async (req: Reques
     try {
         const {firstDate, lastDate, zone, bussType} = req.params;
 
-       const client = createClient();
+       const client = await pool.connect()
+;
         try {
             // Delete from bustypesummaryreport table
             await client.query('DELETE FROM bustypesummaryreport WHERE buss_type = $1 AND transdate >= $2 AND transdate <= $3 AND electoral_area = $4', [bussType, firstDate, lastDate, zone]);
@@ -823,7 +816,7 @@ router.delete('/delete/:firstDate/:lastDate/:zone/:bussType', async (req: Reques
             console.error(error);
             return res.status(500).json({ message: 'Internal Server Error' });
         } finally {
-            client.end();
+            client.release();
         }
     } catch (error) {
         console.error(error);
@@ -836,7 +829,8 @@ router.get('/read/:firstDate/:lastDate/:zone/:bussType', async (req: Request, re
     try {
         const {firstDate, lastDate, zone, bussType} = req.params;
 
-       const client = createClient();
+       const client = await pool.connect()
+;
         try {
             // Select from bustypesummaryreport table
             let result: QueryResult<BusTypeSummaryReport> = await client.query(
@@ -850,7 +844,7 @@ router.get('/read/:firstDate/:lastDate/:zone/:bussType', async (req: Request, re
             console.error(error);
             res.status(500).json({ message: 'Internal Server Error' });
         } finally {
-            client.end();
+            client.release();
         }
     } catch (error) {
         console.error(error);

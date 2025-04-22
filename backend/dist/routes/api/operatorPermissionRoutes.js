@@ -4,24 +4,10 @@ import pkg from 'pg';
 const { Pool } = pkg;
 //import type { QueryResult } from 'pg';  // Import QueryResult as a type
 import bcrypt from 'bcrypt';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -34,7 +20,7 @@ const pool = new Pool({
 router.post('/create', async (req, res) => {
     const operatorPermissionData = req.body;
     console.log('in router.post(/create) permission:', operatorPermissionData.operatorid);
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if an operator permission with the same operatorid already exists
         const existingPermissionResult = await client.query('SELECT * FROM operatorpermission WHERE operatorid = $1', [operatorPermissionData.operatorid]);
@@ -67,13 +53,13 @@ router.post('/create', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read all operator permissions
 router.get('/all', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM operatorpermission');
         if (result.rows.length === 0) {
@@ -88,14 +74,14 @@ router.get('/all', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read a single operator permission by OperatorID
 router.get('/:OperatorID', async (req, res) => {
     const { operatorid } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM operatorpermission WHERE operatorid = $1', [operatorid]);
         if (result.rowCount === 0) {
@@ -110,7 +96,7 @@ router.get('/:OperatorID', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -118,7 +104,7 @@ router.get('/:OperatorID', async (req, res) => {
 router.put('/:OperatorID', async (req, res) => {
     const { OperatorID } = req.params;
     const operatorPermissionData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if an operator permission with the same OperatorID exists
         const existingPermissionResult = await client.query('SELECT * FROM operatorpermission WHERE operatorid = $1', [OperatorID]);
@@ -145,14 +131,14 @@ router.put('/:OperatorID', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Delete an operator permission record
 router.delete('/:operatorID', async (req, res) => {
     const { operatorID } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if an operator permission with the same OperatorID exists
         const existingPermissionResult = await client.query('SELECT * FROM operatorpermission WHERE operatorid = $1', [operatorID]);
@@ -169,7 +155,7 @@ router.delete('/:operatorID', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -236,7 +222,7 @@ export default router;
 //         console.error('Error:', error);
 //         res.status(500).json({ message: 'Error creating operator permission', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 // // Read all operator permissions

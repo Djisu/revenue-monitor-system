@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const { Pool } = pkg;
 // import { QueryResult, PoolClient } from 'pg';
 // import pkg from 'pg';
@@ -9,20 +9,6 @@ const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection pool configuration
 const dbConfig = {
     user: process.env.DB_USER || 'root',
@@ -36,7 +22,7 @@ const pool = new Pool(dbConfig);
 router.post('/create', async (req, res) => {
     console.log('in electoral area create', req.body);
     const electoralAreaData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check for existing electoral area record
         const result = await client.query('SELECT * FROM electoralarea WHERE electoral_area = $1', [electoralAreaData.electoral_area]);
@@ -55,13 +41,13 @@ router.post('/create', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read all electoral area records
 router.get('/all', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM electoralarea');
         // Map the rows to an array of electoral areas
@@ -77,14 +63,14 @@ router.get('/all', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read a single electoral area record by electoral_area
 router.get('/:electoral_area', async (req, res) => {
     const { electoral_area } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM electoralarea WHERE electoral_area = $1', [electoral_area]);
         if (result.rows.length > 0) {
@@ -100,7 +86,7 @@ router.get('/:electoral_area', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -108,7 +94,7 @@ router.get('/:electoral_area', async (req, res) => {
 router.put('/:electoral_area', async (req, res) => {
     const { electoral_area } = req.params;
     const electoralAreaData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check for existing electoral area record
         const result = await client.query('SELECT * FROM electoralarea WHERE electoral_area = $1', [electoral_area]);
@@ -129,7 +115,7 @@ router.put('/:electoral_area', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -137,7 +123,7 @@ router.put('/:electoral_area', async (req, res) => {
 router.delete('/delete/:electoral_area', async (req, res) => {
     console.log('in electoral area delete', req.params);
     const { electoral_area } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check for existing electoral area record
         const result = await client.query('SELECT * FROM electoralarea WHERE electoral_area = $1', [electoral_area]);
@@ -155,7 +141,7 @@ router.delete('/delete/:electoral_area', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -202,7 +188,7 @@ export default router;
 //         console.error('Error:', error);
 //         res.status(500).json({  success: false, message: 'Error creating electoral area record', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 // // Read all electoral area records

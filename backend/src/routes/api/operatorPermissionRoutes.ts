@@ -7,27 +7,13 @@ const { Pool } = pkg;
 //import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 import bcrypt from 'bcrypt';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
-
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -53,7 +39,8 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     console.log('in router.post(/create) permission:', operatorPermissionData.operatorid);    
 
     
-  const client = createClient();
+  const client = await pool.connect()
+
     try {
        
      
@@ -102,7 +89,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: 'Error creating operator permission' });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -110,7 +97,8 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 // Read all operator permissions
 router.get('/all', async (req: Request, res: Response) => {
     
-const client = createClient();
+const client = await pool.connect()
+
     try {
        
 
@@ -127,7 +115,7 @@ const client = createClient();
         res.status(500).json({ message: 'Error fetching operator permissions' });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -136,7 +124,8 @@ const client = createClient();
 router.get('/:OperatorID', async (req: Request, res: Response) => {
     const { operatorid } = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -154,7 +143,7 @@ router.get('/:OperatorID', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching operator permission' });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -164,7 +153,8 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
     const { OperatorID } = req.params;
     const operatorPermissionData: OperatorPermissionData = req.body;
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -203,7 +193,7 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
         res.status(500).json({ message: 'Error updating operator permission' });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -211,7 +201,8 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
 // Delete an operator permission record
 router.delete('/:operatorID', async (req: Request, res: Response) => {
     const { operatorID } = req.params;
- const client = createClient();
+ const client = await pool.connect()
+
     try {
        
        
@@ -234,7 +225,7 @@ router.delete('/:operatorID', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error deleting operator permission' });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -325,7 +316,7 @@ export default router;
 //         console.error('Error:', error);
 //         res.status(500).json({ message: 'Error creating operator permission', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 

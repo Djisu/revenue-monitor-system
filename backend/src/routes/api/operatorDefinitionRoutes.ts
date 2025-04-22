@@ -6,7 +6,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 import bcrypt from 'bcrypt';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 
 
@@ -14,19 +14,6 @@ const router: Router = express.Router();
 
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -56,7 +43,8 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     console.log('operatorData:', operatorData);
 
     
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
         // Validate required fields
@@ -148,7 +136,7 @@ const client = createClient();
         res.status(500).json({ message: 'Error creating operator', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -158,7 +146,8 @@ router.get('/all', async (req: Request, res: Response) => {
     console.log('in operator definition router.get(all');
 
     
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
        
@@ -175,7 +164,7 @@ const client = createClient();
         res.status(500).json({ message: 'Error fetching operators', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -185,7 +174,8 @@ router.get('/:OperatorID', async (req: Request, res: Response) => {
     const { OperatorID } = req.params;
 
     
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
        
@@ -206,7 +196,7 @@ const client = createClient();
         res.status(500).json({ message: 'Error fetching operator', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -217,7 +207,8 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
     const operatorData: OperatorDefinition = req.body;
 
     
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
        
@@ -254,7 +245,7 @@ const client = createClient();
         return;
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -264,7 +255,8 @@ router.delete('/:OperatorID', async (req: Request, res: Response): Promise<void>
     const { OperatorID } = req.params;
 
     
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
        
@@ -290,7 +282,7 @@ const client = createClient();
         res.status(500).json({ message: 'Error deleting operator', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -431,7 +423,7 @@ export default router;
 //         console.error('Error:', error);
 //         res.status(500).json({ message: 'Error creating operator', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 
@@ -454,7 +446,7 @@ export default router;
 //         console.error(error);
 //         res.status(500).json({ message: 'Error fetching operators', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 

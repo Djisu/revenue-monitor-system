@@ -2,25 +2,11 @@
 import { Router } from 'express';
 import * as dotenv from 'dotenv';
 import pkg from 'pg';
-import { createClient } from '../../db.js';
 const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const pool = new Pool({
     user: process.env.DB_USER || 'postgres',
@@ -80,7 +66,7 @@ router.post('/budgetAssess', async (req, res) => {
 // Create a new OffBudgetAssessment record
 router.post('/', async (req, res) => {
     const assessmentData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Insert the new OffBudgetAssessment data
         const result = await client.query(`INSERT INTO offbudgetassessment 
@@ -124,13 +110,13 @@ router.post('/', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read all OffBudgetAssessment records
 router.get('/', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM offbudgetassessment');
         res.json(result.rows);
@@ -141,14 +127,14 @@ router.get('/', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read a single OffBudgetAssessment record by officer_name
 router.get('/:officer_name', async (req, res) => {
     const { officer_name } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM offbudgetassessment WHERE officer_name = $1', [officer_name]);
         if (Array.isArray(result.rows) && result.rows.length > 0) {
@@ -164,14 +150,14 @@ router.get('/:officer_name', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read a single OffBudgetAssessment record by officer_name
 router.get('/:officer_no/:fiscalYear', async (req, res) => {
     const { officer_no, fiscalYear } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM offbudgetassessment WHERE officer_name = $1', [officer_no]);
         if (Array.isArray(result.rows) && result.rows.length > 0) {
@@ -187,7 +173,7 @@ router.get('/:officer_no/:fiscalYear', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -195,7 +181,7 @@ router.get('/:officer_no/:fiscalYear', async (req, res) => {
 router.put('/:officer_name', async (req, res) => {
     const { officer_name } = req.params;
     const assessmentData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Update the OffBudgetAssessment data
         await client.query(`UPDATE offbudgetassessment SET 
@@ -240,14 +226,14 @@ router.put('/:officer_name', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Delete an OffBudgetAssessment record
 router.delete('/:officer_name', async (req, res) => {
     const { officer_name } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Delete the OffBudgetAssessment record
         await client.query('DELETE FROM offbudgetassessment WHERE officer_name = $1', [officer_name]);
@@ -259,13 +245,13 @@ router.delete('/:officer_name', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Fetch fiscal years from tb_officerbudget
 async function getFiscalYears() {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT DISTINCT fiscal_year FROM tb_officerbudget ORDER BY fiscal_year');
         return result.rows.map(row => row.fiscal_year);
@@ -276,13 +262,13 @@ async function getFiscalYears() {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 // Fetch all officers from tb_officer
 async function getOfficers() {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM tb_officer');
         return result.rows;
@@ -293,13 +279,13 @@ async function getOfficers() {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 // Get officer budget from tb_buspayments
 async function getOfficerBudget(fiscalYear, officerNo) {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query(`SELECT 
               SUM(CASE WHEN monthpaid IN ('1', 'January') THEN amount ELSE 0 END) AS januaryAmount,
@@ -326,13 +312,13 @@ async function getOfficerBudget(fiscalYear, officerNo) {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 // Delete all records from tb_BudgetAssess
 async function deleteBudgetAssess() {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         await client.query('DELETE FROM tb_budgetassess');
     }
@@ -342,13 +328,13 @@ async function deleteBudgetAssess() {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 // // Insert records into tb_BudgetAssess
 async function insertBudgetAssess(data) {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         for (let item of data) {
             await client.query(`INSERT INTO tb_budgetassess (month, budget, amount, variance, fiscalyear, assessmentby) 
@@ -368,7 +354,7 @@ async function insertBudgetAssess(data) {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }

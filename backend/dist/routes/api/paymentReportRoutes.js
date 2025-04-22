@@ -2,24 +2,10 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -30,7 +16,7 @@ const pool = new Pool({
 // Create a new payment report record
 router.post('/', async (req, res) => {
     const paymentReportData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', [paymentReportData.buss_no, paymentReportData.fiscalyear]);
         if (result.rows.length > 0) {
@@ -55,12 +41,12 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: 'Error creating payment report record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read all payment report records
 router.get('/', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM paymentreport');
         res.json(result.rows);
@@ -70,13 +56,13 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: 'Error fetching payment report records', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read a single payment report record by buss_no
 router.get('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no, fiscalyear } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         if (result.rows.length > 0) {
@@ -91,14 +77,14 @@ router.get('/:buss_no/:fiscalyear', async (req, res) => {
         res.status(500).json({ message: 'Error fetching payment report record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Update a payment report record
 router.put('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no, fiscalyear } = req.params;
     const paymentReportData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         if (result.rows.length === 0) {
@@ -123,13 +109,13 @@ router.put('/:buss_no/:fiscalyear', async (req, res) => {
         res.status(500).json({ message: 'Error updating payment report record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Delete a payment report record
 router.delete('/:buss_no/:fiscalyear', async (req, res) => {
     const { buss_no, fiscalyear } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         if (result.rows.length === 0) {
@@ -144,7 +130,7 @@ router.delete('/:buss_no/:fiscalyear', async (req, res) => {
         res.status(500).json({ message: 'Error deleting payment report record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 export default router;
@@ -208,7 +194,7 @@ export default router;
 //         res.status(500).json({ message: 'Error creating payment report record', error });
 //         return
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 // // Read all payment report records

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as dotenv from 'dotenv';
 import pkg from 'pg';
-import { createClient } from '../../db.js'; // Adjust the path as needed
+//import { createClient } from '../../db.js'; // Adjust the path as needed
 const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
@@ -18,7 +18,7 @@ const pool = new Pool(dbConfig);
 // Create a new AccReceipt record
 router.post('/create', async (req, res) => {
     console.log('router.post(/create)', req.body);
-    const client = createClient();
+    const client = await pool.connect();
     const accReceiptData = req.body;
     console.log(accReceiptData);
     try {
@@ -47,7 +47,7 @@ router.post('/create', async (req, res) => {
 // Read all AccReceipt records
 router.get('/all', async (req, res) => {
     console.log('in router.get(/all)');
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const rows = await client.query('SELECT * FROM accreceipt');
         console.log(rows.rows);
@@ -61,7 +61,7 @@ router.get('/all', async (req, res) => {
 // Read a single AccReceipt by ID (batchno)
 router.get('/:batchno/:fiscalyear', async (req, res) => {
     const { batchno, fiscalyear } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if an operator permission with the same OperatorID already exists
         const accReceipt = await client.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [batchno, fiscalyear]);
@@ -80,7 +80,7 @@ router.get('/:batchno/:fiscalyear', async (req, res) => {
 router.put('/:batchno/:fiscalyear', async (req, res) => {
     const { batchno, fiscalyear } = req.params;
     const accReceiptData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if an operator permission with the same OperatorID already exists
         const accReceipt = await client.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [accReceiptData.batchno, accReceiptData.fiscalyear]);
@@ -114,7 +114,7 @@ router.delete('/:batchno/:fiscalyear', async (req, res) => {
     const { batchno, fiscalyear } = req.params;
     try {
         // Delete the AccReceipt record
-        const client = createClient();
+        const client = await pool.connect();
         const result = await client.query('DELETE FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [batchno, fiscalyear]);
         if (result.rowCount > 0) {
             res.status(200).json({ message: 'AccReceipt deleted successfully' });

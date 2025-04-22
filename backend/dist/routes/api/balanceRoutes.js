@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as dotenv from 'dotenv';
 import pkg from 'pg';
 const { Pool } = pkg;
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -32,7 +32,7 @@ const pool = new Pool(dbConfig);
 router.post('/', async (req, res) => {
     const balanceData = req.body;
     //let client: PoolClient | null = null;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if a balance record with the same business number already exists
         const result = await client.query('SELECT * FROM balance WHERE buss_no = $1', [balanceData.buss_no]);
@@ -59,13 +59,13 @@ router.post('/', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read all balance records
 router.get('/all', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     console.log('in router.get(/all)');
     try {
         // client = await pool.connect();
@@ -83,14 +83,14 @@ router.get('/all', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read a single balance record by buss_no
 router.get('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         //client = await pool.connect();
         const result = await client.query('SELECT * FROM balance WHERE buss_no = $1', [buss_no]);
@@ -107,7 +107,7 @@ router.get('/:buss_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -115,7 +115,7 @@ router.get('/:buss_no', async (req, res) => {
 router.put('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
     const balanceData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         //client = await pool.connect();
         // Check if a balance record with the same business number exists
@@ -143,14 +143,14 @@ router.put('/:buss_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Delete a balance record
 router.delete('/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         //client = await pool.connect();
         // Check if a balance record with the same business number exists
@@ -169,7 +169,7 @@ router.delete('/:buss_no', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });

@@ -13,17 +13,6 @@ dotenv.config();
 
 const nodeEnv = process.env.NODE_ENV;
 
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -150,7 +139,8 @@ router.post('/budgetAssess', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const assessmentData: OffBudgetAssessmentData = req.body;
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -198,14 +188,15 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: 'Error creating OffBudgetAssessment record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 
 // Read all OffBudgetAssessment records
 router.get('/', async (req: Request, res: Response) => {
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -216,7 +207,7 @@ router.get('/', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching OffBudgetAssessment records', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -225,7 +216,8 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:officer_name', async (req: Request, res: Response) => {
     const { officer_name } = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -241,7 +233,7 @@ router.get('/:officer_name', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching OffBudgetAssessment record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -250,7 +242,8 @@ router.get('/:officer_name', async (req: Request, res: Response) => {
 router.get('/:officer_no/:fiscalYear', async (req: Request, res: Response) => {
     const { officer_no, fiscalYear } = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -266,7 +259,7 @@ router.get('/:officer_no/:fiscalYear', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching OffBudgetAssessment record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -276,7 +269,8 @@ router.put('/:officer_name', async (req: Request, res: Response): Promise<void> 
     const { officer_name } = req.params;
     const assessmentData: OffBudgetAssessmentData = req.body;
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -325,7 +319,7 @@ router.put('/:officer_name', async (req: Request, res: Response): Promise<void> 
         res.status(500).json({ message: 'Error updating OffBudgetAssessment record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -334,7 +328,8 @@ router.put('/:officer_name', async (req: Request, res: Response): Promise<void> 
 router.delete('/:officer_name', async (req: Request, res: Response) => {
     const { officer_name } = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -346,14 +341,15 @@ router.delete('/:officer_name', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error deleting OffBudgetAssessment record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 
 // Fetch fiscal years from tb_officerbudget
 async function getFiscalYears(): Promise<number[]> {
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -365,14 +361,15 @@ async function getFiscalYears(): Promise<number[]> {
         throw err;
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 
 // Fetch all officers from tb_officer
 async function getOfficers(): Promise<{ officer_no: string; officer_name: string }[]> {
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
        
         const result = await client.query('SELECT * FROM tb_officer');
@@ -383,14 +380,15 @@ async function getOfficers(): Promise<{ officer_no: string; officer_name: string
         throw err;
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 
 // Get officer budget from tb_buspayments
 async function getOfficerBudget(fiscalYear: number, officerNo: string): Promise<OfficerBudget[]> {
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -421,14 +419,15 @@ async function getOfficerBudget(fiscalYear: number, officerNo: string): Promise<
         throw err;
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 
 // Delete all records from tb_BudgetAssess
 async function deleteBudgetAssess() {
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -438,14 +437,15 @@ async function deleteBudgetAssess() {
         throw err;
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 
 // // Insert records into tb_BudgetAssess
 async function insertBudgetAssess(data: AssessmentData[]) {
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -468,7 +468,7 @@ async function insertBudgetAssess(data: AssessmentData[]) {
         throw err;
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }

@@ -44,7 +44,7 @@ var initialState = {
     message: null, // Initialize message
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
-    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
 // Define the async thunk for login
 export var loginUser = createAsyncThunk('auth/loginUser', function (credentials_1, _a) { return __awaiter(void 0, [credentials_1, _a], void 0, function (credentials, _b) {
     var response, permissions, error_1;

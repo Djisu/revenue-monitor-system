@@ -5,7 +5,13 @@ import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { createClient } from '../../db.js'; // Adjust the path as needed
+//import { createClient } from '../../db.js'; // Adjust the path as needed
+
+import { QueryResult, PoolClient } from 'pg';
+import pkg from 'pg';
+//import { createClient } from '../../db.js'; // Adjust the path as needed
+
+const { Pool } = pkg;
 
 
 
@@ -32,7 +38,13 @@ interface LoginResponse {
 
 dotenv.config();
 
-
+const pool = new Pool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'revmonitor',
+    port: parseInt(process.env.DB_PORT || '5432'), // Default PostgreSQL port
+});
 
 const config = {
     jwtSecret: process.env.JWT_SECRET,
@@ -57,10 +69,12 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
-    const client = createClient();
+     const client = await pool.connect()
 
     try {
-        await client.connect();
+       // await client.connect();
+
+        console.log('about to SELECT * FROM operatordefinition WHERE operatorname = $1')
 
         // Check if an operator with the same username exists
         const { rows: operators } = await client.query<OperatorDefinition>(
@@ -120,7 +134,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         console.error('Error:', error);
         res.status(500).json({ json: '', user: [], message: 'Error during login' });
     } finally {
-        await client.end(); // Ensure connection is closed
+        await client.release(); // Ensure connection is closed
     }
 });
 
@@ -131,10 +145,10 @@ router.post('/request-password-reset', async (req: Request, res: Response) => {
     const { email } = req.body;
     console.log('email: ', email);
 
-    const client = createClient();
+     const client = await pool.connect()
 
     try {
-        await client.connect();
+        //await client.connect();
 
         // Check if an operator with the same email exists
         const { rows: user } = await client.query<OperatorDefinition>(
@@ -161,7 +175,7 @@ router.post('/request-password-reset', async (req: Request, res: Response) => {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error during password reset' });
     } finally {
-        await client.end(); // Ensure connection is closed
+        await client.release(); // Ensure connection is closed
     }
 });
 
@@ -177,10 +191,10 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
         return;
     }
 
-    const client = createClient();
+     const client = await pool.connect()
 
     try {
-        await client.connect();
+        //await client.connect();
 
         // Fetch the user with the given resetToken
         const { rows } = await client.query<OperatorDefinition>(
@@ -223,7 +237,7 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
         console.error('Error:', error);
         res.status(500).json({ message: 'Error during password reset' });
     } finally {
-        await client.end(); // Ensure connection is closed
+        await client.release(); // Ensure connection is closed
     }
 });
 

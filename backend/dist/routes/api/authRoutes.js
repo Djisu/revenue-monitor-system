@@ -5,8 +5,17 @@ import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { createClient } from '../../db.js'; // Adjust the path as needed
+import pkg from 'pg';
+//import { createClient } from '../../db.js'; // Adjust the path as needed
+const { Pool } = pkg;
 dotenv.config();
+const pool = new Pool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'revmonitor',
+    port: parseInt(process.env.DB_PORT || '5432'), // Default PostgreSQL port
+});
 const config = {
     jwtSecret: process.env.JWT_SECRET,
 };
@@ -24,9 +33,10 @@ router.post('/login', async (req, res) => {
         res.status(400).json({ json: '', user: [], message: 'Username and password cannot be blank!' });
         return;
     }
-    const client = createClient();
+    const client = await pool.connect();
     try {
-        await client.connect();
+        // await client.connect();
+        console.log('about to SELECT * FROM operatordefinition WHERE operatorname = $1');
         // Check if an operator with the same username exists
         const { rows: operators } = await client.query('SELECT * FROM operatordefinition WHERE operatorname = $1', [username]);
         // Check if user exists
@@ -68,7 +78,7 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ json: '', user: [], message: 'Error during login' });
     }
     finally {
-        await client.end(); // Ensure connection is closed
+        await client.release(); // Ensure connection is closed
     }
 });
 // Request password reset endpoint
@@ -76,9 +86,9 @@ router.post('/request-password-reset', async (req, res) => {
     console.log('in backend Auth.ts/request-password-reset');
     const { email } = req.body;
     console.log('email: ', email);
-    const client = createClient();
+    const client = await pool.connect();
     try {
-        await client.connect();
+        //await client.connect();
         // Check if an operator with the same email exists
         const { rows: user } = await client.query('SELECT * FROM operatordefinition WHERE email = $1', [email]);
         if (user.length === 0) {
@@ -96,7 +106,7 @@ router.post('/request-password-reset', async (req, res) => {
         res.status(500).json({ message: 'Error during password reset' });
     }
     finally {
-        await client.end(); // Ensure connection is closed
+        await client.release(); // Ensure connection is closed
     }
 });
 // Reset password endpoint
@@ -108,9 +118,9 @@ router.post('/reset-password', async (req, res) => {
         res.status(400).json({ message: 'Invalid token format.' });
         return;
     }
-    const client = createClient();
+    const client = await pool.connect();
     try {
-        await client.connect();
+        //await client.connect();
         // Fetch the user with the given resetToken
         const { rows } = await client.query('SELECT * FROM operatordefinition WHERE resettoken = $1', [token]);
         // Check if the query returned any rows
@@ -141,7 +151,7 @@ router.post('/reset-password', async (req, res) => {
         res.status(500).json({ message: 'Error during password reset' });
     }
     finally {
-        await client.end(); // Ensure connection is closed
+        await client.release(); // Ensure connection is closed
     }
 });
 const isValidDate = (dateString) => {
