@@ -20,20 +20,67 @@ const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) :
 // Pad the serial number with leading zeros to make it 10 characters long
 const varSerialNo = baseSerialNo.toString().padStart(10, '0');
    
-    // Define the document structure for pdfMake
+    // // Define the document structure for pdfMake
+    // const templateJson = {
+    //     content: [
+    //         { text: 'Business Operating Permit', style: 'header' },
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Serial No: ${varSerialNo}`, color: 'red' }, // Set the font color to red
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Account No: ${data.buss_no}` },
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Business Name: ${data.buss_name}` },
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Type: ${data.buss_type}` },
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Property Class: ${data.property_class}` },
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Landmark: ${data.landmark}` },
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Electoral Area: ${data.electroral_area}` },
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Total Grade: ${data.tot_grade}` },
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Current Rate: ${data.current_rate}` },
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Property Rate: ${data.property_rate}` },
+    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
+    //         { text: `Total Payable GHC: ${totalPayable.toFixed(2)}` } // Display the calculated total
+    //     ],
+    //     styles: {
+    //         header: {
+    //             fontSize: 18,
+    //             bold: true,
+    //             margin: [0, 0, 0, 10] // Explicitly casting the margin
+    //         }
+    //     }
+    // };
+    
+
     const templateJson = {
         content: [
             { text: 'Business Operating Permit', style: 'header' },
+
             { text: `Serial No: ${varSerialNo}`, color: 'red' }, // Set the font color to red
+
             { text: `Account No: ${data.buss_no}` },
+
             { text: `Business Name: ${data.buss_name}` },
+
             { text: `Type: ${data.buss_type}` },
+
             { text: `Property Class: ${data.property_class}` },
+
             { text: `Landmark: ${data.landmark}` },
+
             { text: `Electoral Area: ${data.electroral_area}` },
+
             { text: `Total Grade: ${data.tot_grade}` },
+
             { text: `Current Rate: ${data.current_rate}` },
+
             { text: `Property Rate: ${data.property_rate}` },
+            
             { text: `Total Payable GHC: ${totalPayable.toFixed(2)}` } // Display the calculated total
         ],
         styles: {

@@ -2,24 +2,10 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection pool configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -31,7 +17,7 @@ const pool = new Pool({
 // Create a new transaction savings record
 router.post('/', async (req, res) => {
     const transSavingsData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const rows = await client.query('SELECT * FROM tb_transSavings WHERE buss_no = $1 AND transdate = $2', [transSavingsData.buss_no, transSavingsData.transdate]);
         if (rows.rowCount > 0) {
@@ -59,12 +45,12 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: 'Error creating Transaction Savings record', error: error.message });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read all transaction savings records
 router.get('/', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const rows = await client.query('SELECT * FROM transsavings');
         res.json(rows.rows);
@@ -74,13 +60,13 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: 'Error fetching Transaction Savings records', error: error.message });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read a single transaction savings record by buss_no and transdate
 router.get('/:buss_no/:transdate', async (req, res) => {
     const { buss_no, transdate } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const rows = await client.query('SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         if (rows.rowCount > 0) {
@@ -95,14 +81,14 @@ router.get('/:buss_no/:transdate', async (req, res) => {
         res.status(500).json({ message: 'Error fetching Transaction Savings record', error: error.message });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Update a transaction savings record
 router.put('/:buss_no/:transdate', async (req, res) => {
     const { buss_no, transdate } = req.params;
     const transSavingsData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const rows = await client.query('SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         if (rows.rowCount == 0) {
@@ -130,13 +116,13 @@ router.put('/:buss_no/:transdate', async (req, res) => {
         res.status(500).json({ message: 'Error updating Transaction Savings record', error: error.message });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Delete a transaction savings record
 router.delete('/:buss_no/:transdate', async (req, res) => {
     const { buss_no, transdate } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const rows = await client.query('SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2', [buss_no, transdate]);
         if (rows.rowCount == 0) {
@@ -152,7 +138,7 @@ router.delete('/:buss_no/:transdate', async (req, res) => {
         res.status(500).json({ message: 'Error deleting Transaction Savings record', error: error.message });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 export default router;

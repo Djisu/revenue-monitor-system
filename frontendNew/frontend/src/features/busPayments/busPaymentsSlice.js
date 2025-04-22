@@ -45,7 +45,7 @@ var initialState = {
     billedAmount: 0,
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
-    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
 export var selectBusPayments = function (state) { return state.busPayments.busPayments; };
 // Async thunk to fetch all BusPayments records
 export var fetchPaymentDefaulters = createAsyncThunk('busPayments/fetchPaymentDefaulters', function (electoralarea) { return __awaiter(void 0, void 0, void 0, function () {
@@ -185,6 +185,7 @@ export var fetchBusPaymentByElectoralArea = createAsyncThunk('busPayments/fetchB
         switch (_a.label) {
             case 0:
                 console.log('in fetchBusPaymentByElectoralArea: ', electoralArea);
+                console.log('BASE_URL: ', BASE_URL);
                 return [4 /*yield*/, axios.post("".concat(BASE_URL, "/api/busPayments/").concat(electoralArea))];
             case 1:
                 response = _a.sent();

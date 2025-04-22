@@ -5,7 +5,7 @@ import { Router, Request, Response } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 
 
@@ -13,20 +13,6 @@ const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
-
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -52,7 +38,8 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const paymentReportData: PaymentReportData = req.body;
 
 
-const client = createClient();
+const client = await pool.connect()
+
     try {
         const result = await client.query(
             'SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2',
@@ -84,14 +71,15 @@ const client = createClient();
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating payment report record', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
 // Read all payment report records
 router.get('/', async (req: Request, res: Response) => {
 
-const client = createClient();
+const client = await pool.connect()
+
     try {
         const result = await client.query('SELECT * FROM paymentreport');
         res.json(result.rows);
@@ -99,7 +87,7 @@ const client = createClient();
         console.error(error);
         res.status(500).json({ message: 'Error fetching payment report records', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -108,7 +96,8 @@ router.get('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
     const { buss_no, fiscalyear } = req.params;
 
 
-const client = createClient();
+const client = await pool.connect()
+
     try {
         const result = await client.query(
             'SELECT * FROM paymentreport WHERE buss_no = $1 AND fiscalyear = $2',
@@ -124,7 +113,7 @@ const client = createClient();
         console.error(error);
         res.status(500).json({ message: 'Error fetching payment report record', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -133,7 +122,8 @@ router.put('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
     const { buss_no, fiscalyear } = req.params;
     const paymentReportData: PaymentReportData = req.body;
 
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
         const result = await client.query(
@@ -166,7 +156,7 @@ const client = createClient();
         console.error(error);
         res.status(500).json({ message: 'Error updating payment report record', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -174,7 +164,8 @@ const client = createClient();
 router.delete('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
     const { buss_no, fiscalyear } = req.params;
 
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
         const result = await client.query(
@@ -196,7 +187,7 @@ const client = createClient();
         console.error(error);
         res.status(500).json({ message: 'Error deleting payment report record', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -278,7 +269,7 @@ export default router;
 //         res.status(500).json({ message: 'Error creating payment report record', error });
 //         return
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 

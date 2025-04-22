@@ -57,7 +57,8 @@ var initialState = {
     message: null,
 };
 var BASE_URL = import.meta.env.VITE_BASE_URL ||
-    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+    (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
+console.log('BASE_URL: ', BASE_URL);
 // Async thunk to fetch all officers
 export var fetchOfficers = createAsyncThunk('officer/fetchOfficers', function () { return __awaiter(void 0, void 0, void 0, function () {
     var response;
@@ -65,6 +66,7 @@ export var fetchOfficers = createAsyncThunk('officer/fetchOfficers', function ()
         switch (_a.label) {
             case 0:
                 console.log('in fetchOfficers thunk');
+                console.log('BASE_URL: ', BASE_URL);
                 return [4 /*yield*/, axios.get("".concat(BASE_URL, "/api/officer/all"), {
                         responseType: 'json' // Ensure we expect JSON response
                     })];

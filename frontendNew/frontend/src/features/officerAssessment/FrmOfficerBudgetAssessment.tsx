@@ -80,6 +80,8 @@ const OfficerBudgetAssessment: React.FC = () => {
   const handleFirstOfficerChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const target = event.target as HTMLSelectElement;
     const selectedOfficer = target.value.split(' ')[0];
+
+    console.log('selectedOfficer: ', selectedOfficer)
     setFirstOfficer(selectedOfficer);
   };
 
@@ -160,14 +162,16 @@ const OfficerBudgetAssessment: React.FC = () => {
       {/* <h1>MARCORY MUNICIPAL ASSEMBLY</h1> */}
       <p>Collector Performance Trend</p>
       <div style={{ marginTop: '20px' }}>
-        <label style={{ marginRight: '10px', fontWeight: 'bold' }}>First Fiscal Year:</label>
+        <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Fiscal Year:</label>
         <input
-          type="date"
+          type="number"
           value={firstFiscalDate}
           onChange={handleFirstFiscalDateChange}
           style={{ marginRight: '10px' }}
         />
       </div>
+      <span style={{ color: 'red' }}>Selected Officer's Number: {firstOfficer}</span>
+
       <div style={{ marginTop: '20px' }}>
         <label style={{ marginRight: '10px', fontWeight: 'bold' }}>First Officer:</label>
         <select value={firstOfficer} onChange={handleFirstOfficerChange}>

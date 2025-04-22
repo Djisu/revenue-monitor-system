@@ -37,13 +37,17 @@ const initialState: OfficerState = {
 };
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
 
-
+console.log('BASE_URL: ', BASE_URL)
 
 // Async thunk to fetch all officers
 export const fetchOfficers = createAsyncThunk('officer/fetchOfficers', async () => {
     console.log('in fetchOfficers thunk');
+
+
+
+    console.log('BASE_URL: ', BASE_URL)
 
     const response = await axios.get(`${BASE_URL}/api/officer/all`, {
         responseType: 'json' // Ensure we expect JSON response

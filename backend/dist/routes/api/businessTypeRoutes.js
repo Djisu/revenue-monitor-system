@@ -1,23 +1,18 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { createClient } from '../../db.js'; // Import createClient function
+import pkg from 'pg';
+const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
+// PostgreSQL connection configuration
+const dbConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'revmonitor',
+};
+const pool = new Pool(dbConfig);
 // Function to sanitize input data
 function sanitizeBusinessTypeData(data) {
     return {
@@ -28,9 +23,9 @@ function sanitizeBusinessTypeData(data) {
 router.post('/create', async (req, res) => {
     console.log('Creating a new businessType record');
     const businessTypeData = sanitizeBusinessTypeData(req.body);
-    const client = createClient(); // Create a new client instance
+    const client = await pool.connect(); // Create a new client instance
     try {
-        await client.connect(); // Connect to PostgreSQL
+        // Connect to PostgreSQL
         const result = await client.query('SELECT * FROM businesstype WHERE business_type = $1', [businessTypeData.Business_Type]);
         if (Array.isArray(result.rows) && result.rows.length > 0) {
             res.status(409).json({ message: 'Business Type record already exists.' });
@@ -45,15 +40,15 @@ router.post('/create', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
     }
     finally {
-        await client.end(); // Ensure the client is closed
+        await client.release(); // Ensure the client is closed
     }
 });
 // Read all BusinessType records
 router.get('/all', async (req, res) => {
     console.log('Fetching all businessType records');
-    const client = createClient(); // Create a new client instance
+    const client = await pool.connect(); // Create a new client instance
     try {
-        await client.connect(); // Connect to PostgreSQL
+        // Connect to PostgreSQL
         const result = await client.query('SELECT business_type FROM businesstype');
         console.log('result.rows: ', result.rows);
         res.status(200).json(result.rows);
@@ -63,15 +58,15 @@ router.get('/all', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error fetching BusinessType records', error });
     }
     finally {
-        await client.end(); // Ensure the client is closed
+        await client.release(); // Ensure the client is closed
     }
 });
 // Read a single BusinessType record by Business_Type
 router.get('/:Business_Type', async (req, res) => {
     const { Business_Type } = req.params;
-    const client = createClient(); // Create a new client instance
+    const client = await pool.connect(); // Create a new client instance
     try {
-        await client.connect(); // Connect to PostgreSQL
+        // Connect to PostgreSQL
         const result = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [Business_Type]);
         if (Array.isArray(result.rows) && result.rows.length > 0) {
             res.status(200).json({ success: true, data: result.rows[0] }); // Return the first row
@@ -85,16 +80,16 @@ router.get('/:Business_Type', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error fetching BusinessType record', error });
     }
     finally {
-        await client.end(); // Ensure the client is closed
+        await client.release(); // Ensure the client is closed
     }
 });
 // Update a BusinessType record
 router.put('/:Business_Type', async (req, res) => {
     const { Business_Type } = req.params;
     const businessTypeData = sanitizeBusinessTypeData(req.body);
-    const client = createClient(); // Create a new client instance
+    const client = await pool.connect(); // Create a new client instance
     try {
-        await client.connect(); // Connect to PostgreSQL
+        // Connect to PostgreSQL
         const result = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [businessTypeData.Business_Type]);
         if (Array.isArray(result.rows) && result.rows.length > 0) {
             res.status(409).json({ success: false, message: 'Business Type record already exists.' });
@@ -109,16 +104,16 @@ router.put('/:Business_Type', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error updating BusinessType record', error });
     }
     finally {
-        await client.end(); // Ensure the client is closed
+        await client.release(); // Ensure the client is closed
     }
 });
 // Delete a BusinessType record
 router.delete('/:Business_Type', async (req, res) => {
     const { Business_Type } = req.params;
     console.log('Deleting BusinessType record:', Business_Type);
-    const client = createClient(); // Create a new client instance
+    const client = await pool.connect(); // Create a new client instance
     try {
-        await client.connect(); // Connect to PostgreSQL
+        // Connect to PostgreSQL
         const result = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [Business_Type]);
         if (Array.isArray(result.rows) && result.rows.length === 0) {
             res.status(409).json({ success: true, message: 'Business Type record does not exist.' });
@@ -133,7 +128,7 @@ router.delete('/:Business_Type', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error deleting BusinessType record', error });
     }
     finally {
-        await client.end(); // Ensure the client is closed
+        await client.release(); // Ensure the client is closed
     }
 });
 // Other routes remain unchanged...

@@ -9,28 +9,14 @@ const { Pool } = pkg;
 
 import { generatePdf } from '../../generatePdf.js';
 import fs from 'fs';
+
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'    //'../../utils/ensurePermitDirIsEmpty.js';
-import { createClient } from '../../db.js';
+//import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'    //'../../utils/ensurePermitDirIsEmpty.js';
+//import { createClient } from '../../db.js';
 
 dotenv.config(); // Load .env file from the default location
-
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
-
 
 const router: Router = express.Router();
 
@@ -135,7 +121,7 @@ const fsPromises = fs.promises;
 
 // Function to add record to tb_BussCurrBalance
 async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalanceBF: number, txtCurrentRate: number, txtRate: number, cboElectoralArea: string, cboAssessmentBy: string): Promise<boolean> {
-    const client = createClient();
+     const client = await pool.connect()
 
     try {
         // Get current year and previous fiscal year
@@ -180,13 +166,13 @@ async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalance
         console.error('Error in adding a record:', error);
         return false;
     } finally {
-        client.end();
+        client.release();
     }
 }
 
 // Read all businesses
 router.get('/all', async (req: Request, res: Response) => {
-     const client = createClient();
+      const client = await pool.connect()
     try {
        
         const result = await client.query('SELECT * FROM business ORDER BY buss_no ASC');
@@ -201,14 +187,14 @@ router.get('/all', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching businesses', error: error.message });
     }finally{
-        client.end();
+        client.release();
     }
 });
 
 // Read last business
 router.get('/last', async (req: Request, res: Response) => {
     console.log('in router.get(/last')
-     const client = createClient();
+      const client = await pool.connect()
 
     try {
        
@@ -233,7 +219,7 @@ router.get('/last', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching businesses', error: error.message });
     }finally{
-        client.end();
+        client.release();
     }
 });
 
@@ -250,7 +236,7 @@ router.get('/:buss_no', async (req: Request, res: Response): Promise<void> => {
       
     }
 
-    const client = createClient();
+     const client = await pool.connect()
     
     try {
         // Debugging: Log the query being executed
@@ -272,14 +258,14 @@ router.get('/:buss_no', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: 'Error fetching business', data: error.message });
         return 
     } finally {
-        client.end(); // Ensure the client is released
+        client.release(); // Ensure the client is released
     }
 });
 
 
 // Read all electoral_areas
 router.get('/electoralAreas', async (req: Request, res: Response) => {
-     const client = createClient();
+      const client = await pool.connect()
     try {
        
 
@@ -295,14 +281,14 @@ router.get('/electoralAreas', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching electoral areas', error });
     }finally{
-         client.end();
+         client.release();
     }
 });
 
 // Read a single electoral_area
 router.get('/electoral/:electoral_area', async (req: Request, res: Response) => {
     const { electoral_area } = req.params;
-    const client = createClient();
+     const client = await pool.connect()
 
     try {
        
@@ -318,7 +304,7 @@ router.get('/electoral/:electoral_area', async (req: Request, res: Response) => 
         console.error(error);
         res.status(500).json({ message: 'Error fetching businesses for electoral area', error });
     }finally{
-          client.end();
+          client.release();
     }
 });
 
@@ -326,7 +312,7 @@ router.get('/electoral/:electoral_area', async (req: Request, res: Response) => 
 router.get('/name/:buss_name', async (req: Request, res: Response) => {
     const { buss_name } = req.params;
 
-     const client = createClient();
+      const client = await pool.connect()
     try {
        
         const result = await client.query('SELECT * FROM business WHERE buss_name = $1', [buss_name]);
@@ -341,7 +327,7 @@ router.get('/name/:buss_name', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching business by name', error });
     }finally{
-          client.end();
+          client.release();
     }
 });
 
@@ -353,7 +339,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const sanitizedData = sanitizeBusinessData(req.body);
    // console.log(sanitizedData);
 
-    const client = createClient();
+     const client = await pool.connect()
     try {
       
 
@@ -435,7 +421,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating business', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -443,7 +429,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 router.put('/:buss_no', async (req: Request, res: Response) => {
     console.log('in router.put(/:buss_no)');
 
-    const client = createClient();
+     const client = await pool.connect()
     try{
         
 
@@ -598,7 +584,7 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error updating business', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -606,7 +592,7 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
 router.delete('/delete/:buss_no', async (req: Request, res: Response) => {
     const { buss_no } = req.params;
 
-    const client = createClient();
+     const client = await pool.connect()
     try {
         
 
@@ -626,7 +612,7 @@ router.delete('/delete/:buss_no', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error deleting business', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -636,9 +622,10 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
    
     console.log('in router.post(/processOperatingPermits/:electoral_area/:fiscal_year)', req.params);
 
-    const client = createClient();
+     const client = await pool.connect()
     try {
         // Ensure the permits directory is empty
+        console.log('about to make permit directory')
         await ensurePermitDirIsEmpty();
 
         console.log('after ensurePermitDirIsEmpty()')
@@ -657,22 +644,6 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
 
          console.log('ABOUT TO BILL ALL BUSINESSES')
  
-         // Insert into busscurrbalance
-        //  for (const businessRow of businessesResult.rows) {
-        //      await client.query(
-        //          'INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea, assessmentby) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-        //          [
-        //              businessRow.buss_no,
-        //              new Date().getFullYear(),
-        //              0, // balancebf
-        //              businessRow.current_rate,
-        //              0, // totalamountdue
-        //              new Date().toISOString().split('T')[0], // transdate
-        //              businessRow.electroral_area,
-        //              businessRow.assessmentby // Add the appropriate value for `assessmentby`
-        //          ]
-        //      );
-        //  }
 
         // Select all businesses in the electoral area
         let businessRows = await client.query('SELECT * FROM business WHERE electroral_area ILIKE $1', [electoral_area]);
@@ -789,7 +760,7 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
         console.error('Error executing SQL query:', error);
         res.status(500).json({ message: 'Error processing operating permits', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -797,7 +768,7 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
 async function findBusinessBalance(bussNo: number): Promise<number> {
     console.log('in findBusinessBalance()');  
 
-     const client = createClient();
+      const client = await pool.connect()
     try {
        
 
@@ -821,14 +792,14 @@ async function findBusinessBalance(bussNo: number): Promise<number> {
         throw new Error('Error fetching business balance');
     } finally {
         if (client) {
-            client.end(); // Release the client instance
+            client.release(); // Release the client instance
         }
     }
 }
 
 // Function to find total payable based on business number
 export async function findTotalPayable(txtBussNo: number): Promise<number> {
-    const client = createClient();
+     const client = await pool.connect()
     try {
        
 
@@ -849,13 +820,13 @@ export async function findTotalPayable(txtBussNo: number): Promise<number> {
         console.error('Error finding total payable:', error);
         throw error; // Re-throw the error after logging it
     }finally{
-        client.end()
+        client.release()
     }
 }
 
 // Function to find the current rate
 export async function findCurrentRate(txtBussNo: number): Promise<number> {
-    const client = createClient();
+     const client = await pool.connect()
     try {
        
 
@@ -885,9 +856,46 @@ export async function findCurrentRate(txtBussNo: number): Promise<number> {
         console.error('Error:', error);
         return 0;
     } finally{
-        client.end()
+        client.release()
     }
 }
+
+export  async function ensurePermitDirIsEmpty() {
+    try {
+        console.log('in  ensurePermitDirIsEmpty function')
+        
+        // Check if the directory exists
+        await fsPromises.access(permitDir);
+        console.log('Permits directory already exists:', permitDir);
+
+        // Read all files and subdirectories in the directory
+        const files = await fsPromises.readdir(permitDir);
+
+        // Remove all files and subdirectories
+        for (const file of files) {
+            const filePath = path.join(permitDir, file);
+            const stat = await fsPromises.lstat(filePath);
+            if (stat.isDirectory()) {
+                // Recursively remove subdirectories
+                await fsPromises.rm(filePath, { recursive: true, force: true });
+            } else {
+                // Remove files
+                await fsPromises.unlink(filePath);
+            }
+        }
+        console.log('Permits directory emptied:', permitDir);
+    } catch (err: any) {
+        if (err.code === 'ENOENT') {
+            // Directory does not exist, create it
+            await fsPromises.mkdir(permitDir, { recursive: true });
+            console.log('Created permits directory:', permitDir);
+        } else {
+            console.error('Error accessing permits directory:', err);
+        }
+    }
+}
+
+
 
 
 
@@ -903,7 +911,7 @@ export default router;
 
 
 
-// // backend/src/routes/api/businessRoutes.ts
+//backrelease/src/routes/api/businessRoutes.ts
 // import express from 'express';
 // import * as dotenv from 'dotenv';
 // import { Router, Request, Response } from 'express';

@@ -7,23 +7,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'; //'../../utils/ensurePermitDirIsEmpty.js';
-import { createClient } from '../../db.js';
+//import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'    //'../../utils/ensurePermitDirIsEmpty.js';
+//import { createClient } from '../../db.js';
 dotenv.config(); // Load .env file from the default location
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 const router = express.Router();
 // PostgreSQL connection configuration
 const dbConfig = {
@@ -80,7 +66,7 @@ const permitDir = path.join(__dirname, 'permits');
 const fsPromises = fs.promises;
 // Function to add record to tb_BussCurrBalance
 async function addRecord(txtBussNo, dtTransdate, txtBalanceBF, txtCurrentRate, txtRate, cboElectoralArea, cboAssessmentBy) {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Get current year and previous fiscal year
         const currentYear = new Date().getFullYear();
@@ -119,12 +105,12 @@ async function addRecord(txtBussNo, dtTransdate, txtBalanceBF, txtCurrentRate, t
         return false;
     }
     finally {
-        client.end();
+        client.release();
     }
 }
 // Read all businesses
 router.get('/all', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM business ORDER BY buss_no ASC');
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -137,13 +123,13 @@ router.get('/all', async (req, res) => {
         res.status(500).json({ message: 'Error fetching businesses', error: error.message });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read last business
 router.get('/last', async (req, res) => {
     console.log('in router.get(/last');
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Fetch the last business
         const result = await client.query('SELECT * FROM business ORDER BY buss_no DESC LIMIT 1');
@@ -163,7 +149,7 @@ router.get('/last', async (req, res) => {
         res.status(500).json({ message: 'Error fetching businesses', error: error.message });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read a single business by buss_no
@@ -175,7 +161,7 @@ router.get('/:buss_no', async (req, res) => {
         res.status(400).json({ message: 'Valid business number is required', data: [] });
         return;
     }
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Debugging: Log the query being executed
         console.log('Executing query for buss_no:', buss_no);
@@ -195,12 +181,12 @@ router.get('/:buss_no', async (req, res) => {
         return;
     }
     finally {
-        client.end(); // Ensure the client is released
+        client.release(); // Ensure the client is released
     }
 });
 // Read all electoral_areas
 router.get('/electoralAreas', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT DISTINCT electroral_area FROM business');
         if (result.rows.length === 0) {
@@ -215,13 +201,13 @@ router.get('/electoralAreas', async (req, res) => {
         res.status(500).json({ message: 'Error fetching electoral areas', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read a single electoral_area
 router.get('/electoral/:electoral_area', async (req, res) => {
     const { electoral_area } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM business WHERE electroral_area = $1', [electoral_area]);
         if (result.rows.length === 0) {
@@ -236,13 +222,13 @@ router.get('/electoral/:electoral_area', async (req, res) => {
         res.status(500).json({ message: 'Error fetching businesses for electoral area', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read a single business by buss_name
 router.get('/name/:buss_name', async (req, res) => {
     const { buss_name } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM business WHERE buss_name = $1', [buss_name]);
         if (result.rows.length === 0) {
@@ -257,7 +243,7 @@ router.get('/name/:buss_name', async (req, res) => {
         res.status(500).json({ message: 'Error fetching business by name', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Create a new business record
@@ -266,7 +252,7 @@ router.post('/create', async (req, res) => {
     // Sanitize the input data
     const sanitizedData = sanitizeBusinessData(req.body);
     // console.log(sanitizedData);
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if a business with the same buss_no already exists
         const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [sanitizedData.buss_no]);
@@ -331,13 +317,13 @@ router.post('/create', async (req, res) => {
         res.status(500).json({ message: 'Error creating business', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Update a business record
 router.put('/:buss_no', async (req, res) => {
     console.log('in router.put(/:buss_no)');
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { buss_no } = req.params;
         const businessData = req.body;
@@ -479,13 +465,13 @@ router.put('/:buss_no', async (req, res) => {
         res.status(500).json({ message: 'Error updating business', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Delete a business record
 router.delete('/delete/:buss_no', async (req, res) => {
     const { buss_no } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if a business with the same buss_no already exists
         const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
@@ -502,15 +488,16 @@ router.delete('/delete/:buss_no', async (req, res) => {
         res.status(500).json({ message: 'Error deleting business', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Process business operating permits for a fiscal year
 router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req, res) => {
     console.log('in router.post(/processOperatingPermits/:electoral_area/:fiscal_year)', req.params);
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Ensure the permits directory is empty
+        console.log('about to make permit directory');
         await ensurePermitDirIsEmpty();
         console.log('after ensurePermitDirIsEmpty()');
         const { electoral_area, fiscal_year } = req.params;
@@ -521,22 +508,6 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req,
         // Select all businesses
         const businessesResult = await client.query('SELECT * FROM business');
         console.log('ABOUT TO BILL ALL BUSINESSES');
-        // Insert into busscurrbalance
-        //  for (const businessRow of businessesResult.rows) {
-        //      await client.query(
-        //          'INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea, assessmentby) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-        //          [
-        //              businessRow.buss_no,
-        //              new Date().getFullYear(),
-        //              0, // balancebf
-        //              businessRow.current_rate,
-        //              0, // totalamountdue
-        //              new Date().toISOString().split('T')[0], // transdate
-        //              businessRow.electroral_area,
-        //              businessRow.assessmentby // Add the appropriate value for `assessmentby`
-        //          ]
-        //      );
-        //  }
         // Select all businesses in the electoral area
         let businessRows = await client.query('SELECT * FROM business WHERE electroral_area ILIKE $1', [electoral_area]);
         console.log('after SELECT * FROM business WHERE electroral_area = $1');
@@ -623,13 +594,13 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req,
         res.status(500).json({ message: 'Error processing operating permits', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Function to find business balance
 async function findBusinessBalance(bussNo) {
     console.log('in findBusinessBalance()');
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Get current year and previous fiscal year
         const currentYear = new Date().getFullYear();
@@ -648,13 +619,13 @@ async function findBusinessBalance(bussNo) {
     }
     finally {
         if (client) {
-            client.end(); // Release the client instance
+            client.release(); // Release the client instance
         }
     }
 }
 // Function to find total payable based on business number
 export async function findTotalPayable(txtBussNo) {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Prepare the SQL query
         const query = `
@@ -672,12 +643,12 @@ export async function findTotalPayable(txtBussNo) {
         throw error; // Re-throw the error after logging it
     }
     finally {
-        client.end();
+        client.release();
     }
 }
 // Function to find the current rate
 export async function findCurrentRate(txtBussNo) {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Get the current year
         const currentYear = new Date().getFullYear();
@@ -702,11 +673,45 @@ export async function findCurrentRate(txtBussNo) {
         return 0;
     }
     finally {
-        client.end();
+        client.release();
+    }
+}
+export async function ensurePermitDirIsEmpty() {
+    try {
+        console.log('in  ensurePermitDirIsEmpty function');
+        // Check if the directory exists
+        await fsPromises.access(permitDir);
+        console.log('Permits directory already exists:', permitDir);
+        // Read all files and subdirectories in the directory
+        const files = await fsPromises.readdir(permitDir);
+        // Remove all files and subdirectories
+        for (const file of files) {
+            const filePath = path.join(permitDir, file);
+            const stat = await fsPromises.lstat(filePath);
+            if (stat.isDirectory()) {
+                // Recursively remove subdirectories
+                await fsPromises.rm(filePath, { recursive: true, force: true });
+            }
+            else {
+                // Remove files
+                await fsPromises.unlink(filePath);
+            }
+        }
+        console.log('Permits directory emptied:', permitDir);
+    }
+    catch (err) {
+        if (err.code === 'ENOENT') {
+            // Directory does not exist, create it
+            await fsPromises.mkdir(permitDir, { recursive: true });
+            console.log('Created permits directory:', permitDir);
+        }
+        else {
+            console.error('Error accessing permits directory:', err);
+        }
     }
 }
 export default router;
-// // backend/src/routes/api/businessRoutes.ts
+//backrelease/src/routes/api/businessRoutes.ts
 // import express from 'express';
 // import * as dotenv from 'dotenv';
 // import { Router, Request, Response } from 'express';

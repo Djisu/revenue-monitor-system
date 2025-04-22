@@ -6,7 +6,7 @@ import pkg from 'pg';
 import type { PoolClient } from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 
 
@@ -15,19 +15,6 @@ const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // Postgres connection configuration
 const pool = new Pool({
@@ -53,7 +40,8 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const receiptData: ReceiptData = req.body;
 
 
-const client = createClient();
+const client = await pool.connect()
+
     try {
         const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
                 [receiptData.buss_no, receiptData.receiptno]
@@ -84,14 +72,15 @@ const client = createClient();
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating receipt record', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
 // Read all receipt records
 router.get('/', async (req: Request, res: Response) => {
 
-const client = createClient();
+const client = await pool.connect()
+
     try {
         const { rows } = await client.query('SELECT * FROM receipt');
         res.json(rows);
@@ -99,7 +88,7 @@ const client = createClient();
         console.error(error);
         res.status(500).json({ message: 'Error fetching receipt records', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -109,7 +98,8 @@ router.get('/:buss_no/:receiptno', async (req: Request, res: Response) => {
 
     console.log('in router.get(/:buss_no/:receiptno', { buss_no, receiptno })
 
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
         const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
@@ -125,7 +115,7 @@ const client = createClient();
         console.error(error);
         res.status(500).json({ message: 'Error fetching receipt record', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -134,7 +124,8 @@ router.put('/:buss_no/:receiptno', async (req: Request, res: Response): Promise<
     const { receiptno } = req.params;
     const receiptData: ReceiptData = req.body;
 
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
         const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
@@ -166,7 +157,7 @@ const client = createClient();
         console.error(error);
         res.status(500).json({ message: 'Error updating receipt record', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -174,7 +165,8 @@ const client = createClient();
 router.delete('/:buss_no/:receiptno', async (req: Request, res: Response) => {
     const { receiptno, buss_no } = req.params;
 
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
         const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
@@ -194,7 +186,7 @@ const client = createClient();
         console.error(error);
         res.status(500).json({ message: 'Error deleting receipt record', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -271,7 +263,7 @@ export default router;
 //         res.status(500).json({ message: 'Error creating receipt record', error });
 //         return
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 

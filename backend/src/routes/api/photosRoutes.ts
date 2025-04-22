@@ -8,7 +8,7 @@ import * as dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 // type DestinationCallback = (error: Error | null, destination: string) => void
 // type FileNameCallback = (error: Error | null, filename: string) => void
@@ -112,7 +112,8 @@ const upload = multer({
 // Function to retrieve all photos
 const getAllPhotos = async (): Promise<Buffer[]> => {
     
-const client = createClient();
+const client = await pool.connect()
+
     const sql = 'SELECT officer_no, photo FROM photos';
 
     try {
@@ -121,14 +122,15 @@ const client = createClient();
     } catch (err) {
         throw err;
     } finally {
-        client.end();
+        client.release();
     }
 };
 
 // Function to retrieve a photo
 const getPhoto = async (officer_no: string): Promise<Buffer | null> => {
     
-const client = createClient();
+const client = await pool.connect()
+
     const sql = 'SELECT photo FROM photos WHERE officer_no = $1';
 
     try {
@@ -142,14 +144,15 @@ const client = createClient();
     } catch (err) {
         throw err;
     } finally {
-        client.end();
+        client.release();
     }
 };
 
 // Function to delete a photo
 const deletePhoto = async (officer_no: string): Promise<any> => {
     
-const client = createClient();
+const client = await pool.connect()
+
     const sql = 'DELETE FROM photos WHERE officer_no = $1 RETURNING *';
 
     try {
@@ -158,7 +161,7 @@ const client = createClient();
     } catch (err) {
         throw err;
     } finally {
-        client.end();
+        client.release();
     }
 };
 
@@ -194,7 +197,8 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
         console.log('about to check if photo already exists for officer_no:', officer_no);
 
         
-        const client = createClient();
+        const client = await pool.connect()
+
         try {
             // Check if the photo already exists for the given officer_no and photo_name
             const result = await client.query('SELECT * FROM photos WHERE officer_no = $1',
@@ -232,7 +236,7 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
              res.status(500).json({ error: 'Error storing photo', details: err });
             return
         } finally {
-            client.end();
+            client.release();
         }
     } catch (err) {
         console.error('Error storing photo:', err);
@@ -253,7 +257,8 @@ router.get('/retrieve/:officer_no', async (req: Request<{ officer_no: string }>,
 
     try {
         
-const client = createClient();
+const client = await pool.connect()
+
         const sql = 'SELECT photo_buffer, photo_name, photo_type FROM photos WHERE officer_no = $1';
 
         try {
@@ -279,7 +284,7 @@ const client = createClient();
             res.status(500).json({ error: 'Error retrieving photo', details: err });
             return
         } finally {
-            client.end();
+            client.release();
         }
     } catch (err) {
         res.status(500).json({ error: 'Error getting photo', details: err });
@@ -377,7 +382,8 @@ export default router;
 // // Function to retrieve all photos
 // const getAllPhotos = async (): Promise<Buffer[]> => {
 //     
-//const client = createClient();
+//const client = await pool.connect()
+
     
 //     const sql = 'SELECT officer_no, photo FROM photos';
 
@@ -387,7 +393,7 @@ export default router;
 //     } catch (err) {
 //         throw err;
 //     } finally {
-//         client.end();
+//         client.release();
 //     }
 // };
 
@@ -408,7 +414,7 @@ export default router;
 //     } catch (err) {
 //         throw err;
 //     } finally {
-//         client.end();
+//         client.release();
 //     }
 // };
 

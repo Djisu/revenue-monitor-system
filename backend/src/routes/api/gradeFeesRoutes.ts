@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import { QueryResult, PoolClient } from 'pg';
 import pkg from 'pg';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 
 const { Pool } = pkg;
@@ -14,19 +14,7 @@ const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 
-const nodeEnv = process.env.NODE_ENV;
 
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -50,7 +38,8 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const gradeFeesData: GradeFeesData = req.body;
 
     console.log('in router.post(/create gradeFeesData: ', gradeFeesData)
-    const client = createClient();
+    const client = await pool.connect()
+
 
      // Validate request values
      if (!gradeFeesData.buss_type || !gradeFeesData.grade || !gradeFeesData.description || !gradeFeesData.fees) {
@@ -87,13 +76,14 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating GradeFees record', error: error.message });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
 // Read all GradeFees records
 router.get('/all', async (req: Request, res: Response) => {
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
         const result = await pool.query('SELECT * FROM gradefees');
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -106,14 +96,15 @@ router.get('/all', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching GradeFees records', error: error.message });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
 // Read a single GradeFees record by buss_type and grade
 router.get('/:buss_type/:grade', async (req: Request, res: Response) => {
     const { buss_type, grade } = req.params;
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {        
         const result = await pool.query('SELECT * FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
@@ -127,7 +118,7 @@ router.get('/:buss_type/:grade', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching Grade Fees record', error: error.message });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -135,7 +126,8 @@ router.get('/:buss_type/:grade', async (req: Request, res: Response) => {
 router.put('/:buss_type/:grade', async (req: Request, res: Response): Promise<void> => {
     const { buss_type, grade } = req.params;
     const gradeFeesData: GradeFeesData = req.body;
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
         const result = await pool.query('SELECT * FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
@@ -162,7 +154,7 @@ router.put('/:buss_type/:grade', async (req: Request, res: Response): Promise<vo
         console.error(error);
         res.status(500).json({ message: 'Error updating GradeFees record', error: error.message });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -170,7 +162,8 @@ router.put('/:buss_type/:grade', async (req: Request, res: Response): Promise<vo
 router.delete('/:buss_type/:grade', async (req: Request, res: Response) => {
     const { buss_type, grade } = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
         const result = await pool.query('SELECT * FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
 
@@ -187,7 +180,7 @@ router.delete('/:buss_type/:grade', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error deleting GradeFees record', error: error.message });
     }finally{
-        client.end()
+        client.release()
     }
 });
 

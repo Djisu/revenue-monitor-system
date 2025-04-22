@@ -3,7 +3,9 @@ import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import { QueryResult, Client } from 'pg';
-import { createClient } from '../../db.js'; // Import createClient function
+
+import pkg from 'pg';
+const { Pool } = pkg;
 
 import { generatePdf } from '../../generatePdf.js';
 import fs from 'fs';
@@ -15,19 +17,16 @@ const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 
-const nodeEnv = process.env.NODE_ENV;
 
-let frontendUrl = "" // Set frontend URL based on node environment
+// PostgreSQL connection configuration
+const dbConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'revmonitor',
+};
 
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
+const pool = new Pool(dbConfig);
 
 // BusinessType data interface
 interface BusinessTypeData {
@@ -46,10 +45,10 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     console.log('Creating a new businessType record');
 
     const businessTypeData: BusinessTypeData = sanitizeBusinessTypeData(req.body);
-    const client: Client = createClient(); // Create a new client instance
+     const client = await pool.connect(); // Create a new client instance
 
     try {
-        await client.connect(); // Connect to PostgreSQL
+       // Connect to PostgreSQL
         const result: QueryResult = await client.query('SELECT * FROM businesstype WHERE business_type = $1', [businessTypeData.Business_Type]);
 
         if (Array.isArray(result.rows) && result.rows.length > 0) {          
@@ -65,7 +64,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         console.error('Error:', error);
         res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
     } finally {
-        await client.end(); // Ensure the client is closed
+        await client.release(); // Ensure the client is closed
     }
 });
 
@@ -73,9 +72,9 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 router.get('/all', async (req: Request, res: Response) => {
     console.log('Fetching all businessType records');
 
-    const client: Client = createClient(); // Create a new client instance
+     const client = await pool.connect(); // Create a new client instance
     try {
-        await client.connect(); // Connect to PostgreSQL
+       // Connect to PostgreSQL
         const result: QueryResult = await client.query('SELECT business_type FROM businesstype');
         console.log('result.rows: ', result.rows);
         
@@ -84,7 +83,7 @@ router.get('/all', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ success: false, message: 'Error fetching BusinessType records', error });
     } finally {
-        await client.end(); // Ensure the client is closed
+        await client.release(); // Ensure the client is closed
     }
 });
 
@@ -92,9 +91,9 @@ router.get('/all', async (req: Request, res: Response) => {
 router.get('/:Business_Type', async (req: Request, res: Response) => {
     const { Business_Type } = req.params;
 
-    const client: Client = createClient(); // Create a new client instance
+     const client = await pool.connect(); // Create a new client instance
     try {
-        await client.connect(); // Connect to PostgreSQL
+       // Connect to PostgreSQL
         const result: QueryResult = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [Business_Type]);
 
         if (Array.isArray(result.rows) && result.rows.length > 0) {
@@ -106,7 +105,7 @@ router.get('/:Business_Type', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ success: false, message: 'Error fetching BusinessType record', error });
     } finally {
-        await client.end(); // Ensure the client is closed
+        await client.release(); // Ensure the client is closed
     }
 });
 
@@ -115,9 +114,9 @@ router.put('/:Business_Type', async (req: Request, res: Response): Promise<void>
     const { Business_Type } = req.params;
     const businessTypeData: BusinessTypeData = sanitizeBusinessTypeData(req.body);
 
-    const client: Client = createClient(); // Create a new client instance
+     const client = await pool.connect(); // Create a new client instance
     try {
-        await client.connect(); // Connect to PostgreSQL
+       // Connect to PostgreSQL
         const result: QueryResult = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [businessTypeData.Business_Type]);
 
         if (Array.isArray(result.rows) && result.rows.length > 0) {          
@@ -133,7 +132,7 @@ router.put('/:Business_Type', async (req: Request, res: Response): Promise<void>
         console.error(error);
         res.status(500).json({ success: false, message: 'Error updating BusinessType record', error });
     } finally {
-        await client.end(); // Ensure the client is closed
+        await client.release(); // Ensure the client is closed
     }
 });
 
@@ -143,9 +142,9 @@ router.delete('/:Business_Type', async (req: Request, res: Response) => {
 
     console.log('Deleting BusinessType record:', Business_Type);
 
-    const client: Client = createClient(); // Create a new client instance
+     const client = await pool.connect(); // Create a new client instance
     try {
-        await client.connect(); // Connect to PostgreSQL
+       // Connect to PostgreSQL
         const result: QueryResult = await client.query('SELECT * FROM businesstype WHERE Business_Type = $1', [Business_Type]);
 
         if (Array.isArray(result.rows) && result.rows.length === 0) {          
@@ -161,7 +160,7 @@ router.delete('/:Business_Type', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ success: false, message: 'Error deleting BusinessType record', error });
     } finally {
-        await client.end(); // Ensure the client is closed
+        await client.release(); // Ensure the client is closed
     }
 });
 

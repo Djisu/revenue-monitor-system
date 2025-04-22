@@ -2,24 +2,10 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -31,7 +17,7 @@ const pool = new Pool({
 // Create a new officer budget weekly record
 router.post('/', async (req, res) => {
     const officerBudgetWeeklyData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const existingRecord = await client.query(`SELECT * FROM officerbudgetweekly WHERE officer_no = $1 AND fiscal_year = $2`, [officerBudgetWeeklyData.officer_no, officerBudgetWeeklyData.fiscal_year]);
         if (existingRecord.rows.length > 0) {
@@ -180,13 +166,13 @@ router.post('/', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read all officer budget weekly records
 router.get('/', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM officerbudgetweekly');
         res.json(result.rows);
@@ -197,14 +183,14 @@ router.get('/', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read officer budget weekly record by id
 router.get('/:id/:fiscal_year', async (req, res) => {
     const { id, fiscal_year } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM officerbudgetweekly WHERE id = $1 AND fiscal_year = $2', [id, fiscal_year]);
         if (result.rows.length === 0) {
@@ -219,7 +205,7 @@ router.get('/:id/:fiscal_year', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -227,7 +213,7 @@ router.get('/:id/:fiscal_year', async (req, res) => {
 router.put('/:id/:fiscal_year', async (req, res) => {
     const { id, fiscal_year } = req.params;
     const officerBudgetWeeklyData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM officerbudgetweekly WHERE id = $1 AND fiscal_year = $2', [id, fiscal_year]);
         if (result.rows.length === 0) {
@@ -377,14 +363,14 @@ router.put('/:id/:fiscal_year', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Delete officer budget weekly record by id
 router.delete('/:id/:fiscal_year', async (req, res) => {
     const { id, fiscal_year } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM officerbudgetweekly WHERE id = $1 AND fiscal_year = $2', [id, fiscal_year]);
         if (result.rows.length === 0) {
@@ -401,13 +387,13 @@ router.delete('/:id/:fiscal_year', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Helper function to get fiscal years
 async function getFiscalYears() {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year');
         return result.rows.map(row => row.fiscal_year);
@@ -418,13 +404,13 @@ async function getFiscalYears() {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 // Helper function to get officers
 async function getOfficers() {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT officer_no, officer_name FROM officer');
         return result.rows;
@@ -435,13 +421,13 @@ async function getOfficers() {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 // Helper function to get amount by officer and month
 async function getAmountByOfficerAndMonth(officerNo, fiscalYear, monthPaid) {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query(`SELECT 
                 SUM(amount) AS totsum 
@@ -457,13 +443,13 @@ async function getAmountByOfficerAndMonth(officerNo, fiscalYear, monthPaid) {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 // Helper function to delete officer month assess
 async function deleteOfficerMonthAssess() {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         await client.query('DELETE FROM officermonthassess');
     }
@@ -473,13 +459,13 @@ async function deleteOfficerMonthAssess() {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 // Helper function to insert officer month assess
 async function insertOfficerMonthAssess(data) {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const insertQuery = `
             INSERT INTO officermonthassess (officer_name, month, amount, fiscalyear) 
@@ -494,7 +480,7 @@ async function insertOfficerMonthAssess(data) {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
@@ -828,7 +814,7 @@ export default router;
 //         console.error('Error:', error);
 //         res.status(500).json({ message: 'Error creating officer budget weekly record', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 // // Read all officer budget weekly records

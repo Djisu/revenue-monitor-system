@@ -6,7 +6,7 @@ import pkg from 'pg';
 import type { PoolClient } from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 
 
@@ -15,19 +15,6 @@ const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // PostgreSQL connection pool configuration
 const pool = new Pool({
@@ -54,7 +41,8 @@ interface TransSavingsData {
 // Create a new transaction savings record
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const transSavingsData: TransSavingsData = req.body;
-const client = createClient();
+const client = await pool.connect()
+
     try {
         
 
@@ -93,13 +81,14 @@ const client = createClient();
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating Transaction Savings record', error: (error as Error).message });
     }finally{
-        client.end();
+        client.release();
     }
 });
 
 // Read all transaction savings records
 router.get('/', async (req: Request, res: Response) => {
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
         const rows = await client.query<QueryResult>('SELECT * FROM transsavings');
         res.json(rows.rows);
@@ -108,14 +97,15 @@ router.get('/', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching Transaction Savings records', error: (error as Error).message });
     }finally{
-        client.end();
+        client.release();
     }
 });
 
 // Read a single transaction savings record by buss_no and transdate
 router.get('/:buss_no/:transdate', async (req: Request, res: Response) => {
     const { buss_no, transdate } = req.params;
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
         
 
@@ -134,7 +124,7 @@ router.get('/:buss_no/:transdate', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching Transaction Savings record', error: (error as Error).message });
     }finally{
-        client.end();
+        client.release();
     }
 });
 
@@ -142,7 +132,8 @@ router.get('/:buss_no/:transdate', async (req: Request, res: Response) => {
 router.put('/:buss_no/:transdate', async (req: Request, res: Response): Promise<void> => {
     const { buss_no, transdate } = req.params;
     const transSavingsData: TransSavingsData = req.body;
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
         
 
@@ -180,14 +171,15 @@ router.put('/:buss_no/:transdate', async (req: Request, res: Response): Promise<
         console.error(error);
         res.status(500).json({ message: 'Error updating Transaction Savings record', error: (error as Error).message });
     }finally{
-         client.end();
+         client.release();
     }
 });
 
 // Delete a transaction savings record
 router.delete('/:buss_no/:transdate', async (req: Request, res: Response) => {
     const { buss_no, transdate } = req.params;
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
         
 
@@ -213,7 +205,7 @@ router.delete('/:buss_no/:transdate', async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error deleting Transaction Savings record', error: (error as Error).message });
     }finally{
-        client.end();
+        client.release();
     }
 });
 

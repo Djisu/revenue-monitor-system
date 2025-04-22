@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import pkg from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 
 
@@ -13,19 +13,6 @@ const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -55,7 +42,8 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
         const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
 
@@ -76,14 +64,15 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         console.error('Error:', error);
         res.status(500).json({ success: false, message: 'Error creating property class record', error: error.message });
     } finally {
-        client.end();
+        client.release();
     }
 });
 
 // Read all property class records
 router.get('/all', async (req: Request, res: Response) => {
 
-const client = createClient();
+const client = await pool.connect()
+
     try {
         const result = await client.query('SELECT * FROM propertyclass');
         res.status(200).json({ success: true, data: result.rows });
@@ -91,7 +80,7 @@ const client = createClient();
         console.error(error);
         res.status(500).json({ success: false, message: 'Error fetching property class records', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -100,7 +89,8 @@ router.get('/:property_class', async (req: Request, res: Response) => {
     const { property_class } = req.params;
 
 
-const client = createClient();
+const client = await pool.connect()
+
     try {
         const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
 
@@ -113,7 +103,7 @@ const client = createClient();
         console.error(error);
         res.status(500).json({ success: false, message: 'Error fetching property class record', error });
     }finally{
-        client.end()
+        client.release()
     }
 });
 
@@ -122,7 +112,8 @@ router.put('/:property_class', async (req: Request, res: Response): Promise<void
     const { property_class } = req.params;
     const propertyClassData: PropertyClassData = req.body;
 
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
         const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
 
@@ -150,7 +141,8 @@ router.put('/:property_class', async (req: Request, res: Response): Promise<void
 router.delete('/delete/:property_class', async (req: Request, res: Response) => {
     const { property_class } = req.params;
 
-    const client = createClient();
+    const client = await pool.connect()
+
     try {
         const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
 
@@ -257,7 +249,7 @@ export default router;
 //         console.error('Error:', error);
 //         res.status(500).json({   success: false, message: 'Error creating property class record', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 
@@ -272,7 +264,7 @@ export default router;
 //         console.error(error);
 //         res.status(500).json({  success: false, message: 'Error fetching property class records', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 
@@ -294,7 +286,7 @@ export default router;
 //         console.error(error);
 //         res.status(500).json({ success: false, message: 'Error fetching property class record', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 
@@ -328,7 +320,7 @@ export default router;
 //         console.error(error);
 //         res.status(500).json({ success: false, message: 'Error updating property class record', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 
@@ -356,7 +348,7 @@ export default router;
 //         console.error(error);
 //         res.status(500).json({ success: false, message: 'Error deleting property class record', error: error.message });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 

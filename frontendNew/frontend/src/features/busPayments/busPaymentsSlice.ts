@@ -51,7 +51,7 @@ interface FetchParams {
 
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
 
 export const selectBusPayments = (state: RootState) => state.busPayments.busPayments;
 
@@ -159,6 +159,8 @@ async (buss_no: string) => {
 // Async thunk to fetch a single BusPayments record by buss_no
 export const fetchBusPaymentByElectoralArea = createAsyncThunk('busPayments/fetchBusPaymentByElectoralArea', async (electoralArea: string) => {
     console.log('in fetchBusPaymentByElectoralArea: ', electoralArea)
+
+    console.log('BASE_URL: ', BASE_URL)
 
     const response = await axios.post(`${BASE_URL}/api/busPayments/${electoralArea}`);
 

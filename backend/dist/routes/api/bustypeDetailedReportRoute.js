@@ -1,23 +1,9 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const { Pool } = pkg;
 dotenv.config(); // Load .env file from the default location
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
@@ -40,11 +26,12 @@ const pool = new Pool({
     database: process.env.DB_NAME || 'revmonitor',
     port: parseInt(process.env.DB_PORT || '5432', 10),
 });
+//const pool = new Pool(dbConfig);
 // CRUD Operations
 // Create
 router.post('/', async (req, res) => {
     const report = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     const query = `
         INSERT INTO bustypedetailedreport (electoral_area, buss_no, buss_name, buss_type, amountdue, amountpaid, balance, tot_grade) 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -59,11 +46,11 @@ router.post('/', async (req, res) => {
         res.status(500).send('Error creating report');
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 router.get('/', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM bustypedetailedreport');
         if (result.rowCount === 0) {
@@ -79,7 +66,7 @@ router.get('/', async (req, res) => {
         return;
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // router.get('/all', async (req: Request, res: Response) => {
@@ -97,7 +84,7 @@ router.get('/', async (req, res) => {
 // Read One
 router.get('/:buss_no', async (req, res) => {
     const buss_no = parseInt(req.params.buss_no);
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM bustypedetailedreport WHERE buss_no = $1', [buss_no]);
         if (result.rows.length > 0) {
@@ -112,7 +99,7 @@ router.get('/:buss_no', async (req, res) => {
         res.status(500).send('Error retrieving report');
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Update
@@ -125,7 +112,7 @@ router.put('/:buss_no', async (req, res) => {
         WHERE buss_no = $8
     `;
     const values = [report.electoral_area, report.buss_name, report.buss_type, report.amountdue, report.amountpaid, report.balance, report.tot_grade, buss_no];
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query(query, values);
         if (result.rowCount === 0) {
@@ -140,13 +127,13 @@ router.put('/:buss_no', async (req, res) => {
         res.status(500).send({ message: 'Error updating report', data: 0 });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Delete
 router.delete('/:buss_no', async (req, res) => {
     const buss_no = parseInt(req.params.buss_no);
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('DELETE FROM bustypedetailedreport WHERE buss_no = $1', [buss_no]);
         if (result.rowCount === 0) {
@@ -161,11 +148,11 @@ router.delete('/:buss_no', async (req, res) => {
         res.status(500).send({ message: 'Error deleting report', data: 0 });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 router.get('/:zone/:businessType/:newFiscalYear', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const zone = req.params.zone;
         const businessType = req.params.businessType;
@@ -253,7 +240,7 @@ router.get('/:zone/:businessType/:newFiscalYear', async (req, res) => {
         return res.status(500).json({ message: 'Error retrieving reports', error: error.message });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // router.get('/:zone/:businessType/:newFiscalYear', async (req: Request<{ zone: string, businessType: string, newFiscalYear: string }>, res: Response): Promise<Response | void | any> => {

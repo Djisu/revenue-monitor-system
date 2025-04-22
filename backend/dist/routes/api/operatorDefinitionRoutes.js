@@ -4,24 +4,10 @@ import * as dotenv from 'dotenv';
 import pkg from 'pg';
 const { Pool } = pkg;
 import bcrypt from 'bcrypt';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const router = express.Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -35,7 +21,7 @@ router.post('/create', async (req, res) => {
     console.log('in operator definition router.post');
     const operatorData = req.body;
     console.log('operatorData:', operatorData);
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Validate required fields
         const requiredFields = ['OperatorID', 'OperatorName', 'password', 'firstname', 'lastname', 'email'];
@@ -106,14 +92,14 @@ router.post('/create', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read all operators
 router.get('/all', async (req, res) => {
     console.log('in operator definition router.get(all');
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const rows = await client.query('SELECT * FROM operatordefinition');
         if (rows.rows.length == 0) {
@@ -128,14 +114,14 @@ router.get('/all', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Read a single operator by OperatorID
 router.get('/:OperatorID', async (req, res) => {
     const { OperatorID } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [OperatorID]);
         if (result.rows.length == 0) {
@@ -151,7 +137,7 @@ router.get('/:OperatorID', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -159,7 +145,7 @@ router.get('/:OperatorID', async (req, res) => {
 router.put('/:OperatorID', async (req, res) => {
     const { OperatorID } = req.params;
     const operatorData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if an operator with the same OperatorID already exists
         const result = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [OperatorID]);
@@ -186,14 +172,14 @@ router.put('/:OperatorID', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 // Delete an operator record
 router.delete('/:OperatorID', async (req, res) => {
     const { OperatorID } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         // Check if an operator with the same OperatorID already exists
         const result = await client.query('SELECT * FROM operatordefinition WHERE OperatorID = $1', [OperatorID]);
@@ -211,7 +197,7 @@ router.delete('/:OperatorID', async (req, res) => {
     }
     finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -326,7 +312,7 @@ export default router;
 //         console.error('Error:', error);
 //         res.status(500).json({ message: 'Error creating operator', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 // // Read all operators
@@ -346,7 +332,7 @@ export default router;
 //         console.error(error);
 //         res.status(500).json({ message: 'Error fetching operators', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 // // Read a single operator by OperatorID

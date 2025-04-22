@@ -59,6 +59,14 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json({ limit: '10mb' })); // Parse JSON request bodies with limit
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true })); // Parse URL-encoded request bodies with limit
 app.use(express.json());
+// Load environment variables from .env file
+const environment = process.env.NODE_ENV || 'development';
+dotenv.config({ path: `.env.${environment}` });
+dotenv.config();
+console.log('host:', process.env.DB_HOST);
+console.log('user:', process.env.DB_USER);
+console.log('database:', process.env.DB_NAME);
+console.log('port:', process.env.DB_PORT);
 // PostgreSQL connection configuration
 const dbConfig = {
     host: process.env.DB_HOST,
@@ -71,6 +79,7 @@ console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 // Create PostgreSQL client
 // Function to create a new client
 export const createClient = () => {
+    console.log('in server createClient function');
     return new pkg.Client(dbConfig); // Use pkg.Client to create a new client instance
 };
 // Middleware setup

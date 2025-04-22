@@ -7,7 +7,7 @@ import pkg from 'pg';
 import type { PoolClient } from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 
 
 
@@ -16,19 +16,6 @@ const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -151,7 +138,8 @@ interface OfficerBudgetWeeklyData {
 router.post('/', async (req: Request, res: Response): Promise<void> => {
     const officerBudgetWeeklyData: OfficerBudgetWeeklyData = req.body;
 
-    const client = createClient();
+    const client = await pool.connect()
+
 
     try {
        
@@ -310,14 +298,15 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: 'Error creating officer budget weekly record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 
 // Read all officer budget weekly records
 router.get('/', async (req: Request, res: Response) => {
-   const client = createClient();
+   const client = await pool.connect()
+
 
     try {
        
@@ -329,7 +318,7 @@ router.get('/', async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error in getting officer budget weekly records', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -339,7 +328,8 @@ router.get('/:id/:fiscal_year', async (req: Request, res: Response) => {
     const { id, fiscal_year } = req.params;
 
    
-const client = createClient();
+const client = await pool.connect()
+
     try {
        
 
@@ -358,7 +348,7 @@ const client = createClient();
         res.status(500).json({ message: 'Error in getting officer budget weekly record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -369,7 +359,8 @@ router.put('/:id/:fiscal_year', async (req: Request, res: Response): Promise<voi
     const officerBudgetWeeklyData: OfficerBudgetWeeklyData = req.body;
 
           
-const client = createClient();
+const client = await pool.connect()
+
 
     try {
 
@@ -528,7 +519,7 @@ const client = createClient();
         res.status(500).json({ message: 'Error updating officer budget weekly record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
@@ -537,7 +528,8 @@ const client = createClient();
 router.delete('/:id/:fiscal_year', async (req: Request, res: Response): Promise<void> => {
     const { id, fiscal_year } = req.params;
 
-   const client = createClient();
+   const client = await pool.connect()
+
 
     try {
        
@@ -561,14 +553,15 @@ router.delete('/:id/:fiscal_year', async (req: Request, res: Response): Promise<
         res.status(500).json({ message: 'Error deleting officer budget weekly record', error });
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 });
 
 // Helper function to get fiscal years
 async function getFiscalYears(): Promise<number[]> {
-   const client = createClient();
+   const client = await pool.connect()
+
 
     try {
        
@@ -583,7 +576,7 @@ async function getFiscalYears(): Promise<number[]> {
         throw err;
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
@@ -591,7 +584,8 @@ async function getFiscalYears(): Promise<number[]> {
 // Helper function to get officers
 async function getOfficers(): Promise<Officer[]> {
    
-const client = createClient();
+const client = await pool.connect()
+
     try {
        
 
@@ -605,7 +599,7 @@ const client = createClient();
         throw err;
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
@@ -613,7 +607,8 @@ const client = createClient();
 // Helper function to get amount by officer and month
 async function getAmountByOfficerAndMonth(officerNo: string, fiscalYear: number, monthPaid: string): Promise<number | null> {
    
-const client = createClient();
+const client = await pool.connect()
+
     try {
        
 
@@ -633,14 +628,15 @@ const client = createClient();
         throw err;
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 
 // Helper function to delete officer month assess
 async function deleteOfficerMonthAssess() {
-   const client = createClient();
+   const client = await pool.connect()
+
 
     try {
        
@@ -651,14 +647,15 @@ async function deleteOfficerMonthAssess() {
         throw err;
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
 
 // Helper function to insert officer month assess
 async function insertOfficerMonthAssess(data: OfficerMonthlyPerformance[]) {
-   const client = createClient();
+   const client = await pool.connect()
+
 
     try {
        
@@ -676,7 +673,7 @@ async function insertOfficerMonthAssess(data: OfficerMonthlyPerformance[]) {
         console.error('Error inserting officer month assess:', err);
     } finally {
         if (client) {
-            client.end();
+            client.release();
         }
     }
 }
@@ -1039,7 +1036,7 @@ export default router;
 //         console.error('Error:', error);
 //         res.status(500).json({ message: 'Error creating officer budget weekly record', error });
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 

@@ -1,25 +1,11 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 import pkg from 'pg';
 const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file  ../../db.js
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -31,7 +17,7 @@ const pool = new Pool({
 // Create a new BudgetAssess record
 router.post('/', async (req, res) => {
     const budgetAssessData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM budgetassess WHERE month = $1 AND fiscalyear = $2', [budgetAssessData.month, budgetAssessData.fiscalyear]);
         if (rows.length > 0) {
@@ -57,7 +43,7 @@ router.post('/', async (req, res) => {
 });
 // Read all BudgetAssess records
 router.get('/', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM budgetassess');
         res.json(rows);
@@ -70,7 +56,7 @@ router.get('/', async (req, res) => {
 // Read a single BudgetAssess record by month and fiscalyear
 router.get('/:month/:fiscalyear', async (req, res) => {
     const { month, fiscalyear } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM budgetassess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
         if (rows.length > 0) {
@@ -89,7 +75,7 @@ router.get('/:month/:fiscalyear', async (req, res) => {
 router.put('/:month/:fiscalyear', async (req, res) => {
     const { month, fiscalyear } = req.params;
     const budgetAssessData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM budgetassess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
         if (rows.length === 0) {
@@ -115,7 +101,7 @@ router.put('/:month/:fiscalyear', async (req, res) => {
 // Delete a BudgetAssess record
 router.delete('/:month/:fiscalyear', async (req, res) => {
     const { month, fiscalyear } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM budgetassess WHERE month = $1 AND fiscalyear = $2', [month, fiscalyear]);
         if (rows.length === 0) {

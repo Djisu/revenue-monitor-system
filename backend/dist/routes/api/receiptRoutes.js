@@ -2,24 +2,10 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
-import { createClient } from '../../db.js';
+//import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // Postgres connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -31,7 +17,7 @@ const pool = new Pool({
 // Create a new receipt record
 router.post('/', async (req, res) => {
     const receiptData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2', [receiptData.buss_no, receiptData.receiptno]);
         if (rows.length > 0) {
@@ -56,12 +42,12 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: 'Error creating receipt record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read all receipt records
 router.get('/', async (req, res) => {
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM receipt');
         res.json(rows);
@@ -71,14 +57,14 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: 'Error fetching receipt records', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Read a single receipt record by buss_no
 router.get('/:buss_no/:receiptno', async (req, res) => {
     const { buss_no, receiptno } = req.params;
     console.log('in router.get(/:buss_no/:receiptno', { buss_no, receiptno });
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2', [buss_no, receiptno]);
         if (rows.length == 0) {
@@ -92,14 +78,14 @@ router.get('/:buss_no/:receiptno', async (req, res) => {
         res.status(500).json({ message: 'Error fetching receipt record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Update a receipt record
 router.put('/:buss_no/:receiptno', async (req, res) => {
     const { receiptno } = req.params;
     const receiptData = req.body;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2', [receiptData.buss_no, receiptno]);
         if (rows.length == 0) {
@@ -124,13 +110,13 @@ router.put('/:buss_no/:receiptno', async (req, res) => {
         res.status(500).json({ message: 'Error updating receipt record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 // Delete a receipt record
 router.delete('/:buss_no/:receiptno', async (req, res) => {
     const { receiptno, buss_no } = req.params;
-    const client = createClient();
+    const client = await pool.connect();
     try {
         const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2', [buss_no, receiptno]);
         if (rows.length == 0) {
@@ -146,7 +132,7 @@ router.delete('/:buss_no/:receiptno', async (req, res) => {
         res.status(500).json({ message: 'Error deleting receipt record', error });
     }
     finally {
-        client.end();
+        client.release();
     }
 });
 export default router;
@@ -207,7 +193,7 @@ export default router;
 //         res.status(500).json({ message: 'Error creating receipt record', error });
 //         return
 //     } finally {
-//         connection.end();
+//         connection.release();
 //     }
 // });
 // // Read all receipt records

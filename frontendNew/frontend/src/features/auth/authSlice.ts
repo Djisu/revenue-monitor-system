@@ -40,7 +40,7 @@ export interface LoginError {
 }
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
 
 // Define the async thunk for login
 export const loginUser = createAsyncThunk<LoginResponse, { username: string; password: string }, { rejectValue: LoginError }>(
