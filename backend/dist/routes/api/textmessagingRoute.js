@@ -6,6 +6,7 @@ const port = 3000;
 const router = express.Router();
 // Load environment variables from .env file
 dotenv.config();
+console.log('about to test');
 const arkesel_api_key = process.env.ARKESEL_API_KEY;
 if (!arkesel_api_key) {
     console.error('ARKESEL_API_KEY environment variable not set');
