@@ -10,7 +10,7 @@ const router: Router = express.Router();
 
 // Load environment variables from .env file
 dotenv.config();
-
+console.log('about to test')
 
 const arkesel_api_key = process.env.ARKESEL_API_KEY;
 
