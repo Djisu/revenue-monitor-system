@@ -84,7 +84,7 @@ async function getOfficerAssessments(): Promise<number[]> {
     const client = await pool.connect()
 
     try {
-        const { rows } = await client.query('SELECT * FROM officerbudget ORDER BY officer_no ASC');
+        const { rows }: QueryResult<{officer_no: number}>  = await client.query('SELECT * FROM officerbudget ORDER BY officer_no ASC');
         return rows.map(row => row.officer_no);
     } catch (err: any) {
         console.error('Error fetching fiscal years:', err);
@@ -101,7 +101,7 @@ async function getFiscalYears(): Promise<number[]> {
     const client = await pool.connect()
 
     try {
-        const { rows } = await client.query('SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year');
+        const { rows }: QueryResult<{fiscal_year: number}> = await client.query('SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year');
         console.log('rows: ', rows)
         return rows.map(row => row.fiscal_year);
     } catch (err) {

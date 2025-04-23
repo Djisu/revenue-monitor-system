@@ -200,7 +200,19 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
             return 
         }
 
-        const busPaymentsData = result.rows.map((row) => ({
+        interface Row {
+            buss_no: string;
+            officer_no: string;
+            paidamount: string;
+            monthpaid: string;
+            transdate: string;
+            fiscal_year: string;
+            receiptno: string;
+            email: string;
+            electoral_area: string;
+          }
+          
+        const busPaymentsData = result.rows.map((row: Row) => ({
             buss_no: row.buss_no,
             officer_no: row.officer_no,
             paidAmount: parseFloat(row.paidamount),

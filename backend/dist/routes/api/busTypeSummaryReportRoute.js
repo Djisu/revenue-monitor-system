@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
+//import c from 'config';
 // import { createClient } from '../../db.js';
 const { Pool } = pkg;
 dotenv.config(); // Load .env file from the default location
@@ -12,8 +13,6 @@ const dbConfig = {
     database: process.env.DB_NAME || 'revmonitor',
 };
 const router = Router();
-// Load environment variables from .env file
-dotenv.config();
 const emailPassword = process.env.EMAIL_PASSWORD;
 const appPassword = process.env.APP_PASSWORD;
 const emailUser = process.env.EMAIL_USER;

@@ -752,7 +752,7 @@ router.post('/updateBudget', async (req: Request<{}, {}, UpdateBudgetRequest>, r
             data: { /* your data here */ }
         });
         return
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
         res.status(500).send('Error updating budget record');
         return
