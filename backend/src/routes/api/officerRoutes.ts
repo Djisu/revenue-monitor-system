@@ -173,7 +173,7 @@ router.delete('/delete/:officer_no', async (req: Request, res: Response): Promis
 });
 
 // Read all officer records
-router.get('/all', async (req: Request, res: Response) => {
+router.get('/all', async (req: Request, res: Response): Promise<any> => {
     console.log('router.get(/all XXXXXXXXX');
 
     
@@ -191,7 +191,15 @@ router.get('/all', async (req: Request, res: Response) => {
 
         console.log('after const officers = result.rows.map(row => {')
 
-        const officers = result.rows.map(row => {
+        interface Officer {
+            // Add properties here to match the structure of the objects in the array
+            officer_no: number;
+            photo: Blob | null;
+            photoUrl: string | null;
+            // Add other properties as needed
+        }
+
+        const officers: Officer[] = result.rows.map(row => {
             const photoBuffer = row.photo_buffer ? Buffer.from(row.photo_buffer) : null;
             const photoBlob = photoBuffer ? new Blob([photoBuffer], { type: row.photo_type }) : null; // Convert Buffer to Blob
 

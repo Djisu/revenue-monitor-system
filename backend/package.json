@@ -19,6 +19,7 @@
   ],
   "dependencies": {
     "@types/morgan": "^1.9.9",
+    "@types/multer": "^1.4.12",
     "@types/winston": "^2.4.4",
     "axios": "^1.8.1",
     "bcrypt": "^5.1.1",
@@ -37,7 +38,6 @@
     "md5": "^2.3.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
-    "@types/multer": "^1.4.12",
     "node-fetch": "^3.3.2",
     "node-printer": "^1.0.4",
     "nodemailer": "^6.10.0",

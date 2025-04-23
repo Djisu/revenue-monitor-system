@@ -2,7 +2,7 @@
 import express, { Request, Response, Router } from 'express';
 import * as dotenv from 'dotenv';
 
-import pkg from 'pg';
+import pkg, { QueryResult } from 'pg';
 import { createClient } from '../../db.js';
 const { Pool } = pkg;
 
@@ -75,6 +75,7 @@ interface OfficerBudget {
     novemberAmount: number;
     decemberAmount: number;
     totalValue: number;
+    fiscal_year: number;
 }
 
 interface AssessmentData {
@@ -353,7 +354,7 @@ async function getFiscalYears(): Promise<number[]> {
 
     try {
        
-        const result = await client.query('SELECT DISTINCT fiscal_year FROM tb_officerbudget ORDER BY fiscal_year');
+        const result: QueryResult<{fiscal_year: number}> = await client.query('SELECT DISTINCT fiscal_year FROM tb_officerbudget ORDER BY fiscal_year');
 
         return result.rows.map(row => row.fiscal_year);
     } catch (err) {

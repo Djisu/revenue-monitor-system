@@ -1,6 +1,6 @@
 import express, { Router, Request, Response } from 'express';
 
-import pg from 'pg'
+import pg, { QueryResult } from 'pg'
 const { Pool } = pg
 import multer, { diskStorage, StorageEngine } from 'multer';
 
@@ -30,6 +30,11 @@ type InsertResult = {
     photoUrl: string;
     affectedRows: number;
 };
+
+interface PhotoRow {
+    officer_no: string;
+    photo: Uint8Array; // or Buffer, depending on the client's return type
+}
 
 // Load environment variables from .env file
 dotenv.config();
@@ -117,7 +122,7 @@ const client = await pool.connect()
     const sql = 'SELECT officer_no, photo FROM photos';
 
     try {
-        const result = await client.query(sql);
+        const result = await client.query<PhotoRow>(sql);
         return result.rows.map(row => Buffer.from(row.photo));
     } catch (err) {
         throw err;

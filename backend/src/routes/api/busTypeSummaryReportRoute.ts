@@ -6,7 +6,7 @@ import { QueryResult, PoolClient } from 'pg';
 
 import pkg from 'pg';
 import { Business } from '../../models/Business';
-import c from 'config';
+//import c from 'config';
 // import { createClient } from '../../db.js';
 const { Pool } = pkg;
 
@@ -34,8 +34,7 @@ interface BusTypeSummaryReport {
 
 const router = Router();
 
-// Load environment variables from .env file
-dotenv.config();
+
 
 const emailPassword = process.env.EMAIL_PASSWORD;
 const appPassword = process.env.APP_PASSWORD;
