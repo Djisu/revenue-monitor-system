@@ -7,11 +7,6 @@ import multer, { diskStorage } from 'multer';
 import colors from 'colors';
 import morgan from 'morgan';
 import swaggerJSDoc from 'swagger-jsdoc';
-// import * as pg from 'pg'; // Import the entire pg package
-// const Client: any = pg.Client; // Assign the Client class to the Client variable
-// import pkg from 'pg'; // Import the entire pg package
-// const { Client } = pkg; // Destructure Client from the imported package
-import pkg from 'pg'; // Import the entire package and rename Client to PgClient
 // ...
 // const dbClient = new pg.Client({
 //  ...
@@ -78,10 +73,10 @@ const dbConfig = {
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 // Create PostgreSQL client
 // Function to create a new client
-export const createClient = () => {
-    console.log('in server createClient function');
-    return new pkg.Client(dbConfig); // Use pkg.Client to create a new client instance
-};
+// export const createClient = (): PgClient => {
+//     console.log('in server createClient function')
+//     return new pkg.Client(dbConfig); // Use pkg.Client to create a new client instance
+// };
 // Middleware setup
 const allowedOrigins = [
     'https://revenue-monitor-system.onrender.com',
@@ -180,8 +175,8 @@ app.use((err, req, res, next) => {
 // Start the server and connect to PostgreSQL
 app.listen(port, async () => {
     console.log(`Server is running on port ${port}`);
-    const client = createClient(); // Create a client instance
-    await client.connect(); // Connect to PostgreSQL
+    // const client = createClient(); // Create a client instance
+    // await client.connect(); // Connect to PostgreSQL
     console.log(colors.green('PostgreSQL connected'));
 });
 // Handle process signals
@@ -189,8 +184,8 @@ process.once('SIGUSR2', () => {
     process.kill(process.pid, 'SIGUSR2');
 });
 process.on('SIGINT', async () => {
-    const client = createClient();
-    await client.end(); // Ensure connection is closed
+    // const client = createClient();
+    // await client.end(); // Ensure connection is closed
     console.log(colors.green('PostgreSQL connection closed'));
     process.exit(0);
 });
