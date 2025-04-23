@@ -92,10 +92,10 @@ console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 
 // Create PostgreSQL client
 // Function to create a new client
-export const createClient = (): PgClient => {
-    console.log('in server createClient function')
-    return new pkg.Client(dbConfig); // Use pkg.Client to create a new client instance
-};
+// export const createClient = (): PgClient => {
+//     console.log('in server createClient function')
+//     return new pkg.Client(dbConfig); // Use pkg.Client to create a new client instance
+// };
 
 // Middleware setup
 const allowedOrigins = [
@@ -206,8 +206,8 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // Start the server and connect to PostgreSQL
 app.listen(port, async () => {
     console.log(`Server is running on port ${port}`);
-    const client = createClient(); // Create a client instance
-    await client.connect(); // Connect to PostgreSQL
+    // const client = createClient(); // Create a client instance
+    // await client.connect(); // Connect to PostgreSQL
     console.log(colors.green('PostgreSQL connected'));
 });
 
@@ -217,8 +217,8 @@ process.once('SIGUSR2', () => {
 });
 
 process.on('SIGINT', async () => {
-    const client = createClient();
-    await client.end(); // Ensure connection is closed
+    // const client = createClient();
+    // await client.end(); // Ensure connection is closed
     console.log(colors.green('PostgreSQL connection closed'));
     process.exit(0);
 });
