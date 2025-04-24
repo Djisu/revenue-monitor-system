@@ -7,6 +7,7 @@ import multer, { diskStorage } from 'multer';
 import colors from 'colors';
 import morgan from 'morgan';
 import swaggerJSDoc from 'swagger-jsdoc';
+import path from 'path';
 // ...
 // const dbClient = new pg.Client({
 //  ...
@@ -90,6 +91,12 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(morgan('dev')); // Logging middleware
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../frontendNew/frontend/build')));
+// Handle any requests that don't match the ones above
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontendNew/frontend/build', 'index.html'));
+});
 // Swagger definition
 const swaggerOptions = {
     definition: {
