@@ -61,6 +61,9 @@ import bustypeDetailedReportRoute from './routes/api/bustypeDetailedReportRoute.
 import bustypeSummaryReportRoute from './routes/api/busTypeSummaryReportRoute.js';
 import textMessagingRoute from './routes/api/textmessagingRoute.js';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
 // Load environment variables from .env file
 dotenv.config(); // Load .env file from the default location
 
@@ -117,9 +120,12 @@ app.use(cors(corsOptions));
 app.use(morgan('dev')); // Logging middleware
 
 // Serve static files from the React app
-const frontendPath = '/Users/pauljesufleischer/revmonitor/frontendnew/frontend/dist';
+//const frontendPath = '/Users/pauljesufleischer/revmonitor/frontendnew/frontend/dist';
+const frontendPath = path.join(dirname(fileURLToPath(import.meta.url)), '../frontendNew/frontend/dist');
 
 app.use(express.static(frontendPath));
+
+app.use(express.static(path.join(dirname(fileURLToPath(import.meta.url)), '../frontend/build')));
 
 //app.use(express.static(path.join(__dirname, '../frontendNew/frontend/build')));
 //app.use(express.static(path.join(url.fileURLToPath(import.meta.url), '../frontendNew/frontend/build')));
