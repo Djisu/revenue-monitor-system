@@ -120,12 +120,14 @@ app.use(cors(corsOptions));
 app.use(morgan('dev')); // Logging middleware
 
 // Serve static files from the React app
-//const frontendPath = '/Users/pauljesufleischer/revmonitor/frontendnew/frontend/dist';
-const frontendPath = path.join(dirname(fileURLToPath(import.meta.url)), '../frontendNew/frontend/dist');
+const frontendPath = '/Users/pauljesufleischer/revmonitor/frontendnew/frontend/dist';
+
+//const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// const frontendPath = path.join(__dirname, '../frontendNew/frontend/dist');
 
 app.use(express.static(frontendPath));
 
-app.use(express.static(path.join(dirname(fileURLToPath(import.meta.url)), '../frontend/build')));
+////////////app.use(express.static(path.join(__dirname, '../frontendNew/frontend/build')));
 
 //app.use(express.static(path.join(__dirname, '../frontendNew/frontend/build')));
 //app.use(express.static(path.join(url.fileURLToPath(import.meta.url), '../frontendNew/frontend/build')));
@@ -154,7 +156,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Default route
 app.get('/', (req: Request, res: Response) => {
-    res.send('Welcome to the API!');
+    res.redirect('/login');
 });
 
 // Use the business routes
