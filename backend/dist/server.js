@@ -46,6 +46,8 @@ import CollectorElectoralAreaRoute from './routes/api/collectorElectoralarea.js'
 import bustypeDetailedReportRoute from './routes/api/bustypeDetailedReportRoute.js';
 import bustypeSummaryReportRoute from './routes/api/busTypeSummaryReportRoute.js';
 import textMessagingRoute from './routes/api/textmessagingRoute.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 // Load environment variables from .env file
 dotenv.config(); // Load .env file from the default location
 // Initialize the Express application
@@ -115,14 +117,6 @@ const swaggerOptions = {
 };
 const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-// Default route
-app.get('/', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-});
-// Login route
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-});
 // Use the business routes
 app.use('/api/business', businessRoutes);
 app.use('/api/accReceipts', accReceiptRoutes);
@@ -160,9 +154,15 @@ app.use('/api/bustypeDetailedReport', bustypeDetailedReportRoute);
 app.use('/api/bustypeSummaryReport', bustypeSummaryReportRoute);
 app.use('/api/textMessaging', textMessagingRoute);
 // Serve static files from the React app
-const frontendPath = '/Users/pauljesufleischer/revmonitor/frontendNew/frontend/dist';
-//const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// const frontendPath = path.join(__dirname, '../frontendNew/frontend/dist');
+const frontendPath = path.resolve(dirname(fileURLToPath(import.meta.url)), '../../frontendNew/frontend/dist');
+// Default route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
+// Login route
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
 app.use(express.static(frontendPath));
 // Set up multer storage
 const storage = diskStorage({

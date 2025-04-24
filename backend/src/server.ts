@@ -189,7 +189,7 @@ app.use('/api/bustypeSummaryReport', bustypeSummaryReportRoute);
 app.use('/api/textMessaging', textMessagingRoute);
 
 // Serve static files from the React app
-const frontendPath = './frontendNew/frontend/dist';
+const frontendPath = path.resolve(dirname(fileURLToPath(import.meta.url)), '../../frontendNew/frontend/dist');
 
 // Default route
 app.get('/', (req: Request, res: Response) => {
