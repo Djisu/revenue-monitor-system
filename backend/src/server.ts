@@ -7,7 +7,9 @@ import multer, { diskStorage, StorageEngine } from 'multer';
 import colors from 'colors';
 import morgan from 'morgan';
 import swaggerJSDoc from 'swagger-jsdoc';
-import path from 'path';    
+import path from 'path'; 
+
+import url from 'url';
 
 // import * as pg from 'pg'; // Import the entire pg package
 // const Client: any = pg.Client; // Assign the Client class to the Client variable
@@ -115,12 +117,18 @@ app.use(cors(corsOptions));
 app.use(morgan('dev')); // Logging middleware
 
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../frontendNew/frontend/build')));
+const frontendPath = '/Users/pauljesufleischer/revmonitor/frontendnew/frontend/dist';
 
-// Handle any requests that don't match the ones above
-app.get('*', (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, '../frontendNew/frontend/build', 'index.html'));
-});
+app.use(express.static(frontendPath));
+
+//app.use(express.static(path.join(__dirname, '../frontendNew/frontend/build')));
+//app.use(express.static(path.join(url.fileURLToPath(import.meta.url), '../frontendNew/frontend/build')));
+// app.use(express.static(path.join(path.dirname(url.fileURLToPath(import.meta.url)), '../frontendNew/frontend/build')));
+
+// // Handle any requests that don't match the ones above
+// app.get('*', (req: Request, res: Response) => {
+//     res.sendFile(path.join(path.dirname(url.fileURLToPath(import.meta.url)), '../frontendNew/frontend/build', 'index.html'));
+// });
 
 // Swagger definition
 const swaggerOptions = {
@@ -212,11 +220,14 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     });
 });
 
+// Catch-all route to serve the frontend application
+app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
 // Start the server and connect to PostgreSQL
 app.listen(port, async () => {
     console.log(`Server is running on port ${port}`);
-    // const client = createClient(); // Create a client instance
-    // await client.connect(); // Connect to PostgreSQL
     console.log(colors.green('PostgreSQL connected'));
 });
 
@@ -226,8 +237,6 @@ process.once('SIGUSR2', () => {
 });
 
 process.on('SIGINT', async () => {
-    // const client = createClient();
-    // await client.end(); // Ensure connection is closed
     console.log(colors.green('PostgreSQL connection closed'));
     process.exit(0);
 });
