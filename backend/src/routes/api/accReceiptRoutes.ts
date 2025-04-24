@@ -20,9 +20,10 @@ const dbConfig = {
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'revmonitor',
-    ssl: {
-        rejectUnauthorized: false,
-    },
+    sslmode: 'disable',
+    // ssl: {
+    //     rejectUnauthorized: false,
+    // },
 };
 
 // Create a connection pool
