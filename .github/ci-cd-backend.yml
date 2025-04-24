@@ -10,7 +10,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,20 +22,91 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install backend dependencies
         run: npm install
+        working-directory: ./backend
 
-      - name: Run tests
-        run: npm test
-
-      - name: Build application
+      - name: Build backend
         run: npm run build
+        working-directory: ./backend
+
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: ./frontendNew/frontend
+
+      - name: Run tests for frontend
+        run: npm run test
+        working-directory: ./frontendNew/frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./frontendNew/frontend
 
       - name: Deploy to Render
         env:
           RENDER_API_KEY: ${{ secrets.NEW_RENDER_API_KEY }}  # Set this in your GitHub secrets
         run: |
-          curl -X POST "https://api.render.com/v1/services/dep-d02cvdbuibrs73aom7m0" \
+          curl -X POST "https://api.render.com/v1/services/dep-d02cvdbuibrs73aom7m0/deploys" \
           -H "Authorization: Bearer $RENDER_API_KEY" \
           -H "Content-Type: application/json" \
           -d '{"branch":"main"}'
+
+
+
+
+
+
+
+
+
+
+
+# # .github/workflows/ci-cd-backend.yml
+# name: CI/CD Pipeline
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v2
+#         with:
+#           node-version: '20'
+
+#       - name: Install dependencies
+#         run: npm install
+
+#       - name: Run tests
+#         run: npm test
+
+#       - name: Build application
+#         run: npm run build
+
+#       - name: Deploy to Render
+#         env:
+#           RENDER_API_KEY: ${{ secrets.NEW_RENDER_API_KEY }}  # Set this in your GitHub secrets
+#         run: |
+#           curl -X POST "https://api.render.com/v1/services/dep-d02cvdbuibrs73aom7m0" \
+#           -H "Authorization: Bearer $RENDER_API_KEY" \
+#           -H "Content-Type: application/json" \
+#           -d '{"branch":"main"}'
