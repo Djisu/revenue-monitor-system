@@ -70,6 +70,7 @@ const dbConfig = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'), // Default PostgreSQL port
+    sslmode: 'disable', // Disable SSL for local development
 };
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 // Create PostgreSQL client
@@ -80,9 +81,10 @@ console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 // };
 // Middleware setup
 const allowedOrigins = [
-    'https://revenue-monitor-system.onrender.com',
-    'http://localhost:3000',
-    'http://localhost:5173',
+    'https://revenue-monitor-system.onrender.com', // Production
+    'http://localhost:3000', // Local development
+    'http://localhost:5173', // Local development
+    'http://localhost:8080', // Local development
 ];
 const corsOptions = {
     origin: allowedOrigins,
@@ -91,11 +93,6 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(morgan('dev')); // Logging middleware
-// Serve static files from the React app
-const frontendPath = '/Users/pauljesufleischer/revmonitor/frontendnew/frontend/dist';
-//const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// const frontendPath = path.join(__dirname, '../frontendNew/frontend/dist');
-app.use(express.static(frontendPath));
 ////////////app.use(express.static(path.join(__dirname, '../frontendNew/frontend/build')));
 //app.use(express.static(path.join(__dirname, '../frontendNew/frontend/build')));
 //app.use(express.static(path.join(url.fileURLToPath(import.meta.url), '../frontendNew/frontend/build')));
@@ -120,7 +117,11 @@ const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 // Default route
 app.get('/', (req, res) => {
-    res.redirect('/login');
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
+// Login route
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
 });
 // Use the business routes
 app.use('/api/business', businessRoutes);
@@ -158,6 +159,11 @@ app.use('/api/CollectorElectoralArea', CollectorElectoralAreaRoute);
 app.use('/api/bustypeDetailedReport', bustypeDetailedReportRoute);
 app.use('/api/bustypeSummaryReport', bustypeSummaryReportRoute);
 app.use('/api/textMessaging', textMessagingRoute);
+// Serve static files from the React app
+const frontendPath = '/Users/pauljesufleischer/revmonitor/frontendnew/frontend/dist';
+//const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// const frontendPath = path.join(__dirname, '../frontendNew/frontend/dist');
+app.use(express.static(frontendPath));
 // Set up multer storage
 const storage = diskStorage({
     destination: (req, file, cb) => {
