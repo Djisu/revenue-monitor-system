@@ -92,11 +92,15 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(morgan('dev')); // Logging middleware
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../frontendNew/frontend/build')));
-// Handle any requests that don't match the ones above
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontendNew/frontend/build', 'index.html'));
-});
+const frontendPath = '/Users/pauljesufleischer/revmonitor/frontendnew/frontend/dist';
+app.use(express.static(frontendPath));
+//app.use(express.static(path.join(__dirname, '../frontendNew/frontend/build')));
+//app.use(express.static(path.join(url.fileURLToPath(import.meta.url), '../frontendNew/frontend/build')));
+// app.use(express.static(path.join(path.dirname(url.fileURLToPath(import.meta.url)), '../frontendNew/frontend/build')));
+// // Handle any requests that don't match the ones above
+// app.get('*', (req: Request, res: Response) => {
+//     res.sendFile(path.join(path.dirname(url.fileURLToPath(import.meta.url)), '../frontendNew/frontend/build', 'index.html'));
+// });
 // Swagger definition
 const swaggerOptions = {
     definition: {
@@ -179,11 +183,13 @@ app.use((err, req, res, next) => {
         error: process.env.NODE_ENV === 'development' ? err : {}
     });
 });
+// Catch-all route to serve the frontend application
+app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
 // Start the server and connect to PostgreSQL
 app.listen(port, async () => {
     console.log(`Server is running on port ${port}`);
-    // const client = createClient(); // Create a client instance
-    // await client.connect(); // Connect to PostgreSQL
     console.log(colors.green('PostgreSQL connected'));
 });
 // Handle process signals
@@ -191,8 +197,6 @@ process.once('SIGUSR2', () => {
     process.kill(process.pid, 'SIGUSR2');
 });
 process.on('SIGINT', async () => {
-    // const client = createClient();
-    // await client.end(); // Ensure connection is closed
     console.log(colors.green('PostgreSQL connection closed'));
     process.exit(0);
 });
