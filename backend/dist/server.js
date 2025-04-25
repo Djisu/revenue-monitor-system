@@ -156,7 +156,7 @@ app.use('/api/textMessaging', textMessagingRoute);
 console.log('import.meta.url: ', import.meta.url);
 console.log('dirname(import.meta.url): ', dirname(import.meta.url));
 // Serve static files from the React app
-const frontendPath = path.resolve(dirname(fileURLToPath(import.meta.url)), '../../frontendNew/frontend/dist');
+const frontendPath = path.resolve(dirname(fileURLToPath(import.meta.url)), '../../frontend/dist');
 // Default route
 app.get('/', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
