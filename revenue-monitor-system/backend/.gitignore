@@ -1,8 +1,0 @@
-.env
-/config
-/backend/node_modules
-/node_modules
-/package-lock.json
-/Users/pauljesufleischer/revmonitor/backend/dist/routes/api/permits
-.env.production
-node_modules/
