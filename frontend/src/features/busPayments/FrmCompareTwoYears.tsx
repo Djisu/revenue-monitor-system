@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
+import { Form, Button, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link } from 'react-router-dom';
 
@@ -40,7 +40,9 @@ const CompareTwoYears: React.FC = () => {
         }
     };
 
-    const handleFirstOfficerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    type FormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+    const handleFirstOfficerChange = async (e: React.ChangeEvent<FormControlElement>) => {
         const officerNo = e.target.value.trim().split(' ')[0];
         setFirstOfficer(officerNo);
 
@@ -98,43 +100,43 @@ const CompareTwoYears: React.FC = () => {
             <h1 className="text-center text-underline">Collector Performance Trend</h1>
             <h2 className="text-center">MARCORY MUNICIPAL ASSEMBLY</h2>
             <Form>
-                <FormGroup>
-                    <Label for="firstFiscalYear" className="font-weight-bold">First Fiscal Year:</Label>
-                    <Input type="select" name="firstFiscalYear" id="firstFiscalYear" value={firstFiscalYear} onChange={(e) => setFirstFiscalYear(e.target.value)}>
+                <Form.Group>
+                    <Form.Label for="firstFiscalYear" className="font-weight-bold">First Fiscal Year:</Form.Label>
+                    <Form.Control type="select" name="firstFiscalYear" id="firstFiscalYear" value={firstFiscalYear} onChange={(e) => setFirstFiscalYear(e.target.value)}>
                         <option value="">Select Year</option>
                         {fiscalYears.map((year) => (
                             <option key={year} value={year}>{year}</option>
                         ))}
-                    </Input>
-                </FormGroup>
-                <FormGroup>
-                    <Label for="firstOfficer" className="font-weight-bold">First Officer:</Label>
-                    <Input type="select" name="firstOfficer" id="firstOfficer" value={firstOfficer} onChange={handleFirstOfficerChange}>
+                    </Form.Control>
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label for="firstOfficer" className="font-weight-bold">First Officer:</Form.Label>
+                    <Form.Control type="select" name="firstOfficer" id="firstOfficer" value={firstOfficer} onChange={handleFirstOfficerChange}>
                         <option value="">Select Officer</option>
                         {officers.map((officer) => (
                             <option key={officer} value={officer.split(' ')[0]}>{officer}</option>
                         ))}
-                    </Input>
-                </FormGroup>
-                <FormGroup>
-                    <Label for="secondFiscalYear" className="font-weight-bold">Second Fiscal Year:</Label>
-                    <Input type="select" name="secondFiscalYear" id="secondFiscalYear" value={secondFiscalYear} onChange={(e) => setSecondFiscalYear(e.target.value)}>
+                    </Form.Control>
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label for="secondFiscalYear" className="font-weight-bold">Second Fiscal Year:</Form.Label>
+                    <Form.Control type="select" name="secondFiscalYear" id="secondFiscalYear" value={secondFiscalYear} onChange={(e) => setSecondFiscalYear(e.target.value)}>
                         <option value="">Select Year</option>
                         {fiscalYears.map((year) => (
                             <option key={year} value={year}>{year}</option>
                         ))}
-                    </Input>
-                </FormGroup>
-                <FormGroup>
-                    <Label className="font-weight-bold">{officerName}</Label>
-                </FormGroup>
-                <FormGroup>
+                    </Form.Control>
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label className="font-weight-bold">{officerName}</Form.Label>
+                </Form.Group>
+                <Form.Group>
                     <div className="d-flex justify-content-between">
                         <Button color="primary" onClick={handlePreviewClick}>Preview Monitoring Report (Monthly)</Button>
                         {/* <Button color="success" onClick={handlePrintClick} style={{ display: 'none' }}>Print Monitoring Report (Weekly)</Button> */}
                         <Button color="danger" onClick={handleExitClick}>Exit</Button>
                     </div>
-                </FormGroup>
+                </Form.Group>
             </Form>
            
                 <Link to="/main" className="primary m-3">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
+import { Form, Button, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link } from 'react-router-dom';
 
@@ -111,16 +111,16 @@ const BusinessTypesReport: React.FC = () => {
             <h1 className="text-center text-underline">Business Types Report</h1>
             <h2 className="text-center">MARCORY MUNICIPAL ASSEMBLY</h2>
             <Form>
-                <FormGroup>
-                    <Label for="businessType" className="font-weight-bold">Business Type:</Label>
-                    <Input type="select" name="businessType" id="businessType" value={businessType} onChange={handleBusinessTypeChange}>
+                <Form.Group>
+                    <Form.Label for="businessType" className="font-weight-bold">Business Type:</Form.Label>
+                    <Form.Control type="select" name="businessType" id="businessType" value={businessType} onChange={handleBusinessTypeChange}>
                         <option value="">Select Business Type</option>
                         {businessTypes.map((bt) => (
                             <option key={bt} value={bt}>{bt}</option>
                         ))}
-                    </Input>
-                </FormGroup>
-                <FormGroup>
+                    </Form.Control>
+                </Form.Group>
+                <Form.Group>
                     <div className="d-flex justify-content-between">
                         <Button color="primary" onClick={handleViewReportSortedByCategory} disabled={isLoading}>
                             {isLoading ? 'Loading...' : 'View Report (sorted by category)'}
@@ -135,12 +135,12 @@ const BusinessTypesReport: React.FC = () => {
                             Exit
                         </Button>
                     </div>
-                </FormGroup>
+                </Form.Group>
             </Form>
             <div className="mt-5">
                 <h2 className="text-center">Actual Reports</h2>
                 <Form>
-                    <FormGroup>
+                    <Form.Group>
                         <div className="d-flex justify-content-between">
                             <Button color="primary" onClick={handleViewReportGradeActual} disabled={isLoading}>
                                 {isLoading ? 'Loading...' : 'View Report (sorted by category)'}
@@ -155,7 +155,7 @@ const BusinessTypesReport: React.FC = () => {
                                 Exit
                             </Button>
                         </div>
-                    </FormGroup>
+                    </Form.Group>
                 </Form>
             </div>
             

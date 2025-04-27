@@ -20,6 +20,9 @@ export default defineConfig({
     outDir: './dist', // Ensure the output directory is set to 'dist'
     sourcemap: true, // optional
     target: 'esnext',
+    rollupOptions: {
+      external: [],
+    },
   },
   resolve: {
     alias: {
