@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../../app/store';
-import { Form, FormGroup, Label, Input, Button, Alert, Spinner } from 'reactstrap';
+import { Form,  Button, Alert, Spinner } from 'react-bootstrap';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { BusPaymentsData, fetchDailyPayments, FetchDailyPaymentsArgs, selectBusPayments } from './busPaymentsSlice';
@@ -191,10 +191,10 @@ const FrmDailyPayments: React.FC = () => {
         <div className="container mt-5">
             {errorx && <Alert color="danger">{errorx}</Alert>}
             <Form>
-                <FormGroup>
+                <Form.Group>
                     <p className="text-center text-underline">Produce Daily Payments Report</p>
-                    <Label for="zone" className="font-weight-bold">Electoral Area:</Label>
-                    <Input 
+                    <Form.Label for="zone" className="font-weight-bold">Electoral Area:</Form.Label>
+                    <Form.Control 
                         type="select" 
                         name="electoral_area" 
                         id="electoral_area" 
@@ -207,11 +207,11 @@ const FrmDailyPayments: React.FC = () => {
                                 {area.electoral_area}
                             </option>
                         ))}
-                    </Input>
-                </FormGroup>
-                <FormGroup>
-                    <Label for="bussType" className="font-weight-bold">Business Type/Profession:</Label>
-                    <Input 
+                    </Form.Control>
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label for="bussType" className="font-weight-bold">Business Type/Profession:</Form.Label>
+                    <Form.Control  
                            type="select" 
                            name="bussType" 
                            id="bussType" 
@@ -225,34 +225,34 @@ const FrmDailyPayments: React.FC = () => {
                         {businessType.business_type}
                             </option>
                         ))}
-                    </Input>
-                </FormGroup>
-                <FormGroup>
-                    <Label for="firstDate" className="font-weight-bold">First Payment Date:</Label>
-                    <Input 
+                    </Form.Control >
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label for="firstDate" className="font-weight-bold">First Payment Date:</Form.Label>
+                    <Form.Control  
                         type="date" 
                         name="firstDate" 
                         id="firstDate" 
                         value={firstDate} 
                         onChange={(e) => setFirstDate(e.target.value)} 
                     />
-                </FormGroup>
-                <FormGroup>
-                    <Label for="lastDate" className="font-weight-bold">Last Payment Date:</Label>
-                    <Input 
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label for="lastDate" className="font-weight-bold">Last Payment Date:</Form.Label>
+                    <Form.Control  
                         type="date" 
                         name="lastDate" 
                         id="lastDate" 
                         value={lastDate} 
                         onChange={(e) => setLastDate(e.target.value)} 
                     />
-                </FormGroup>
-                <FormGroup>
+                </Form.Group>
+                <Form.Group>
                     <div className="d-flex justify-content-between">
                         <Button color="primary" onClick={handleViewClick}>Produce Report</Button>
                     </div>
                     <Link to="/main" className="primary m-3">Go Back</Link>
-                </FormGroup>
+                </Form.Group>
                  <PaymentsTable busPaymentsData={busPaymentsData} />
             </Form>          
         </div>
@@ -270,7 +270,7 @@ export default FrmDailyPayments;
 
 // import React, { useState, useEffect } from 'react';
 // import { useAppSelector, useAppDispatch } from '../../app/store'
-// import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
+// import { Form, FormGroup, Form.Label, Input, Button, Alert } from 'reactstrap';
 // import { fetchElectoralAreas, ElectoralArea } from '../electoralArea/electoralAreaSlice';
 // import { BusinessTypeData } from '../businessType/businessTypeSlice';
 // import { fetchDailyPayments, FetchDailyPaymentsArgs, selectBusPayments } from './busPaymentsSlice';

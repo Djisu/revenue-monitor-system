@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../hooks';
 import { useNavigate } from 'react-router-dom';
-import { Form, FormGroup, Label, Input, Button, Alert, Table, Spinner } from 'reactstrap';
+import { Form, Button, Alert, Table, Spinner } from 'react-bootstrap'
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { fetchBusTypeSummaryReports, BusTypeSummaryReport } from './BusTypeSummaryReportSlice';
@@ -138,52 +138,52 @@ const FrmManagementSummariseReport: React.FC = () => {
                 ) : (
                     <div>
                         <Form>
-                            <FormGroup>
+                            <Form.Group>
                                 <p className="text-center text-underline">Produce Daily Payments Report</p>
 
                                 {/* Render the Bar chart here */}
                                 <Bar data={chartData} />
 
-                                <Label for="zone" className="font-weight-bold">Electoral Area:</Label>
-                                <Input type="select" name="zone" id="zone" value={zone} onChange={handleZoneChange}>
+                                <Form.Label for="zone" className="font-weight-bold">Electoral Area:</Form.Label>
+                                <Form.Control type="select" name="zone" id="zone" value={zone} onChange={handleZoneChange}>
                                     <option value="All electoral areas">All electoral areas</option>
                                     {electoralAreas.map((area, index) => (
                                         <option key={index} value={area}>{area}</option>
                                     ))}
-                                </Input>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label for="bussType" className="font-weight-bold">Business Type/Profession:</Label>
-                                <Input type="select" name="bussType" id="bussType" value={bussType} onChange={(e) => setBussType(e.target.value)}>
+                                </Form.Control>
+                            </Form.Group>
+                            <Form.Group>
+                                <Form.Label for="bussType" className="font-weight-bold">Business Type/Profession:</Form.Label>
+                                <Form.Control type="select" name="bussType" id="bussType" value={bussType} onChange={(e) => setBussType(e.target.value)}>
                                     <option value="All business types">All business types</option>
                                     {bussTypes.map((businessType, index) => (
                                         <option key={index} value={businessType.business_type}>
                                             {businessType.business_type}
                                         </option>
                                     ))}
-                                </Input>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label for="firstDate" className="font-weight-bold">First Payment Date:</Label>
-                                <Input
+                                </Form.Control>
+                            </Form.Group>
+                            <Form.Group>
+                                <Form.Label for="firstDate" className="font-weight-bold">First Payment Date:</Form.Label>
+                                <Form.Control
                                     type="date"
                                     name="firstDate"
                                     id="firstDate"
                                     value={firstDate}
                                     onChange={handleFirstDateChange}
                                 />
-                            </FormGroup>
-                            <FormGroup>
-                                <Label for="lastDate" className="font-weight-bold">Last Payment Date:</Label>
-                                <Input
+                            </Form.Group>
+                            <Form.Group>
+                                <Form.Label for="lastDate" className="font-weight-bold">Last Payment Date:</Form.Label>
+                                <Form.Control
                                     type="date"
                                     name="lastDate"
                                     id="lastDate"
                                     value={lastDate}
                                     onChange={handleLastDateChange}
                                 />
-                            </FormGroup>
-                            <FormGroup>
+                            </Form.Group>
+                            <Form.Group>
                                 <div className="d-flex justify-content-between">
                                     <Button color="success" onClick={handleProduceReport} disabled={isLoading}>
                                         Produce Summarized Report
@@ -214,7 +214,7 @@ const FrmManagementSummariseReport: React.FC = () => {
                                         </tbody>
                                     </Table>
                                 </div>
-                            </FormGroup>
+                            </Form.Group>
                         </Form>
                     </div>
                 )}
@@ -269,7 +269,7 @@ export default FrmManagementSummariseReport;
 // import React, { useState, useEffect } from 'react';
 // import { useAppDispatch, useAppSelector } from '../../hooks';
 // import { useNavigate } from 'react-router-dom';
-// import { Form, FormGroup, Label, Input, Button, Alert, Table, Spinner } from 'reactstrap';
+// import { Form, FormGroup, Label, Form.Control, Button, Alert, Table, Spinner } from 'reactstrap';
 // import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 // import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 // import { fetchBusTypeSummaryReports, BusTypeSummaryReport } from './BusTypeSummaryReportSlice';
