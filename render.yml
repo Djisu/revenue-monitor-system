@@ -1,8 +1,4 @@
-{
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
-  "rootDir": "."
-}
+build:
+  command: npm run build
+  tsconfig: ./tsconfig.json
+  rootDir: .
