@@ -6,9 +6,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "start": "npm run dev -- --debug",
-    "dev": "vite",
-    "build": "tsc -b tsconfig.json && vite build && vite build --emptyOutDir",
+    "start": "serve -s dist -l 10000",
+    "dev": "vite --open",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
