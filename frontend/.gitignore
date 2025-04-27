@@ -10,8 +10,7 @@ lerna-debug.log*
 /frontendnew/frontend/node_modules
 /frontendnew/frontend/package-lock.json
 /frontendnew/frontend/yarn.lock
-dist
-dist-ssr
+node_modules/
 *.local
 
 # Editor directories and files
@@ -28,3 +27,11 @@ dist-ssr
 .env
 .env.development
 .env.production
+
+# Build output
+dist/
+
+# Other
+.env.local
+.env.development.local
+.env.production.local
