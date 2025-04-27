@@ -17,7 +17,7 @@ export default defineConfig({
   },
   build: {
     chunkSizeWarningLimit: 1500, // Set the limit to 1.5 MB (1500 kB)
-    outDir: './dist', // Ensure the output directory is set to 'dist'
+    outDir: 'dist', // Ensure the output directory is set to 'dist'
     sourcemap: true, // optional
     target: 'esnext',
     rollupOptions: {
