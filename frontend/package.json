@@ -8,7 +8,7 @@
   "scripts": {
     "start": "npm run dev -- --debug",
     "dev": "vite",
-    "build": "tsc -b && vite build && vite build --emptyOutDir",
+    "build": "tsc -b tsconfig.json && vite build && vite build --emptyOutDir",
     "lint": "eslint .",
     "preview": "vite preview"
   },
