@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  root: './src',
+  root: '.',
   plugins: [react()],
   server: {
     open: true, // Automatically open the browser
