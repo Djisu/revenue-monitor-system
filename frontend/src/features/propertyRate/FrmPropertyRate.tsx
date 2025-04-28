@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Col, Form, Row, Table } from 'react-bootstrap';
-import { useAppDispatch, useAppSelector } from '../../app/store';
+import { useAppDispatch, useAppSelector, RootState } from '../../app/store';
 import { Link } from 'react-router-dom';
 import { fetchPropertyRates, createPropertyRate, updatePropertyRate, deletePropertyRate } from './propertyRateSlice';
-import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
+import { fetchPropertyClasses, PropertyClassData } from '../propertyClass/propertyClassSlice';
 interface PropertyRateData {
   property_class: string;
   fiscalyear: number;
@@ -16,8 +16,8 @@ const FrmProducePropertyRate: React.FC = () => {
   const dispatch = useAppDispatch();
 
   // Use selector to get state
-  const propertyRates = useAppSelector((state) => state.propertyRate.rates);
-  const propertyClasses = useAppSelector((state) => state.propertyClass.propertyClasses);
+  const propertyRates = useAppSelector((state: RootState) => state.propertyRate.rates);
+  const propertyClasses = useAppSelector((state: RootState) => state.propertyClass.propertyClasses);
 
   // State management for form fields
   const [propertyClass, setPropertyClass] = useState('');
@@ -27,10 +27,10 @@ const FrmProducePropertyRate: React.FC = () => {
   const [registrationRate, setRegistrationRate] = useState('');
 
   // State management for dropdowns
-  let [localPropertyClasses, setLocalPropertyClasses] = useState<string[]>([]);
+  let [localPropertyClasses, setLocalPropertyClasses] = useState<PropertyClassData[]>([]);
 
   // State management for ListView equivalent
-  let [localPropertyRates, setLocalPropertyRates] = useState<any[]>([]);
+  let [localPropertyRates, setLocalPropertyRates] = useState<PropertyRateData[]>([]);
 
   // Fetch dropdowns and ListView data on component mount
   useEffect(() => {
@@ -170,7 +170,7 @@ const FrmProducePropertyRate: React.FC = () => {
                   <Form.Label>Property Class:</Form.Label>
                   <Form.Select value={propertyClass} onChange={handleSelectChange}>
                     <option value="">Select Property Class</option>
-                    {propertyClasses.map((propertyClass, index) => (
+                    {propertyClasses.map((propertyClass, index: number) => (
                       <option key={index} value={propertyClass.property_class}>
                         {propertyClass.property_class} {propertyClass.rate}
                       </option>
@@ -213,7 +213,7 @@ const FrmProducePropertyRate: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {propertyRates.map((rate) => (
+                            {propertyRates.map((rate: PropertyRateData) => (
                                 <tr key={`${rate.property_class}-${rate.fiscalyear}`} onClick={() => handleListViewItemClick(rate)}>
                                     <td>{rate.property_class}</td>
                                     <td>{rate.fiscalyear}</td>

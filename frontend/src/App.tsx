@@ -13,7 +13,7 @@ import FrmElectoralArea from './features/electoralArea/FrmElectoralArea';
 import FrmGradeRate from './features/gradeRate/FrmGradeRate';
 import FrmGradeFees from './features/gradeFees/FrmGradeFees';
 import FrmEmployee from './features/officer/FrmEmployee';
-import FrmBusinessReferences from './features/business/FrmBusinessReferences'
+//import FrmBusinessReferences from './features/business/FrmBusinessReferences'
 
 import FrmCollectorElectoralarea from './features/collectorElectoralarea/frmCollectorElectoralarea';
 
@@ -47,22 +47,23 @@ import FrmCollectorsBusinessesReport from './features/officer/FrmCollectorsBusin
 
 
 import FrmPropertyClass from './features/propertyClass/FrmPropertyClass';
-import FrmPropertyUse from './features/propertyUse/FrmPropertyUse';
-import FrmPropertyType from './features/propertyType/FrmPropertyType';
-import FrmPropertyEmployee from './features/propertyOfficer/FrmPropertyEmployee';
-import FrmPropertyCollectorElectoralArea from './features/propertyCollectorElectoralArea/FrmPropertyCollectorElectoralArea';
-import FrmProperty from './features/property/FrmProperty';
-import FrmPropertyOfficerBudget from './features/propertyOfficerBudget/FrmPropertyOfficerBudget';
-import FrmProducePropertyRates from './features/propertyRate/FrmProducePropertyRates';
+
+// import FrmPropertyUse from './features/propertyUse/FrmPropertyUse';
+// import FrmPropertyType from './features/propertyType/FrmPropertyType';
+// import FrmPropertyEmployee from './features/propertyOfficer/FrmPropertyEmployee';
+// import FrmPropertyCollectorElectoralArea from './features/propertyCollectorElectoralArea/FrmPropertyCollectorElectoralArea';
+// import FrmProperty from './features/property/FrmProperty';
+// import FrmPropertyOfficerBudget from './features/propertyOfficerBudget/FrmPropertyOfficerBudget';
+// import FrmProducePropertyRates from './features/propertyRate/FrmProducePropertyRates';
 
 import FrmOfficerBudgetActual from './features/offBudgetAssessment/FrmOfficerBudgetActual';
 import FrmElectoralAreasPaymentsGraph from './features/busPayments/FrmElectoralAreasPaymentsGraph';
 
-import FrmPropertyUpdate from './features/property/FrmPropertyUpdate';
-import FrmPropertyRate from './features/propertyRate/FrmPropertyRate';
-import FrmPropertyBillPayments from './features/propertyBalance/FrmPropertyBillPayments';
-import FrmDailyPropertyPayments from './features/propertyBalance/FrmDailyPropertyPayments';//
-import FrmPropertySavingsStatementX from './features/propertyBalance/FrmPropertySavingsStatementX';
+// import FrmPropertyUpdate from './features/property/FrmPropertyUpdate';
+// import FrmPropertyRate from './features/propertyRate/FrmPropertyRate';
+// import FrmPropertyBillPayments from './features/propertyBalance/FrmPropertyBillPayments';
+// import FrmDailyPropertyPayments from './features/propertyBalance/FrmDailyPropertyPayments';//
+// import FrmPropertySavingsStatementX from './features/propertyBalance/FrmPropertySavingsStatementX';
 import checkAccess from './utilities/checkAccess';
 import NotFound from './components/layout/NotFound';
 import MainMenuWrapper from './components/MainMenuWrapper';
@@ -121,14 +122,19 @@ const App: React.FC = () => {
                     <Route path="/CollectorsBusinessesReport" element={<ProtectedRoute element={<FrmCollectorsBusinessesReport />} />} />
                     <Route path="/CompareBudgetActualReport" element={<ProtectedRoute element={<FrmOfficerBudgetActual />} />} />
                     <Route path="/ElectoralAreasPaymentsGraph" element={<ProtectedRoute element={<FrmElectoralAreasPaymentsGraph />} />} />
+                    <Route path="/PropertyClass" element={<ProtectedRoute element={<FrmPropertyClass />} />} />
+                    <Route path="*" element={<NotFound />} /> 
+
 {/*                     
                     <Route 
                         path="/OfficerAssessmentBarChart" 
                         element={<OfficerAssessmentBarChart data={chartData} />}  
                     />
                     */}
+
+
                     {/* Routes for property forms */}
-                    <Route path="/PropertyClass" element={<ProtectedRoute element={<FrmPropertyClass />} />} />
+                    {/* 
                     <Route path="/PropertyUse" element={<ProtectedRoute element={<FrmPropertyUse />} />} />
                     <Route path="/PropertyType" element={<ProtectedRoute element={<FrmPropertyType />} />} />
                     <Route path="/PropertyEmployee" element={<ProtectedRoute element={<FrmPropertyEmployee />} />} />
@@ -142,10 +148,10 @@ const App: React.FC = () => {
                     <Route path="/PropertySavingsStatementX" element={<ProtectedRoute element={<FrmPropertySavingsStatementX />} />} />
                     <Route path="/DailyPropertyPayments" element={<ProtectedRoute element={<FrmDailyPropertyPayments />} />} />
                     <Route path="/ListOfBusinesses" element={<ProtectedRoute element={<FrmBusinessReferences />} />} />
-                    <Route path="*" element={<NotFound />} />
+                  
 
                     {/* <Route path="/AuditTrail" element={<AuditTrail />} /> FrmBusinessReferences*/} 
-                    {/* Add other routes for forms */}  OfficerAssessmentBarChart
+                    {/* Add other routes for forms */} 
                 </Routes>
             </Router>
         </AuthProvider>
