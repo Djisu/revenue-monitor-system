@@ -8,7 +8,7 @@
   "scripts": {
     "start": "serve -s dist -l 10000",
     "dev": "vite",
-    "build": "vite build  && ls dist",
+    "build": "tsc && vite build",
     "lint": "eslint .",
     "serve": "vite preview",
     "test": "vitest"
