@@ -41,7 +41,7 @@ import FrmVariance from './features/busPayments/FrmVariance';
 import FrmOfficerBudgetAssessment from './features/officerAssessment/FrmOfficerBudgetAssessment';
 import FrmMonthlyPerformance from './features/offBudgetAssessment/FrmMonthlyPerformance';
 import FrmMonthlyPercent from './features/offBudgetAssessment/FrmMonthlyPercent';
-import FrmCompareTwoYears from './features/busPayments/FrmCompareTwoYears';
+//import FrmCompareTwoYears from './features/busPayments/FrmCompareTwoYears';
 import FrmBusinessTypesReport from './features/businessType/FrmBusinessTypesReport';
 import FrmCollectorsBusinessesReport from './features/officer/FrmCollectorsBusinessesReport';
 
@@ -115,7 +115,7 @@ const App: React.FC = () => {
                     <Route path="/CollectorPerformanceGraph" element={<ProtectedRoute element={<FrmOfficerBudgetAssessment />} />} />
                     <Route path="/OneMonthPerformanceGraph" element={<ProtectedRoute element={<FrmMonthlyPerformance />} />} />
                     <Route path="/OneMonthPerformanceGraphPercentage" element={<ProtectedRoute element={<FrmMonthlyPercent />} />} />
-                    <Route path="/CompareTwoYearsPaymentPeriods" element={<ProtectedRoute element={<FrmCompareTwoYears />} />} />
+                    {/* <Route path="/CompareTwoYearsPaymentPeriods" element={<ProtectedRoute element={<FrmCompareTwoYears />} />} /> */}
                     <Route path="/BusinessTypesReport" element={<ProtectedRoute element={<FrmBusinessTypesReport />} />} />
                    
                     <Route path="/CollectorsBusinessesReport" element={<ProtectedRoute element={<FrmCollectorsBusinessesReport />} />} />
