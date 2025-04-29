@@ -1,0 +1,10 @@
+{
+    "public_path": "dist",
+    "routes": [
+      {
+        "match": "/*",
+        "upstream": "static"
+      }
+    ]
+  }
+  
