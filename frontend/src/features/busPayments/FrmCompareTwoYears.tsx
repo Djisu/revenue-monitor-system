@@ -1,150 +1,150 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Button, Alert } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Link } from 'react-router-dom';
+// import React, { useState, useEffect } from 'react';
+// import { Form, Button, Alert } from 'react-bootstrap';
+// import 'bootstrap/dist/css/bootstrap.min.css';
+// import { Link } from 'react-router-dom';
 
-const CompareTwoYears: React.FC = () => {
-    const [firstFiscalYear, setFirstFiscalYear] = useState<string>('');
-    const [secondFiscalYear, setSecondFiscalYear] = useState<string>('');
-    const [firstOfficer, setFirstOfficer] = useState<string>('');
-    //const [lastOfficer, setLastOfficer] = useState<string>('');
-    const [officerName, setOfficerName] = useState<string>('');
-    const [fiscalYears, setFiscalYears] = useState<string[]>([]);
-    const [officers, setOfficers] = useState<string[]>([]);
-    const [error, setError] = useState<string>('');
+// const CompareTwoYears: React.FC = () => {
+//     const [firstFiscalYear, setFirstFiscalYear] = useState<string>('');
+//     const [secondFiscalYear, setSecondFiscalYear] = useState<string>('');
+//     const [firstOfficer, setFirstOfficer] = useState<string>('');
+//     //const [lastOfficer, setLastOfficer] = useState<string>('');
+//     const [officerName, setOfficerName] = useState<string>('');
+//     const [fiscalYears, setFiscalYears] = useState<string[]>([]);
+//     const [officers, setOfficers] = useState<string[]>([]);
+//     const [error, setError] = useState<string>('');
 
-    useEffect(() => {
-        fetchFiscalYears();
-        fetchOfficers();
-    }, []);
+//     useEffect(() => {
+//         fetchFiscalYears();
+//         fetchOfficers();
+//     }, []);
 
-    const fetchFiscalYears = async () => {
-        try {
-            // Replace with your API call to fetch fiscal years
-            const response = await fetch('/api/fiscal-years');
-            const data = await response.json();
-            setFiscalYears(data);
-        } catch (error: any) {
-            setError(error.message);
-        }
-    };
+//     const fetchFiscalYears = async () => {
+//         try {
+//             // Replace with your API call to fetch fiscal years
+//             const response = await fetch('/api/fiscal-years');
+//             const data = await response.json();
+//             setFiscalYears(data);
+//         } catch (error: any) {
+//             setError(error.message);
+//         }
+//     };
 
-    const fetchOfficers = async () => {
-        try {
-            // Replace with your API call to fetch officers
-            const response = await fetch('/api/officers');
-            const data = await response.json();
-            setOfficers(data);
-        } catch (error: any) {
-            setError(error.message);
-        }
-    };
+//     const fetchOfficers = async () => {
+//         try {
+//             // Replace with your API call to fetch officers
+//             const response = await fetch('/api/officers');
+//             const data = await response.json();
+//             setOfficers(data);
+//         } catch (error: any) {
+//             setError(error.message);
+//         }
+//     };
 
-    type FormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+//     type FormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
-    const handleFirstOfficerChange = async (e: React.ChangeEvent<FormControlElement>) => {
-        const officerNo = e.target.value.trim().split(' ')[0];
-        setFirstOfficer(officerNo);
+//     const handleFirstOfficerChange = async (e: React.ChangeEvent<FormControlElement>) => {
+//         const officerNo = e.target.value.trim().split(' ')[0];
+//         setFirstOfficer(officerNo);
 
-        try {
-            // Replace with your API call to fetch officer name
-            const response = await fetch(`/api/officer/${officerNo}`);
-            const data = await response.json();
-            if (data) {
-                setOfficerName(data.officer_name);
-            } else {
-                setError("No officer details found for this collector.");
-            }
-        } catch (error: any) {
-            setError(error.message);
-        }
-    };
+//         try {
+//             // Replace with your API call to fetch officer name
+//             const response = await fetch(`/api/officer/${officerNo}`);
+//             const data = await response.json();
+//             if (data) {
+//                 setOfficerName(data.officer_name);
+//             } else {
+//                 setError("No officer details found for this collector.");
+//             }
+//         } catch (error: any) {
+//             setError(error.message);
+//         }
+//     };
 
-    const handlePreviewClick = async () => {
-        if (!firstOfficer) {
-            setOfficerName('');
-            return;
-        }
+//     const handlePreviewClick = async () => {
+//         if (!firstOfficer) {
+//             setOfficerName('');
+//             return;
+//         }
 
-        try {
-            // Replace with your API call to process and fetch the report
-            const response = await fetch('/api/preview-report', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ firstFiscalYear, secondFiscalYear, firstOfficer }),
-            });
+//         try {
+//             // Replace with your API call to process and fetch the report
+//             const response = await fetch('/api/preview-report', {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify({ firstFiscalYear, secondFiscalYear, firstOfficer }),
+//             });
 
-            const data = await response.json();
-            if (data.success) {
-                // Logic to display the report (e.g., redirect to a report page)
-                window.location.href = '/reports/two-year-comparison';
-            } else {
-                setError("Error processing the report.");
-            }
-        } catch (error: any) {
-            setError(error.message);
-        }
-    };
+//             const data = await response.json();
+//             if (data.success) {
+//                 // Logic to display the report (e.g., redirect to a report page)
+//                 window.location.href = '/reports/two-year-comparison';
+//             } else {
+//                 setError("Error processing the report.");
+//             }
+//         } catch (error: any) {
+//             setError(error.message);
+//         }
+//     };
 
-    const handleExitClick = () => {
-        // Logic to hide the form and show the main form
-        // This can be managed by routing or state in a larger application
-        window.location.href = '/'; // Redirect to main page or handle as needed
-    };
+//     const handleExitClick = () => {
+//         // Logic to hide the form and show the main form
+//         // This can be managed by routing or state in a larger application
+//         window.location.href = '/'; // Redirect to main page or handle as needed
+//     };
 
-    return (
-        <div className="container mt-5">
-            {error && <Alert color="danger">{error}</Alert>}
-            <h1 className="text-center text-underline">Collector Performance Trend</h1>
-            <h2 className="text-center">MARCORY MUNICIPAL ASSEMBLY</h2>
-            <Form>
-                <Form.Group>
-                    <Form.Label for="firstFiscalYear" className="font-weight-bold">First Fiscal Year:</Form.Label>
-                    <Form.Control type="select" name="firstFiscalYear" id="firstFiscalYear" value={firstFiscalYear} onChange={(e) => setFirstFiscalYear(e.target.value)}>
-                        <option value="">Select Year</option>
-                        {fiscalYears.map((year) => (
-                            <option key={year} value={year}>{year}</option>
-                        ))}
-                    </Form.Control>
-                </Form.Group>
-                <Form.Group>
-                    <Form.Label for="firstOfficer" className="font-weight-bold">First Officer:</Form.Label>
-                    <Form.Control type="select" name="firstOfficer" id="firstOfficer" value={firstOfficer} onChange={handleFirstOfficerChange}>
-                        <option value="">Select Officer</option>
-                        {officers.map((officer) => (
-                            <option key={officer} value={officer.split(' ')[0]}>{officer}</option>
-                        ))}
-                    </Form.Control>
-                </Form.Group>
-                <Form.Group>
-                    <Form.Label for="secondFiscalYear" className="font-weight-bold">Second Fiscal Year:</Form.Label>
-                    <Form.Control type="select" name="secondFiscalYear" id="secondFiscalYear" value={secondFiscalYear} onChange={(e) => setSecondFiscalYear(e.target.value)}>
-                        <option value="">Select Year</option>
-                        {fiscalYears.map((year) => (
-                            <option key={year} value={year}>{year}</option>
-                        ))}
-                    </Form.Control>
-                </Form.Group>
-                <Form.Group>
-                    <Form.Label className="font-weight-bold">{officerName}</Form.Label>
-                </Form.Group>
-                <Form.Group>
-                    <div className="d-flex justify-content-between">
-                        <Button color="primary" onClick={handlePreviewClick}>Preview Monitoring Report (Monthly)</Button>
-                        {/* <Button color="success" onClick={handlePrintClick} style={{ display: 'none' }}>Print Monitoring Report (Weekly)</Button> */}
-                        <Button color="danger" onClick={handleExitClick}>Exit</Button>
-                    </div>
-                </Form.Group>
-            </Form>
+//     return (
+//         <div className="container mt-5">
+//             {error && <Alert color="danger">{error}</Alert>}
+//             <h1 className="text-center text-underline">Collector Performance Trend</h1>
+//             <h2 className="text-center">MARCORY MUNICIPAL ASSEMBLY</h2>
+//             <Form>
+//                 <Form.Group>
+//                     <Form.Label for="firstFiscalYear" className="font-weight-bold">First Fiscal Year:</Form.Label>
+//                     <Form.Control type="select" name="firstFiscalYear" id="firstFiscalYear" value={firstFiscalYear} onChange={(e) => setFirstFiscalYear(e.target.value)}>
+//                         <option value="">Select Year</option>
+//                         {fiscalYears.map((year) => (
+//                             <option key={year} value={year}>{year}</option>
+//                         ))}
+//                     </Form.Control>
+//                 </Form.Group>
+//                 <Form.Group>
+//                     <Form.Label for="firstOfficer" className="font-weight-bold">First Officer:</Form.Label>
+//                     <Form.Control type="select" name="firstOfficer" id="firstOfficer" value={firstOfficer} onChange={handleFirstOfficerChange}>
+//                         <option value="">Select Officer</option>
+//                         {officers.map((officer) => (
+//                             <option key={officer} value={officer.split(' ')[0]}>{officer}</option>
+//                         ))}
+//                     </Form.Control>
+//                 </Form.Group>
+//                 <Form.Group>
+//                     <Form.Label for="secondFiscalYear" className="font-weight-bold">Second Fiscal Year:</Form.Label>
+//                     <Form.Control type="select" name="secondFiscalYear" id="secondFiscalYear" value={secondFiscalYear} onChange={(e) => setSecondFiscalYear(e.target.value)}>
+//                         <option value="">Select Year</option>
+//                         {fiscalYears.map((year) => (
+//                             <option key={year} value={year}>{year}</option>
+//                         ))}
+//                     </Form.Control>
+//                 </Form.Group>
+//                 <Form.Group>
+//                     <Form.Label className="font-weight-bold">{officerName}</Form.Label>
+//                 </Form.Group>
+//                 <Form.Group>
+//                     <div className="d-flex justify-content-between">
+//                         <Button color="primary" onClick={handlePreviewClick}>Preview Monitoring Report (Monthly)</Button>
+//                         {/* <Button color="success" onClick={handlePrintClick} style={{ display: 'none' }}>Print Monitoring Report (Weekly)</Button> */}
+//                         <Button color="danger" onClick={handleExitClick}>Exit</Button>
+//                     </div>
+//                 </Form.Group>
+//             </Form>
            
-                <Link to="/main" className="primary m-3">
-                    Go Back
-                </Link>
+//                 <Link to="/main" className="primary m-3">
+//                     Go Back
+//                 </Link>
                
-        </div>
-    );
-};
+//         </div>
+//     );
+// };
 
-export default CompareTwoYears;
+// export default CompareTwoYears;
