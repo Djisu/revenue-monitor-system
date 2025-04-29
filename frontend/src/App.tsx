@@ -1,6 +1,6 @@
 // src/App.tsx
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -80,8 +80,7 @@ const App: React.FC = () => {
 
     return (
         <AuthProvider>
-            <Router>
-                
+            <BrowserRouter>               
                 <Routes>
                     <Route path="/" element={<FrmLogin />} />  
                     {/* Define the /main route */}
@@ -124,36 +123,8 @@ const App: React.FC = () => {
                     <Route path="/ElectoralAreasPaymentsGraph" element={<ProtectedRoute element={<FrmElectoralAreasPaymentsGraph />} />} />
                     <Route path="/PropertyClass" element={<ProtectedRoute element={<FrmPropertyClass />} />} />
                     <Route path="*" element={<NotFound />} /> 
-
-{/*                     
-                    <Route 
-                        path="/OfficerAssessmentBarChart" 
-                        element={<OfficerAssessmentBarChart data={chartData} />}  
-                    />
-                    */}
-
-
-                    {/* Routes for property forms */}
-                    {/* 
-                    <Route path="/PropertyUse" element={<ProtectedRoute element={<FrmPropertyUse />} />} />
-                    <Route path="/PropertyType" element={<ProtectedRoute element={<FrmPropertyType />} />} />
-                    <Route path="/PropertyEmployee" element={<ProtectedRoute element={<FrmPropertyEmployee />} />} />
-                    <Route path="/PropertyCollectorElectoralArea" element={<ProtectedRoute element={<FrmPropertyCollectorElectoralArea />} />} />
-                    <Route path="/Property" element={<ProtectedRoute element={<FrmProperty />} />} />
-                    <Route path="/PropertyOfficerBudget" element={<ProtectedRoute element={<FrmPropertyOfficerBudget />} />} />
-                    <Route path="/ProducePropertyRates" element={<ProtectedRoute element={<FrmProducePropertyRates />} />} />
-                    <Route path="/PropertyUpdate" element={<ProtectedRoute element={<FrmPropertyUpdate />} />} />
-                    <Route path="/PropertyRate" element={<ProtectedRoute element={<FrmPropertyRate />} />} />
-                    <Route path="/PropertyBillPayments" element={<ProtectedRoute element={<FrmPropertyBillPayments />} />} />
-                    <Route path="/PropertySavingsStatementX" element={<ProtectedRoute element={<FrmPropertySavingsStatementX />} />} />
-                    <Route path="/DailyPropertyPayments" element={<ProtectedRoute element={<FrmDailyPropertyPayments />} />} />
-                    <Route path="/ListOfBusinesses" element={<ProtectedRoute element={<FrmBusinessReferences />} />} />
-                  
-
-                    {/* <Route path="/AuditTrail" element={<AuditTrail />} /> FrmBusinessReferences*/} 
-                    {/* Add other routes for forms */} 
                 </Routes>
-            </Router>
+            </BrowserRouter>
         </AuthProvider>
     );
 };
