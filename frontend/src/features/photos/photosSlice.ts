@@ -1,5 +1,5 @@
 
-import { createAsyncThunk, createSlice, PayloadAction, Slice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction, Slice, ActionReducerMapBuilder } from '@reduxjs/toolkit';
 import axios, { AxiosResponse } from 'axios';
 
 // Interfaces /// <reference lib="dom" />
@@ -180,7 +180,7 @@ const photosSlice: Slice<PhotosState> = createSlice({
     name: 'photos',
     initialState,
     reducers: {},
-    extraReducers: (builder) => {
+    extraReducers: (builder: ActionReducerMapBuilder<PhotosState>) => {
         builder
             .addCase(storePhotoAsync.pending, (state) => {
                 state.status = 'loading';
@@ -188,13 +188,13 @@ const photosSlice: Slice<PhotosState> = createSlice({
                 state.photoUrl = null; // Reset the photoUrl
                 state.message = null;
             })
-            .addCase(storePhotoAsync.fulfilled, (state, action: PayloadAction<StorePhotoResult>) => {
+            .addCase(storePhotoAsync.fulfilled, (state: PhotosState, action: PayloadAction<StorePhotoResult>) => {
                 state.status = 'succeeded';
                 state.message = action.payload.message;
                 state.error = null;
                 state.photoUrl = action.payload.photoUrl; // Set the photoUrl
             })
-            .addCase(storePhotoAsync.rejected, (state, action) => {
+            .addCase(storePhotoAsync.rejected, (state: PhotosState, action) => {
                 state.status = 'failed';
                 state.message = null;
                 state.error = action.payload?.error || 'Failed to store photo';
@@ -209,13 +209,13 @@ const photosSlice: Slice<PhotosState> = createSlice({
                 state.status = 'loading';
                 state.error = null;
             })
-            .addCase(getPhotoAsync.fulfilled, (state, action: PayloadAction<Buffer>) => {
+            .addCase(getPhotoAsync.fulfilled, (state: PhotosState, action: PayloadAction<Buffer>) => {
                 state.status = 'succeeded';
                 state.message = 'Photo retrieved successfully';
                 state.error = null;
                 state.photos = [{ officer_no: '', photo: action.payload }]; // Update photos array
             })
-            .addCase(getPhotoAsync.rejected, (state, action) => {
+            .addCase(getPhotoAsync.rejected, (state: PhotosState, action) => {
                 state.status = 'failed';
                 state.error = action.error?.message || 'Failed to get photo';
             })
@@ -223,12 +223,12 @@ const photosSlice: Slice<PhotosState> = createSlice({
                 state.status = 'loading';
                 state.error = null;
             })
-            .addCase(getAllPhotosAsync.fulfilled, (state, action: PayloadAction<{ officer_no: string; photo: Buffer }[]>) => {
+            .addCase(getAllPhotosAsync.fulfilled, (state: PhotosState, action: PayloadAction<{ officer_no: string; photo: Buffer }[]>) => {
                 state.status = 'succeeded';
                 state.photos = action.payload;
                 state.error = null;
             })
-            .addCase(getAllPhotosAsync.rejected, (state, action) => {
+            .addCase(getAllPhotosAsync.rejected, (state: PhotosState, action) => {
                 state.status = 'failed';
                 state.error = action.error?.message || 'Failed to get photos';
             })
@@ -236,12 +236,12 @@ const photosSlice: Slice<PhotosState> = createSlice({
                 state.status = 'loading';
                 state.error = null;
             })
-            .addCase(deletePhotoAsync.fulfilled, (state, action: PayloadAction<{ message: string; result: any }>) => {
+            .addCase(deletePhotoAsync.fulfilled, (state: PhotosState, action: PayloadAction<{ message: string; result: any }>) => {
                 state.status = 'succeeded';
                 state.message = action.payload.message;
                 state.error = null;
             })
-            .addCase(deletePhotoAsync.rejected, (state, action) => {
+            .addCase(deletePhotoAsync.rejected, (state: PhotosState, action) => {
                 state.status = 'failed';
                 state.error = action.error?.message || 'Error deleting photo';
             });

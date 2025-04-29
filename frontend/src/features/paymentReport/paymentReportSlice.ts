@@ -1,5 +1,5 @@
 // src/features/paymentReport/paymentReportSlice.ts
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, ActionReducerMapBuilder } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the type for PaymentReport data
@@ -61,17 +61,17 @@ const paymentReportSlice = createSlice({
     name: 'paymentReport',
     initialState,
     reducers: {},
-    extraReducers: (builder) => {
+    extraReducers: (builder: ActionReducerMapBuilder<PaymentReportState>) => {
         builder
             .addCase(fetchPaymentReports.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPaymentReports.fulfilled, (state, action) => {
+            .addCase(fetchPaymentReports.fulfilled, (state: PaymentReportState, action) => {
                 state.loading = false;
                 state.paymentReports = action.payload;
                 state.error = null;
             })
-            .addCase(fetchPaymentReports.rejected, (state, action) => {
+            .addCase(fetchPaymentReports.rejected, (state: PaymentReportState,  action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch payment reports';
             })
@@ -83,26 +83,26 @@ const paymentReportSlice = createSlice({
                 // Handle the fetched payment report data if needed
                 state.error = null;
             })
-            .addCase(fetchPaymentReportById.rejected, (state, action) => {
+            .addCase(fetchPaymentReportById.rejected, (state: PaymentReportState,  action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch payment report';
             })
             .addCase(createPaymentReport.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(createPaymentReport.fulfilled, (state, action) => {
+            .addCase(createPaymentReport.fulfilled, (state: PaymentReportState,  action) => {
                 state.loading = false;
                 state.paymentReports.push(action.payload); // Add the new payment report
                 state.error = null;
             })
-            .addCase(createPaymentReport.rejected, (state, action) => {
+            .addCase(createPaymentReport.rejected, (state: PaymentReportState,  action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to create payment report';
             })
             .addCase(updatePaymentReport.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(updatePaymentReport.fulfilled, (state, action) => {
+            .addCase(updatePaymentReport.fulfilled, (state: PaymentReportState,  action) => {
                 state.loading = false;
                 const index = state.paymentReports.findIndex(report => report.buss_no === action.payload.buss_no && report.fiscalyear === action.payload.fiscalyear);
                 if (index !== -1) {
@@ -110,19 +110,19 @@ const paymentReportSlice = createSlice({
                 }
                 state.error = null;
             })
-            .addCase(updatePaymentReport.rejected, (state, action) => {
+            .addCase(updatePaymentReport.rejected, (state: PaymentReportState,  action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to update payment report';
             })
             .addCase(deletePaymentReport.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(deletePaymentReport.fulfilled, (state, action) => {
+            .addCase(deletePaymentReport.fulfilled, (state: PaymentReportState,  action) => {
                 state.loading = false;
                 state.paymentReports = state.paymentReports.filter(report => !(report.buss_no === action.meta.arg.buss_no && report.fiscalyear === action.meta.arg.fiscalyear));
                 state.error = null;
             })
-            .addCase(deletePaymentReport.rejected, (state, action) => {
+            .addCase(deletePaymentReport.rejected, (state: PaymentReportState,  action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to delete payment report';
             });

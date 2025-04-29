@@ -1,5 +1,5 @@
 // src/features/transSavings/transSavingsSlice.ts
-import { createSlice, createAsyncThunk, ActionReducerMapBuilder } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction, ActionReducerMapBuilder, SerializedError } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the type for Transaction Savings data
@@ -68,12 +68,12 @@ const transSavingsSlice = createSlice({
             .addCase(fetchTransSavings.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchTransSavings.fulfilled, (state: TransSavingsState, action) => {
+            .addCase(fetchTransSavings.fulfilled, (state: TransSavingsState, action: PayloadAction<TransSavingsData[]>) => {
                 state.loading = false;
                 state.transactions = action.payload;
                 state.error = null;
             })
-            .addCase(fetchTransSavings.rejected, (state: TransSavingsState, action) => {
+            .addCase(fetchTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown, any, any, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch transaction savings';
             })
@@ -85,26 +85,26 @@ const transSavingsSlice = createSlice({
                 // Optionally handle the fetched transaction savings data
                 state.error = null;
             })
-            .addCase(fetchTransSavingsById.rejected, (state: TransSavingsState,action) => {
+            .addCase(fetchTransSavingsById.rejected, (state: TransSavingsState, action: PayloadAction<unknown, any, any, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch transaction savings';
             })
             .addCase(createTransSavings.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(createTransSavings.fulfilled, (state: TransSavingsState, action) => {
+            .addCase(createTransSavings.fulfilled, (state: TransSavingsState, action: PayloadAction<TransSavingsData[]>) => {
                 state.loading = false;
-                state.transactions.push(action.payload); // Add the new transaction savings
+                state.transactions = action.payload; // Add the new transaction savings
                 state.error = null;
             })
-            .addCase(createTransSavings.rejected, (state: TransSavingsState, action) => {
+            .addCase(createTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown, any, any, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to create transaction savings';
             })
             .addCase(updateTransSavings.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(updateTransSavings.fulfilled, (state: TransSavingsState, action) => {
+            .addCase(updateTransSavings.fulfilled, (state: TransSavingsState, action: PayloadAction<TransSavingsData>) => {
                 state.loading = false;
                 const index = state.transactions.findIndex(transaction => transaction.buss_no === action.payload.buss_no && transaction.transdate === action.payload.transdate);
                 if (index !== -1) {
@@ -112,19 +112,19 @@ const transSavingsSlice = createSlice({
                 }
                 state.error = null;
             })
-            .addCase(updateTransSavings.rejected, (state: TransSavingsState, action) => {
+            .addCase(updateTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown, any, any, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to update transaction savings';
             })
             .addCase(deleteTransSavings.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(deleteTransSavings.fulfilled, (state: TransSavingsState, action) => {
+            .addCase(deleteTransSavings.fulfilled, (state: TransSavingsState, action: PayloadAction<TransSavingsData>) => {
                 state.loading = false;
-                state.transactions = state.transactions.filter(transaction => !(transaction.buss_no === action.meta.arg.buss_no && transaction.transdate === action.meta.arg.transdate));
+                state.transactions = state.transactions.filter(transaction => !(transaction.buss_no === action.payload.buss_no && transaction.transdate === action.payload.transdate));
                 state.error = null;
             })
-            .addCase(deleteTransSavings.rejected, (state: TransSavingsState, action) => {
+            .addCase(deleteTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown, any, any, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to delete transaction savings';
             });

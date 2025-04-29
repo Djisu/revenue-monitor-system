@@ -1,5 +1,5 @@
 // src/features/propertyClass/propertyClassSlice.ts
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, ActionReducerMapBuilder } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the type for PropertyClass data
@@ -100,18 +100,18 @@ const propertyClassSlice = createSlice({
     name: 'propertyClass',
     initialState,
     reducers: {},
-    extraReducers: (builder) => {
+    extraReducers: (builder: ActionReducerMapBuilder<PropertyClassState>) => {
         builder
             .addCase(fetchPropertyClasses.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(fetchPropertyClasses.fulfilled, (state, action) => {
+            .addCase(fetchPropertyClasses.fulfilled, (state: PropertyClassState, action) => {
                 state.loading = false;
                 state.propertyClasses = action.payload;
                 state.error = null;
             })
-            .addCase(fetchPropertyClasses.rejected, (state, action) => {
+            .addCase(fetchPropertyClasses.rejected, (state: PropertyClassState, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch property classes';
             })
@@ -123,7 +123,7 @@ const propertyClassSlice = createSlice({
                 // Handle the fetched property class data if needed
                 state.error = null;
             })
-            .addCase(fetchPropertyClassById.rejected, (state, action) => {
+            .addCase(fetchPropertyClassById.rejected, (state: PropertyClassState, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch property class';
             })
@@ -131,7 +131,7 @@ const propertyClassSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(createPropertyClass.fulfilled, (state, action) => {
+            .addCase(createPropertyClass.fulfilled, (state: PropertyClassState, action) => {
                 state.loading = false;
 
                 console.log('Before push, propertyClasses:', state.propertyClasses);
@@ -154,7 +154,7 @@ const propertyClassSlice = createSlice({
                     state.error = action.payload.message;
                 }
             })
-            .addCase(createPropertyClass.rejected, (state, action) => {
+            .addCase(createPropertyClass.rejected, (state: PropertyClassState, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'An error occurred while creating the property class';
             })
@@ -162,7 +162,7 @@ const propertyClassSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(updatePropertyClass.fulfilled, (state, action) => {
+            .addCase(updatePropertyClass.fulfilled, (state: PropertyClassState, action) => {
                 state.loading = false;
                 const index = state.propertyClasses.findIndex(cls => cls.property_class === action.payload.property_class);
                 if (index !== -1) {
@@ -170,7 +170,7 @@ const propertyClassSlice = createSlice({
                 }
                 state.error = null;
             })
-            .addCase(updatePropertyClass.rejected, (state, action) => {
+            .addCase(updatePropertyClass.rejected, (state: PropertyClassState, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to update property class';
             })
@@ -178,7 +178,7 @@ const propertyClassSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(deletePropertyClass.fulfilled, (state, action) => {
+            .addCase(deletePropertyClass.fulfilled, (state: PropertyClassState, action) => {
                 state.loading = false;
                 
                 // Add logging to check the type of state.propertyClasses
@@ -194,7 +194,7 @@ const propertyClassSlice = createSlice({
                 
                 state.error = null;
             })
-            .addCase(deletePropertyClass.rejected, (state, action) => {
+            .addCase(deletePropertyClass.rejected, (state: PropertyClassState, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to delete property class';
             });
