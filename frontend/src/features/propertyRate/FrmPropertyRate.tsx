@@ -1,23 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Col, Form, Row, Table } from 'react-bootstrap';
-import { useAppDispatch, useAppSelector, RootState } from '../../app/store';
+import { useAppDispatch, useAppSelector } from '../../app/store';
 import { Link } from 'react-router-dom';
-import { fetchPropertyRates, createPropertyRate, updatePropertyRate, deletePropertyRate } from './propertyRateSlice';
+import { fetchPropertyRates, 
+        createPropertyRate, 
+        updatePropertyRate, 
+        deletePropertyRate, 
+        PropertyRateData
+} from './propertyRateSlice';
 import { fetchPropertyClasses, PropertyClassData } from '../propertyClass/propertyClassSlice';
-interface PropertyRateData {
-  property_class: string;
-  fiscalyear: number;
-  rate: number;
-  registrationrate: number;
-}
+
+// interface PropertyRateData {
+//   property_class: string;
+//   fiscalyear: number;
+//   rate: number;
+//   registrationrate: number;
+// }
+
+
 
 const FrmProducePropertyRate: React.FC = () => {
   // Use dispatch to call actions and update state
   const dispatch = useAppDispatch();
 
   // Use selector to get state
-  const propertyRates = useAppSelector((state: RootState) => state.propertyRate.rates);
-  const propertyClasses = useAppSelector((state: RootState) => state.propertyClass.propertyClasses);
+  const propertyRates = useAppSelector((state) => state.propertyRate.rates);
+  const propertyClasses = useAppSelector((state) => state.propertyClass.propertyClasses);
 
   // State management for form fields
   const [propertyClass, setPropertyClass] = useState('');
@@ -86,32 +94,40 @@ const FrmProducePropertyRate: React.FC = () => {
   };
 
   const handleEditClick = async () => {
-    try {
-      const propertyRateData: PropertyRateData = {
-        property_class: propertyClass,
-        fiscalyear: parseInt(fiscalYear, 10),
-        rate: parseFloat(rate), 
-        registrationrate: parseFloat(registrationRate),
-        };
+      try {
+        const propertyRateData: PropertyRateData = {
+          property_class: propertyClass,
+          fiscalyear: parseInt(fiscalYear, 10),
+          rate: parseFloat(rate), 
+          registrationrate: parseFloat(registrationRate),
+          };
 
-        const response = await dispatch(updatePropertyRate(
-          { property_Class: propertyClass, fiscalyear: parseInt(fiscalYear, 10), propertyRateData }
-        ));
 
-        alert(response.payload.message);
-        fetchRates();
-    } catch (error) {
-        console.error('Error editing rate:', error);
-        alert('Error in editing a record');
-    }
+          const payload = {
+            property_Class: propertyClass,
+            fiscalyear: parseInt(fiscalYear, 10),
+            propertyRateData: propertyRateData,
+          };
+          
+          const response = await dispatch(updatePropertyRate(payload));
+
+
+          alert(response.payload.message);
+          fetchRates();
+      } catch (error: unknown) {
+          console.error('Error editing rate:', error);
+          alert('Error in editing a record');
+      }
   };
 
   const handleDeleteClick = async () => {
     try {
-        const response = await dispatch(deletePropertyRate(
-          { property_Class: propertyClass, fiscalyear: parseInt(fiscalYear, 10) }
-        ));
-
+        const payload = {
+          property_Class: propertyClass,
+          fiscalyear: parseInt(fiscalYear, 10),
+        };
+        
+        const response = await dispatch(deletePropertyRate(payload));
         alert(response.payload.message);
         fetchRates();
     } catch (error) {

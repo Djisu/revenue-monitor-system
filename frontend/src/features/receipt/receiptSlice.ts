@@ -1,5 +1,5 @@
 // src/features/receipt/receiptSlice.ts
-import { createSlice, createAsyncThunk , ActionReducerMapBuilder } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction, ActionReducerMapBuilder, SerializedError  } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the type for Receipt data
@@ -74,43 +74,44 @@ const receiptSlice = createSlice({
             .addCase(fetchReceipts.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchReceipts.fulfilled, (state: ReceiptState, action) => {
+            .addCase(fetchReceipts.fulfilled, (state: ReceiptState, action: PayloadAction<ReceiptData[]>) => {
                 state.loading = false;
                 state.receipts = action.payload;
                 state.error = null;
             })
-            .addCase(fetchReceipts.rejected, (state: ReceiptState, action) => {
+            .addCase(fetchReceipts.rejected, (state: ReceiptState, action: PayloadAction<unknown, any, any, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch receipts';
             })
             .addCase(fetchReceiptById.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchReceiptById.fulfilled, (state) => {
+            .addCase(fetchReceiptById.fulfilled, (state: ReceiptState, action: PayloadAction<ReceiptData[]>) => {
                 state.loading = false;
                 // Optionally handle the fetched receipt data
+                state.receipts = action.payload
                 state.error = null;
             })
-            .addCase(fetchReceiptById.rejected, (state: ReceiptState, action) => {
+            .addCase(fetchReceiptById.rejected, (state: ReceiptState, action: PayloadAction<unknown, any, any, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch receipt';
             })
             .addCase(createReceipt.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(createReceipt.fulfilled, (state: ReceiptState, action) => {
+            .addCase(createReceipt.fulfilled, (state: ReceiptState, action: PayloadAction<ReceiptData[]>) => {
                 state.loading = false;
-                state.receipts.push(action.payload); // Add the new receipt
+                state.receipts = action.payload; // Add the new receipt
                 state.error = null;
             })
-            .addCase(createReceipt.rejected, (state: ReceiptState, action) => {
+            .addCase(createReceipt.rejected, (state: ReceiptState, action: PayloadAction<unknown, any, any, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to create receipt';
             })
             .addCase(updateReceipt.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(updateReceipt.fulfilled, (state: ReceiptState, action) => {
+            .addCase(updateReceipt.fulfilled, (state: ReceiptState, action: PayloadAction<ReceiptData>) => {
                 state.loading = false;
                 const index = state.receipts.findIndex(receipt => receipt.receiptno === action.payload.receiptno && receipt.buss_no === action.payload.buss_no);
                 if (index !== -1) {
@@ -118,19 +119,19 @@ const receiptSlice = createSlice({
                 }
                 state.error = null;
             })
-            .addCase(updateReceipt.rejected, (state: ReceiptState, action) => {
+            .addCase(updateReceipt.rejected, (state: ReceiptState, action: PayloadAction<unknown, any, any, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to update receipt';
             })
             .addCase(deleteReceipt.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(deleteReceipt.fulfilled, (state: ReceiptState, action) => {
+            .addCase(deleteReceipt.fulfilled, (state: ReceiptState, action: PayloadAction<ReceiptData>) => {
                 state.loading = false;
-                state.receipts = state.receipts.filter(receipt => !(receipt.receiptno === action.meta.arg.receiptno && receipt.buss_no === action.meta.arg.buss_no));
+                state.receipts = state.receipts.filter(receipt => !(receipt.receiptno === action.payload.receiptno && receipt.buss_no === action.payload.buss_no));
                 state.error = null;
             })
-            .addCase(deleteReceipt.rejected, (state: ReceiptState, action) => {
+            .addCase(deleteReceipt.rejected, (state: ReceiptState, action: PayloadAction<unknown, any, any, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to delete receipt';
             });
