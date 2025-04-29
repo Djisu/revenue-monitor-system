@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
+// many removed
 // Import your form components
 //import MainMenu from './components/layout/MainMenu';
 import FrmLogin from './features/auth/FrmLogin';
