@@ -8,7 +8,7 @@
       "allowSyntheticDefaultImports": true,
       "strict": true,
       "esModuleInterop": true,
-      "moduleResolution": "Node",
+      "moduleResolution": "node",
       "sourceMap": true,
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,

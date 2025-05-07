@@ -20,11 +20,6 @@ const upload = multer({ storage: storage });
 // Middleware
 router.use(express.json());
 // Create a new officer record
-/* The above code snippet is defining a POST route handler for '/create' endpoint in a Node.js Express
-router. It is using multer middleware (upload.single('photo')) to handle file uploads with the field
-name 'photo'. The route handler is an asynchronous function that takes a custom request object
-(CustomRequest) and a response object (Response) as parameters. The function is not complete as it
-seems to be cut off with 'co' and ' */
 router.post('/create', upload.single('photo'), async (req, res) => {
     const officerData = req.body;
     const client = await pool.connect(); // Get a client from the pool
@@ -41,16 +36,6 @@ router.post('/create', upload.single('photo'), async (req, res) => {
             officerData.officer_name,
             officerData.photo,
         ]);
-        // Insert the photo data if it exists
-        // if (req.file) {
-        //     await client.query('INSERT INTO photos (officer_no, photo_name, photo_type, photo_buffer) VALUES ($1, $2, $3, $4)',
-        //     [
-        //         officerData.officer_no,
-        //         req.file.originalname,
-        //         req.file.mimetype,
-        //         req.file.buffer
-        //     ]);
-        // }
         res.status(201).json({ message: 'Officer record created successfully' });
     }
     catch (error) {
