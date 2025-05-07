@@ -29,3 +29,5 @@ coverage/
 
 # IDEs
 .idea/
+/backend/dist/routes/api/permits/
+
