@@ -11,7 +11,7 @@ export interface GradeFeesState {
     error: null | string;
 }
 export declare const initialState: GradeFeesState;
-export declare const fetchGradeFees: import("@reduxjs/toolkit").AsyncThunk<any[], void, {
+export declare const fetchGradeFees: import("@reduxjs/toolkit").AsyncThunk<GradeFeesData[], void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -21,7 +21,7 @@ export declare const fetchGradeFees: import("@reduxjs/toolkit").AsyncThunk<any[]
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createGradeFee: import("@reduxjs/toolkit").AsyncThunk<any, GradeFeesData, {
+export declare const createGradeFee: import("@reduxjs/toolkit").AsyncThunk<GradeFeesData, GradeFeesData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;

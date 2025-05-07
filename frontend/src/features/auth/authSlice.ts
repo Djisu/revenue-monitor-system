@@ -1,5 +1,5 @@
 // src/redux/slices/authSlice.ts
-import { createSlice, createAsyncThunk, PayloadAction, SerializedError } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction, SerializedError, Slice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 export interface OperatorDefinition {
@@ -42,11 +42,13 @@ export interface LoginError {
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
 
+console.log('BASE_URL: ', BASE_URL)
+
 // Define the async thunk for login
 export const loginUser = createAsyncThunk<LoginResponse, { username: string; password: string }, { rejectValue: LoginError }>(
     'auth/loginUser',
     async (credentials, { rejectWithValue }) => {
-        //console.log('Sending login request:', { username: credentials.username, password: credentials.password });
+        console.log('Sending login request:', { username: credentials.username, password: credentials.password });
 
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/login`, {
@@ -54,7 +56,7 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
                 password: credentials.password
             });
 
-            //console.log('Login response:', response.data);
+            console.log('Login response:', response.data);
 
             // Check if the response contains a token
             if (!response.data.token) {
@@ -80,9 +82,12 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
             localStorage.setItem('existingPermissions', JSON.stringify(permissions));
 
             return response.data;
-        } catch (error: any) {
-            // Handle errors from the backend
-            return rejectWithValue(error.response?.data || { message: 'An error occurred' });
+        } catch (error: unknown) {
+            if (error instanceof Error){
+                // Handle errors from the backend
+                return rejectWithValue({ message: 'An error occurred' });
+            }
+            
         }
     }
 );
@@ -95,8 +100,12 @@ export const requestPasswordReset = createAsyncThunk(
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/request-password-reset`, { email });
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response.data);
+        } catch (error: unknown) {
+            if (error instanceof Error){
+                // Handle errors from the backend
+                return rejectWithValue({ message: 'An error occurred' });
+            }
+            
         }
     }
 );
@@ -108,14 +117,18 @@ export const resetPassword = createAsyncThunk(
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/reset-password`, payload);
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response.data);
+        } catch (error: unknown) {
+            if (error instanceof Error){
+                // Handle errors from the backend
+                return rejectWithValue({ message: 'An error occurred' });
+            }
+            
         }
     }
 );
 
 // Create the auth slice
-const authSlice = createSlice({
+const authSlice: Slice<AuthState> = createSlice({
     name: 'auth',
     initialState,
     reducers: {
@@ -143,7 +156,7 @@ extraReducers: (builder) => {
             };
             state.error = null; // Clear error on success
         })
-        .addCase(loginUser.rejected, (state, action: PayloadAction<unknown, any, any, SerializedError>) => {
+        .addCase(loginUser.rejected, (state, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
             state.loading = false;
             state.error = action.error.message || 'Login failed'; // Set error message
         })
@@ -157,7 +170,7 @@ extraReducers: (builder) => {
             state.message = action.payload.message; // Success message
             state.error = null; // Clear error on success
         })
-        .addCase(requestPasswordReset.rejected, (state, action) => {
+        .addCase(requestPasswordReset.rejected, (state, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
             state.loading = false;
             state.error = action.error.message || 'Password reset request failed'; // Set error message
         })
@@ -171,7 +184,7 @@ extraReducers: (builder) => {
             state.message = action.payload.message; // Success message
             state.error = null; // Clear error on success
         })
-        .addCase(resetPassword.rejected, (state, action) => {
+        .addCase(resetPassword.rejected, (state, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
             state.loading = false;
             state.error = action.error.message || 'Password reset failed'; // Set error message
         });

@@ -8,7 +8,7 @@ import { fetchPropertyRates,
         deletePropertyRate, 
         PropertyRateData
 } from './propertyRateSlice';
-import { fetchPropertyClasses, PropertyClassData } from '../propertyClass/propertyClassSlice';
+import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
 
 // interface PropertyRateData {
 //   property_class: string;
@@ -35,10 +35,10 @@ const FrmProducePropertyRate: React.FC = () => {
   const [registrationRate, setRegistrationRate] = useState('');
 
   // State management for dropdowns
-  let [localPropertyClasses, setLocalPropertyClasses] = useState<PropertyClassData[]>([]);
+  //const [localPropertyClasses, setLocalPropertyClasses] = useState<PropertyClassData[]>([]);
 
   // State management for ListView equivalent
-  let [localPropertyRates, setLocalPropertyRates] = useState<PropertyRateData[]>([]);
+  //const [localPropertyRates, setLocalPropertyRates] = useState<PropertyRateData[]>([]);
 
   // Fetch dropdowns and ListView data on component mount
   useEffect(() => {
@@ -50,9 +50,10 @@ const FrmProducePropertyRate: React.FC = () => {
     try {
       const response = await dispatch(fetchPropertyClasses());
 
-      localPropertyClasses = response.payload.property_classes
+      //localPropertyClasses = response.payload.property_classes
 
-      setLocalPropertyClasses(localPropertyClasses);
+      //setLocalPropertyClasses(response.payload.property_classes);
+      console.log(response.payload.property_classes);
     } catch (error) {
       console.error('Error fetching classes:', error);
     }
@@ -62,9 +63,10 @@ const FrmProducePropertyRate: React.FC = () => {
     try {
       const response = await dispatch(fetchPropertyRates());
 
-      localPropertyRates = response.payload.rates
+      //localPropertyRates = response.payload.rates
 
-      setLocalPropertyRates(localPropertyRates);
+      //setLocalPropertyRates(response.payload.rates);
+      console.log(response.payload.rates)
     } catch (error) {
       console.error('Error fetching rates:', error);
     }

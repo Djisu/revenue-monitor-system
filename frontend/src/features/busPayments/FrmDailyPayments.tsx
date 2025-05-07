@@ -23,20 +23,20 @@ interface BusinessTypeData {
 }
   
 const FrmDailyPayments: React.FC = () => {
-    let [electoralArea, setElectoralArea] = useState<string>('');
+    const [electoralArea, setElectoralArea] = useState<string>('');
     //let [electoralAreasData, setElectoralAreasData] = useState<ElectoralArea[]>([]);//
-    let [selectedBusinessType, setSelectedBusinessType] = useState<string>('');
-    let [firstDate, setFirstDate] = useState<string>('');
-    let [lastDate, setLastDate] = useState<string>('');
+    const [selectedBusinessType, setSelectedBusinessType] = useState<string>('');
+    const [firstDate, setFirstDate] = useState<string>('');
+    const [lastDate, setLastDate] = useState<string>('');
     const [bussTypes, setBussTypes] = useState<BusinessTypeData[]>([]);
-    let [errorx, setErrorx] = useState<string>('');
+    const [errorx, setErrorx] = useState<string>('');
 
-    let [busPaymentsData, setBusPaymentsData] = useState<BusPaymentsData[]>([]);
+    const [busPaymentsData, setBusPaymentsData] = useState<BusPaymentsData[]>([]);
  
  
-    let dispatch = useAppDispatch();
+    const dispatch = useAppDispatch();
 
-    let { electoralAreas, loading, error } = useAppSelector(state => state.electoralArea);
+    const { electoralAreas, loading, error } = useAppSelector(state => state.electoralArea);
 
     const businessTypes = useAppSelector((state) => state.businessType.businessTypes); // as BusinessTypeData[]
     console.log('businessTypes: ', businessTypes);
@@ -59,7 +59,7 @@ const FrmDailyPayments: React.FC = () => {
     //console.log('Entire Redux State:', entireState);
 
 
-    let busPayments = useAppSelector(selectBusPayments);
+    const busPayments = useAppSelector(selectBusPayments);
     console.log('busPayments:', busPayments);
    
     useEffect(() => {
@@ -136,9 +136,9 @@ const FrmDailyPayments: React.FC = () => {
             console.log('answer:', answer);
     
             if (answer.payload) {
-                busPaymentsData = answer.payload;
-                setBusPaymentsData(busPaymentsData);
-                console.log('busPaymentsData:', busPaymentsData);
+                //busPaymentsData = answer.payload;
+                setBusPaymentsData(answer.payload);
+                console.log('answer.payload:', answer.payload);
             } else {
                 const criteria: Criteria = {
                     constituency: electoralArea,
@@ -155,12 +155,19 @@ const FrmDailyPayments: React.FC = () => {
                 alert('Payment not found.')
             }
             
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error fetching daily payments:", error);
     
-            if (error.response) {
-                // Check for a 404 error specifically
-                if (error.response.status === 404) {
+            if (
+                typeof error === 'object' &&
+                error !== null &&
+                'message' in error &&
+                typeof error.message === 'string'
+            ) {
+                // Check for status if it exists (custom error from slice/thunk)
+                const status = (error as { response?: { status: number } })?.response?.status;
+        
+                if (status === 404) {
                     setErrorx("Requested data not found.");
                     alert("Requested data not found.");
                 } else {

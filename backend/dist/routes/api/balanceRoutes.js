@@ -1,25 +1,10 @@
+// FIXED
 import { Router } from 'express';
+import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
-import pkg from 'pg';
-const { Pool } = pkg;
-//import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection pool configuration
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
@@ -41,7 +26,7 @@ router.post('/', async (req, res) => {
             return;
         }
         // Insert the new balance data
-        const insertResult = await client.query(`INSERT INTO balance (buss_no, buss_name, billamount, paidamount, balance, electroral_area, street_name) 
+        await client.query(`INSERT INTO balance (buss_no, buss_name, billamount, paidamount, balance, electroral_area, street_name) 
             VALUES ($1, $2, $3, $4, $5, $6, $7)`, [
             balanceData.buss_no,
             balanceData.buss_name,
@@ -125,7 +110,7 @@ router.put('/:buss_no', async (req, res) => {
             return;
         }
         // Update the balance data
-        const updateResult = await client.query(`UPDATE balance SET buss_name = $1, billamount = $2, paidamount = $3, balance = $4, electroral_area = $5, street_name = $6 
+        await client.query(`UPDATE balance SET buss_name = $1, billamount = $2, paidamount = $3, balance = $4, electroral_area = $5, street_name = $6 
             WHERE buss_no = $7`, [
             balanceData.buss_name,
             balanceData.billamount,
@@ -160,7 +145,7 @@ router.delete('/:buss_no', async (req, res) => {
             return;
         }
         // Delete the balance record
-        const deleteResult = await client.query('DELETE FROM balance WHERE buss_no = $1', [buss_no]);
+        await client.query('DELETE FROM balance WHERE buss_no = $1', [buss_no]);
         res.status(200).json({ message: 'Balance record deleted successfully' });
     }
     catch (error) {

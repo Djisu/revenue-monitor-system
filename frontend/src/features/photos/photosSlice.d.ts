@@ -1,6 +1,6 @@
 export interface StorePhotoResult {
     message: string;
-    result: any;
+    result: string;
     photoUrl: string;
 }
 export interface StorePhotoErrorPayload {
@@ -50,7 +50,7 @@ export declare const getPhotoAsync: import("@reduxjs/toolkit").AsyncThunk<Buffer
 }>;
 export declare const getAllPhotosAsync: import("@reduxjs/toolkit").AsyncThunk<{
     officer_no: string;
-    photo: Buffer;
+    photo: string;
 }[], void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
@@ -63,7 +63,7 @@ export declare const getAllPhotosAsync: import("@reduxjs/toolkit").AsyncThunk<{
 }>;
 export declare const deletePhotoAsync: import("@reduxjs/toolkit").AsyncThunk<{
     message: string;
-    result: any;
+    result: string;
 }, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;

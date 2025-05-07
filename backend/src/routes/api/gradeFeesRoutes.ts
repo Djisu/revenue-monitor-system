@@ -1,11 +1,8 @@
 // backend/src/routes/api/gradeFeesRoutes.ts
-import express from 'express';
+
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-import { QueryResult, PoolClient } from 'pg';
 import pkg from 'pg';
-//import { createClient } from '../../db.js';
-
 
 const { Pool } = pkg;
 
@@ -59,7 +56,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Insert the new GradeFees data
-        const insertResult = await pool.query(
+        await pool.query(
             `INSERT INTO gradefees (buss_type, grade, description, fees) 
             VALUES ($1, $2, $3, $4) RETURNING *`,
             [
@@ -72,9 +69,14 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
         res.status(200).json({ success: true, message: 'Grade Fees record created successfully', fees: gradeFeesData.fees });
         return
-    } catch (error: any) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating GradeFees record', error: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error creating grade fees  record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error creating brade feesrecord', error });
+        }
+        
     }finally{
         client.release()
     }
@@ -92,9 +94,14 @@ router.get('/all', async (req: Request, res: Response) => {
 
         console.log('result.rows): ', result.rows);
         res.status(200).json(result.rows);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching GradeFees records', error: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error fetching grade fees record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error fetching grade fees record', error });
+        }
+        
     }finally{
         client.release()
     }
@@ -114,9 +121,14 @@ router.get('/:buss_type/:grade', async (req: Request, res: Response) => {
         } else {
             res.status(200).json({ success: true, data: result.rows[0] });
         }
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching Grade Fees record', error: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error fetching grade fees record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error fetching grade fees record', error });
+        }
+        
     }finally{
         client.release()
     }
@@ -150,9 +162,14 @@ router.put('/:buss_type/:grade', async (req: Request, res: Response): Promise<vo
         );
 
         res.status(200).json({ message: 'Grade Fees record updated successfully' });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating GradeFees record', error: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error updating grade fees record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error updating grade fees record', error });
+        }
+        
     }finally{
         client.release()
     }
@@ -176,9 +193,14 @@ router.delete('/:buss_type/:grade', async (req: Request, res: Response) => {
         await pool.query('DELETE FROM gradefees WHERE buss_type = $1 AND grade = $2', [buss_type, grade]);
         
         res.status(200).json({ message: 'GradeFees record deleted successfully' });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting GradeFees record', error: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error deleting grade fees record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error deleting grade fees record', error });
+        }
+        
     }finally{
         client.release()
     }

@@ -124,11 +124,11 @@ export const FrmBusiness: React.FC = () => {
     }, [businessTypes]);
 
     useEffect(() => {
-        setPropertyClasses(propertyClass.map((classType: any) => classType.property_class));
+        setPropertyClasses(propertyClass.map((classType) => classType.property_class));
     }, [propertyClass]);
 
     useEffect(() => {
-        setAssessments(officer.map((officer: any) => `${officer.officer_name}`));
+        setAssessments(officer.map((officer) => `${officer.officer_name}`));
     }, [officer]);
 
     const getBussNo = async () => {

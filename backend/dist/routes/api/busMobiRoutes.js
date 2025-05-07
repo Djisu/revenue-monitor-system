@@ -3,11 +3,10 @@ import { Router } from 'express';
 import * as dotenv from 'dotenv';
 import pkg from 'pg';
 const { Pool } = pkg;
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-//import { createClient } from '../../db.js';
+// import fs from 'fs';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+// import { dirname } from 'path';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -41,43 +40,10 @@ function sanitizeBusMobiData(data) {
     };
 }
 // Ensure the permits directory exists
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const permitDir = path.join(__dirname, 'permits');
-const fsPromises = fs.promises;
-async function ensurePermitDirIsEmpty() {
-    try {
-        // Check if the directory exists
-        await fsPromises.access(permitDir);
-        console.log('Permits directory already exists:', permitDir);
-        // Read all files and subdirectories in the directory
-        const files = await fsPromises.readdir(permitDir);
-        // Remove all files and subdirectories
-        for (const file of files) {
-            const filePath = path.join(permitDir, file);
-            const stat = await fsPromises.lstat(filePath);
-            if (stat.isDirectory()) {
-                // Recursively remove subdirectories
-                await fsPromises.rm(filePath, { recursive: true, force: true });
-            }
-            else {
-                // Remove files
-                await fsPromises.unlink(filePath);
-            }
-        }
-        console.log('Permits directory emptied:', permitDir);
-    }
-    catch (err) {
-        if (err.code === 'ENOENT') {
-            // Directory does not exist, create it
-            await fsPromises.mkdir(permitDir, { recursive: true });
-            console.log('Created permits directory:', permitDir);
-        }
-        else {
-            console.error('Error accessing permits directory:', err);
-        }
-    }
-}
+//const __filename = fileURLToPath(import.meta.url);
+//const __dirname = dirname(__filename);
+//const permitDir = path.join(__dirname, 'permits');
+//const fsPromises = fs.promises;
 // Create a new BusMobi record
 router.post('/', async (req, res) => {
     console.log('Creating a new BusMobi record');
@@ -91,7 +57,7 @@ router.post('/', async (req, res) => {
             return;
         }
         // Insert the new BusMobi data
-        const insertResult = await client.query(`INSERT INTO busmobi (buss_no, fiscal_year, dateofbilling, buss_type, balancebf, currentPayable, 
+        await client.query(`INSERT INTO busmobi (buss_no, fiscal_year, dateofbilling, buss_type, balancebf, currentPayable, 
             totalAmount, firstD, secondE, outstanding, firstPaymentDate, secondPaymentDate, 
             firstreceiptno, secondreceiptno, remarks, officer_no) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`, [
@@ -114,9 +80,11 @@ router.post('/', async (req, res) => {
         ]);
         res.status(201).json({ message: 'BusMobi record created successfully' });
     }
-    catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating BusMobi record', error });
+    catch (err) {
+        console.error('Error:', err);
+        if (err instanceof Error) {
+            res.status(500).json({ message: 'Error creating BusMobi record', err });
+        }
     }
     finally {
         if (client) {
@@ -177,7 +145,7 @@ router.put('/:buss_no', async (req, res) => {
             return;
         }
         // Update the BusMobi data
-        const updateResult = await client.query(`UPDATE busmobi SET fiscal_year = $1, dateofbilling = $2, buss_type = $3, balancebf = $4, 
+        await client.query(`UPDATE busmobi SET fiscal_year = $1, dateofbilling = $2, buss_type = $3, balancebf = $4, 
             currentPayable = $5, totalAmount = $6, firstD = $7, secondE = $8, outstanding = $9, 
             firstPaymentDate = $10, secondPaymentDate = $11, firstreceiptno = $12, 
             secondreceiptno = $13, remarks = $14, officer_no = $15 

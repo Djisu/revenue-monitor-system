@@ -35,18 +35,18 @@ const GradeFeesForm: React.FC = () => {
   const [description, setDescription] = useState<string>('');
   const [fees, setFees] = useState<number>(0);
   const [successMessage, setSuccessMessage] = useState<string>('');
-  let [errorFlag, setErrorFlag] = useState<string>('');
-  let [localGradeFeesList, setLocalGradeFeesList] = useState<GradeFee[]>([]);
+  const [errorFlag, setErrorFlag] = useState<string>('');
+  const [localGradeFeesList, setLocalGradeFeesList] = useState<GradeFee[]>([]);
 
   
-  let [loadingFlag, setLoadingFlag] = useState<boolean>(false);
+  const [loadingFlag, setLoadingFlag] = useState<boolean>(false);
 
-  let [selectedBussType, setSelectedBussType] = useState<string | null>(null);
-  let [selectedGrade, setSelectedGrade] = useState<string | null>(null);
-  let [selectedDescription, setSelectedDescription] = useState<string | null>(null);
-  let [selectedFees, setSelectedFees] = useState<number>(0);
+  const [selectedBussType, setSelectedBussType] = useState<string | null>(null);
+  const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
+  const [selectedDescription, setSelectedDescription] = useState<string | null>(null);
+  const [selectedFees, setSelectedFees] = useState<number>(0);
 
-
+//
 
   useEffect(() => {
     console.log('in useEffect: Fetching grade fees');
@@ -66,9 +66,14 @@ const GradeFeesForm: React.FC = () => {
 
               console.log('FRONTEND: Fetched business types:', response);
               setBusinessTypes(response);
-          } catch (error: any) {
+          } catch (error: unknown) {
+            if (error instanceof Error){
               console.error("Error fetching business types", error);
               alert("Error in fetching business types");
+            }else{
+              alert("Error unknown");
+            }
+              
           }
       };
 
@@ -78,8 +83,8 @@ const GradeFeesForm: React.FC = () => {
   const fetchGradeFeesList = async () => {
     try {
         console.log('Fetching grade fees list');
-        loadingFlag = true;
-        setLoadingFlag(loadingFlag); // Start loading
+        //loadingFlag = true;
+        setLoadingFlag(true); // Start loading
 
         const response = await dispatch(fetchGradeFees()).unwrap();
         
@@ -88,11 +93,11 @@ const GradeFeesForm: React.FC = () => {
         if (response && Array.isArray(response)) {
             console.log('IT IS AN ARRAY');
 
-            const formattedGradeFees: GradeFee[] = response.map((gr: any): GradeFee => ({
+            const formattedGradeFees: GradeFee[] = response.map((gr: GradeFee): GradeFee => ({
                 buss_type: gr?.buss_type || '',
                 description: gr?.description || '',
                 grade: gr?.grade || '',
-                fees: parseFloat(gr?.fees) || 0,
+                fees: gr?.fees || 0,
             }));
 
             setLocalGradeFeesList(formattedGradeFees);
@@ -101,12 +106,18 @@ const GradeFeesForm: React.FC = () => {
             console.error('Expected an array of GradeFee objects but found:', response);
             setErrorFlag('Error fetching grade fees list');
         }
-    } catch (error: any) {
-        console.error(error);
-        setErrorFlag(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        console.error("Error fetching business types", error);
+        alert("Error in fetching business types");
+      }else{
+        alert("Error unknown");
+      }
+        
+    
     } finally {
-        loadingFlag = false;
-        setLoadingFlag(loadingFlag); // Stop loading
+        //loadingFlag = false;
+        setLoadingFlag(false); // Stop loading
     }
 };
 
@@ -135,8 +146,8 @@ const GradeFeesForm: React.FC = () => {
     console.log('Adding new grade fee record')
 
     if (!businessType || !grade || !description || !fees) {
-      errorFlag = 'Please fill in all fields'
-      setErrorFlag(errorFlag);
+     // errorFlag = 'Please fill in all fields'
+      setErrorFlag('Please fill in all fields');
       return;
     }
 
@@ -147,11 +158,14 @@ const GradeFeesForm: React.FC = () => {
       //dispatch(setGradeFees([...gradeFees, response.data]));
       dispatch(fetchGradeFees());
       clearForm();
-    } catch (error) {
-      console.error(error);
-      setErrorFlag('Error adding record');
-      setSuccessMessage('');
-    }
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        console.error("Error fetching business types", error);
+        alert("Error in fetching business types");
+      }else{
+        alert("Error unknown");
+      } 
+    }        
   };
 
   const handleEditClick = async () => {
@@ -179,10 +193,14 @@ const GradeFeesForm: React.FC = () => {
         clearForm();
        
         setErrorFlag('');
-      } catch (error: any) {
-        console.error(error);
-        setErrorFlag('Error editing record');
-      }
+      } catch (error: unknown) {
+        if (error instanceof Error){
+          console.error("Error fetching business types", error);
+          alert("Error in fetching business types");
+        }else{
+          alert("Error unknown");
+        } 
+      } 
     }
 
     const handleDelete = async (bussType: string | null, grade: string | null) => {
@@ -202,22 +220,29 @@ const GradeFeesForm: React.FC = () => {
         clearForm();
         fetchGradeFeesList();
         setErrorFlag('');
-      } catch (error) {
-        console.error('Error deleting grade rate:', error);
-        setErrorFlag('Error in deleting record');
-      }
+      } catch (error: unknown) {
+        if (error instanceof Error){
+          console.error("Error fetching business types", error);
+          alert("Error in fetching business types");
+        }else{
+          alert("Error unknown");
+        }
+      }   
     };
    
 
   const handleViewClick = async () => {
     try {
       fetchGradeFeesList();
-    } catch (error) {
-      console.error(error);
-      setErrorFlag('Error fetching grade fees list');
-    }
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        console.error("Error fetching business types", error);
+        alert("Error in fetching business types");
+      }else{
+        alert("Error unknown");
+      }
+    }    
   };
-
 
   const clearForm = () => {
     setBusinessType('');
@@ -235,18 +260,18 @@ const GradeFeesForm: React.FC = () => {
 
       // Find the corresponding record in the gradeFees array
       const selectedRecord = gradeFees.find(
-        (gr: any) => gr.buss_type === bussType && gr.grade === grade
+        (gr: GradeFee) => gr.buss_type === bussType && gr.grade === grade
       );
 
       if (selectedRecord) {
         console.log('Found the selected record:', selectedRecord);
         setSelectedBussType(bussType);
         setSelectedGrade(grade);
-        selectedDescription = selectedRecord.description;
-        setSelectedDescription(selectedDescription);
+        //selectedDescription = selectedRecord.description;
+        setSelectedDescription( selectedRecord.description);
 
-        selectedFees = selectedRecord.fees || 0
-        setSelectedFees(selectedFees);
+        //selectedFees = selectedRecord.fees || 0
+        setSelectedFees(selectedRecord.fees || 0);
       } else {
         console.error('No record found for buss_type:', bussType, 'and grade:', grade);
         setSelectedBussType(bussType);
@@ -257,7 +282,7 @@ const GradeFeesForm: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (loading || loadingFlag) {
     return <p>Loading...</p>;
   }
 
@@ -267,11 +292,13 @@ const GradeFeesForm: React.FC = () => {
   return (
     <Container>
       {/* Error and Success Messages */}
-      {error && <Alert variant="danger">{error}</Alert>}
+      {error && <Alert variant="danger">{error || errorFlag}</Alert>}
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
   
       {/* Data Entry Section */}
       <div>
+      <p>Selected Description: {selectedDescription}</p>
+      <p>Selected Fees: {selectedFees}</p>
         <Form>
           <Form.Group controlId="formBusinessType">
             <Form.Label>Business Type:</Form.Label>

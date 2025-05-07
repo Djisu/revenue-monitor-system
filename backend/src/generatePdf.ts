@@ -1,231 +1,167 @@
-import pdfMake from 'pdfmake/build/pdfmake.js';
-import pdfFonts from 'pdfmake/build/vfs_fonts.js'; // Correct path to the actual module
-import printer from 'pdf-to-printer'; // Import the library for printing
+import { getBrowser } from './utils/puppeteerHelper.js';
+import { printPdf } from './utils/printHelper.js';
 
-// Load fonts for pdfmake
-pdfMake.vfs = pdfFonts.vfs; // Access the 'vfs' property directly from pdfFonts
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-// Function to generate PDF from Handlebars template
-export async function generatePdf(data: any): Promise<Buffer> {
-    console.log('in generatePdf');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-    // Calculate the total payable amount
-    const currentRate = parseFloat(data.current_rate);
-    const propertyRate = parseFloat(data.property_rate);
-    const totalPayable = currentRate + propertyRate;
-
-   // Ensure data.serialno is defined and convert to a number
-const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
-
-// Pad the serial number with leading zeros to make it 10 characters long
-const varSerialNo = baseSerialNo.toString().padStart(10, '0');
-   
-    // // Define the document structure for pdfMake
-    // const templateJson = {
-    //     content: [
-    //         { text: 'Business Operating Permit', style: 'header' },
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Serial No: ${varSerialNo}`, color: 'red' }, // Set the font color to red
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Account No: ${data.buss_no}` },
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Business Name: ${data.buss_name}` },
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Type: ${data.buss_type}` },
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Property Class: ${data.property_class}` },
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Landmark: ${data.landmark}` },
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Electoral Area: ${data.electroral_area}` },
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Total Grade: ${data.tot_grade}` },
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Current Rate: ${data.current_rate}` },
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Property Rate: ${data.property_rate}` },
-    //         { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
-    //         { text: `Total Payable GHC: ${totalPayable.toFixed(2)}` } // Display the calculated total
-    //     ],
-    //     styles: {
-    //         header: {
-    //             fontSize: 18,
-    //             bold: true,
-    //             margin: [0, 0, 0, 10] // Explicitly casting the margin
-    //         }
-    //     }
-    // };
-    
-
-    const templateJson = {
-        content: [
-            { text: 'Business Operating Permit', style: 'header' },
-
-            { text: `Serial No: ${varSerialNo}`, color: 'red' }, // Set the font color to red
-
-            { text: `Account No: ${data.buss_no}` },
-
-            { text: `Business Name: ${data.buss_name}` },
-
-            { text: `Type: ${data.buss_type}` },
-
-            { text: `Property Class: ${data.property_class}` },
-
-            { text: `Landmark: ${data.landmark}` },
-
-            { text: `Electoral Area: ${data.electroral_area}` },
-
-            { text: `Total Grade: ${data.tot_grade}` },
-
-            { text: `Current Rate: ${data.current_rate}` },
-
-            { text: `Property Rate: ${data.property_rate}` },
-            
-            { text: `Total Payable GHC: ${totalPayable.toFixed(2)}` } // Display the calculated total
-        ],
-        styles: {
-            header: {
-                fontSize: 18,
-                bold: true,
-                margin: [0, 0, 0, 10] as [number, number, number, number] // Explicitly casting the margin
-            }
-        }
-    };
-
-    console.log('in generatePdf: about to enter const pdfDoc = pdfMake.createPdf(templateJson);')
-    // Generate the PDF
-    const pdfDoc = pdfMake.createPdf(templateJson);
-
-    return new Promise<Buffer>((resolve, reject) => {
-        pdfDoc.getBuffer((result: Buffer) => {
-            if (result instanceof Error) {
-                reject(result); // If result is an error, reject the promise
-            } else {
-                resolve(result); // Otherwise, resolve with the buffer
-            }
-        });
-    }).catch((error: Error) => {
-        console.error('Error generating PDF:', error);
-        throw error; // or handle the error as needed
-    });
+interface ReceiptData {
+  buss_no: string;
+  buss_name: string;
+  buss_type: string;
+  property_class: string;
+  landmark: string;
+  electroral_area: string;
+  tot_grade: string;
+  current_rate: string;
+  property_rate: string;
+  serialno?: string;
 }
 
-// Function to generate and print PDF from Handlebars template
-export async function generateAndPrintPdf(data: any): Promise<void> {
-    console.log('in generateAndPrintPdf');
+// Function to generate PDF using Puppeteer
+export async function generatePdf(data: ReceiptData): Promise<Buffer> {
+  console.log('in generatePdf');
 
-    try {
-        // Generate the PDF
-        const pdfBuffer = await generatePdf(data);
+  const currentRate = parseFloat(data.current_rate);
+  const propertyRate = parseFloat(data.property_rate);
+  const totalPayable = currentRate + propertyRate;
 
-        // Save buffer to a temporary file
-        const fs = require('fs');
-        const path = require('path');
-        const tempFilePath = path.join(__dirname, 'temp', 'document.pdf'); // Adjust this path as needed
+  const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
+  const varSerialNo = baseSerialNo.toString().padStart(10, '0');
 
-        // Ensure the temp directory exists
-        const tempDir = path.join(__dirname, 'temp');
-        if (!fs.existsSync(tempDir)){
-            fs.mkdirSync(tempDir);
-        }
+  const receiptHTML = `
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { text-align: center; }
+        .receipt-info { margin-top: 20px; font-size: 16px; }
+        .receipt-info p { margin: 5px 0; }
+        .line { border-bottom: 1px solid #000; margin: 10px 0; }
+      </style>
+    </head>
+    <body>
+      <h1>Business Operating Permit</h1>
+      <div class="receipt-info">
+        <p><strong>Serial No:</strong> ${varSerialNo}</p>
+        <div class="line"></div>
+        <p><strong>Account No:</strong> ${data.buss_no}</p>
+        <p><strong>Business Name:</strong> ${data.buss_name}</p>
+        <p><strong>Type:</strong> ${data.buss_type}</p>
+        <p><strong>Property Class:</strong> ${data.property_class}</p>
+        <p><strong>Landmark:</strong> ${data.landmark}</p>
+        <p><strong>Electoral Area:</strong> ${data.electroral_area}</p>
+        <p><strong>Total Grade:</strong> ${data.tot_grade}</p>
+        <p><strong>Current Rate:</strong> ${data.current_rate}</p>
+        <p><strong>Property Rate:</strong> ${data.property_rate}</p>
+        <p><strong>Total Payable GHC:</strong> ${totalPayable.toFixed(2)}</p>
+      </div>
+    </body>
+    </html>
+  `;
 
-        fs.writeFileSync(tempFilePath, pdfBuffer);
+  try {
+    const browser = await getBrowser();
+    const page = await browser.newPage();
+    await page.setContent(receiptHTML);
+    const pdfBuffer = await page.pdf({ format: 'A4' });
+    await browser.close();
+    console.log('PDF generated successfully');
+    return Buffer.from(pdfBuffer);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw error;
+  }
+}
 
-        // Print the PDF
-        await printer.print(tempFilePath);
+// Generate PDF and send it to the printer
+export async function generatePdfToPrinter(data: ReceiptData): Promise<void> {
+  console.log('in generatePdfToPrinter');
 
-        console.log('Printed successfully!');
-        // Optionally delete the temporary file here
-        fs.unlinkSync(tempFilePath);
-    } catch (error) {
-        console.error('Error printing PDF:', error);
-        throw error;
+  const currentRate = parseFloat(data.current_rate);
+  const propertyRate = parseFloat(data.property_rate);
+  const totalPayable = currentRate + propertyRate;
+
+  const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
+  const varSerialNo = baseSerialNo.toString().padStart(10, '0');
+
+  const receiptHTML = `
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { text-align: center; }
+        .receipt-info { margin-top: 20px; font-size: 16px; }
+        .receipt-info p { margin: 5px 0; }
+        .line { border-bottom: 1px solid #000; margin: 10px 0; }
+      </style>
+    </head>
+    <body>
+      <h1>Business Operating Permit</h1>
+      <div class="receipt-info">
+        <p><strong>Serial No:</strong> ${varSerialNo}</p>
+        <div class="line"></div>
+        <p><strong>Account No:</strong> ${data.buss_no}</p>
+        <p><strong>Business Name:</strong> ${data.buss_name}</p>
+        <p><strong>Type:</strong> ${data.buss_type}</p>
+        <p><strong>Property Class:</strong> ${data.property_class}</p>
+        <p><strong>Landmark:</strong> ${data.landmark}</p>
+        <p><strong>Electoral Area:</strong> ${data.electroral_area}</p>
+        <p><strong>Total Grade:</strong> ${data.tot_grade}</p>
+        <p><strong>Current Rate:</strong> ${data.current_rate}</p>
+        <p><strong>Property Rate:</strong> ${data.property_rate}</p>
+        <p><strong>Total Payable GHC:</strong> ${totalPayable.toFixed(2)}</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    const browser = await getBrowser();
+    const page = await browser.newPage();
+    await page.setContent(receiptHTML);
+
+    const outputDir = path.join(__dirname, 'receipts');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
     }
+
+    const pdfPath = path.join(outputDir, `receipt-${varSerialNo}.pdf`);
+    await page.pdf({ path: pdfPath, format: 'A4' });
+    await browser.close();
+    console.log(`PDF generated successfully at ${pdfPath}`);
+
+    await printPdf(pdfPath);
+  } catch (error) {
+    console.error('Error generating or printing the PDF:', error);
+    throw error;
+  }
 }
 
+// Example usage
+async function generateAndPrintReceipt(data: ReceiptData): Promise<void> {
+  try {
+    await generatePdfToPrinter(data);
+  } catch (error) {
+    console.error('Error generating or printing the PDF:', error);
+  }
+}
 
+// Example data
+const receiptData: ReceiptData = {
+  buss_no: '12345',
+  buss_name: 'My Business',
+  buss_type: 'Retail',
+  property_class: 'Commercial',
+  landmark: 'Near Park',
+  electroral_area: 'Area 1',
+  tot_grade: 'A',
+  current_rate: '100.00',
+  property_rate: '50.00',
+  serialno: '12345',
+};
 
-
-// import pdfMake from 'pdfmake/build/pdfmake.js';
-// import pdfFonts from 'pdfmake/build/vfs_fonts.js'; // Correct path to the actual module
-
-// // Load fonts for pdfmake
-// pdfMake.vfs = pdfFonts.vfs; // Access the 'vfs' property directly from pdfFonts
-
-// // Function to generate PDF from Handlebars template
-// export async function generatePdf(data: any): Promise<Buffer> {
-//     // Define the document structure for pdfMake
-//     const templateJson = {
-//         content: [
-//             { text: 'Business Operating Permit', style: 'header' },
-//             { text: `Business No: ${data.buss_no}` },
-//             { text: `Business Name: ${data.buss_name}` },
-//             { text: `Address: ${data.buss_address}` },
-//             { text: `Type: ${data.buss_type}` },
-//             { text: `Town: ${data.buss_town}` },
-//             { text: `Street Name: ${data.street_name}` },
-//             { text: `Landmark: ${data.landmark}` },
-//             { text: `Electoral Area: ${data.electroral_area}` },
-//             { text: `Property Class: ${data.property_class}` },
-//             { text: `Total Grade: ${data.tot_grade}` },
-//             { text: `CEO: ${data.ceo}` },
-//             { text: `Tel No: ${data.telno}` },
-//             { text: `Strategic Location: ${data.strategiclocation}` },
-//             { text: `Product Variety: ${data.productvariety}` },
-//             { text: `Business Popularity: ${data.businesspopularity}` },
-//             { text: `Business Environment: ${data.businessenvironment}` },
-//             { text: `Size of Business: ${data.sizeofbusiness}` },
-//             { text: `Number of Working Days: ${data.numberofworkingdays}` },
-//             { text: `Business Operating Period: ${data.businessoperatingperiod}` },
-//             { text: `Competitors Available: ${data.competitorsavailable}` },
-//             { text: `Assessment By: ${data.assessmentby}` },
-//             { text: `Transaction Date: ${data.transdate}` },
-//             { text: `Balance: ${data.balance}` },
-//             { text: `Status: ${data.status}` },
-//             { text: `Current Rate: ${data.current_rate}` },
-//             { text: `Property Rate: ${data.property_rate}` },
-//             { text: `Total Marks: ${data.totalmarks}` },
-//             { text: `Email Address: ${data.emailaddress}` },
-//             { text: `No of Employees: ${data.noofemployees}` },
-//             { text: `No of Branches: ${data.noofbranches}` },
-//             { text: `Balance New: ${data.BALANCENEW}` },
-//             { text: `GPS Address: ${data.gps_address}` },
-//             { text: `Serial No: ${data.serialNo}` }
-//         ],
-//         styles: {
-//             header: {
-//                 fontSize: 18,
-//                 bold: true,
-//                 margin: [0, 0, 0, 10] as [number, number, number, number] // Explicitly casting the margin
-//             }
-//         }
-        
-//     };
-
-//     // Generate the PDF
-     
-//        const pdfDoc = pdfMake.createPdf(templateJson);
-
-//        return new Promise<Buffer>((resolve, reject) => {
-//         pdfDoc.getBuffer((result: Buffer) => {
-//                 if (result instanceof Error) {
-//                     reject(result); // If result is an error, reject the promise
-//                 } else {
-//                     resolve(result); // Otherwise, resolve with the buffer
-//                 }
-//             });
-//         }).catch((error: Error) => {
-//             console.error('Error generating PDF:', error);
-//             throw error; // or handle the error as needed
-//         });
-    
-// }
-
-
-
-
-
-
-
-
-
+generateAndPrintReceipt(receiptData);

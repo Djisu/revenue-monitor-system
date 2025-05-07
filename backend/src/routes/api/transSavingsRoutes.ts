@@ -1,14 +1,10 @@
 // backend/src/routes/api/transSavingsRoutes.ts
-import express from 'express';
+
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import pkg from 'pg';
-import type { PoolClient } from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
-//import { createClient } from '../../db.js';
-
-
 
 const router = Router();
 
@@ -77,7 +73,7 @@ const client = await pool.connect()
 
         res.status(201).json({ message: 'Transaction Savings record created successfully' });
         
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating Transaction Savings record', error: (error as Error).message });
     }finally{
@@ -93,7 +89,7 @@ router.get('/', async (req: Request, res: Response) => {
         const rows = await client.query<QueryResult>('SELECT * FROM transsavings');
         res.json(rows.rows);
         
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching Transaction Savings records', error: (error as Error).message });
     }finally{
@@ -120,7 +116,7 @@ router.get('/:buss_no/:transdate', async (req: Request, res: Response) => {
             res.status(404).json({ message: 'Transaction Savings record not found' });
         }
         
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching Transaction Savings record', error: (error as Error).message });
     }finally{
@@ -167,7 +163,7 @@ router.put('/:buss_no/:transdate', async (req: Request, res: Response): Promise<
 
         res.status(200).json({ message: 'Transaction Savings record updated successfully' });
        
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
         res.status(500).json({ message: 'Error updating Transaction Savings record', error: (error as Error).message });
     }finally{
@@ -181,8 +177,6 @@ router.delete('/:buss_no/:transdate', async (req: Request, res: Response) => {
     const client = await pool.connect()
 
     try {
-        
-
         const rows = await client.query<QueryResult>(
             'SELECT * FROM transsavings WHERE buss_no = $1 AND transdate = $2',
             [buss_no, transdate]
@@ -201,7 +195,7 @@ router.delete('/:buss_no/:transdate', async (req: Request, res: Response) => {
 
         res.status(200).json({ message: 'Transaction Savings record deleted successfully' });
         
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting Transaction Savings record', error: (error as Error).message });
     }finally{

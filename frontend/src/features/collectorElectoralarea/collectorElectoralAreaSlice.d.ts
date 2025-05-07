@@ -8,7 +8,7 @@ export interface CollectorElectoralAreaState {
     error: string | null;
 }
 export declare const initialState: CollectorElectoralAreaState;
-export declare const fetchCollectorElectoralAreas: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchCollectorElectoralAreas: import("@reduxjs/toolkit").AsyncThunk<CollectorElectoralArea, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -18,7 +18,7 @@ export declare const fetchCollectorElectoralAreas: import("@reduxjs/toolkit").As
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createCollectorElectoralArea: import("@reduxjs/toolkit").AsyncThunk<any, CollectorElectoralArea, {
+export declare const createCollectorElectoralArea: import("@reduxjs/toolkit").AsyncThunk<CollectorElectoralArea, CollectorElectoralArea, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -28,7 +28,7 @@ export declare const createCollectorElectoralArea: import("@reduxjs/toolkit").As
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateCollectorElectoralArea: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateCollectorElectoralArea: import("@reduxjs/toolkit").AsyncThunk<CollectorElectoralArea, {
     officer_no: string;
     electoralarea: string;
 }, {

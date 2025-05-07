@@ -1,8 +1,7 @@
-import express from 'express';
 import * as dotenv from 'dotenv';
+import express from 'express';
 import pg from 'pg';
 const { Pool } = pg;
-//import { createClient } from '../../db.js';
 // Load environment variables from .env file
 dotenv.config();
 // PostgreSQL connection pool configuration
@@ -34,7 +33,7 @@ router.post('/create', async (req, res) => {
             return;
         }
         // Execute the database query
-        const result = await client.query(`INSERT INTO "collectorelectoralarea" (officer_no, electoralarea) VALUES ($1, $2)`, [officer_no, electoralarea]);
+        await client.query(`INSERT INTO "collectorelectoralarea" (officer_no, electoralarea) VALUES ($1, $2)`, [officer_no, electoralarea]);
         // Update business collector based on the electoral area
         const result2 = await client.query(`UPDATE business SET assessmentby = $1 WHERE electroral_area = $2`, [result1.rows[0].officer_name, electoralarea,]);
         console.log('result2: ', result2);
@@ -43,9 +42,13 @@ router.post('/create', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error('Error creating collector electoral area:', error);
-        res.status(500).json({ message: 'An error occurred while creating the collector electoral area.' });
-        return;
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release(); // Ensure the client is end back to the pool
@@ -67,8 +70,13 @@ router.get('/all', async (req, res) => {
         res.status(200).json(result.rows);
     }
     catch (error) {
-        console.error('Error retrieving collector electoral areas:', error);
-        res.status(500).json({ message: 'An error occurred while retrieving collector electoral areas.' });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
@@ -92,8 +100,13 @@ router.put('/update/:officer_no', async (req, res) => {
         res.status(200).json({ message: 'Collector electoral area updated successfully.' });
     }
     catch (error) {
-        console.error('Error updating collector electoral area:', error);
-        res.status(500).json({ message: 'An error occurred while updating the collector electoral area.' });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
@@ -116,8 +129,13 @@ router.delete('/delete/:officer_no', async (req, res) => {
         res.status(200).json({ message: 'Collector electoral area deleted successfully.' });
     }
     catch (error) {
-        console.error('Error deleting collector electoral area:', error);
-        res.status(500).json({ message: 'An error occurred while deleting the collector electoral area.' });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();

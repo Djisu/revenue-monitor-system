@@ -43,7 +43,7 @@ export interface BusinessState {
     message: string;
 }
 export declare const initialState: BusinessState;
-export declare const fetchBusinesses: import("@reduxjs/toolkit").AsyncThunk<any[], void, {
+export declare const fetchBusinesses: import("@reduxjs/toolkit").AsyncThunk<BusinessData[], void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -53,7 +53,7 @@ export declare const fetchBusinesses: import("@reduxjs/toolkit").AsyncThunk<any[
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchLastBussNo: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchLastBussNo: import("@reduxjs/toolkit").AsyncThunk<BusinessData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -63,7 +63,7 @@ export declare const fetchLastBussNo: import("@reduxjs/toolkit").AsyncThunk<any,
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const processOperatingPermits: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const processOperatingPermits: import("@reduxjs/toolkit").AsyncThunk<BusinessData, {
     electoralArea: string;
     fiscalYear: number;
 }, {
@@ -76,7 +76,7 @@ export declare const processOperatingPermits: import("@reduxjs/toolkit").AsyncTh
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createBusiness: import("@reduxjs/toolkit").AsyncThunk<any[], BusinessData, {
+export declare const createBusiness: import("@reduxjs/toolkit").AsyncThunk<BusinessData[], BusinessData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -86,7 +86,7 @@ export declare const createBusiness: import("@reduxjs/toolkit").AsyncThunk<any[]
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchBusinessById: import("@reduxjs/toolkit").AsyncThunk<any, number, {
+export declare const fetchBusinessById: import("@reduxjs/toolkit").AsyncThunk<BusinessData, number, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -96,7 +96,7 @@ export declare const fetchBusinessById: import("@reduxjs/toolkit").AsyncThunk<an
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchBusinessByName: import("@reduxjs/toolkit").AsyncThunk<any[], string, {
+export declare const fetchBusinessByName: import("@reduxjs/toolkit").AsyncThunk<BusinessData[], string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -106,7 +106,7 @@ export declare const fetchBusinessByName: import("@reduxjs/toolkit").AsyncThunk<
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateBusiness: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateBusiness: import("@reduxjs/toolkit").AsyncThunk<BusinessData, {
     buss_no: number;
     data: BusinessData;
 }, {
@@ -119,7 +119,7 @@ export declare const updateBusiness: import("@reduxjs/toolkit").AsyncThunk<any, 
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteBusiness: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const deleteBusiness: import("@reduxjs/toolkit").AsyncThunk<BusinessData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;

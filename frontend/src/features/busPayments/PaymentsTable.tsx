@@ -2,7 +2,7 @@ import { BusPaymentsData } from "./busPaymentsSlice";
 
 const PaymentsTable: React.FC<{ busPaymentsData: BusPaymentsData[] }> = ({ busPaymentsData }) => {
    
-    let totalPaid: number = busPaymentsData.reduce((accumulator, payment) => {
+    const totalPaid: number = busPaymentsData.reduce((accumulator, payment) => {
         // Check if payment.paidamount is a number, if not, default to 0
         return accumulator + (typeof payment.paidAmount === 'number' ? payment.paidAmount : 0);
     }, 0);

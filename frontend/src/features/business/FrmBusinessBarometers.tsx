@@ -48,7 +48,6 @@ const BusinessBarometersForm: React.FC = () => {
   const [noGrade, setNoGrade] = useState(0);
   const [busOpeGrade, setBusOpeGrade] = useState(0);
   const [comAvaGrade, setComAvaGrade] = useState(0);
-  // @ts-ignore
   const [totalMarks, setTotalMarks] = useState(0);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [businessTypesList, setBusinessTypesList] = useState<BusinessType[]>([]);
@@ -191,9 +190,10 @@ const BusinessBarometersForm: React.FC = () => {
         numberofworkingdays: noGrade,
         businessoperatingperiod: busOpeGrade,
         competitorsavailable: comAvaGrade,
-        totalmarks: totalMarks
+        totalmarks: totalMarks  
       });
 
+      setTotalMarks(totalMarks)
       alert(response.data.message);
       populateListView();
     } catch (error) {
@@ -255,7 +255,7 @@ const BusinessBarometersForm: React.FC = () => {
       </Row>
       <Row className="mt-3">
         <Col className="text-center">
-          <h3>Collector's Business Barometers</h3>
+          <h3>Collector Business Barometers</h3>
         </Col>
       </Row>
       <Row className="mt-3">

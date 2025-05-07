@@ -1,8 +1,8 @@
+// backend/src/routes/api/receiptRoutes.ts
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
-//import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -38,8 +38,13 @@ router.post('/', async (req, res) => {
         res.status(201).json({ message: 'Receipt record created successfully' });
     }
     catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating receipt record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error creating record', error });
+        }
     }
     finally {
         client.release();
@@ -53,8 +58,13 @@ router.get('/', async (req, res) => {
         res.json(rows);
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching receipt records', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error getting record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
     }
     finally {
         client.release();
@@ -74,8 +84,13 @@ router.get('/:buss_no/:receiptno', async (req, res) => {
         res.json(rows[0]); // Return the first row
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching receipt record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error getting record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
     }
     finally {
         client.release();
@@ -106,8 +121,13 @@ router.put('/:buss_no/:receiptno', async (req, res) => {
         res.status(200).json({ message: 'Receipt record updated successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating receipt record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error updating record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error updating record', error });
+        }
     }
     finally {
         client.release();
@@ -128,8 +148,13 @@ router.delete('/:buss_no/:receiptno', async (req, res) => {
         res.status(200).json({ message: 'Receipt record deleted successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting receipt record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error deleting record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
     }
     finally {
         client.release();

@@ -79,7 +79,7 @@ const receiptSlice = createSlice({
                 state.receipts = action.payload;
                 state.error = null;
             })
-            .addCase(fetchReceipts.rejected, (state: ReceiptState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(fetchReceipts.rejected, (state: ReceiptState, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch receipts';
             })
@@ -92,7 +92,7 @@ const receiptSlice = createSlice({
                 state.receipts = action.payload
                 state.error = null;
             })
-            .addCase(fetchReceiptById.rejected, (state: ReceiptState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(fetchReceiptById.rejected, (state: ReceiptState, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch receipt';
             })
@@ -104,7 +104,7 @@ const receiptSlice = createSlice({
                 state.receipts = action.payload; // Add the new receipt
                 state.error = null;
             })
-            .addCase(createReceipt.rejected, (state: ReceiptState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(createReceipt.rejected, (state: ReceiptState, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to create receipt';
             })
@@ -119,7 +119,7 @@ const receiptSlice = createSlice({
                 }
                 state.error = null;
             })
-            .addCase(updateReceipt.rejected, (state: ReceiptState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(updateReceipt.rejected, (state: ReceiptState, action: PayloadAction<unknown, string, unknown, SerializedError>) => {   
                 state.loading = false;
                 state.error = action.error.message || 'Failed to update receipt';
             })
@@ -131,7 +131,7 @@ const receiptSlice = createSlice({
                 state.receipts = state.receipts.filter(receipt => !(receipt.receiptno === action.payload.receiptno && receipt.buss_no === action.payload.buss_no));
                 state.error = null;
             })
-            .addCase(deleteReceipt.rejected, (state: ReceiptState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(deleteReceipt.rejected, (state: ReceiptState, action: PayloadAction<unknown,  string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to delete receipt';
             });

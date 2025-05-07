@@ -73,7 +73,7 @@ const transSavingsSlice = createSlice({
                 state.transactions = action.payload;
                 state.error = null;
             })
-            .addCase(fetchTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(fetchTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown,  string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch transaction savings';
             })
@@ -85,7 +85,7 @@ const transSavingsSlice = createSlice({
                 // Optionally handle the fetched transaction savings data
                 state.error = null;
             })
-            .addCase(fetchTransSavingsById.rejected, (state: TransSavingsState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(fetchTransSavingsById.rejected, (state: TransSavingsState, action: PayloadAction<unknown,  string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch transaction savings';
             })
@@ -97,7 +97,7 @@ const transSavingsSlice = createSlice({
                 state.transactions = action.payload; // Add the new transaction savings
                 state.error = null;
             })
-            .addCase(createTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(createTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown,  string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to create transaction savings';
             })
@@ -112,7 +112,7 @@ const transSavingsSlice = createSlice({
                 }
                 state.error = null;
             })
-            .addCase(updateTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(updateTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown,  string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to update transaction savings';
             })
@@ -124,7 +124,7 @@ const transSavingsSlice = createSlice({
                 state.transactions = state.transactions.filter(transaction => !(transaction.buss_no === action.payload.buss_no && transaction.transdate === action.payload.transdate));
                 state.error = null;
             })
-            .addCase(deleteTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(deleteTransSavings.rejected, (state: TransSavingsState, action: PayloadAction<unknown,  string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to delete transaction savings';
             });

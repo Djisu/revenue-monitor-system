@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { billAllBusinesses } from './busPaymentsSlice'
 import { useAppDispatch } from '../../app/store';
 
-const ClientBalancesForm: React.FC = () => {
+const FrmClientBalances: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
 
@@ -56,6 +56,6 @@ const ClientBalancesForm: React.FC = () => {
   );
 };
 
-export default ClientBalancesForm;
+export default FrmClientBalances;
 
 

@@ -12,10 +12,18 @@
       "sourceMap": true,
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
-      "types": ["node", "express", "multer", "vitest"],
+      "types": ["node", "express", "vitest"],
       "typeRoots": ["node_modules/@types", "src/@types"]
   },
-  "include": ["src/**/*.ts", "src/types.d.ts", "tests/**/*.ts", "*.spec.ts", "dist/**/*.js", "dist/**/*.d.ts", "src/seedDatabase.ts"],
+  "include": ["src/**/*.ts", 
+              "src/types.d.ts", 
+              "tests/**/*.ts", 
+              "*.spec.ts", 
+              "dist/**/*.js", 
+              "dist/**/*.d.ts", 
+              "src/seedDatabase.ts",
+              "src"
+             ],
   "exclude": [
       "node_modules"
   ]

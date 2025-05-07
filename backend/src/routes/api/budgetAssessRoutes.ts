@@ -1,10 +1,6 @@
 // backend/src/routes/api/budgetAssessRoutes.ts
-import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-//import { Pool } from 'pg';  // Import Pool for PostgreSQL
-import { QueryResult, PoolClient } from 'pg';
-//import { createClient } from '../../db.js';
 
 import pkg from 'pg';
 const { Pool } = pkg;

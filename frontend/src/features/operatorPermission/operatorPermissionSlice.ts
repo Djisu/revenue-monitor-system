@@ -64,10 +64,14 @@ export const createOperatorPermission = createAsyncThunk(
         try {
             const response = await axios.post(`${BASE_URL}/api/operatorPermissions/create`, operatorPermissionData, getAuthHeaders());
             return response.data; // Return the whole response object
-        } catch (error: any) {
-            // Extract error message
-            const message = error.response?.data?.message || 'Unknown error occurred';
-            throw new Error(message);
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                const message = error.response?.data?.message || 'Unknown error occurred';
+                throw new Error(message);
+              } else {
+                throw error;
+              }
+           
         }
     }
 );
@@ -102,7 +106,7 @@ const operatorPermissionSlice = createSlice({
                 state.operatorPermissions = action.payload;
                 state.error = null;
             })
-            .addCase(fetchOperatorPermissionsThunk.rejected, (state: OperatorPermissionState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(fetchOperatorPermissionsThunk.rejected, (state: OperatorPermissionState, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch operator permissions';
             })
@@ -115,7 +119,7 @@ const operatorPermissionSlice = createSlice({
                 state.operatorPermissions.push(action.payload);
                 state.error = null;
             })
-            .addCase(fetchOperatorPermissionById.rejected, (state: OperatorPermissionState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(fetchOperatorPermissionById.rejected, (state: OperatorPermissionState, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch operator permission';
             })
@@ -130,7 +134,7 @@ const operatorPermissionSlice = createSlice({
                 console.log(action.payload.message); // Success message from the API
                 // If you want to fetch the updated list of permissions after creation, you could do that here
             })
-            .addCase(createOperatorPermission.rejected, (state: OperatorPermissionState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(createOperatorPermission.rejected, (state: OperatorPermissionState, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to create operator permission';
             })
@@ -145,7 +149,7 @@ const operatorPermissionSlice = createSlice({
                 }
                 state.error = null;
             })
-            .addCase(updateOperatorPermission.rejected, (state: OperatorPermissionState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(updateOperatorPermission.rejected, (state: OperatorPermissionState, action: PayloadAction<unknown,  string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to update operator permission';
             })
@@ -157,7 +161,7 @@ const operatorPermissionSlice = createSlice({
                 state.operatorPermissions = state.operatorPermissions.filter(permission => permission.operatorid !== action.payload.operatorid);
                 state.error = null;
             })            
-            .addCase(deleteOperatorPermission.rejected, (state: OperatorPermissionState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(deleteOperatorPermission.rejected, (state: OperatorPermissionState, action: PayloadAction<unknown,  string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to delete operator permission';
             });
@@ -165,7 +169,7 @@ const operatorPermissionSlice = createSlice({
 });
 
 // Export the actions if needed
-export const {} = operatorPermissionSlice.actions; // Add any synchronous actions if required
+export const objectActions = operatorPermissionSlice.actions; // Add any synchronous actions if required
 
 // Export the reducer
 export default operatorPermissionSlice.reducer;

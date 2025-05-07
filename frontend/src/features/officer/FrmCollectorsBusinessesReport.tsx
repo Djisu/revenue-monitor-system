@@ -292,7 +292,7 @@ const CollectorsBusinessesReportForm: React.FC = () => {
       </Row>
       <Row className="mt-3">
         <Col className="text-center">
-          <h3>Collector's Businesses Report</h3>
+          <h3>Collector Businesses Report</h3>
         </Col>
       </Row>
       <Row className="mt-3">

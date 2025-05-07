@@ -12,7 +12,7 @@ interface ElectoralArea {
 const FrmElectoralArea: React.FC = () => {
     const [electoralArea, setElectoralArea] = useState<string>('');
     const [localElectoralAreas, setLocalElectoralAreas] = useState<ElectoralArea[]>([]);
-    let [isDeleting, setIsDeleting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -69,9 +69,12 @@ const FrmElectoralArea: React.FC = () => {
             const result = await dispatch(fetchElectoralAreas()).unwrap();
             setLocalElectoralAreas(result);
             navigate('/main');
-        } catch (error: any) {
-            console.error("Error adding electoral area", error);
-            alert(error.message || "Error in adding a record");
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error("Error adding electoral area", error);
+                alert(error.message || "Error in adding a record");
+            }
+            
         }
     };
 
@@ -84,8 +87,8 @@ const FrmElectoralArea: React.FC = () => {
             return;
         }
     
-        isDeleting = true; // Prevent multiple clicks
-        setIsDeleting(isDeleting); // Prevent multiple clicks
+        //isDeleting = true; // Prevent multiple clicks
+        setIsDeleting(true); // Prevent multiple clicks
     
         try {
             const response = await dispatch(deleteElectoralArea(electoralArea)).unwrap();
@@ -109,8 +112,8 @@ const FrmElectoralArea: React.FC = () => {
             console.error("Error deleting electoral area", error);
             alert("Error in deleting a record");
         } finally {
-            isDeleting = false; // Prevent multiple clicks
-            setIsDeleting(isDeleting); // Prevent multiple clicks
+            //isDeleting = false; // Prevent multiple clicks
+            setIsDeleting(false); // Prevent multiple clicks
         }
     };
 
@@ -151,7 +154,7 @@ const FrmElectoralArea: React.FC = () => {
                 </Col>
                 <Col>
                     <Button variant="danger" onClick={handleDeleteClick}>
-                        Delete
+                       {isDeleting ? 'Deleting...' : 'Delete'}
                     </Button>
                 </Col>
             </Row>

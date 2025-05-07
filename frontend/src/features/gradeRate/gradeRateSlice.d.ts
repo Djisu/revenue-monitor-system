@@ -10,7 +10,7 @@ export interface GradeRateState {
     error: string | null;
 }
 export declare const initialState: GradeRateState;
-export declare const fetchGradeRates: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchGradeRates: import("@reduxjs/toolkit").AsyncThunk<GradeRateData[], void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -20,7 +20,7 @@ export declare const fetchGradeRates: import("@reduxjs/toolkit").AsyncThunk<any,
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createGradeRate: import("@reduxjs/toolkit").AsyncThunk<any, GradeRateData, {
+export declare const createGradeRate: import("@reduxjs/toolkit").AsyncThunk<GradeRateData, GradeRateData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -30,7 +30,7 @@ export declare const createGradeRate: import("@reduxjs/toolkit").AsyncThunk<any,
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchGradeRateById: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const fetchGradeRateById: import("@reduxjs/toolkit").AsyncThunk<GradeRateData, {
     grade: string;
     minValuex: number;
     maxValuex: number;
@@ -44,7 +44,7 @@ export declare const fetchGradeRateById: import("@reduxjs/toolkit").AsyncThunk<a
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateGradeRate: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateGradeRate: import("@reduxjs/toolkit").AsyncThunk<GradeRateData, {
     grade: string;
     minValuex: number;
     maxValuex: number;
@@ -59,7 +59,7 @@ export declare const updateGradeRate: import("@reduxjs/toolkit").AsyncThunk<any,
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteGradeRate: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const deleteGradeRate: import("@reduxjs/toolkit").AsyncThunk<GradeRateData, {
     grade: string;
     minValuex: number;
     maxValuex: number;

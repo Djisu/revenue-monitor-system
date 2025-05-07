@@ -2,15 +2,10 @@ import * as dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import swaggerUi from 'swagger-ui-express';
-import multer, { diskStorage } from 'multer';
+//import { diskStorage, StorageEngine } from 'multer';
 import colors from 'colors';
 import morgan from 'morgan';
-import swaggerJSDoc from 'swagger-jsdoc';
 import path from 'path';
-// ...
-// const dbClient = new pg.Client({
-//  ...
 import businessRoutes from './routes/api/businessRoutes.js';
 import accReceiptRoutes from './routes/api/accReceiptRoutes.js';
 import authRoutes from './routes/api/authRoutes.js';
@@ -22,20 +17,20 @@ import gradeFeesRoutes from './routes/api/gradeFeesRoutes.js';
 import gradeRateRoutes from './routes/api/gradeRateRoutes.js';
 import offBudgetAssessmentRoutes from './routes/api/offBudgetAssessmentRoutes.js';
 import officerAssessmentRoutes from './routes/api/officerAssessmentRoutes.js';
-import officerBudgetWeeklyRoutes from './routes/api/officerBudgetWeeklyRoutes.js';
+//import officerBudgetWeeklyRoutes from './routes/api/officerBudgetWeeklyRoutes.js'; 
 import officerRoutes from './routes/api/officerRoutes.js';
 import operatorDefinitionRoutes from './routes/api/operatorDefinitionRoutes.js';
 import operatorPermissionRoutes from './routes/api/operatorPermissionRoutes.js';
 import paymentReportRoutes from './routes/api/paymentReportRoutes.js';
-import propertyBalanceRoutes from './routes/api/propertyBalanceRoutes.js';
+//import propertyBalanceRoutes from './routes/api/propertyBalanceRoutes.js'; 
 import propertyClassRoutes from './routes/api/propertyClassRoutes.js';
-import propertyCollectorElectoralareaRoutes from './routes/api/propertyCollectorElectoralareaRoutes.js';
-import propertyOfficerAssessmentRoutes from './routes/api/propertyOfficerAssessmentRoutes.js';
-import propertyOfficerBudgetRoutes from './routes/api/propertyOfficerBudgetRoutes.js';
-import propertyOfficerRoutes from './routes/api/propertyOfficerRoutes.js';
+//import propertyCollectorElectoralareaRoutes from './routes/api/propertyCollectorElectoralareaRoutes.js'; 
+//import propertyOfficerAssessmentRoutes from './routes/api/propertyOfficerAssessmentRoutes.js'; 
+//import propertyOfficerBudgetRoutes from './routes/api/propertyOfficerBudgetRoutes.js'; 
+//import propertyOfficerRoutes from './routes/api/propertyOfficerRoutes.js'; 
 import propertyRateRoutes from './routes/api/propertyRateRoutes.js';
-import propertyTypeRoutes from './routes/api/propertyTypeRoutes.js';
-import propertyUseRoutes from './routes/api/propertyUseRoutes.js';
+//import propertyTypeRoutes from './routes/api/propertyTypeRoutes.js'; 
+//import propertyUseRoutes from './routes/api/propertyUseRoutes.js'; 
 import receiptRoutes from './routes/api/receiptRoutes.js';
 import transSavingsRoutes from './routes/api/transSavingsRoutes.js';
 import photosRoute from './routes/api/photosRoutes.js';
@@ -48,6 +43,11 @@ import bustypeSummaryReportRoute from './routes/api/busTypeSummaryReportRoute.js
 import textMessagingRoute from './routes/api/textmessagingRoute.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { HttpError } from 'http-errors';
+// interface HttpError extends Error {
+//     status: number;
+//     message: string;
+//   }
 // Load environment variables from .env file
 dotenv.config(); // Load .env file from the default location
 // Initialize the Express application
@@ -104,19 +104,21 @@ app.use(morgan('dev')); // Logging middleware
 //     res.sendFile(path.join(path.dirname(url.fileURLToPath(import.meta.url)), '../frontendNew/frontend/build', 'index.html'));
 // });
 // Swagger definition
-const swaggerOptions = {
-    definition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'Revenue Monitor API',
-            version: '1.0.0',
-            description: 'API documentation for your Node.js backend',
-        },
-    },
-    apis: ['./src/routes/api/*.ts'], // Adjusted path for swagger
-};
-const swaggerDocs = swaggerJSDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// const swaggerOptions = {
+//     definition: {
+//         openapi: '3.0.0',
+//         info: {
+//             title: 'Revenue Monitor API',
+//             version: '1.0.0',
+//             description: 'API documentation for your Node.js backend',
+//         },
+//     },
+//     apis: ['./src/routes/api/*.ts'], // Adjusted path for swagger
+// };
+// const swaggerDocs = swaggerJSDoc(swaggerOptions);
+// console.log('swaggerDocs: ', swaggerDocs);
+// // Serve Swagger docs
+// app.use('/api-docs', ...swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 // Use the business routes
 app.use('/api/business', businessRoutes);
 app.use('/api/accReceipts', accReceiptRoutes);
@@ -129,20 +131,20 @@ app.use('/api/gradeFees', gradeFeesRoutes);
 app.use('/api/gradeRate', gradeRateRoutes);
 app.use('/api/offBudgetAssessment', offBudgetAssessmentRoutes);
 app.use('/api/officerAssessment', officerAssessmentRoutes);
-app.use('/api/officerBudgetWeekly', officerBudgetWeeklyRoutes);
+//app.use('/api/officerBudgetWeekly', officerBudgetWeeklyRoutes);
 app.use('/api/officer', officerRoutes);
 app.use('/api/operatorDefinition', operatorDefinitionRoutes);
 app.use('/api/operatorPermissions', operatorPermissionRoutes);
 app.use('/api/paymentReport', paymentReportRoutes);
-app.use('/api/propertyBalance', propertyBalanceRoutes);
+//app.use('/api/propertyBalance', propertyBalanceRoutes);
 app.use('/api/propertyClass', propertyClassRoutes);
-app.use('/api/propertyCollectorElectoralArea', propertyCollectorElectoralareaRoutes);
-app.use('/api/propertyOfficerAssessment', propertyOfficerAssessmentRoutes);
-app.use('/api/propertyOfficerBudget', propertyOfficerBudgetRoutes);
-app.use('/api/propertyOfficer', propertyOfficerRoutes);
+//app.use('/api/propertyCollectorElectoralArea', propertyCollectorElectoralareaRoutes);
+//app.use('/api/propertyOfficerAssessment', propertyOfficerAssessmentRoutes);
+//app.use('/api/propertyOfficerBudget', propertyOfficerBudgetRoutes);
+//app.use('/api/propertyOfficer', propertyOfficerRoutes);
 app.use('/api/propertyRate', propertyRateRoutes);
-app.use('/api/propertyType', propertyTypeRoutes);
-app.use('/api/propertyUse', propertyUseRoutes);
+//app.use('/api/propertyType', propertyTypeRoutes);
+//app.use('/api/propertyUse', propertyUseRoutes);
 app.use('/api/receipt', receiptRoutes);
 app.use('/api/transSavings', transSavingsRoutes);
 app.use('/api/photos', photosRoute);
@@ -166,20 +168,6 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 app.use(express.static(frontendPath));
-// Set up multer storage
-const storage = diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.originalname);
-    },
-});
-// Initialize multer with storage and file size limit
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-});
 // Middleware to log incoming requests
 app.use((req, res, next) => {
     console.log(`Incoming request: ${req.method} ${req.originalUrl}`);
@@ -187,12 +175,20 @@ app.use((req, res, next) => {
     next();
 });
 // Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.status || 500).json({
-        message: err.message || 'Internal Server Error',
-        error: process.env.NODE_ENV === 'development' ? err : {}
-    });
+app.use((error, req, res, next) => {
+    if (error instanceof HttpError) {
+        res.status(error.status || 500).json({
+            message: error.message,
+            error: process.env.NODE_ENV === 'development' ? error : {}
+        });
+    }
+    else {
+        res.status(500).json({
+            message: 'Internal Server Error',
+            error: process.env.NODE_ENV === 'development' ? error : {}
+        });
+    }
+    next();
 });
 // Catch-all route to serve the frontend application
 app.get('*', (req, res) => {

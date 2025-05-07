@@ -38,7 +38,7 @@ export declare const loginUser: import("@reduxjs/toolkit").AsyncThunk<LoginRespo
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const requestPasswordReset: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const requestPasswordReset: import("@reduxjs/toolkit").AsyncThunk<OperatorDefinition, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -48,7 +48,7 @@ export declare const requestPasswordReset: import("@reduxjs/toolkit").AsyncThunk
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const resetPassword: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const resetPassword: import("@reduxjs/toolkit").AsyncThunk<OperatorDefinition, {
     token: string;
     newPassword: string;
 }, {

@@ -22,7 +22,7 @@ export const initialState: PropertyClassState = {
 };
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
 
 // Async thunk to fetch all property classes
 export const fetchPropertyClasses = createAsyncThunk('propertyClass/fetchPropertyClasses', async () => {
@@ -60,7 +60,7 @@ export const createPropertyClass = createAsyncThunk('propertyClass/createPropert
 
         console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
         return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
             // Handle specific error responses
             throw new Error(error.response.data.message || 'Failed to create property class');

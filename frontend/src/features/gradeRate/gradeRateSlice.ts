@@ -53,7 +53,7 @@ export const createGradeRate = createAsyncThunk('gradeRate/createGradeRate', asy
 
         console.log(`in createGradeRate, after axios.post, response.data: ${JSON.stringify(response.data)}`);
         return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
             // Handle specific error responses
             throw new Error(error.response.data.message || 'Failed to create property class');
@@ -89,7 +89,7 @@ export const updateGradeRate = createAsyncThunk(
             const response = await axios.put(url, data);
 
             return response.data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             if (axios.isAxiosError(error) && error.response) {
                 // Handle specific error responses
                 throw new Error(error.response.data.message || 'Failed to update GradeRate record');

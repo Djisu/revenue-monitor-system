@@ -5,15 +5,26 @@ import { Container, Form, Button, Row, Col, Table } from "react-bootstrap";
 import { fetchBusinessById } from "../business/businessSlice";
 import { fetchBusPaymentByTwoDates } from "./busPaymentsSlice";
 
-const FrmSavingsStatementX: React.FC = () => {
-  let [bussNo, setBussNo] = useState<string>("");
-  let [startDate, setStartDate] = useState<string>("");
-  let [endDate, setEndDate] = useState<string>("");
+interface BusPays {
+    buss_no: string;
+    transdate: string;
+    details: string;
+    debit: number;
+    credit: number;
+    balance: number;
+}
 
-  let [businessName, setBusinessName] = useState<string>("");
-  let [records, setRecords] = useState<any[]>([]);
-  let [errorMessage, setErrorMessage] = useState<string>("");
-  let [successMessage, setSuccessMessage] = useState<string>("");
+//type BusPaymentsData = BusPays[];
+
+const FrmSavingsStatementX: React.FC = () => {
+  const [bussNo, setBussNo] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+
+  const [businessName, setBusinessName] = useState<string>("");
+  const [records, setRecords] = useState<BusPays[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate(); // Initialize the useNavigate hook
@@ -68,14 +79,12 @@ const FrmSavingsStatementX: React.FC = () => {
             if (fetchBusPaymentByTwoDates.fulfilled.match(response)) {
                 console.log('GOT IT GOT IT GOT IT')
 
-                const fetchedRecords = response.payload; // Get the payload directly
-                console.log('fetchedRecords:', fetchedRecords);
-                
-                // Update records state
+                const fetchedRecords = response.payload as BusPays[];
+
                 setRecords(fetchedRecords);
         
                 // If you want to update dates from the fetched records
-                const dates = fetchedRecords.map((rec: any) => rec.transdate);
+                const dates = fetchedRecords.map((rec) => rec.transdate);
                 //setDates(dates);
                 console.log('dates:', dates);
         
@@ -112,18 +121,18 @@ const FrmSavingsStatementX: React.FC = () => {
           console.log('Response from slice:', response.data)
     
            if ( response) {
-             console.log('there is response:', response.data);
+            console.log('there is response:', response.data);
     
             setBusinessName(response.data.buss_name);
             console.log(businessName)
          }else{
           console.log('data not found')
          }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error fetching business:', error);
-          errorMessage = 'Error fetching business. Please try again.' 
+          //errorMessage =  
           
-          setErrorMessage(errorMessage);
+          setErrorMessage('Error fetching business. Please try again.');
         }
     };
 

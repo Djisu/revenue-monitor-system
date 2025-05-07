@@ -1,3 +1,4 @@
+// backend/src/routes/api/propertyRateRoutes.ts
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
@@ -5,20 +6,6 @@ const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
-let frontendUrl = ""; // Set frontend URL based on node environment
-if (nodeEnv === 'development') {
-    frontendUrl = "http://localhost:5173";
-}
-else if (nodeEnv === 'production') {
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-}
-else if (nodeEnv === 'test') {
-    console.log('Just testing');
-}
-else {
-    console.log('Invalid node environment variable'); //.slice()
-}
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -45,7 +32,7 @@ router.post('/create', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const { property_Class, fiscalyear, rate, registrationrate } = propertyRateData;
+        const { property_Class, fiscalyear } = propertyRateData;
         const queryText = 'SELECT * FROM propertyrate WHERE property_class = $1 AND fiscalyear = $2';
         const values = [property_Class.toLowerCase(), fiscalyear];
         const result = await client.query(queryText, values); // Convert property_class to lowercase
@@ -84,8 +71,13 @@ router.post('/create', async (req, res) => {
         }
     }
     catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating property rate record', error: error.message }); // Send only the error message
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error creating record', error });
+        }
     }
     finally {
         if (client) {
@@ -102,8 +94,13 @@ router.get('/', async (req, res) => {
         res.json(result.rows);
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching property rate records', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error getting record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
     }
     finally {
         if (client) {
@@ -132,8 +129,13 @@ router.get('/:property_Class/:fiscalyear', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching property rate record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error getting record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
     }
     finally {
         if (client) {
@@ -170,8 +172,13 @@ router.put('/:property_Class/:fiscalyear', async (req, res) => {
         res.status(200).json({ message: 'Property rate record updated successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating property rate record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error updating record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error updating record', error });
+        }
     }
     finally {
         if (client) {
@@ -199,8 +206,13 @@ router.delete('/:property_Class/:fiscalyear', async (req, res) => {
         res.status(200).json({ message: 'Property rate record deleted successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting property rate record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error deleting record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
     }
     finally {
         if (client) {

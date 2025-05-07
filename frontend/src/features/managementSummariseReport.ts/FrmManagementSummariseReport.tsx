@@ -14,16 +14,16 @@ interface BusinessTypeData {
 }
 
 const FrmManagementSummariseReport: React.FC = () => {
-    let [zone, setZone] = useState<string>('');
-    let [electoralAreas, setElectoralAreas] = useState<string[]>([]);
-    let [bussType, setBussType] = useState<string>('');
-    let [firstDate, setFirstDate] = useState<string>('');
-    let [lastDate, setLastDate] = useState<string>('');
-    let [bussTypes, setBussTypes] = useState<BusinessTypeData[]>([]);
-    let [error, setError] = useState<string>('');
-    let [isLoading, setIsLoading] = useState<boolean>(false);
-    let [managementReport, setManagementReport] = useState<BusTypeSummaryReport[]>([]);
-    let [totalBalance, setTotalBalance] = useState<number>(0);
+    const [zone, setZone] = useState<string>('');
+    const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
+    const [bussType, setBussType] = useState<string>('');
+    const [firstDate, setFirstDate] = useState<string>('');
+    const [lastDate, setLastDate] = useState<string>('');
+    const [bussTypes, setBussTypes] = useState<BusinessTypeData[]>([]);
+    const [error, setError] = useState<string>('');
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [managementReport, setManagementReport] = useState<BusTypeSummaryReport[]>([]);
+    const [totalBalance, setTotalBalance] = useState<number>(0);
 
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
@@ -41,8 +41,8 @@ const FrmManagementSummariseReport: React.FC = () => {
 
     useEffect(() => {
         const total = managementReport.reduce((acc, curr) => acc + (curr.amountdue - curr.amountpaid), 0);
-        totalBalance = total
-        setTotalBalance(totalBalance);
+        //totalBalance = total
+        setTotalBalance(total);
     }, [managementReport]);
 
     const electoralAreaData = useAppSelector((state) => state.electoralArea.electoralAreas);
@@ -90,8 +90,11 @@ const FrmManagementSummariseReport: React.FC = () => {
             if (answer && answer.payload) {
                 setManagementReport(answer.payload);
             }
-        } catch (error: any) {
-            setError(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error){
+                 setError(error.message);
+            }
+           
         } finally {
             setIsLoading(false);
         }
@@ -137,6 +140,7 @@ const FrmManagementSummariseReport: React.FC = () => {
                     </div>
                 ) : (
                     <div>
+                        <p>Total Balance: {totalBalance}</p>
                         <Form>
                             <Form.Group>
                                 <p className="text-center text-underline">Produce Daily Payments Report</p>

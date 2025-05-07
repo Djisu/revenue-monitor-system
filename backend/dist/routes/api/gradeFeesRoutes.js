@@ -1,7 +1,7 @@
+// backend/src/routes/api/gradeFeesRoutes.ts
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
-//import { createClient } from '../../db.js';
 const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
@@ -31,7 +31,7 @@ router.post('/create', async (req, res) => {
             return;
         }
         // Insert the new GradeFees data
-        const insertResult = await pool.query(`INSERT INTO gradefees (buss_type, grade, description, fees) 
+        await pool.query(`INSERT INTO gradefees (buss_type, grade, description, fees) 
             VALUES ($1, $2, $3, $4) RETURNING *`, [
             gradeFeesData.buss_type,
             gradeFeesData.grade,
@@ -42,8 +42,13 @@ router.post('/create', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating GradeFees record', error: error.message });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating grade fees  record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error creating brade feesrecord', error });
+        }
     }
     finally {
         client.release();
@@ -61,8 +66,13 @@ router.get('/all', async (req, res) => {
         res.status(200).json(result.rows);
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching GradeFees records', error: error.message });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error fetching grade fees record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error fetching grade fees record', error });
+        }
     }
     finally {
         client.release();
@@ -82,8 +92,13 @@ router.get('/:buss_type/:grade', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching Grade Fees record', error: error.message });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error fetching grade fees record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error fetching grade fees record', error });
+        }
     }
     finally {
         client.release();
@@ -111,8 +126,13 @@ router.put('/:buss_type/:grade', async (req, res) => {
         res.status(200).json({ message: 'Grade Fees record updated successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating GradeFees record', error: error.message });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error updating grade fees record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error updating grade fees record', error });
+        }
     }
     finally {
         client.release();
@@ -133,8 +153,13 @@ router.delete('/:buss_type/:grade', async (req, res) => {
         res.status(200).json({ message: 'GradeFees record deleted successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting GradeFees record', error: error.message });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error deleting grade fees record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error deleting grade fees record', error });
+        }
     }
     finally {
         client.release();

@@ -18,7 +18,7 @@ export interface OfficerState {
     message: string | null;
 }
 export declare const initialState: OfficerState;
-export declare const fetchOfficers: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchOfficers: import("@reduxjs/toolkit").AsyncThunk<OfficerData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -28,7 +28,7 @@ export declare const fetchOfficers: import("@reduxjs/toolkit").AsyncThunk<any, v
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchOfficerById: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const fetchOfficerById: import("@reduxjs/toolkit").AsyncThunk<OfficerData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -48,7 +48,7 @@ export declare const createOfficer: import("@reduxjs/toolkit").AsyncThunk<Create
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateOfficer: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateOfficer: import("@reduxjs/toolkit").AsyncThunk<OfficerData, {
     officer_no: string;
     officerData: OfficerData;
 }, {
@@ -61,7 +61,7 @@ export declare const updateOfficer: import("@reduxjs/toolkit").AsyncThunk<any, {
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteOfficer: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const deleteOfficer: import("@reduxjs/toolkit").AsyncThunk<OfficerData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;

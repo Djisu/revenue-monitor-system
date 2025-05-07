@@ -12,7 +12,7 @@ export interface ReceiptState {
     error: string | null;
 }
 export declare const initialState: ReceiptState;
-export declare const fetchReceipts: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchReceipts: import("@reduxjs/toolkit").AsyncThunk<ReceiptData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -22,7 +22,7 @@ export declare const fetchReceipts: import("@reduxjs/toolkit").AsyncThunk<any, v
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchReceiptById: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const fetchReceiptById: import("@reduxjs/toolkit").AsyncThunk<ReceiptData, {
     buss_no: string;
     receiptno: string;
 }, {
@@ -35,7 +35,7 @@ export declare const fetchReceiptById: import("@reduxjs/toolkit").AsyncThunk<any
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createReceipt: import("@reduxjs/toolkit").AsyncThunk<any, ReceiptData, {
+export declare const createReceipt: import("@reduxjs/toolkit").AsyncThunk<ReceiptData, ReceiptData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -45,7 +45,7 @@ export declare const createReceipt: import("@reduxjs/toolkit").AsyncThunk<any, R
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateReceipt: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateReceipt: import("@reduxjs/toolkit").AsyncThunk<ReceiptData, {
     buss_no: string;
     receiptno: string;
     receiptData: ReceiptData;
@@ -59,7 +59,7 @@ export declare const updateReceipt: import("@reduxjs/toolkit").AsyncThunk<any, {
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteReceipt: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const deleteReceipt: import("@reduxjs/toolkit").AsyncThunk<ReceiptData, {
     buss_no: string;
     receiptno: string;
 }, {

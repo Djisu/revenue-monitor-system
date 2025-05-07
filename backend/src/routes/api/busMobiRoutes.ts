@@ -1,20 +1,15 @@
 // backend/src/routes/api/busMobiRoutes.ts
-import express, { Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import * as dotenv from 'dotenv';
-//import { Pool, PoolClient } from 'pg';
-import { QueryResult, PoolClient } from 'pg';
 
 
 import pkg from 'pg';
 const { Pool } = pkg;
 
-import fs from 'fs';
-import path from 'path';
-import PDFDocument from 'pdfkit';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { generatePdf } from '../../generatePdf.js';
-//import { createClient } from '../../db.js';
+// import fs from 'fs';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+// import { dirname } from 'path';
 
 const router = Router();
 
@@ -53,7 +48,7 @@ interface BusMobiData {
 }
 
 // Function to sanitize input data
-function sanitizeBusMobiData(data: any): BusMobiData {
+function sanitizeBusMobiData(data: Partial<BusMobiData>): BusMobiData {
     return {
         buss_no: data.buss_no || '',
         fiscal_year: data.fiscal_year || '',
@@ -75,44 +70,12 @@ function sanitizeBusMobiData(data: any): BusMobiData {
 }
 
 // Ensure the permits directory exists
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const permitDir = path.join(__dirname, 'permits');
+//const __filename = fileURLToPath(import.meta.url);
+//const __dirname = dirname(__filename);
+//const permitDir = path.join(__dirname, 'permits');
 
-const fsPromises = fs.promises;
+//const fsPromises = fs.promises;
 
-async function ensurePermitDirIsEmpty() {
-    try {
-        // Check if the directory exists
-        await fsPromises.access(permitDir);
-        console.log('Permits directory already exists:', permitDir);
-
-        // Read all files and subdirectories in the directory
-        const files = await fsPromises.readdir(permitDir);
-
-        // Remove all files and subdirectories
-        for (const file of files) {
-            const filePath = path.join(permitDir, file);
-            const stat = await fsPromises.lstat(filePath);
-            if (stat.isDirectory()) {
-                // Recursively remove subdirectories
-                await fsPromises.rm(filePath, { recursive: true, force: true });
-            } else {
-                // Remove files
-                await fsPromises.unlink(filePath);
-            }
-        }
-        console.log('Permits directory emptied:', permitDir);
-    } catch (err: any) {
-        if (err.code === 'ENOENT') {
-            // Directory does not exist, create it
-            await fsPromises.mkdir(permitDir, { recursive: true });
-            console.log('Created permits directory:', permitDir);
-        } else {
-            console.error('Error accessing permits directory:', err);
-        }
-    }
-}
 
 // Create a new BusMobi record
 router.post('/', async (req: Request, res: Response): Promise<void> => {
@@ -137,7 +100,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Insert the new BusMobi data
-        const insertResult = await client.query(
+        await client.query(
             `INSERT INTO busmobi (buss_no, fiscal_year, dateofbilling, buss_type, balancebf, currentPayable, 
             totalAmount, firstD, secondE, outstanding, firstPaymentDate, secondPaymentDate, 
             firstreceiptno, secondreceiptno, remarks, officer_no) 
@@ -163,9 +126,11 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(201).json({ message: 'BusMobi record created successfully' });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating BusMobi record', error });
+    } catch (err: unknown) {
+        console.error('Error:', err);
+        if (err instanceof Error) {
+           res.status(500).json({ message: 'Error creating BusMobi record', err });
+        }
     } finally {
         if (client) {
             client.release();
@@ -233,7 +198,7 @@ router.put('/:buss_no', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Update the BusMobi data
-        const updateResult = await client.query(
+        await client.query(
             `UPDATE busmobi SET fiscal_year = $1, dateofbilling = $2, buss_type = $3, balancebf = $4, 
             currentPayable = $5, totalAmount = $6, firstD = $7, secondE = $8, outstanding = $9, 
             firstPaymentDate = $10, secondPaymentDate = $11, firstreceiptno = $12, 

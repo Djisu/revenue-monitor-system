@@ -1,6 +1,6 @@
 import express, { Router, Request, Response } from 'express';
 
-import pg, { QueryResult } from 'pg'
+import pg from 'pg'
 const { Pool } = pg
 import multer, { diskStorage, StorageEngine } from 'multer';
 
@@ -14,22 +14,8 @@ import { fileURLToPath } from 'url';
 // type FileNameCallback = (error: Error | null, filename: string) => void
 
 // Define the function parameters type
-interface StorePhotoParams {
-    officer_no: string;
-    photoBuffer: Buffer;
-    photo_name: string;
-    photo_type: string;
-}
+ const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
-interface Message {
-    message: string;
-}
-
-type InsertResult = {
-    message: string;
-    photoUrl: string;
-    affectedRows: number;
-};
 
 interface PhotoRow {
     officer_no: string;
@@ -38,25 +24,6 @@ interface PhotoRow {
 
 // Load environment variables from .env file
 dotenv.config();
-
-const BASE_URL = process.env.BASE_URL || 
-  (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'revenue-monitor-system.onrender.com');
-
-console.log('Base URL:', BASE_URL);
-
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
 
 // Get the directory name from the current module URL
 const __filename = fileURLToPath(import.meta.url);
@@ -81,10 +48,10 @@ const pool = new Pool({
 
 // Set up multer storage
 const storage: StorageEngine = diskStorage({
-    destination: (req: Request, file: Express.Multer.File, cb: (error: any, destination: string) => void) => {
+    destination: (req: Request, file: Express.Multer.File, cb: (error: unknown, destination: string) => void) => {
         cb(null, 'uploads/');
     },
-    filename: (req: Request, file: Express.Multer.File, cb: (error: any, filename: string) => void) => {
+    filename: (req: Request, file: Express.Multer.File, cb: (error: unknown, filename: string) => void) => {
         cb(null, file.originalname);
     },
 });
@@ -95,76 +62,45 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
-
-// // Set up storage for multer
-// const storage = multer.diskStorage({
-//     destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
-//       cb(null, 'uploads/');
-//     },
-//     filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
-//       cb(null, `${Date.now()}-${file.originalname}`);
-//     }
-//   });
-
-  
-
-// // Initialize multer with the storage configuration
-// const upload = multer({ 
-//     storage: storage, 
-//     limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-// });
-
 // Function to retrieve all photos
 const getAllPhotos = async (): Promise<Buffer[]> => {
-    
-const client = await pool.connect()
-
+    const client = await pool.connect();
+  
     const sql = 'SELECT officer_no, photo FROM photos';
-
+  
     try {
-        const result = await client.query<PhotoRow>(sql);
-        return result.rows.map(row => Buffer.from(row.photo));
-    } catch (err) {
-        throw err;
+      const result = await client.query<PhotoRow>(sql);
+      return result.rows.map(row => Buffer.from(row.photo));
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      // 🔧 Ensure something is thrown here too
+      throw new Error("Unknown error occurred while fetching photos");
     } finally {
-        client.release();
+      client.release();
     }
-};
+  };
+  
 
-// Function to retrieve a photo
-const getPhoto = async (officer_no: string): Promise<Buffer | null> => {
-    
-const client = await pool.connect()
 
-    const sql = 'SELECT photo FROM photos WHERE officer_no = $1';
-
-    try {
-        const result = await client.query(sql, [officer_no]);
-
-        if (result.rows.length === 0) {
-            return null;
-        }
-
-        return Buffer.from(result.rows[0].photo);
-    } catch (err) {
-        throw err;
-    } finally {
-        client.release();
-    }
-};
 
 // Function to delete a photo
-const deletePhoto = async (officer_no: string): Promise<any> => {
+const deletePhoto = async (officer_no: string): Promise<string> => {
     
 const client = await pool.connect()
 
     const sql = 'DELETE FROM photos WHERE officer_no = $1 RETURNING *';
 
     try {
-        const result = await client.query(sql, [officer_no]);
-        return result;
-    } catch (err) {
-        throw err;
+        await client.query(sql, [officer_no]);
+        return "Photo deleted"
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            throw error;
+          }
+          // 🔧 Ensure something is thrown here too
+          throw new Error("Unknown error occurred while fetching photos");
     } finally {
         client.release();
     }
@@ -175,8 +111,14 @@ router.get('/retrieve', async (req: Request, res: Response) => {
     try {
         const photos = await getAllPhotos();
         res.json(photos);
-    } catch (err) {
-        res.status(500).json({ error: 'Error getting photos', details: err });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error getting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        
     }
 });
 
@@ -200,8 +142,7 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
         const photoBuffer = Buffer.from(photo, 'base64');
 
         console.log('about to check if photo already exists for officer_no:', officer_no);
-
-        
+       
         const client = await pool.connect()
 
         try {
@@ -210,7 +151,6 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
                  [officer_no]
             );
            
-
             if (result.rows.length > 0) {
                 // update photo with the same officer_no
                 const updateQuery = 'UPDATE photos SET photo_buffer = $1 WHERE officer_no = $2';
@@ -236,16 +176,25 @@ router.post('/store', upload.single('photo'), async (req: Request, res: Response
 
              res.status(200).json({ message: 'Photo stored successfully', photoUrl: photoUrl });
             return
-        } catch (err) {
-            console.error('Error storing photo:', err);
-             res.status(500).json({ error: 'Error storing photo', details: err });
-            return
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+               console.error('Error:', error);
+               res.status(500).json({ success: false, message: 'Error creating record', error });
+            }else{
+                res.status(500).json({ success: false, message: 'Error creating record', error });
+            }
+            
         } finally {
             client.release();
         }
-    } catch (err) {
-        console.error('Error storing photo:', err);
-        res.status(500).json({ error: 'Error storing photo', details: err });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error storing record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error storing record', error });
+        }
+        
     }
 });
 
@@ -262,7 +211,7 @@ router.get('/retrieve/:officer_no', async (req: Request<{ officer_no: string }>,
 
     try {
         
-const client = await pool.connect()
+        const client = await pool.connect()
 
         const sql = 'SELECT photo_buffer, photo_name, photo_type FROM photos WHERE officer_no = $1';
 
@@ -284,10 +233,14 @@ const client = await pool.connect()
 
             // Send the binary photo data
             res.send(photo.photo_buffer);
-        } catch (err) {
-            console.error('Error retrieving photo:', err);
-            res.status(500).json({ error: 'Error retrieving photo', details: err });
-            return
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+               console.error('Error:', error);
+               res.status(500).json({ success: false, message: 'Error getting record', error });
+            }else{
+                res.status(500).json({ success: false, message: 'Error getting record', error });
+            }
+            
         } finally {
             client.release();
         }
@@ -308,16 +261,21 @@ router.delete('/delete/:officer_no', async (req: Request<{ officer_no: string }>
     try {
         const result = await deletePhoto(officer_no);
 
-        if (result.rowCount > 0) { // Ensure deletion was successful
-            res.status(200).json({ message: 'Photo deleted successfully', result });
+        if (result === "Photo deleted"){
+            res.status(200).json({ error: 'Photo deleted' });
             return
         } else {
             res.status(404).json({ error: 'Photo not found' });
             return
         }
-    } catch (err) {
-        res.status(500).json({ error: 'Error deleting photo', details: err });
-        return
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
+        
     }
 });
 

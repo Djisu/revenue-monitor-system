@@ -35,7 +35,7 @@ export interface OffBudgetAssessmentState {
     amountByOfficerAndMonth: AmountByOfficerAndMonthResponse | null;
 }
 export declare const initialState: OffBudgetAssessmentState;
-export declare const fetchOffBudgetAssessments: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchOffBudgetAssessments: import("@reduxjs/toolkit").AsyncThunk<OffBudgetAssessmentData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -45,7 +45,7 @@ export declare const fetchOffBudgetAssessments: import("@reduxjs/toolkit").Async
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createOffBudgetAssessment: import("@reduxjs/toolkit").AsyncThunk<any, OffBudgetAssessmentData, {
+export declare const createOffBudgetAssessment: import("@reduxjs/toolkit").AsyncThunk<OffBudgetAssessmentData, OffBudgetAssessmentData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -55,7 +55,7 @@ export declare const createOffBudgetAssessment: import("@reduxjs/toolkit").Async
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchOffBudgetAssessmentByOfficer: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const fetchOffBudgetAssessmentByOfficer: import("@reduxjs/toolkit").AsyncThunk<OffBudgetAssessmentData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -65,7 +65,7 @@ export declare const fetchOffBudgetAssessmentByOfficer: import("@reduxjs/toolkit
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateOffBudgetAssessment: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateOffBudgetAssessment: import("@reduxjs/toolkit").AsyncThunk<OffBudgetAssessmentData, {
     officer_name: string;
     data: OffBudgetAssessmentData;
 }, {
@@ -78,7 +78,7 @@ export declare const updateOffBudgetAssessment: import("@reduxjs/toolkit").Async
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteOffBudgetAssessment: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const deleteOffBudgetAssessment: import("@reduxjs/toolkit").AsyncThunk<OffBudgetAssessmentData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;

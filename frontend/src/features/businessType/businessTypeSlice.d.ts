@@ -5,10 +5,10 @@ export interface BusinessTypeState {
     businessTypes: BusinessTypeData[];
     loading: boolean;
     error: string | null;
-    bussTypesData: any;
+    bussTypesData: BusinessTypeData;
 }
 export declare const initialState: BusinessTypeState;
-export declare const fetchBusinessTypes: import("@reduxjs/toolkit").AsyncThunk<any[], void, {
+export declare const fetchBusinessTypes: import("@reduxjs/toolkit").AsyncThunk<BusinessTypeData[], void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -18,7 +18,7 @@ export declare const fetchBusinessTypes: import("@reduxjs/toolkit").AsyncThunk<a
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createBusinessType: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const createBusinessType: import("@reduxjs/toolkit").AsyncThunk<BusinessTypeData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -28,7 +28,7 @@ export declare const createBusinessType: import("@reduxjs/toolkit").AsyncThunk<a
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateBusinessType: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateBusinessType: import("@reduxjs/toolkit").AsyncThunk<BusinessTypeData, {
     Business_Type: string;
     data: BusinessTypeData;
 }, {
@@ -41,7 +41,7 @@ export declare const updateBusinessType: import("@reduxjs/toolkit").AsyncThunk<a
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteBusinessType: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const deleteBusinessType: import("@reduxjs/toolkit").AsyncThunk<BusinessTypeData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;

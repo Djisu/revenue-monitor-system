@@ -1,8 +1,6 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import axios from 'axios';
-const app = express();
-const port = 3000;
 const router = express.Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -47,7 +45,7 @@ router.post('/send-sms', async (req, res) => {
     }
     catch (error) {
         console.error('Error sending SMS:', error);
-        res.status(500).json({ success: false, message: 'Error sending SMS', error: error.message });
+        res.status(500).json({ success: false, message: 'Error sending SMS', error });
         return;
     }
 });

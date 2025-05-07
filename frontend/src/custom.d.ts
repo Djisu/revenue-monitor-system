@@ -1,1 +1,1 @@
-declare var document: Document;
+declare let document: Document;

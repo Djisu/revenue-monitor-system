@@ -25,6 +25,40 @@ interface BusinessTypeData {
   business_type?: string
 }
 
+export interface BusinessVars {
+  businessNo: number;
+  businessName: string;
+  ceo: string;
+  businessAddress: string;
+  telNo: string;
+  businessType: string;
+  buss_town: string;
+  streetName: string;
+  landMark: string;
+  electroral_area:  string;
+  property_class:  string;
+  tot_grade:  string;
+  currentRate: number;
+  propertyRate: number;
+  emailAddress:  string;
+  totalMarks: number;
+  balanceBF: number;
+  status:  string;
+  strategicGrade:  number;
+  productGrade:  number;
+  busPopGrade:  number;
+  busEnvGrade:  number;
+  sizeGrade:  number;
+  noGrade:  number;  
+  busOpeGrade:  number;
+  comAvaGrade:  number;
+  assessment: string;
+  transdate: Date;
+  gps_address: string;
+  noOfEmployees: number;
+  noOfBranches: number;
+}
+
 export interface BusinessData {
   buss_no: number;
   buss_name?: string;
@@ -63,7 +97,7 @@ export interface BusinessData {
 
 const FrmUpdateClient: React.FC = () => {
   // State management for form fields
-  const [businessNo, setBusinessNo] = useState<number | "">('');
+  const [businessNo, setBusinessNo] = useState<number>(0);
   const [businessName, setBusinessName] = useState('');
   const [ceo, setCeo] = useState('');
   const [businessAddress, setBusinessAddress] = useState('');
@@ -78,7 +112,7 @@ const FrmUpdateClient: React.FC = () => {
 
 
   const [propertyClass, setPropertyClass] = useState('');
-  let [totGrade, setTotGrade] =  useState('')
+  const [totGrade, setTotGrade] =  useState('')
   const [propertyRate, setPropertyRate] =  useState<number>(0);
   const [currentRate, setCurrentRate] =  useState<number>(0);
   const [balanceBF, setBalanceBF] = useState<number>(0);
@@ -114,13 +148,13 @@ const FrmUpdateClient: React.FC = () => {
   ///////
 
   const [electoralArea, setElectoralArea] = useState('');
-  let [assessment, setAssessment] = useState('');
+  const [assessment, setAssessment] = useState('');
 
   const [transdate, setTransDate] = useState(new Date());
-  let [businesses, setBusinesses] = useState<BusinessData[]>([]);
+  const [businesses, setBusinesses] = useState<BusinessData[]>([]);
 
   const [selectedBusinessType, setSelectedBusinessType] = useState('');
-  let [selectedOfficer, setSelectedOfficer] = useState('');
+  const [selectedOfficer, setSelectedOfficer] = useState('');
  
 
   const dispatch = useAppDispatch();
@@ -176,7 +210,7 @@ const FrmUpdateClient: React.FC = () => {
     const propertyClassData = useAppSelector((state) => state.propertyClass.propertyClasses);
         //console.log('propertyClassData:', propertyClassData);
     useEffect(() => {
-      setPropertyClasses(propertyClassData.map((classType: any) => classType.property_class));
+      setPropertyClasses(propertyClassData.map((classType) => classType.property_class));
     }, [propertyClassData]);
 
  // Get officers from the Redux store
@@ -184,7 +218,7 @@ const FrmUpdateClient: React.FC = () => {
 
  useEffect(() => {
    if (Array.isArray(officers)) {
-     const officerNames = officers.map((officer: any) => officer.officer_name);
+     const officerNames = officers.map((officer) => officer.officer_name);
      setAssessments(officerNames);
    } else {
      console.error('Expected officers to be an array but got:', officers);
@@ -231,7 +265,7 @@ const FrmUpdateClient: React.FC = () => {
   };
 
   
-  const mapToBusinessData = (data: any) => {
+  const mapToBusinessData = (data: BusinessVars) => {
     return {
         buss_no: data.businessNo,
         buss_name: data.businessName,
@@ -283,9 +317,9 @@ const handleEditClick = async () => {
             buss_town: bussTown,
             streetName: streetName,
             landMark: landMark,
-            electoralArea: electoralArea,
-            propertyClass: propertyClass,
-            totGrade: finalGrade,
+            electroral_area: electoralArea,
+            property_class: propertyClass,
+            tot_grade: finalGrade,
             currentRate: currentRate,
             propertyRate: propertyRate,
             totalMarks: totalMarks,
@@ -301,7 +335,7 @@ const handleEditClick = async () => {
             noGrade: noGrade,
             busOpeGrade: busOpeGrade,
             comAvaGrade: comAvaGrade,
-            assessment: assessments,
+            assessment: assessment,
             transdate: transdate,
             noOfEmployees: noOfEmployees,
             noOfBranches: noOfBranches
@@ -341,7 +375,7 @@ const handleEditClick = async () => {
     setLandMark('');
     setElectoralAreas([]);
     setPropertyClasses([]);
-    totGrade = '';
+    //totGrade = '';
     setTotGrade(totGrade);
     setTotGrade(finalGrade);
     setPropertyRate(0);
@@ -365,7 +399,7 @@ const handleEditClick = async () => {
     setComAvaGrade(0);
 
     setAssessments([]);
-    assessment = ''
+   // assessment = ''
     setAssessment(assessment);
 
     setTotalMarks(0);
@@ -380,49 +414,49 @@ const handleEditClick = async () => {
     console.log('Reload spreadsheet');
   };
 
-  const handleListViewItemClick = (item: any) => {
+  const handleListViewItemClick = (item: BusinessData) => {
     // Populate form fields with selected item data
     setBusinessNo(item.buss_no);
-    setBusinessName(item.buss_name);
-    setBusinessAddress(item.buss_address);
-    setBusinessType(item.buss_type);
-    setSelectedBusinessType(item.buss_type);
-    setBussTown(item.buss_town);
+    setBusinessName(item.buss_name || "");
+    setBusinessAddress(item.buss_address || "");
+    setBusinessType(item.buss_type || "");
+    setSelectedBusinessType(item.buss_type || "");
+    setBussTown(item.buss_town || "");
     
-    setStreetName(item.street_name);
-    setLandMark(item.landmark);
-    setElectoralAreas(item.electroral_area);
-    setPropertyClasses(item.property_class);
-    setTotGrade(item.tot_grade);
-    setCeo(item.ceo);
-    setTelNo(item.telno);
-    setStrategicGrade(item.strategiclocation);
-    setProductGrade(item.productvariety);
-    setBusPopGrade(item.businesspopularity);
-    setBusEnvGrade(item.businessenvironment);
-    setSizeGrade(item.sizeofbusiness);
-    setNoGrade(item.numberofworkingdays);
-    setBusOpeGrade(item.businessoperatingperiod);
-    setComAvaGrade(item.competitorsavailable);
-    setAssessments(item.assessmentby);
-    selectedOfficer = item.assessmentby;
-    setSelectedOfficer(item.assessmentby);
+    setStreetName(item.street_name || "");
+    setLandMark(item.landmark || "");
+    setElectoralArea(item.electroral_area || "");
+    setPropertyClass(item.property_class || "");
+    setTotGrade(item.tot_grade || "");
+    setCeo(item.ceo || "");
+    setTelNo(item.telno || "");
+    setStrategicGrade(item.strategiclocation || 0);
+    setProductGrade(item.productvariety || 0);
+    setBusPopGrade(item.businesspopularity || 0);
+    setBusEnvGrade(item.businessenvironment || 0);
+    setSizeGrade(item.sizeofbusiness || 0);
+    setNoGrade(item.numberofworkingdays || 0);
+    setBusOpeGrade(item.businessoperatingperiod || 0);
+    setComAvaGrade(item.competitorsavailable || 0);
+    setAssessment(item.assessmentby || "");
+    //selectedOfficer = item.assessmentby;
+    setSelectedOfficer(item.assessmentby || "");
   
-    setTransDate(item.transdate);
-    setBalanceBF(item.balance);
-    setStatus(item.status);
+    setTransDate(item.transdate || new Date());
+    setBalanceBF(item.balance || 0);
+    setStatus(item.status || "");
  
-    setPropertyRate(item.property_rate);
+    setPropertyRate(item.property_rate || 0);
   
-    setEmailAddress(item.emailaddress);
+    setEmailAddress(item.emailaddress || "");
    
-    setNoOfBranches(item.no_of_branches);
+    setNoOfBranches(item.noofbranches || 0);
    
-    setNoOfEmployees(item.no_of_employees);
+    setNoOfEmployees(item.noofemployees || 0);
     
-    setTotalMarks(item.totalmarks);
-    setGpsAddress(item.gps_address);
-    setFinalGrade(item.tot_grade);
+    setTotalMarks(item.totalmarks || 0);
+    setGpsAddress(item.gps_address || "");
+    setFinalGrade(item.tot_grade || "");
   };
 
   const getRate = async (propertyClass: string) => {
@@ -445,8 +479,10 @@ const handleEditClick = async () => {
         console.error('rate is undefined in the response');
         setPropertyRate(0); // or some default value
       }
-    } catch (error: any) {
-      console.error('Error fetching property rate:', error);
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        console.error('Error fetching property rate:', error);
+      }     
     }
   };
 
@@ -500,7 +536,7 @@ const handleEditClick = async () => {
         setCeo(response.data.ceo);
         setTelNo(response.data.telno);
         console.log('response.data.assessmentby:  ', response.data.assessmentby)
-        selectedOfficer = response.data.assessmentby;
+        //selectedOfficer = response.data.assessmentby;
         setSelectedOfficer(response.data.assessmentby);
         setAssessment(response.data.assessmentby);
 
@@ -522,7 +558,7 @@ const handleEditClick = async () => {
       // } else if (response) {
       //   console.log('Response is an object:', response);
       // } 
-    } catch (error: any) {
+    } catch (error: unknown) {
      
       console.error('Error fetching businesses:', error);
 
@@ -547,7 +583,7 @@ const handleEditClick = async () => {
               <Form.Label>Business Number:</Form.Label>
               <Form.Control 
                     value={businessNo} 
-                    onChange={(e) => setBusinessNo(e.target.value ? Number(e.target.value) : '')} 
+                    onChange={(e) => setBusinessNo(Number(e.target.value))} 
                     onBlur={(e) => getBusiness(e.target.value)}
               />
             </Col>
@@ -1202,7 +1238,7 @@ const handleEditClick = async () => {
             </tr>
           </thead>
           <tbody>
-            {businesses.map((business: any) => (
+            {businesses.map((business) => (
               <tr key={business.buss_no} onClick={() => handleListViewItemClick(business)}>
                 <td>{business.buss_no}</td>
                 <td>{business.buss_name}</td>

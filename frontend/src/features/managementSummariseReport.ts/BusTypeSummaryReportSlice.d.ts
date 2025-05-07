@@ -11,7 +11,7 @@ export interface ReportsState {
     error: string | null;
 }
 export declare const initialState: ReportsState;
-export declare const fetchBusTypeSummaryReports: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const fetchBusTypeSummaryReports: import("@reduxjs/toolkit").AsyncThunk<BusTypeSummaryReport, {
     firstDate: string;
     lastDate: string;
     zone?: string;

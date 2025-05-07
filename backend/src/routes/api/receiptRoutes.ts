@@ -1,20 +1,15 @@
 // backend/src/routes/api/receiptRoutes.ts
-import express from 'express';
+
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import pkg from 'pg';
-import type { PoolClient } from 'pg';
+
 const { Pool } = pkg;
-import type { QueryResult } from 'pg';  // Import QueryResult as a type
-//import { createClient } from '../../db.js';
-
-
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
-
 
 // Postgres connection configuration
 const pool = new Pool({
@@ -68,9 +63,13 @@ const client = await pool.connect()
         );
 
         res.status(201).json({ message: 'Receipt record created successfully' });
-    } catch (error: any) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating receipt record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error){
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating record', error: error.message });
+        }else{
+            res.status(500).json({success: false, message: 'Error creating record', error});
+        }
     }finally{
         client.release()
     }
@@ -84,9 +83,13 @@ const client = await pool.connect()
     try {
         const { rows } = await client.query('SELECT * FROM receipt');
         res.json(rows);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching receipt records', error });
+    } catch (error: unknown) {
+        if (error instanceof Error){
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error getting record', error: error.message });
+        }else{
+            res.status(500).json({success: false, message: 'Error getting record', error});
+        }
     }finally{
         client.release()
     }
@@ -111,9 +114,13 @@ const client = await pool.connect()
             return;
         }
         res.json(rows[0]); // Return the first row
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching receipt record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error){
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error getting record', error: error.message });
+        }else{
+            res.status(500).json({success: false, message: 'Error getting record', error});
+        }
     }finally{
         client.release()
     }
@@ -124,8 +131,7 @@ router.put('/:buss_no/:receiptno', async (req: Request, res: Response): Promise<
     const { receiptno } = req.params;
     const receiptData: ReceiptData = req.body;
 
-const client = await pool.connect()
-
+    const client = await pool.connect()
 
     try {
         const { rows } = await client.query('SELECT * FROM receipt WHERE buss_no = $1 AND receiptno = $2',
@@ -153,9 +159,13 @@ const client = await pool.connect()
         );
     
         res.status(200).json({ message: 'Receipt record updated successfully' });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating receipt record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error){
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error updating record', error: error.message });
+        }else{
+            res.status(500).json({success: false, message: 'Error updating record', error});
+        }
     }finally{
         client.release()
     }
@@ -182,9 +192,13 @@ const client = await pool.connect()
         await pool.query('DELETE FROM receipt WHERE receiptno = $1', [receiptno]);
      
         res.status(200).json({ message: 'Receipt record deleted successfully' });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting receipt record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error){
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error deleting record', error: error.message });
+        }else{
+            res.status(500).json({success: false, message: 'Error deleting record', error});
+        }
     }finally{
         client.release()
     }

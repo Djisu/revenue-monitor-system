@@ -1,10 +1,9 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
-const app = express();
-const port = 3000;
+
 
 const router: Router = express.Router();
 
@@ -30,7 +29,7 @@ interface SmsRequestBody {
 
 
 // Endpoint to send SMS
-router.post('/send-sms', async (req: Request<{}, {}, SmsRequestBody>, res: Response): Promise<void> => {
+router.post('/send-sms', async (req: Request<object, object, SmsRequestBody>, res: Response): Promise<void> => {
     const { sender, message, recipients, scheduled_date, callback_url } = req.body;
 
     //console.log('in router.post(/send-sms), arkesel_api_key: ', arkesel_api_key);
@@ -44,7 +43,7 @@ router.post('/send-sms', async (req: Request<{}, {}, SmsRequestBody>, res: Respo
     }
 
     // Prepare data for SMS
-    const data: any = { sender, message, recipients };
+    const data: SmsRequestBody = { sender, message, recipients };
 
     // Add optional fields
     if (scheduled_date) {
@@ -54,8 +53,10 @@ router.post('/send-sms', async (req: Request<{}, {}, SmsRequestBody>, res: Respo
         data.callback_url = callback_url;
     }
 
+    
+
     // Config for Axios request
-    const config = {
+    const config: AxiosRequestConfig<unknown> = {
         method: 'post',
         url: 'https://sms.arkesel.com/api/v2/sms/send',
         headers: {
@@ -68,9 +69,9 @@ router.post('/send-sms', async (req: Request<{}, {}, SmsRequestBody>, res: Respo
         const response = await axios(config);
         res.status(200).json({ success: true, data: response.data });
         return
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error sending SMS:', error);
-        res.status(500).json({ success: false, message: 'Error sending SMS', error: error.message });
+        res.status(500).json({ success: false, message: 'Error sending SMS', error });
         return
     }
 });

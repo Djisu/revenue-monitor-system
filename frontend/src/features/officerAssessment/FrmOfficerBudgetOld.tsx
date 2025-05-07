@@ -296,7 +296,7 @@ const FrmOfficerBudget: React.FC = () => {
       </Row>
       <Row className="mt-3">
         <Col className="text-center">
-          <h3>Collector's Budget Data Entry</h3>
+          <h3>Collector Budget Data Entry</h3>
         </Col>
       </Row>
       <Row className="mt-3">

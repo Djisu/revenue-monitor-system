@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Backend CI/CD Pipeline
 
 on:
   push:
@@ -14,20 +14,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '20'
 
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
-          path: **/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          path: |
+            backend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('backend/package-lock.json') }}
 
       - name: Install backend dependencies
         run: npm install
@@ -37,11 +36,19 @@ jobs:
         run: npm run build
         working-directory: ./backend
 
+      - name: Run linter
+        run: npm run lint
+        working-directory: ./backend
+
+      - name: Run tests
+        run: npm test
+        working-directory: ./backend
+
       - name: Deploy to Render
         env:
-          RENDER_API_KEY: ${{ secrets.NEW_RENDER_API_KEY }}  # Set this in your GitHub secrets
+          RENDER_API_KEY: ${{ secrets.NEW_RENDER_API_KEY }}
         run: |
-          curl -X POST "[https://api.render.com/v1/services/dep-d02cvdbuibrs73aom7m0/deploys"](https://api.render.com/v1/services/dep-d02cvdbuibrs73aom7m0/deploys") \
-          -H "Authorization: Bearer $RENDER_API_KEY" \
-          -H "Content-Type: application/json" \
-          -d '{"branch":"main"}' 
+          curl -X POST "https://api.render.com/v1/services/dep-d02cvdbuibrs73aom7m0/deploys" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"branch":"main"}'

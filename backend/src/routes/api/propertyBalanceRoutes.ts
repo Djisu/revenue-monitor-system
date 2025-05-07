@@ -1,187 +1,38 @@
-// backend/src/routes/api/propertyBalanceRoutes.ts
-import express from 'express';
-import * as dotenv from 'dotenv';
-import { Router, Request, Response } from 'express';
-import pkg from 'pg';
-const { Pool } = pkg;
-import type { QueryResult } from 'pg';  // Import QueryResult as a type
-
-const router = Router();
-
-// Load environment variables from .env file
-dotenv.config();
-
-const nodeEnv = process.env.NODE_ENV;
-
-let frontendUrl = "" // Set frontend URL based on node environment
-
-if (nodeEnv === 'development'){
-    frontendUrl = "http://localhost:5173";
-} else if (nodeEnv === 'production'){
-    frontendUrl = "https://revenue-monitor-system.onrender.com";
-} else if (nodeEnv === 'test'){
-    console.log('Just testing')
-} else {
-    console.log('Invalid node environment variable') //.slice()
-}
-
-// PostgreSQL connection configuration
-const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'revmonitor',
-    port: parseInt(process.env.DB_PORT || '5432'),
-});
-
-// PropertyBalance data interface
-interface PropertyBalanceData {
-    house_no: string;
-    billamount: number;
-    paidamount: number;
-    balance: number;
-}
-
-// Create a new property balance record
-router.post('create/', async (req: Request, res: Response): Promise<void> => {
-    const propertyBalanceData: PropertyBalanceData = req.body;
-
-    try {
-        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [propertyBalanceData.house_no]);
-
-        if (rows.length > 0) {
-            res.status(409).json({ message: 'Property balance record already exists' });
-            return;
-        }
-
-        // Insert the new property balance data
-        const result = await pool.query(
-            `INSERT INTO propertybalance 
-            (house_no, billamount, paidamount, balance) 
-            VALUES ($1, $2, $3, $4)`,
-            [
-                propertyBalanceData.house_no,
-                propertyBalanceData.billamount,
-                propertyBalanceData.paidamount,
-                propertyBalanceData.balance,
-            ]
-        );
-
-        res.status(201).json({ message: 'Property balance record created successfully' });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating property balance record', error });
-    }
-});
-
-// Read all property balance records
-router.get('/', async (req: Request, res: Response) => {
-    try {
-        const { rows } = await pool.query('SELECT * FROM propertybalance');
-        res.json(rows);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching property balance records', error });
-    }
-});
-
-// Read a single property balance record by house_no
-router.get('/:house_no', async (req: Request, res: Response) => {
-    const { house_no } = req.params;
-
-    try {
-        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
-
-        if (rows.length > 0) {
-            res.json(rows[0]); // Return the first row
-        } else {
-            res.status(404).json({ message: 'Property balance record not found' });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching property balance record', error });
-    }
-});
-
-// Update a property balance record
-router.put('update/:house_no', async (req: Request, res: Response): Promise<void> => {
-    const { house_no } = req.params;
-    const propertyBalanceData: PropertyBalanceData = req.body;
-
-    try {
-        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
-
-        if (rows.length == 0) {
-            res.status(404).json({ message: 'Property balance record not found' });
-            return;
-        }
-
-        // Update the property balance data
-        await pool.query(
-            `UPDATE propertybalance 
-            SET billamount = $1, paidamount = $2, balance = $3 
-            WHERE house_no = $4`,
-            [
-                propertyBalanceData.billamount,
-                propertyBalanceData.paidamount,
-                propertyBalanceData.balance,
-                house_no
-            ]
-        );
-
-        res.status(200).json({ message: 'Property balance record updated successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating property balance record', error });
-    }
-});
-
-// Delete a property balance record
-router.delete('/delete/:house_no', async (req: Request, res: Response) => {
-    const { house_no } = req.params;
-
-    try {
-        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
-
-        if (rows.length == 0) {
-            res.status(404).json({ message: 'Property balance record not found' });
-            return;
-        }
-
-        // Delete the property balance record
-        await pool.query('DELETE FROM propertybalance WHERE house_no = $1', [house_no]);
-
-        res.status(200).json({ message: 'Property balance record deleted successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting property balance record', error });
-    }
-});
-
-export default router;
-
-
-
-
-
 // // backend/src/routes/api/propertyBalanceRoutes.ts
 // import express from 'express';
 // import * as dotenv from 'dotenv';
 // import { Router, Request, Response } from 'express';
-// import mysql, { ResultSetHeader } from 'mysql2/promise';
+// import pkg from 'pg';
+// const { Pool } = pkg;
+// import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 // const router = Router();
 
 // // Load environment variables from .env file
 // dotenv.config();
 
-// // MySQL connection configuration
-// const dbConfig = {
+// const nodeEnv = process.env.NODE_ENV;
+
+// let frontendUrl = "" // Set frontend URL based on node environment
+
+// if (nodeEnv === 'development'){
+//     frontendUrl = "http://localhost:5173";
+// } else if (nodeEnv === 'production'){
+//     frontendUrl = "https://revenue-monitor-system.onrender.com";
+// } else if (nodeEnv === 'test'){
+//     console.log('Just testing')
+// } else {
+//     console.log('Invalid node environment variable') //.slice()
+// }
+
+// // PostgreSQL connection configuration
+// const pool = new Pool({
 //     host: process.env.DB_HOST || 'localhost',
-//     user: process.env.DB_USER || 'root',
+//     user: process.env.DB_USER || 'postgres',
 //     password: process.env.DB_PASSWORD || '',
 //     database: process.env.DB_NAME || 'revmonitor',
-// };
+//     port: parseInt(process.env.DB_PORT || '5432'),
+// });
 
 // // PropertyBalance data interface
 // interface PropertyBalanceData {
@@ -192,24 +43,22 @@ export default router;
 // }
 
 // // Create a new property balance record
-// router.post('/', async (req: Request, res: Response): Promise<void> => {
+// router.post('create/', async (req: Request, res: Response): Promise<void> => {
 //     const propertyBalanceData: PropertyBalanceData = req.body;
 
-//     const connection = await mysql.createConnection(dbConfig);
-    
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM propertybalance WHERE house_no = ?', [propertyBalanceData.house_no]);
+//         const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [propertyBalanceData.house_no]);
 
-//         if (Array.isArray(rows) && rows.length > 0) {
+//         if (rows.length > 0) {
 //             res.status(409).json({ message: 'Property balance record already exists' });
-//             return
+//             return;
 //         }
 
 //         // Insert the new property balance data
-//         const [result] = await connection.execute<ResultSetHeader>(
-//             `INSERT INTO tb_PropertyBalance 
+//         const result = await pool.query(
+//             `INSERT INTO propertybalance 
 //             (house_no, billamount, paidamount, balance) 
-//             VALUES (?, ?, ?, ?)`,
+//             VALUES ($1, $2, $3, $4)`,
 //             [
 //                 propertyBalanceData.house_no,
 //                 propertyBalanceData.billamount,
@@ -219,29 +68,20 @@ export default router;
 //         );
 
 //         res.status(201).json({ message: 'Property balance record created successfully' });
-//         return
 //     } catch (error) {
 //         console.error('Error:', error);
 //         res.status(500).json({ message: 'Error creating property balance record', error });
-//         return
-//     } finally {
-//         connection.end();
 //     }
 // });
 
 // // Read all property balance records
 // router.get('/', async (req: Request, res: Response) => {
-//     const connection = await mysql.createConnection(dbConfig);
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_PropertyBalance');
+//         const { rows } = await pool.query('SELECT * FROM propertybalance');
 //         res.json(rows);
-//         return
 //     } catch (error) {
 //         console.error(error);
 //         res.status(500).json({ message: 'Error fetching property balance records', error });
-//         return
-//     } finally {
-//         connection.end();
 //     }
 // });
 
@@ -249,17 +89,177 @@ export default router;
 // router.get('/:house_no', async (req: Request, res: Response) => {
 //     const { house_no } = req.params;
 
-//     const connection = await mysql.createConnection(dbConfig);
-
 //     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_PropertyBalance WHERE house_no = ?', [house_no]);
+//         const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
 
-//         if (Array.isArray(rows) && rows.length > 0) {
+//         if (rows.length > 0) {
 //             res.json(rows[0]); // Return the first row
 //         } else {
 //             res.status(404).json({ message: 'Property balance record not found' });
 //         }
 //     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Error fetching property balance record', error });
+//     }
+// });
+
+// // Update a property balance record
+// router.put('update/:house_no', async (req: Request, res: Response): Promise<void> => {
+//     const { house_no } = req.params;
+//     const propertyBalanceData: PropertyBalanceData = req.body;
+
+//     try {
+//         const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
+
+//         if (rows.length == 0) {
+//             res.status(404).json({ message: 'Property balance record not found' });
+//             return;
+//         }
+
+//         // Update the property balance data
+//         await pool.query(
+//             `UPDATE propertybalance 
+//             SET billamount = $1, paidamount = $2, balance = $3 
+//             WHERE house_no = $4`,
+//             [
+//                 propertyBalanceData.billamount,
+//                 propertyBalanceData.paidamount,
+//                 propertyBalanceData.balance,
+//                 house_no
+//             ]
+//         );
+
+//         res.status(200).json({ message: 'Property balance record updated successfully' });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Error updating property balance record', error });
+//     }
+// });
+
+// // Delete a property balance record
+// router.delete('/delete/:house_no', async (req: Request, res: Response) => {
+//     const { house_no } = req.params;
+
+//     try {
+//         const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
+
+//         if (rows.length == 0) {
+//             res.status(404).json({ message: 'Property balance record not found' });
+//             return;
+//         }
+
+//         // Delete the property balance record
+//         await pool.query('DELETE FROM propertybalance WHERE house_no = $1', [house_no]);
+
+//         res.status(200).json({ message: 'Property balance record deleted successfully' });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Error deleting property balance record', error });
+//     }
+// });
+
+// export default router;
+
+
+
+
+
+// // // backend/src/routes/api/propertyBalanceRoutes.ts
+// // import express from 'express';
+// // import * as dotenv from 'dotenv';
+// // import { Router, Request, Response } from 'express';
+// // import mysql, { ResultSetHeader } from 'mysql2/promise';
+
+// // const router = Router();
+
+// // // Load environment variables from .env file
+// // dotenv.config();
+
+// // // MySQL connection configuration
+// // const dbConfig = {
+// //     host: process.env.DB_HOST || 'localhost',
+// //     user: process.env.DB_USER || 'root',
+// //     password: process.env.DB_PASSWORD || '',
+// //     database: process.env.DB_NAME || 'revmonitor',
+// // };
+
+// // // PropertyBalance data interface
+// // interface PropertyBalanceData {
+// //     house_no: string;
+// //     billamount: number;
+// //     paidamount: number;
+// //     balance: number;
+// // }
+
+// // // Create a new property balance record
+// // router.post('/', async (req: Request, res: Response): Promise<void> => {
+// //     const propertyBalanceData: PropertyBalanceData = req.body;
+
+// //     const connection = await mysql.createConnection(dbConfig);
+    
+// //     try {
+// //         const [rows] = await connection.execute('SELECT * FROM propertybalance WHERE house_no = ?', [propertyBalanceData.house_no]);
+
+// //         if (Array.isArray(rows) && rows.length > 0) {
+// //             res.status(409).json({ message: 'Property balance record already exists' });
+// //             return
+// //         }
+
+// //         // Insert the new property balance data
+// //         const [result] = await connection.execute<ResultSetHeader>(
+// //             `INSERT INTO tb_PropertyBalance 
+// //             (house_no, billamount, paidamount, balance) 
+// //             VALUES (?, ?, ?, ?)`,
+// //             [
+// //                 propertyBalanceData.house_no,
+// //                 propertyBalanceData.billamount,
+// //                 propertyBalanceData.paidamount,
+// //                 propertyBalanceData.balance,
+// //             ]
+// //         );
+
+// //         res.status(201).json({ message: 'Property balance record created successfully' });
+// //         return
+// //     } catch (error) {
+// //         console.error('Error:', error);
+// //         res.status(500).json({ message: 'Error creating property balance record', error });
+// //         return
+// //     } finally {
+// //         connection.end();
+// //     }
+// // });
+
+// // // Read all property balance records
+// // router.get('/', async (req: Request, res: Response) => {
+// //     const connection = await mysql.createConnection(dbConfig);
+// //     try {
+// //         const [rows] = await connection.execute('SELECT * FROM tb_PropertyBalance');
+// //         res.json(rows);
+// //         return
+// //     } catch (error) {
+// //         console.error(error);
+// //         res.status(500).json({ message: 'Error fetching property balance records', error });
+// //         return
+// //     } finally {
+// //         connection.end();
+// //     }
+// // });
+
+// // // Read a single property balance record by house_no
+// // router.get('/:house_no', async (req: Request, res: Response) => {
+// //     const { house_no } = req.params;
+
+// //     const connection = await mysql.createConnection(dbConfig);
+
+// //     try {
+// //         const [rows] = await connection.execute('SELECT * FROM tb_PropertyBalance WHERE house_no = ?', [house_no]);
+
+// //         if (Array.isArray(rows) && rows.length > 0) {
+// //             res.json(rows[0]); // Return the first row
+// //         } else {
+// //             res.status(404).json({ message: 'Property balance record not found' });
+// //         }
+// //     } catch (error) {
 //         console.error(error);
 //         res.status(500).json({ message: 'Error fetching property balance record', error });
 //     } finally {
