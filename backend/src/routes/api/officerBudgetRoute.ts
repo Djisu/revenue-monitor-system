@@ -1,19 +1,11 @@
-//import express from 'express';
+
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
-// import PDFDocument from 'pdfkit';
-// import nodemailer, { SendMailOptions } from 'nodemailer';
+
 import nodemailer, { SendMailOptions } from 'nodemailer';
-// import fs from 'fs';
-// import path from 'path';
-// import { fileURLToPath } from 'url';
-// import { dirname } from 'path';
 
 import pg from 'pg'
 const { Pool } = pg
-import {PoolClient} from 'pg'
-//import { createClient } from '../../db.js';
-
 
 export interface AddBudgetRequest {
     officer_no: string;
@@ -89,9 +81,7 @@ interface UpdateBudgetRequest {
 
 // PostgreSQL connection pool
 const emailPassword = process.env.EMAIL_PASSWORD;
-const appPassword = process.env.APP_PASSWORD;
 const emailUser = process.env.EMAIL_USER;
-const port = process.env.PORT || 3001;
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -102,12 +92,10 @@ const pool = new Pool({
     port: parseInt(process.env.DB_PORT || '5432', 10),
 });
 
-
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
-
 
 router.get('/all', async (req: Request, res: Response): Promise<void> => {
     console.log('in router.get(/all')
@@ -124,10 +112,14 @@ router.get('/all', async (req: Request, res: Response): Promise<void> => {
         res.status(200).json(result.rows);
         return
     }
-    catch (error: any) {
-        console.error(error);
-        res.status(500).send('Error fetching officer budgets');
-        return
+    catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error fetching record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error fetching record', error });
+        }
+        
     }
     finally {
         client.release();
@@ -154,10 +146,14 @@ router.get('/officerbudget/:officer_no/:fiscal_year/:electoral_area', async (req
             return
         }
 
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ exists: false, message: 'Error fetching officer budget' });
-        return
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error fetching record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error fetching record', error });
+        }
+        
 
     }finally{
         client.release()
@@ -207,10 +203,14 @@ router.get('/:officer_no/:fiscal_year', async (req: Request, res: Response): Pro
             return
         }
 
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ exists: false, message: 'Error fetching officer budget' });
-        return
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error fetching record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error fetching record', error });
+        }
+        
     }finally{
         client.release()
     }
@@ -230,9 +230,14 @@ router.get('/electoralArea/:officerNo', async (req: Request, res: Response) => {
             ORDER BY officer_no`, [officerNo]);
 
         res.json(result.rows);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).send('Error fetching electoral areas');
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error fetching record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error fetching record', error });
+        }
+        
     }finally{
         client.release()
     }
@@ -251,16 +256,21 @@ router.get('/businessCount/:electoralArea', async (req: Request, res: Response) 
             WHERE electoral_area = $1`, [electoralArea]);
 
         res.json(result.rows[0]);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).send('Error fetching business count');
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error fetching record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error fetching record', error });
+        }
+        
     }finally{
         client.release()
     }
 });
 
 // Function to add a budget record
-router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Response): Promise<void> => {
+router.post('/addBudget', async (req: Request<object, object, AddBudgetRequest>, res: Response): Promise<void> => {
     const { officer_no, fiscal_year } = req.body;
 
     console.log("in router.post(/addBudget): ", req.body);
@@ -271,7 +281,7 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
     try { 
         
          // Delete existing record if it exists
-         const checkRecord = await client.query(`
+         await client.query(`
          DELETE FROM officerbudget 
          WHERE officer_no = $1 AND fiscal_year = $2`, [officer_no, fiscal_year]);
 
@@ -334,14 +344,6 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
             return
         }
 
-        // if (annual_budget.rows[0].length === 0) {
-        //      res.status(400).json({
-        //         status: 'fail',
-        //         message: 'Annual budget not found for officer ' + officerName.rows[0].officer_name,
-        //         data: {}
-        //     });
-        //     return
-        // }
 
         console.log('annual_budget.rows[0].totsum:', annual_budget.rows[0].totsum)
 
@@ -359,7 +361,7 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
 
         
         // Insert new record
-        const result = await client.query(`
+        await client.query(`
         INSERT INTO officerbudget (
             officer_no, officer_name, fiscal_year, 
             annual_budget, monthly_budget,  January_budget,
@@ -437,10 +439,6 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
         console.log('INSERT INTO officerbudget successful')
 
         console.log('about to call updateOfficerBudget')
-
-        // call updateOfficerBudget function to update the officer's budget
-        // const updateResult = await updateOfficerBudget(officer_no, fiscal_year);
-        // console.log('updateResult:', updateResult);
 
         ///////////// include the updateOfficerBudget function here////////////
         console.log('Updating officerbudget for officer_no:', officer_no, 'in fiscal year:', fiscal_year);
@@ -606,16 +604,20 @@ router.post('/addBudget', async (req: Request<{}, {}, AddBudgetRequest>, res: Re
             data: { /* your data here */ }
         });
         return
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).send('Error adding budget record');
-        return
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error adding record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error adding record', error });
+        }
+        
     }finally {
         client.release();
     }
 });
 
-router.post('/updateBudget', async (req: Request<{}, {}, UpdateBudgetRequest>, res: Response): Promise<void> => {
+router.post('/updateBudget', async (req: Request<object, object, UpdateBudgetRequest>, res: Response): Promise<void> => {
     const { officer_no, fiscal_year, month, paidAmount } = req.body;
 
     console.log("in router.post(/updateBudget): ", req.body);
@@ -761,70 +763,5 @@ router.post('/updateBudget', async (req: Request<{}, {}, UpdateBudgetRequest>, r
     }
 });
 
-// Function to update Officer's budget based on bus payments
-async function updateOfficerBudget(officer_no: string, fiscal_year: number) {
-    
-    const client = await pool.connect()
-
-
-    console.log('Updating budget for officer_no:', officer_no, 'in fiscal year:', fiscal_year);
-
-    const officerName = await client.query(`
-            SELECT officer_name FROM officer 
-            WHERE officer_no = $1`, [officer_no]);
-
-        if (officerName.rows[0].length === 0) {
-            return 'Officer name not found';
-        }
-
-        console.log('officerName.rows[0].officer_name:', officerName.rows[0].officer_name)
-    
-    try {
-        // Step 1: Fetch all payments for the given officer and fiscal year
-        const paymentsQuery = `
-            SELECT monthpaid, paidAmount 
-            FROM buspayments 
-            WHERE officer_no = $1 AND fiscal_year = $2
-        `;
-        const paymentsResult = await client.query(paymentsQuery, [officerName.rows[0].officer_name, fiscal_year]);
-        const payments = paymentsResult.rows[0];
-
-        if (payments.length === 0) {
-            return `No payments found for officer_no: ${officer_no} in fiscal year: ${fiscal_year}.`;
-        }
-
-        console.log('payments:', payments)
-
-        console.log('officerName.rows[0].officer_name: ', officerName.rows[0].officer_name)
-        
-        // Step 2: Fetch the officer's budget
-        const budgetQuery = `
-            SELECT * 
-            FROM officerbudget 
-            WHERE officer_name = $1 AND fiscal_year = $2
-        `;
-        const budgetResult = await client.query(budgetQuery, [officerName.rows[0].officer_name, fiscal_year]);
-        const budget = budgetResult.rows[0];
-
-        console.log('budget:', budget)
-
-        if (!budget) {
-            return `No budget found for officer_no: ${officer_no} in fiscal year: ${fiscal_year}.`;
-        }
-
-   
-       return `Successfully updated budget for officer_no: ${officer_no} in fiscal year: ${fiscal_year}.`;
-    } catch (error: any) {
-        console.error('Error updating officer budget:', error);
-        return `Error updating budget for officer_no: ${officer_no} in fiscal year: ${fiscal_year}.`;
-    } finally {
-        client.release();
-    }
-}
-
-// Example usage
-updateOfficerBudget('OFFICER123', 2023)
-    .then(message => console.log(message))
-    .catch(err => console.error(err));
 
 export default router;

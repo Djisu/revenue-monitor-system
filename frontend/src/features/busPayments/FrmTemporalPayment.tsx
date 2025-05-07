@@ -486,7 +486,7 @@ const TemporalPaymentForm: React.FC = () => {
           Add New Record
         </Button>
         <Button variant="success" onClick={handleUpdateClick} style={{ marginLeft: '10px' }}>
-          Update last year's rate
+          Update last year rate
         </Button>
         <Button variant="danger" onClick={handleExitClick} style={{ marginLeft: '10px' }}>
           Exit

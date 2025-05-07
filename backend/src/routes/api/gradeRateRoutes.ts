@@ -1,9 +1,8 @@
 // backend/src/routes/api/gradeRateRoutes.ts
-import express from 'express';
+
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import pkg from 'pg';
-import { createClient } from '../../db.js';
 
 
 const { Pool } = pkg;
@@ -12,9 +11,6 @@ const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
-
-const nodeEnv = process.env.NODE_ENV;
-
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -59,7 +55,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Insert the new GradeRate data
-        const result = await client.query(
+        await client.query(
             `INSERT INTO graderate (grade, minValuex, maxValuex, rate) 
             VALUES ($1, $2, $3, $4)`,
             [
@@ -71,9 +67,13 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(200).json({ success: true, message: 'GradeRate record created successfully', rate: gradeRateData.rate });
-    } catch (error: any) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating GradeRate record', error: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error creating grade rate record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error creating grade rate record', error });
+        }       
     }finally{
         client.release()
     }
@@ -86,9 +86,14 @@ router.get('/all', async (req: Request, res: Response) => {
     try {
         const { rows } = await client.query('SELECT * FROM graderate');
         res.status(200).json({ success: true, data: rows });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching GradeRate records', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error fetching grade rate record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error fetching grade rate record', error });
+        }
+        
     }finally{
         client.release()
     }
@@ -109,9 +114,14 @@ router.get('/:grade/:minValuex/:maxValuex', async (req: Request, res: Response) 
         } else {
             res.status(200).json({ success: true, data: rows[0] });
         }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching GradeRate record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error fetching grade rate record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error fetching grade rate record', error });
+        }
+        
     }finally{
         client.release()
     }
@@ -122,7 +132,6 @@ router.put('/:grade/:minValuex/:maxValuex', async (req: Request, res: Response):
     const { grade, minValuex, maxValuex } = req.params;
     const gradeRateData: GradeRateData = req.body;
     const client = await pool.connect()
-
 
     try {
         const { rows } = await client.query('SELECT * FROM graderate WHERE grade = $1 AND minValuex = $2 AND maxValuex = $3', 
@@ -146,9 +155,14 @@ router.put('/:grade/:minValuex/:maxValuex', async (req: Request, res: Response):
         );
 
         res.status(200).json({ message: 'GradeRate record updated successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating GradeRate record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error updating grade rate record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error updating grade rate record', error });
+        }
+        
     }finally{
         client.release()
     }
@@ -173,9 +187,14 @@ router.delete('/delete/:grade/:minValuex/:maxValuex', async (req: Request, res: 
        
         res.status(200).json({ message: 'GradeRate record deleted successfully' });
       
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting GradeRate record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
+        
     }finally{
         client.release()
     }

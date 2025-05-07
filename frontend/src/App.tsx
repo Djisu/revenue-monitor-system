@@ -71,10 +71,10 @@ import MainMenuWrapper from './components/MainMenuWrapper';
 //import OfficerAssessmentBarChart from './charts/OfficerAssessmentBarChart';
 
 const App: React.FC = () => {
-    let [isMainMenuVisible, setMainMenuVisible] = useState(true);
+    const [isMainMenuVisible, setMainMenuVisible] = useState(true);
 
     const handleSubmenuClick = () => {
-        isMainMenuVisible = true
+        //isMainMenuVisible = true
         setMainMenuVisible(isMainMenuVisible); // Show the main menu when a submenu item is clicked
         console.log('Submenu clicked!');
     };

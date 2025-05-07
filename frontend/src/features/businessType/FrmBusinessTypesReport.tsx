@@ -25,8 +25,10 @@ const BusinessTypesReport: React.FC = () => {
                 const data: BusinessType[] = await response.json();
                 const types = data.map((record) => record.buss_type);
                 setBusinessTypes(types);
-            } catch (error: any) {
-                setError(error.message);
+            } catch (error: unknown) {
+                if (error instanceof Error){
+                    setError(error.message);
+                }
             }
         };
 
@@ -92,8 +94,11 @@ const BusinessTypesReport: React.FC = () => {
             } else {
                 setError(data.message);
             }
-        } catch (error: any) {
-            setError(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error){
+                setError(error.message);
+            }
+            
         } finally {
             setIsLoading(false);
         }

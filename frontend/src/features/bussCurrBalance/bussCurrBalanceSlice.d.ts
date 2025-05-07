@@ -13,7 +13,7 @@ export interface BussCurrBalanceState {
     error: string | null;
 }
 export declare const initialState: BussCurrBalanceState;
-export declare const fetchBussCurrBalances: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchBussCurrBalances: import("@reduxjs/toolkit").AsyncThunk<BussCurrBalanceData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -23,7 +23,7 @@ export declare const fetchBussCurrBalances: import("@reduxjs/toolkit").AsyncThun
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createBussCurrBalance: import("@reduxjs/toolkit").AsyncThunk<any, BussCurrBalanceData, {
+export declare const createBussCurrBalance: import("@reduxjs/toolkit").AsyncThunk<BussCurrBalanceData, BussCurrBalanceData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -33,7 +33,7 @@ export declare const createBussCurrBalance: import("@reduxjs/toolkit").AsyncThun
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchBussCurrBalanceById: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const fetchBussCurrBalanceById: import("@reduxjs/toolkit").AsyncThunk<BussCurrBalanceData, {
     buss_no: string;
     fiscalyear: string;
 }, {
@@ -46,7 +46,7 @@ export declare const fetchBussCurrBalanceById: import("@reduxjs/toolkit").AsyncT
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateBussCurrBalance: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateBussCurrBalance: import("@reduxjs/toolkit").AsyncThunk<BussCurrBalanceData, {
     buss_no: string;
     fiscalyear: string;
     data: BussCurrBalanceData;
@@ -60,7 +60,7 @@ export declare const updateBussCurrBalance: import("@reduxjs/toolkit").AsyncThun
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteBussCurrBalance: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const deleteBussCurrBalance: import("@reduxjs/toolkit").AsyncThunk<BussCurrBalanceData, {
     buss_no: string;
     fiscalyear: string;
 }, {

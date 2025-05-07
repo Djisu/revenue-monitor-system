@@ -1,5 +1,5 @@
 // backend/src/routes/api/operatorRoutes.ts
-import express from 'express';
+
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import pkg from 'pg';
@@ -37,14 +37,10 @@ interface OperatorPermissionData {
 router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const operatorPermissionData: OperatorPermissionData = req.body;
     console.log('in router.post(/create) permission:', operatorPermissionData.operatorid);    
-
-    
-  const client = await pool.connect()
+   
+    const client = await pool.connect()
 
     try {
-       
-     
-
         // Check if an operator permission with the same operatorid already exists
         const existingPermissionResult = await client.query(
             'SELECT * FROM operatorpermission WHERE operatorid = $1', 
@@ -84,9 +80,14 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(201).json({ message: 'Operator permission created successfully' });
-    } catch (error: any) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating operator permission' });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error creating record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error creating record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -110,9 +111,14 @@ const client = await pool.connect()
         }
 
         res.status(200).json({ message: 'Records found', data: result.rows });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching operator permissions' });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error getting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -138,9 +144,14 @@ router.get('/:OperatorID', async (req: Request, res: Response) => {
         }
 
         res.status(200).json({ message: 'Successfully retrieved', data: result.rows[0] });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching operator permission' });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error getting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -188,9 +199,14 @@ router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> =>
         );
 
         res.status(200).json({ message: 'Operator permission updated successfully' });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating operator permission' });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error updating record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error updating record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -204,9 +220,7 @@ router.delete('/:operatorID', async (req: Request, res: Response) => {
  const client = await pool.connect()
 
     try {
-       
-       
-
+ 
         // Check if an operator permission with the same OperatorID exists
         const existingPermissionResult = await client.query(
             'SELECT * FROM operatorpermission WHERE operatorid = $1', 
@@ -220,9 +234,14 @@ router.delete('/:operatorID', async (req: Request, res: Response) => {
 
         await client.query('DELETE FROM operatorpermission WHERE operatorid = $1', [operatorID]);
         res.status(200).json({ message: 'Operator permission deleted successfully' });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting operator permission' });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error delting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error delting record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();

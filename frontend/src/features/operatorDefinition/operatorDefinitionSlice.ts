@@ -164,7 +164,7 @@ const operatorDefinitionSlice = createSlice({
 });
 
 // Export the actions if needed
-export const {} = operatorDefinitionSlice.actions; // Add any synchronous actions if required
+export const object = operatorDefinitionSlice.actions; // Add any synchronous actions if required
 
 // Export the reducer
 export default operatorDefinitionSlice.reducer;

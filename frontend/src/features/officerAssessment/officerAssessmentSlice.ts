@@ -187,8 +187,12 @@ export const fetchJanuaryAmount = createAsyncThunk<number, { officerNo: string; 
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+             if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }          
         }
     }
 );
@@ -210,8 +214,12 @@ export const fetchFebruaryAmount = createAsyncThunk<number, { officerNo: string;
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+              if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );
@@ -233,8 +241,12 @@ export const fetchMarchAmount = createAsyncThunk<number, { officerNo: string; fi
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+              if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );
@@ -256,8 +268,12 @@ export const fetchAprilAmount = createAsyncThunk<number, { officerNo: string; fi
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+              if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );
@@ -279,8 +295,12 @@ export const fetchMayAmount = createAsyncThunk<number, { officerNo: string; fisc
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+              if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );
@@ -302,8 +322,12 @@ export const fetchJuneAmount = createAsyncThunk<number, { officerNo: string; fis
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+              if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );
@@ -325,8 +349,12 @@ export const fetchJulyAmount = createAsyncThunk<number, { officerNo: string; fis
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+              if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );
@@ -348,8 +376,12 @@ export const fetchAugustAmount = createAsyncThunk<number, { officerNo: string; f
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+              if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );
@@ -371,8 +403,12 @@ export const fetchSeptemberAmount = createAsyncThunk<number, { officerNo: string
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+              if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );
@@ -394,8 +430,12 @@ export const fetchOctoberAmount = createAsyncThunk<number, { officerNo: string; 
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+              if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );
@@ -417,8 +457,12 @@ export const fetchNovemberAmount = createAsyncThunk<number, { officerNo: string;
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+              if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );
@@ -440,8 +484,12 @@ export const fetchDecemberAmount = createAsyncThunk<number, { officerNo: string;
             }
 
             return totsum; // Now returning a number
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+             if (error instanceof Error){
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue("Unknown error");
+            }  
         }
     }
 );

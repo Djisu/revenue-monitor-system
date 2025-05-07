@@ -1,10 +1,8 @@
 import { Router } from 'express';
 import * as dotenv from 'dotenv';
 import pkg from 'pg';
-//import { createClient } from '../../db.js'; // Adjust the path as needed
 const { Pool } = pkg;
 const router = Router();
-// Load environment variables from .env file
 dotenv.config();
 // PostgreSQL connection configuration
 const dbConfig = {
@@ -33,8 +31,8 @@ router.post('/create', async (req, res) => {
             return;
         }
         // Insert the new AccReceipt data
-        const result = await client.query(`INSERT INTO accreceipt (fiscalyear, batchno, firstno, lastno) 
-            VALUES ($1, $2, $3, $4)`, [
+        await client.query(`INSERT INTO accreceipt (fiscalyear, batchno, firstno, lastno) 
+             VALUES ($1, $2, $3, $4)`, [
             accReceiptData.fiscalyear,
             accReceiptData.batchno,
             accReceiptData.firstno,

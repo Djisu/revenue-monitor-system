@@ -1,9 +1,9 @@
 export interface StorePhotoResult {
     message: string;
-    result: any;
+    result: string;
 }
 
 export interface StorePhotoArgs {
     officer_no: string;
-    photo: Buffer;
+    photo: string;
 }

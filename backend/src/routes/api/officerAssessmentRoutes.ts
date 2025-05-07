@@ -1,15 +1,13 @@
 // backend/src/routes/officerAssessmentRoutes.ts
-import express from 'express';
+
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 
 import pkg from 'pg';
-import { AnyCnameRecord } from 'dns';
 const { Pool } = pkg;
 
 
-import { QueryResult, PoolClient } from 'pg';
-import { ReadableStreamDefaultController } from 'node:stream/web';
+import { QueryResult } from 'pg';
 // import { createClient } from '../../db.js';
 
 
@@ -19,17 +17,7 @@ const router = Router();
 // Load environment variables from .env file
 dotenv.config();
 
-const nodeEnv = process.env.NODE_ENV;
 
-
-// PostgreSQL connection configuration
-const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'revmonitor',
-    port: parseInt(process.env.DB_PORT || '5432'),
-};
 
 // OfficerAssessment data interface
 interface OfficerAssessmentData {
@@ -53,11 +41,6 @@ interface OfficerAssessmentData {
     totalReceiptTodate: number;
     balance: number;
     remarks: number;
-}
-
-
-interface FiscalYear {
-    fiscal_year: number;
 }
 
 interface Officer {
@@ -86,30 +69,20 @@ async function getOfficerAssessments(): Promise<number[]> {
     try {
         const { rows }: QueryResult<{officer_no: number}>  = await client.query('SELECT * FROM officerbudget ORDER BY officer_no ASC');
         return rows.map(row => row.officer_no);
-    } catch (err: any) {
-        console.error('Error fetching fiscal years:', err);
-        throw err;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           return []
+           //res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }else{
+            return []
+            //res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
+        
     }finally{
         client.release()
     }
 
-}
-
-async function getFiscalYears(): Promise<number[]> {
-    console.log('in getFiscalYears')
-
-    const client = await pool.connect()
-
-    try {
-        const { rows }: QueryResult<{fiscal_year: number}> = await client.query('SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year');
-        console.log('rows: ', rows)
-        return rows.map(row => row.fiscal_year);
-    } catch (err) {
-        console.error('Error fetching fiscal years:', err);
-        throw err;
-    }finally{
-        client.release()
-    }
 }
 
 async function getOfficers(): Promise<Officer[]> {
@@ -119,86 +92,93 @@ async function getOfficers(): Promise<Officer[]> {
     try {
         const { rows } = await client.query('SELECT officer_no, officer_name FROM officer');
         return rows as Officer[];
-    } catch (err: any) {
-        console.error('Error fetching officers:', err);
-        throw err;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           return []
+           //res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }else{
+            return []
+            //res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
+        
     }
 }
 
-async function getMonthName (month: number): Promise<string> {
-    switch (month) {
-        case 1:
-            return 'January';
-            case 2:
-            return 'February';
-        case 3:
-            return 'March';
-            case 4:
-            return 'April';
-            case 5:
-            return 'May';
-            case 6:
-            return 'June';
-            case 7:
-            return 'July';
-            case 8:
-            return 'August';
-            case 9:
-            return 'September';
-            case 10:
-            return 'October';
-            case 11:
-            return 'November';
-            case 12:
-            return 'December';
-            default:
-            return 'Unknown';
-    }
-}
+// async function getMonthName (month: number): Promise<string> {
+//     switch (month) {
+//         case 1:
+//             return 'January';
+//             case 2:
+//             return 'February';
+//         case 3:
+//             return 'March';
+//             case 4:
+//             return 'April';
+//             case 5:
+//             return 'May';
+//             case 6:
+//             return 'June';
+//             case 7:
+//             return 'July';
+//             case 8:
+//             return 'August';
+//             case 9:
+//             return 'September';
+//             case 10:
+//             return 'October';
+//             case 11:
+//             return 'November';
+//             case 12:
+//             return 'December';
+//             default:
+//             return 'Unknown';
+//     }
+// }
 
 
-async function getAmountByOfficerAndMonth(monthPaid: string, officerNo: string, fiscalYear: number): Promise<number> {
-    console.log('in getAmountByOfficerAndMonth helper function', officerNo);
+// async function getAmountByOfficerAndMonth(monthPaid: string, officerNo: string, fiscalYear: number): Promise<number> {
+//     console.log('in getAmountByOfficerAndMonth helper function', officerNo);
 
-    const officerName = await GetOfficerName(officerNo);
+//     const officerName = await GetOfficerName(officerNo);
 
-    const month = await getMonthName(Number(monthPaid));    
-    const client = await pool.connect()
+//     const month = await getMonthName(Number(monthPaid));    
+//     const client = await pool.connect()
 
-    try {
-        // Define the SQL query
-        const query = `
-            SELECT 
-                paidamount
-            FROM buspayments 
-            WHERE officer_no = $1 
-              AND fiscal_year = $2 
-              AND monthpaid = $3
-        `;
+//     try {
+//         // Define the SQL query
+//         const query = `
+//             SELECT 
+//                 paidamount
+//             FROM buspayments 
+//             WHERE officer_no = $1 
+//               AND fiscal_year = $2 
+//               AND monthpaid = $3
+//         `;
 
-        // Log the query for debugging
-        console.log('Executing query:', query, 'with parameters:', [officerName, fiscalYear, month]);
+//         // Log the query for debugging
+//         console.log('Executing query:', query, 'with parameters:', [officerName, fiscalYear, month]);
 
-        // Execute the query
-        const { rows } = await client.query(query, [officerNo, fiscalYear, month]);
+//         // Execute the query
+//         const { rows } = await client.query(query, [officerNo, fiscalYear, month]);
 
-        console.log('THIS IS THE paidamount: ', rows[0].paidamount);
-        // Return the total sum or 0 if no rows were found
-        return rows.length > 0 && rows[0].paidamount !== null ? rows[0].paidamount : 0; 
-    } catch (err: any) {
-        console.error('Error fetching paidamount by officer and month:', err);
-        throw err; // Rethrow the error for handling by the caller
-    }finally{
-        client.release()
-    }
-}
+//         console.log('THIS IS THE paidamount: ', rows[0].paidamount);
+//         // Return the total sum or 0 if no rows were found
+//         return rows.length > 0 && rows[0].paidamount !== null ? rows[0].paidamount : 0; 
+//     } catch (err: any) {
+//         console.error('Error fetching paidamount by officer and month:', err);
+//         throw err; // Rethrow the error for handling by the caller
+//     }finally{
+//         client.release()
+//     }
+// }
 
 async function deleteOfficerMonthAssess() {
     const client = await pool.connect()
 
     try {
         await client.query('DELETE FROM officermonthassess');
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('Error deleting officer month assess:', err);
         throw err;
     }finally{
@@ -215,10 +195,10 @@ async function insertOfficerMonthAssess(data: OfficerMonthlyPerformance[]) {
             VALUES ($1, $2, $3, $4)
         `;
 
-        for (let item of data) {
+        for (const item of data) {
             await client.query(insertQuery, [item.officer_name, item.month, item.amount, item.fiscalyear]);
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error inserting officer month assess:', err);
     }finally{
         client.release()
@@ -226,61 +206,6 @@ async function insertOfficerMonthAssess(data: OfficerMonthlyPerformance[]) {
 }
 
 // Helper function to insert officer assessment
-async function insertOfficerAssessment(data: OfficerAssessmentData) {
-    const client = await pool.connect()
-
-    console.log('in insertOfficerAssessment: ', data)
-    const insertQuery = `
-        INSERT INTO officer_assessment (
-            officer_no, officer_name, Noofclientsserved, valueofbillsdistributed, 
-            bus_year, JanuaryAmount, FebruaryAmount, MarchAmount, AprilAmount, 
-            MayAmount, JuneAmount, JulyAmount, AugustAmount, SeptemberAmount, 
-            OctoberAmount, NovemberAmount, DecemberAmount, totalReceiptTodate, 
-            balance, remarks
-        ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, 
-            $10, $11, $12, $13, $14, $15, $16, $17, $18, 
-            $19, $20
-        )
-    `;
-
-    const values = [
-        data.officerNo,
-        data.officer_name,
-        data.noofclientsserved,
-        data.valueofbillsdistributed,
-        data.bus_year,
-        data.JanuaryAmount,
-        data.FebruaryAmount,
-        data.MarchAmount,
-        data.AprilAmount,
-        data.MayAmount,
-        data.JuneAmount,
-        data.JulyAmount,
-        data.AugustAmount,
-        data.SeptemberAmount,
-        data.OctoberAmount,
-        data.NovemberAmount,
-        data.DecemberAmount,
-        data.totalReceiptTodate,
-        data.balance,
-        data.remarks,
-    ];
-
-    try {
-       const rows = await client.query(insertQuery, values);
-
-       if (rows.rowCount === 0) {
-           throw new Error('Officer assessment record not inserted');
-       }
-       return 'Officer assessment record inserted successfully'
-    } catch (err: any) {
-        console.error('Error inserting officer assessment:', err);
-        throw err; // Re-throw the error to be caught by the calling function
-    }finally{
-        client.release()
-    }
-}
 
 async function GetOfficerName(officerNo: string): Promise<string>  {
 const client = await pool.connect()
@@ -315,7 +240,7 @@ const client = await pool.connect()
 
          res.status(200).json(result.rows[0].totsum); // Send the totsum directly
         return
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
             res.status(500).json({ message: 'Error fetching officer assessment record', error });
         }finally{
@@ -328,15 +253,19 @@ router.get('/fiscalYears', async (req: Request, res: Response): Promise<void> =>
     console.log('in router.get(/officerAssessment/fiscalYears)');
 const client = await pool.connect()
 
-
     try {
         const { rows } = await client.query('SELECT DISTINCT fiscal_year FROM buspayments ORDER BY fiscal_year');
         const fiscalYears = rows.map(row => ({ fiscal_year: row.fiscal_year })); // Map to objects
         res.status(200).json(fiscalYears);
         return
-    } catch (err: any) {
-         res.status(500).json({ error: 'Internal Server Error' });
-        return
+    } catch (error: unknown) {
+        if (error instanceof Error){
+           res.status(500).json({ error: 'Internal Server Error' });
+           return
+        }else{
+           res.status(500).json({ error: 'Unknown Error' });
+           return 
+        }      
     }finally{
         client.release()
     }
@@ -346,7 +275,7 @@ router.get('/officers', async (req: Request, res: Response) => {
     try {
         const officers = await getOfficers();
         res.json(officers);
-    } catch (err) {
+    } catch (err: unknown) {
         res.status(500).send((err as Error).message);
     }
 });
@@ -357,7 +286,7 @@ router.post('/officerMonthAssess', async (req: Request, res: Response) => {
         await deleteOfficerMonthAssess();
         await insertOfficerMonthAssess(data);
         res.send('Officer month assess records created successfully');
-    } catch (err) {
+    } catch (err: unknown) {
         res.status(500).send((err as Error).message);
     }
 });
@@ -366,7 +295,7 @@ router.delete('/officerMonthAssess', async (req: Request, res: Response) => {
     try {
         await deleteOfficerMonthAssess();
         res.send('Officer month assess deleted');
-    } catch (err) {
+    } catch (err: unknown) {
         res.status(500).send((err as Error).message);
     }
 });
@@ -456,7 +385,7 @@ const client = await pool.connect()
 
         res.status(201).send('Officer assessment inserted successfully');
         return
-    } catch (err: any) {
+    } catch (err: unknown) {
         await client.query('ROLLBACK');
         console.error('Error creating officer assessment:', err);
         res.status(500).send((err as Error).message);
@@ -466,87 +395,6 @@ const client = await pool.connect()
     }
 });
 
-// router.post('/create', async (req: Request, res: Response) => {
-//     try {
-//         const params = req.body;
-
-//         console.log('in router.post(/create: ', params);
-//         console.clear();
-
-//         const busYear = parseInt(params.fiscalYear , 10);
-
-//         console.log('busYear: ', busYear)
-
-//         // Delete this transaction the officerassessment
-//         const deleteResult = await pool.query('DELETE FROM officerassessment WHERE officer_no = $1 AND bus_year = $2', [params.officerNo, busYear]);
-//         console.log('Delete result:', deleteResult.rowCount); // Should log how many rows were deleted
-
-//         const newOfficerNo = params.officerNo
-
-//         const officerName = await GetOfficerName(newOfficerNo);
-
-//         // Validate incoming data if needed
-//         if (!params.officerNo || !params.fiscalYear) {
-//             console.log('MISSING PARAMS!!!')
-//             return res.status(400).send('Missing required fields');
-//         }
-
-//         console.group('about to insert into officerassessment table')
-
-//         // Insert the officer assessment into the database
-//         const insertQuery = `
-//             INSERT INTO officerassessment (
-//                 officer_no, officer_name, noofclientsserved, valueofbillsdistributed, 
-//                 bus_year, januaryamount, februaryamount, marchamount, aprilamount, 
-//                 mayamount, juneamount, julyamount, augustamount, septemberamount, 
-//                 octoberamount, novemberamount, decemberamount, totalreceipttodate, 
-//                 balance, remarks
-//             ) VALUES (
-//                 $1, $2, $3, $4, $5, $6, $7, $8, $9, 
-//                 $10, $11, $12, $13, $14, $15, $16, $17, $18, 
-//                 $19, $20
-//             )
-//         `;
-       
-
-//         const values = [
-//             params.officerNo,
-//             officerName,
-//             params.noOfClientsServed,
-//             params.valueOfBillsDistributed,
-//             busYear,
-//             params.JanuaryAmount,
-//             params.FebruaryAmount,
-//             params.MarchAmount,
-//             params.AprilAmount,
-//             params.MayAmount,
-//             params.JuneAmount,
-//             params.JulyAmount,
-//             params.AugustAmount,
-//             params.SeptemberAmount,
-//             params.OctoberAmount,
-//             params.NovemberAmount,
-//             params.DecemberAmount,
-//             params.totalReceiptToDate,
-//             params.balance,
-//             params.remarks,
-//         ];
-
-//         console.log('Query: ' + insertQuery + 'Values: ' + values)
-//         const rows = await pool.query(insertQuery, values);
-
-//         console.log('after insert into table')
-
-//         if (rows.rowCount === 0) {
-//            res.status(404).send('Officer assessment record not inserted');
-//         }
-       
-//         res.status(201).send('Officer assessment inserted successfully');
-//     } catch (err) {
-//         console.error('Error creating officer assessment:', err);
-//         res.status(500).send((err as Error).message);
-//     }
-// });
 
 // Months routes
 // January route
@@ -577,11 +425,11 @@ const client = await pool.connect()
              res.status(404).json({ message: 'No records found for the given parameters.' });  
                 return       
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
     } finally {
-        client.release(); // Ensure the client is endd back to the pool
+        client.release(); // Ensure the client is end back to the pool
     }
 });
 
@@ -612,12 +460,12 @@ const client = await pool.connect()
              res.status(404).json({ message: 'No records found for the given parameters.' });  
             return
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
         return
     } finally {
-        client.release(); // Ensure the client is endd back to the pool end
+        client.release(); // Ensure the client is end back to the pool end
     }
 });
 
@@ -648,12 +496,12 @@ const client = await pool.connect()
              res.status(404).json({ message: 'No records found for the given parameters.' }); 
                return         
         }
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
         return
     } finally {
-        client.release(); // Ensure the client is endd back to the pool
+        client.release(); // Ensure the client is end back to the pool
     }
 });
 
@@ -684,7 +532,7 @@ const client = await pool.connect()
              res.status(404).json({ message: 'No records found for the given parameters.' });  
                return        
         }
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
         return
@@ -720,7 +568,7 @@ const client = await pool.connect()
              res.status(404).json({ message: 'No records found for the given parameters.' }); 
                 return        
         }
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
         return
@@ -756,7 +604,7 @@ const client = await pool.connect()
              res.status(404).json({ message: 'No records found for the given parameters.' });  
                 return       
         }
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
         return
@@ -792,7 +640,7 @@ const client = await pool.connect()
             res.status(404).json({ message: 'No records found for the given parameters.' });  
             return           
         }
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
     } finally {
@@ -827,12 +675,12 @@ const client = await pool.connect()
              res.status(404).json({ message: 'No records found for the given parameters.' });  
                 return       
         }
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
         return
     } finally {
-        client.release(); // Ensure the client is endd back to the pool
+        client.release(); // Ensure the client is end back to the pool
     }
 });
 
@@ -863,7 +711,7 @@ const client = await pool.connect()
              res.status(404).json({ message: 'No records found for the given parameters.' }); 
             return
         }
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
         return
@@ -899,7 +747,7 @@ const client = await pool.connect()
            res.status(404).json({ message: 'No records found for the given parameters.' });  
             return           
         }
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
     } finally {
@@ -934,7 +782,7 @@ const client = await pool.connect()
              res.status(404).json({ message: 'No records found for the given parameters.' }); 
             return
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
         return
@@ -970,7 +818,7 @@ const client = await pool.connect()
             res.status(404).json({ message: 'No records found for the given parameters.' });  
             return           
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error fetching monthly amount:', err);
         res.status(500).json({ message: 'Error fetching monthly amount', error: (err as Error).message });
         return
@@ -990,9 +838,7 @@ router.get('/fetchClientsServed/:officerNo/:fiscalYear', async (req: Request, re
         return
     }
     
-const client = await pool.connect()
-
-
+    const client = await pool.connect()
 
     const newFiscalYear = Number(fiscalYear);
 
@@ -1019,9 +865,9 @@ const client = await pool.connect()
         // Return just the totsum value
         res.status(200).json(result.rows[0].totcount); // Send the totsum directly
         return
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching BusPayments record', error });
+        res.status(500).json({ message: 'Error fetching BusPayments record', error  });
     } finally {
         client.release();
     }
@@ -1033,7 +879,7 @@ router.get('/all', async (req: Request, res: Response) => {
 const client = await pool.connect()
 
     try {
-        const { officerNo, fiscalYear, monthPaid } = req.query as { officerNo: string; fiscalYear: string; monthPaid: string };
+        //const { officerNo, fiscalYear, monthPaid } = req.query as { officerNo: string; fiscalYear: string; monthPaid: string };
         const rows = await getOfficerAssessments();
 
         if (rows.length == 0){
@@ -1042,7 +888,7 @@ const client = await pool.connect()
         }
         
         res.status(200).json(rows);
-    } catch (err: any) {
+    } catch (err: unknown) {
         res.status(500).send((err as Error).message);
     }finally{
         client.release()
@@ -1057,7 +903,7 @@ const client = await pool.connect()
     try {
         const { rows } = await client.query('SELECT * FROM officerassessment');
         res.json(rows);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching officer assessment records', error });
     } finally {
@@ -1100,7 +946,7 @@ const client = await pool.connect()
         console.log('officerassessment fetched rows[0]: ', rows[0])
 
         res.status(200).send({message: 'Data found', data: rows[0]});
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching officer assessment record', error });
     }finally{
@@ -1112,8 +958,7 @@ const client = await pool.connect()
 router.put('/:officer_no/:fiscal_year', async (req: Request, res: Response): Promise<void> => {
     const { officer_no, fiscal_year } = req.params;
     const officerAssessmentData: OfficerAssessmentData = req.body;
-const client = await pool.connect()
-
+    const client = await pool.connect()
 
     try {
         const { rows } = await client.query('SELECT * FROM officerassessment WHERE officer_no = $1 AND fiscal_year = $2', 
@@ -1124,7 +969,7 @@ const client = await pool.connect()
             return;
         }
 
-        const { rows: result } = await client.query(
+        await client.query(
             `UPDATE officerassessment SET 
             officer_name = $1, Noofclientsserved = $2, valueofbillsdistributed = $3, bus_year = $4, 
             JanuaryAmount = $5, FebruaryAmount = $6, MarchAmount = $7, AprilAmount = $8, 
@@ -1158,7 +1003,7 @@ const client = await pool.connect()
 
         res.status(200).json({ message: 'Officer assessment record updated successfully' });
         return;
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
         res.status(500).json({ message: 'Error updating officer assessment record', error });
     }finally{
@@ -1185,7 +1030,7 @@ const client = await pool.connect()
        
         res.status(200).json({ message: 'Officer assessment record deleted successfully' });
         return;
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting officer assessment record', error });
         return;
@@ -1226,7 +1071,7 @@ const client = await pool.connect()
             res.json({ totalClientsServed: 0 });
             return
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error querying database:', error);
         res.status(500).json({ error: 'Internal server error' });
         return
@@ -1240,7 +1085,7 @@ router.get('/bills-distributed/:officerNo/:fiscalYear', async (req: Request, res
     const {officerNo} = req.params;
     const fiscalYear = parseInt(req.params.fiscalYear, 10);
 
-const client = await pool.connect()
+    const client = await pool.connect()
 
 
     // Validate fiscal year
@@ -1257,8 +1102,6 @@ const client = await pool.connect()
     
     const values = [officerNo, fiscalYear];
 
-    
-
     try {
         const result = await client.query(query, values);
         if (result.rows.length > 0) {
@@ -1269,7 +1112,7 @@ const client = await pool.connect()
             res.json({ totalValueOfBillsDistributed: 0 });
             return
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error querying database:', error);
         res.status(500).json({ error: 'Internal server error' });
         return
@@ -1306,15 +1149,17 @@ router.get('/amount/:month/:officerNo/:fiscalYear', async (req: Request, res: Re
         return
     }
 
-const client = await pool.connect()
+    const client = await pool.connect()
 
     try {
         const totalAmount = await findMonthlyAmount(officerNo, fiscalYear, monthMap[month]);
         res.json({ totalAmount });
         return
-    } catch (error: any) {
-        res.status(500).json({ error: 'Internal server error' });
-        return
+    } catch (error: unknown) {
+        if (error instanceof Error){
+            res.status(500).json({ error: 'Internal server error' });
+            return
+        }        
     }finally{
         client.release()
     }
@@ -1339,7 +1184,7 @@ const client = await pool.connect()
         return result.rows.length > 0 && result.rows[0].totsum !== null 
             ? parseFloat(result.rows[0].totsum) 
             : 0;
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error querying database:', error);
         throw error;
     }finally{

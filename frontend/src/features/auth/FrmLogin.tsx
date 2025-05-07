@@ -12,7 +12,7 @@ const FrmLogin: React.FC = () => {
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        //console.log('in frmlogin handlesubmit Username:', username, 'Password:', password);
+        console.log('in frmlogin handlesubmit Username:', username, 'Password:', password);
 
         // Validate inputs
         if (!username || !password) {
@@ -21,11 +21,11 @@ const FrmLogin: React.FC = () => {
         }
 
         try {
-            //console.log('Logging in with username:', username, 'and password:', password);
+            console.log('Logging in with username:', username, 'and password:', password);
 
             await login(username, password); 
 
-            //console.log('About to navigate to MainMenu!');
+            console.log('About to navigate to MainMenu!');
 
             navigate('/main'); // Redirect to MainMenu on successful login
         } catch (error) {

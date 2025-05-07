@@ -23,7 +23,7 @@ const FrmPropertyClass: React.FC = () => {
   const [localPropertyClasses, setLocalPropertyClasses] = useState<PropertyClass[]>([]);
   const [addFlag, setAddFlag] = useState<string>('');
   const [delFlag, setDelFlag] = useState<string>('')
-  let [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [propertyClass, setPropertyClass] = useState<PropertyClass>({
     property_class: '',

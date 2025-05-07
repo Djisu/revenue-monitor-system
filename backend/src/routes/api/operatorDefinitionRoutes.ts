@@ -41,10 +41,8 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const operatorData: OperatorDefinition = req.body;
 
     console.log('operatorData:', operatorData);
-
     
-const client = await pool.connect()
-
+    const client = await pool.connect()
 
     try {
         // Validate required fields
@@ -131,9 +129,14 @@ const client = await pool.connect()
         );
 
         res.status(201).json({ message: 'Operator created successfully' });
-    } catch (error: any) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating operator', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error creating record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error creating record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -159,9 +162,14 @@ const client = await pool.connect()
         }
 
         res.status(200).json(rows.rows);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching operators', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error getting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -191,9 +199,14 @@ const client = await pool.connect()
         }
         res.status(200).json(result.rows[0]); // Return the first row
         return;
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching operator', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error getting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -205,14 +218,10 @@ const client = await pool.connect()
 router.put('/:OperatorID', async (req: Request, res: Response): Promise<void> => {
     const { OperatorID } = req.params;
     const operatorData: OperatorDefinition = req.body;
-
-    
-const client = await pool.connect()
-
+  
+    const client = await pool.connect()
 
     try {
-       
-
         // Check if an operator with the same OperatorID already exists
         const result = await client.query(
             'SELECT * FROM operatordefinition WHERE OperatorID = $1', 
@@ -239,10 +248,14 @@ const client = await pool.connect()
       
         res.status(200).json({ message: 'Operator updated successfully' });
         return;
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating operator', error });
-        return;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error updating record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error updating record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -277,10 +290,14 @@ const client = await pool.connect()
        
         res.status(200).json({ message: 'Operator deleted successfully' });
        
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting operator', error });
-    } finally {
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
+        
         if (client) {
             client.release();
         }

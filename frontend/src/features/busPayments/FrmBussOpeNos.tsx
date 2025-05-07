@@ -15,9 +15,13 @@ const FrmBussOpeNos: React.FC = () => {
     try {
       const response = await axios.get('/api/business'); // Replace with your API endpoint
       setBusinessNumbers(response.data);
-    } catch (err) {
-      setError('Error fetching business numbers');
-    }
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        setError('No electoral areas found');
+      } else {
+        console.log('Unknown error')
+      } 
+   }     
   };
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 // db.ts
 import dotenv from 'dotenv';
 import pkg from 'pg'; // Import the entire package and rename Client to PgClient
-let path = '';
+const path = '';
 console.log('in db.ts');
 // Load environment variables based on NODE_ENV
 dotenv.config({

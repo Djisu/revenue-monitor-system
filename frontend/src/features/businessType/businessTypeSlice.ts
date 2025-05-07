@@ -12,7 +12,7 @@ export interface BusinessTypeState {
     businessTypes: BusinessTypeData[];
     loading: boolean;
     error: string | null;
-    bussTypesData: any;
+    bussTypesData: string | null;
 }
 
 export const initialState: BusinessTypeState = {
@@ -21,6 +21,7 @@ export const initialState: BusinessTypeState = {
     error: null,
     bussTypesData: null,
 };
+
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
@@ -183,7 +184,7 @@ const businessTypeSlice = createSlice({
 });
 
 // Export the actions if needed
-export const {} = businessTypeSlice.actions; // Add any synchronous actions if required
+export const object = businessTypeSlice.actions; // Add any synchronous actions if required
 
 // Export the reducer
 export default businessTypeSlice.reducer;

@@ -1,3 +1,4 @@
+// backend/src/routes/api/gradeRateRoutes.ts
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
@@ -5,7 +6,6 @@ const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const nodeEnv = process.env.NODE_ENV;
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -31,7 +31,7 @@ router.post('/create', async (req, res) => {
             return;
         }
         // Insert the new GradeRate data
-        const result = await client.query(`INSERT INTO graderate (grade, minValuex, maxValuex, rate) 
+        await client.query(`INSERT INTO graderate (grade, minValuex, maxValuex, rate) 
             VALUES ($1, $2, $3, $4)`, [
             gradeRateData.grade,
             gradeRateData.minValue,
@@ -41,8 +41,13 @@ router.post('/create', async (req, res) => {
         res.status(200).json({ success: true, message: 'GradeRate record created successfully', rate: gradeRateData.rate });
     }
     catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating GradeRate record', error: error.message });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating grade rate record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error creating grade rate record', error });
+        }
     }
     finally {
         client.release();
@@ -56,8 +61,13 @@ router.get('/all', async (req, res) => {
         res.status(200).json({ success: true, data: rows });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching GradeRate records', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error fetching grade rate record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error fetching grade rate record', error });
+        }
     }
     finally {
         client.release();
@@ -77,8 +87,13 @@ router.get('/:grade/:minValuex/:maxValuex', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching GradeRate record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error fetching grade rate record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error fetching grade rate record', error });
+        }
     }
     finally {
         client.release();
@@ -106,8 +121,13 @@ router.put('/:grade/:minValuex/:maxValuex', async (req, res) => {
         res.status(200).json({ message: 'GradeRate record updated successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating GradeRate record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error updating grade rate record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error updating grade rate record', error });
+        }
     }
     finally {
         client.release();
@@ -128,8 +148,13 @@ router.delete('/delete/:grade/:minValuex/:maxValuex', async (req, res) => {
         res.status(200).json({ message: 'GradeRate record deleted successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting GradeRate record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
     }
     finally {
         client.release();

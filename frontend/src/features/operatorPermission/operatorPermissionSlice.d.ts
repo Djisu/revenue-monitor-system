@@ -5,7 +5,7 @@ export interface OperatorPermissionState {
     error: string | null;
 }
 export declare const initialState: OperatorPermissionState;
-export declare const fetchOperatorPermissionsThunk: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchOperatorPermissionsThunk: import("@reduxjs/toolkit").AsyncThunk<OperatorPermissionData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -15,7 +15,7 @@ export declare const fetchOperatorPermissionsThunk: import("@reduxjs/toolkit").A
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchOperatorPermissionById: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const fetchOperatorPermissionById: import("@reduxjs/toolkit").AsyncThunk<OperatorPermissionData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -25,7 +25,7 @@ export declare const fetchOperatorPermissionById: import("@reduxjs/toolkit").Asy
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createOperatorPermission: import("@reduxjs/toolkit").AsyncThunk<any, OperatorPermissionData, {
+export declare const createOperatorPermission: import("@reduxjs/toolkit").AsyncThunk<OperatorPermissionData, OperatorPermissionData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -35,7 +35,7 @@ export declare const createOperatorPermission: import("@reduxjs/toolkit").AsyncT
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateOperatorPermission: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateOperatorPermission: import("@reduxjs/toolkit").AsyncThunk<OperatorPermissionData, {
     OperatorID: string;
     operatorPermissionData: OperatorPermissionData;
 }, {
@@ -48,7 +48,7 @@ export declare const updateOperatorPermission: import("@reduxjs/toolkit").AsyncT
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteOperatorPermission: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const deleteOperatorPermission: import("@reduxjs/toolkit").AsyncThunk<OperatorPermissionData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;

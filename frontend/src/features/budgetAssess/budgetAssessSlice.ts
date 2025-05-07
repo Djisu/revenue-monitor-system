@@ -143,7 +143,7 @@ const budgetAssessSlice = createSlice({
 });
 
 // Export the actions if needed
-export const {} = budgetAssessSlice.actions; // Add any synchronous actions if required
+export const object = budgetAssessSlice.actions; // Add any synchronous actions if required
 
 // Export the reducer
 export default budgetAssessSlice.reducer;

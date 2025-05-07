@@ -7,8 +7,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-//import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'    //'../../utils/ensurePermitDirIsEmpty.js';
-//import { createClient } from '../../db.js';
 dotenv.config(); // Load .env file from the default location
 const router = express.Router();
 // PostgreSQL connection configuration
@@ -68,8 +66,6 @@ const fsPromises = fs.promises;
 async function addRecord(txtBussNo, dtTransdate, txtBalanceBF, txtCurrentRate, txtRate, cboElectoralArea, cboAssessmentBy) {
     const client = await pool.connect();
     try {
-        // Get current year and previous fiscal year
-        const currentYear = new Date().getFullYear();
         const varFiscalYear = dtTransdate.getFullYear();
         const varPrevFiscalYear = varFiscalYear - 1;
         // Find previous fiscal year balance
@@ -101,8 +97,14 @@ async function addRecord(txtBussNo, dtTransdate, txtBalanceBF, txtCurrentRate, t
         return true;
     }
     catch (error) {
-        console.error('Error in adding a record:', error);
-        return false;
+        if (error instanceof Error) {
+            console.error(error);
+            return false;
+        }
+        else {
+            console.error('Unknown error:', error);
+            return false;
+        }
     }
     finally {
         client.release();
@@ -120,7 +122,14 @@ router.get('/all', async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        if (error instanceof Error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        }
+        else {
+            console.error('Unknown error:', error);
+            res.status(500).json({ message: 'Unknown error' });
+        }
     }
     finally {
         client.release();
@@ -145,8 +154,14 @@ router.get('/last', async (req, res) => {
         res.status(200).json({ newBussNo }); // Return the new buss_no
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        if (error instanceof Error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        }
+        else {
+            console.error('Unknown error:', error);
+            res.status(500).json({ message: 'Unknown error' });
+        }
     }
     finally {
         client.release();
@@ -176,9 +191,15 @@ router.get('/:buss_no', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error('Database query error:', error);
-        res.status(500).json({ message: 'Error fetching business', data: error.message });
-        return;
+        if (error instanceof Error) {
+            console.error('Database query error:', error);
+            res.status(500).json({ message: 'Error fetching business', data: error.message });
+            return;
+        }
+        else {
+            console.error('Unknown error:', error);
+            res.status(500).json({ message: 'Unknown error' });
+        }
     }
     finally {
         client.release(); // Ensure the client is released
@@ -197,8 +218,14 @@ router.get('/electoralAreas', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching electoral areas', error });
+        if (error instanceof Error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        }
+        else {
+            console.error('Unknown error:', error);
+            res.status(500).json({ message: 'Unknown error' });
+        }
     }
     finally {
         client.release();
@@ -218,8 +245,14 @@ router.get('/electoral/:electoral_area', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching businesses for electoral area', error });
+        if (error instanceof Error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        }
+        else {
+            console.error('Unknown error:', error);
+            res.status(500).json({ message: 'Unknown error' });
+        }
     }
     finally {
         client.release();
@@ -239,8 +272,14 @@ router.get('/name/:buss_name', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching business by name', error });
+        if (error instanceof Error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        }
+        else {
+            console.error('Unknown error:', error);
+            res.status(500).json({ message: 'Unknown error' });
+        }
     }
     finally {
         client.release();
@@ -313,8 +352,14 @@ router.post('/create', async (req, res) => {
         res.status(201).json({ success: true, message: 'Business record created successfully', BUSS_NO: sanitizedData.buss_no });
     }
     catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating business', error });
+        if (error instanceof Error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        }
+        else {
+            console.error('Unknown error:', error);
+            res.status(500).json({ message: 'Unknown error' });
+        }
     }
     finally {
         client.release();
@@ -326,7 +371,6 @@ router.put('/:buss_no', async (req, res) => {
     const client = await pool.connect();
     try {
         const { buss_no } = req.params;
-        const businessData = req.body;
         //console.log('THIS IS THE businessData:', businessData);
         // Sanitize the input data
         const sanitizedData = sanitizeBusinessData(req.body);
@@ -461,8 +505,14 @@ router.put('/:buss_no', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating business', error });
+        if (error instanceof Error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        }
+        else {
+            console.error('Unknown error:', error);
+            res.status(500).json({ message: 'Unknown error' });
+        }
     }
     finally {
         client.release();
@@ -484,8 +534,14 @@ router.delete('/delete/:buss_no', async (req, res) => {
         res.status(200).json({ message: 'Business deleted successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting business', error });
+        if (error instanceof Error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        }
+        else {
+            console.error('Unknown error:', error);
+            res.status(500).json({ message: 'Unknown error' });
+        }
     }
     finally {
         client.release();
@@ -502,14 +558,11 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req,
         console.log('after ensurePermitDirIsEmpty()');
         const { electoral_area, fiscal_year } = req.params;
         console.log('electoral_area:', electoral_area, 'fiscal_year:', fiscal_year);
-        //console.log('before SELECT * FROM business WHERE electroral_area = $1')
-        // Delete fiscalyear from busscurrbalance table
-        //await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [fiscal_year]);
         // Select all businesses
-        const businessesResult = await client.query('SELECT * FROM business');
+        // const businessesResult: QueryResult = await client.query('SELECT * FROM business');
         console.log('ABOUT TO BILL ALL BUSINESSES');
         // Select all businesses in the electoral area
-        let businessRows = await client.query('SELECT * FROM business WHERE electroral_area ILIKE $1', [electoral_area]);
+        const businessRows = await client.query('SELECT * FROM business WHERE electroral_area ILIKE $1', [electoral_area]);
         console.log('after SELECT * FROM business WHERE electroral_area = $1');
         console.log('businessRows.rows.length === 0: ', businessRows.rows.length === 0);
         if (businessRows.rows.length === 0) {
@@ -521,8 +574,8 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req,
         for (let i = 0; i < businessRows.rows.length; i++) {
             const { buss_no } = businessRows.rows[i];
             console.log('in the update busscurrbalance table loop');
-            let varCurrentRate = 0;
-            let varBalance = await findBusinessBalance(buss_no);
+            //const varCurrentRate = 0;
+            const varBalance = await findBusinessBalance(buss_no);
             console.log('about to update busscurrbalance table');
             // Update busscurrbalance table with current balance and fiscal year
             await client.query('UPDATE busscurrbalance SET balancebf = $1 WHERE buss_no = $2 AND fiscalyear = $3', [varBalance, buss_no, fiscal_year]);
@@ -533,7 +586,7 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req,
         // Delete from tmp_BussCurrBalance
         await client.query('DELETE FROM tmpbusscurrbalance');
         // Insert into tmp_business
-        let tmpBusinessRows = await client.query(`
+        await client.query(`
             INSERT INTO tmpbusiness 
             SELECT * FROM business 
             WHERE electroral_area ILIKE $1 
@@ -553,9 +606,9 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req,
         await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea ILIKE  $2', [fiscal_year, electoral_area]);
         console.log('after INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance');
         // Add serial numbers
-        let recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
+        const recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
         if (recBusiness.rows.length === 0) {
-            res.status(404).json({ message: 'No buainesses found for the electoral area' });
+            res.status(404).json({ message: 'No businesses found for the electoral area' });
             return;
         }
         let permitNo = 1;
@@ -567,7 +620,7 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req,
         }
         console.log('after serial number generation');
         // Check if there are any bills in tmp_business
-        let recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_name ASC');
+        const recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_name ASC');
         if (recBills.rows.length === 0) {
             res.status(404).json({ message: 'No bills found for the electoral area' });
             return;
@@ -582,16 +635,28 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req,
                 fs.writeFileSync(path.join(__dirname, 'permits', `permit_${bill.buss_no}.pdf`), pdfBuffer);
             }
             catch (error) {
-                console.error('Error generating PDF for bill:', bill, error);
-                res.status(500).json({ message: `Error generating PDF for bill ${bill.buss_no}: ${error.message}` });
-                return;
+                if (error instanceof Error) {
+                    console.error('Error generating PDF for bill:', bill, error);
+                    res.status(500).json({ message: `Error generating PDF for bill ${bill.buss_no}: ${error.message}` });
+                    return;
+                }
+                else {
+                    res.status(500).json({ message: `Error unknown for bill ${bill.buss_no}` });
+                    return;
+                }
             }
         }
         res.status(200).json({ message: 'Bills generated successfully' });
     }
     catch (error) {
-        console.error('Error executing SQL query:', error);
-        res.status(500).json({ message: 'Error processing operating permits', error });
+        if (error instanceof Error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error fetching businesses', error: error.message });
+        }
+        else {
+            console.error('Unknown error:', error);
+            res.status(500).json({ message: 'Unknown error' });
+        }
     }
     finally {
         client.release();
@@ -614,8 +679,14 @@ async function findBusinessBalance(bussNo) {
         return prevBalances - prevPayments;
     }
     catch (error) {
-        console.error(error);
-        throw new Error('Error fetching business balance');
+        if (error instanceof Error) {
+            console.error(error);
+            return 0;
+        }
+        else {
+            console.error('Unknown error:', error);
+            return 0;
+        }
     }
     finally {
         if (client) {
@@ -639,8 +710,14 @@ export async function findTotalPayable(txtBussNo) {
         return result.rows[0]?.totsum ?? 0;
     }
     catch (error) {
-        console.error('Error finding total payable:', error);
-        throw error; // Re-throw the error after logging it
+        if (error instanceof Error) {
+            console.error(error);
+            return 0;
+        }
+        else {
+            console.error('Unknown error:', error);
+            return 0;
+        }
     }
     finally {
         client.release();
@@ -669,6 +746,14 @@ export async function findCurrentRate(txtBussNo) {
         return varPrevBalances;
     }
     catch (error) {
+        if (error instanceof Error) {
+            console.error(error);
+            return 0;
+        }
+        else {
+            console.error('Unknown error:', error);
+            return 0;
+        }
         console.error('Error:', error);
         return 0;
     }
@@ -699,14 +784,14 @@ export async function ensurePermitDirIsEmpty() {
         }
         console.log('Permits directory emptied:', permitDir);
     }
-    catch (err) {
-        if (err.code === 'ENOENT') {
+    catch (error) {
+        if (error instanceof Error) {
             // Directory does not exist, create it
             await fsPromises.mkdir(permitDir, { recursive: true });
             console.log('Created permits directory:', permitDir);
         }
         else {
-            console.error('Error accessing permits directory:', err);
+            console.error('Error accessing permits directory:', error);
         }
     }
 }

@@ -1,23 +1,11 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
-//import { createClient } from '../../db.js';
 const { Pool } = pkg;
 dotenv.config(); // Load .env file from the default location
-// PostgreSQL connection configuration
-const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'revmonitor',
-};
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const emailPassword = process.env.EMAIL_PASSWORD;
-const appPassword = process.env.APP_PASSWORD;
-const emailUser = process.env.EMAIL_USER;
-const port = process.env.PORT || 3001;
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -26,8 +14,6 @@ const pool = new Pool({
     database: process.env.DB_NAME || 'revmonitor',
     port: parseInt(process.env.DB_PORT || '5432', 10),
 });
-//const pool = new Pool(dbConfig);
-// CRUD Operations
 // Create
 router.post('/', async (req, res) => {
     const report = req.body;
@@ -42,8 +28,13 @@ router.post('/', async (req, res) => {
         res.status(201).send('Report created');
     }
     catch (error) {
-        console.error(error);
-        res.status(500).send('Error creating report');
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
@@ -61,26 +52,18 @@ router.get('/', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error(error);
-        res.status(500).send('Error fetching records');
-        return;
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
     }
 });
-// router.get('/all', async (req: Request, res: Response) => {
-//     console.log('in router.get(all')
-//     const client: PoolClient = await pool.connect();
-//     const bussResult = await client.query('SELECT * FROM bustypedetailedreport');
-//     console.log('after execution')
-//     console.log('bussResult.rowCount: ', bussResult.rowCount)
-//     if (bussResult.rowCount === 0){
-//         return res.status(202).send({ message: 'Records not found', data: [] })
-//     }
-//     console.log('Records found')
-//     return res.status(200).send({message: 'Records found', data: bussResult.rows})
-// })
 // Read One
 router.get('/:buss_no', async (req, res) => {
     const buss_no = parseInt(req.params.buss_no);
@@ -95,8 +78,13 @@ router.get('/:buss_no', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).send('Error retrieving report');
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
@@ -123,8 +111,13 @@ router.put('/:buss_no', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).send({ message: 'Error updating report', data: 0 });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
@@ -144,8 +137,13 @@ router.delete('/:buss_no', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).send({ message: 'Error deleting report', data: 0 });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
@@ -224,8 +222,8 @@ router.get('/:zone/:businessType/:newFiscalYear', async (req, res) => {
         }
         console.log('after the loop');
         console.log('Executing query: SELECT * FROM public.bustypedetailedreport');
-        let result = await client.query(`SELECT * FROM public.bustypedetailedreport ORDER BY buss_type ASC`);
-        let businessTypeDetailedReports = result.rows;
+        const result = await client.query(`SELECT * FROM public.bustypedetailedreport ORDER BY buss_type ASC`);
+        const businessTypeDetailedReports = result.rows;
         if (businessTypeDetailedReports.length > 0) {
             console.log('BusTypeDetailedReport fetched');
             return res.status(200).json({ message: 'BusTypeDetailedReport fetched', data: businessTypeDetailedReports });
@@ -236,98 +234,17 @@ router.get('/:zone/:businessType/:newFiscalYear', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Error retrieving reports', error: error.message });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error getting BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
     }
 });
-// router.get('/:zone/:businessType/:newFiscalYear', async (req: Request<{ zone: string, businessType: string, newFiscalYear: string }>, res: Response): Promise<Response | void | any> => {
-//     try {
-//         const zone = req.params.zone;   
-//         const businessType = req.params.businessType; 
-//         const fiscalyear = parseInt(req.params.newFiscalYear, 10);
-//         console.log('zone: ', zone);
-//         console.log('businessType: ', businessType);
-//         console.log('fiscalyear: ', fiscalyear);
-//         // Check if fiscalyear is a valid integer
-//         if (isNaN(fiscalyear)) {
-//             console.log('Invalid fiscal year provided');
-//             return res.status(400).json({ message: 'Invalid fiscal year provided' });
-//         }
-//         const client: PoolClient = await pool.connect();
-//         console.log('about to delete');
-//         await client.query('DELETE FROM bustypedetailedreport');
-//         let businessesResult: any;
-//         if (zone === 'All electoral areas') {
-//             businessesResult = await client.query(
-//                 'SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 ORDER BY electroral_area ASC',
-//                 ['Active']
-//             );
-//         } else if (zone) {
-//             if (!businessType) {
-//                 businessesResult = await client.query(
-//                     'SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND electroral_area ILIKE $2 ORDER BY electroral_area ASC',
-//                     ['Active', zone]
-//                 );
-//             } else {
-//                 businessesResult = await client.query(
-//                     'SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 AND buss_type = $2 AND electroral_area = $3 ORDER BY electroral_area ASC',
-//                     ['Active', businessType, zone]
-//                 );
-//             }
-//         } else {
-//             businessesResult = await client.query(
-//                 'SELECT electroral_area, buss_no, buss_name, buss_type, current_rate, tot_grade FROM business WHERE status = $1 ORDER BY electroral_area ASC',
-//                 ['Active']
-//             );
-//         }
-//         if (businessesResult.rowCount === 0) {
-//             console.log('No businesses found');
-//             return res.status(404).json({ message: 'No businesses found', data: [] });
-//         }
-//         const businesses: Business[] = businessesResult.rows;
-//         let varCurrRate: number = 0;
-//         let varTotPaid: number = 0;
-//         console.log('about to loop');
-//         for (let i = 0; i < businesses.length; i++) {
-//             const query = await client.query(`SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2`, 
-//             [businesses[i].buss_no, fiscalyear]);
-//             varCurrRate = query.rowCount === 0 ? 0 : query.rows[0].totsum;
-//             const paymentsResult = await client.query(`SELECT SUM(paidamount) AS totsum FROM buspayments WHERE buss_no = $1 AND fiscal_year = $2`, 
-//             [businesses[i].buss_no, fiscalyear]);
-//             varTotPaid = paymentsResult.rowCount === 0 ? 0 : paymentsResult.rows[0].totsum;
-//             const query2 = `    
-//                 INSERT INTO bustypedetailedreport (electoral_area, buss_no, buss_name, buss_type, amountdue, amountpaid, balance, tot_grade) 
-//                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-//             `;
-//             const values2 = [
-//                 businesses[i].electroral_area, 
-//                 businesses[i].buss_no, 
-//                 businesses[i].buss_name, 
-//                 businesses[i].buss_type, 
-//                 varCurrRate,                             
-//                 varTotPaid, 
-//                 varCurrRate - varTotPaid, 
-//                 businesses[i].tot_grade
-//             ];
-//             await client.query(query2, values2); 
-//         } 
-//         console.log('Executing query: SELECT * FROM public.bustypedetailedreport');
-//         let result: QueryResult<BusTypeDetailedReport> = await client.query(`SELECT * FROM public.bustypedetailedreport`);
-//         let businessTypeDetailedReports: BusTypeDetailedReport[] = result.rows;
-//         if (businessTypeDetailedReports.length > 0) {
-//             console.log('BusTypeDetailedReport fetched');
-//             return res.status(200).json({ message: 'BusTypeDetailedReport fetched', data: businessTypeDetailedReports });
-//         } else {
-//             console.log('No data found in bustypedetailedreport');
-//             return res.status(404).json({ message: 'No data found in bustypedetailedreport', data: [] });
-//         }
-//     } catch (error: any) {
-//         console.error(error);
-//         return res.status(500).json({ message: 'Error retrieving reports', error: error.message });
-//     }
-// });
 export default router;
 //# sourceMappingURL=bustypeDetailedReportRoute.js.map

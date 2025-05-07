@@ -28,9 +28,13 @@ const VarianceAnalysis: React.FC = () => {
       const data = await response.json();
       setBusinessTypes(data.map((item: PropertyData) => item.buss_type));
       setBusinessType(data[0].buss_type); // Set first business type as default
-    } catch (err) {
-      setError('No business types found');
-    }
+    } catch (error: unknown) {
+        if (error instanceof Error){
+          setError('No electoral areas found');
+        } else {
+          console.log('Unknown error')
+        } 
+    }     
   };
 
   const fetchElectoralAreas = async () => {
@@ -38,9 +42,13 @@ const VarianceAnalysis: React.FC = () => {
       const response = await fetch('/api/electoralAreas');
       const data = await response.json();
       setElectoralAreas(data.map((item: PropertyData) => item.electoral_area));
-    } catch (err) {
-      setError('No electoral areas found');
-    }
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        setError('No electoral areas found');
+      } else {
+        console.log('Unknown error')
+      } 
+    }     
   };
 
   const fetchDates = async () => {
@@ -50,9 +58,13 @@ const VarianceAnalysis: React.FC = () => {
       setDates(data.map((item: PropertyData) => item.transdate));
       setStartDate(data[0].transdate);
       setEndDate(data[data.length - 1].transdate);
-    } catch (err) {
-      setError('No payment records date found');
-    }
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        setError('No electoral areas found');
+      } else {
+        console.log('Unknown error')
+      } 
+    }     
   };
 
   const handleBusinessTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -92,9 +104,13 @@ const VarianceAnalysis: React.FC = () => {
       } else {
         setError('No records found');
       }
-    } catch (err) {
-      setError('Error generating detailed preview');
-    }
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        setError('No electoral areas found');
+      } else {
+        console.log('Unknown error')
+      } 
+    }     
   };
 
   const handleSummaryClick = async () => {
@@ -118,9 +134,13 @@ const VarianceAnalysis: React.FC = () => {
       } else {
         setError('No records found');
       }
-    } catch (err) {
-      setError('Error generating summary preview');
-    }
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        setError('No electoral areas found');
+      } else {
+        console.log('Unknown error')
+      } 
+    }     
   };
 
   const handleExitClick = () => {

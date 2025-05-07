@@ -15,7 +15,7 @@ export interface TransSavingsState {
     error: string | null;
 }
 export declare const initialState: TransSavingsState;
-export declare const fetchTransSavings: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchTransSavings: import("@reduxjs/toolkit").AsyncThunk<TransSavingsData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -25,7 +25,7 @@ export declare const fetchTransSavings: import("@reduxjs/toolkit").AsyncThunk<an
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchTransSavingsById: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const fetchTransSavingsById: import("@reduxjs/toolkit").AsyncThunk<TransSavingsData, {
     buss_no: string;
     transdate: string;
 }, {
@@ -38,7 +38,7 @@ export declare const fetchTransSavingsById: import("@reduxjs/toolkit").AsyncThun
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createTransSavings: import("@reduxjs/toolkit").AsyncThunk<any, TransSavingsData, {
+export declare const createTransSavings: import("@reduxjs/toolkit").AsyncThunk<TransSavingsData, TransSavingsData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -48,7 +48,7 @@ export declare const createTransSavings: import("@reduxjs/toolkit").AsyncThunk<a
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateTransSavings: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateTransSavings: import("@reduxjs/toolkit").AsyncThunk<TransSavingsData, {
     buss_no: string;
     transdate: string;
     transSavingsData: TransSavingsData;
@@ -62,7 +62,7 @@ export declare const updateTransSavings: import("@reduxjs/toolkit").AsyncThunk<a
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteTransSavings: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const deleteTransSavings: import("@reduxjs/toolkit").AsyncThunk<TransSavingsData, {
     buss_no: string;
     transdate: string;
 }, {

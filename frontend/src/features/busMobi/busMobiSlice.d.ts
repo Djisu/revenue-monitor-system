@@ -22,7 +22,7 @@ export interface BusMobiState {
     error: string | null;
 }
 export declare const initialState: BusMobiState;
-export declare const fetchBusMobis: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchBusMobis: import("@reduxjs/toolkit").AsyncThunk<BusMobiData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -32,7 +32,7 @@ export declare const fetchBusMobis: import("@reduxjs/toolkit").AsyncThunk<any, v
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createBusMobi: import("@reduxjs/toolkit").AsyncThunk<any, BusMobiData, {
+export declare const createBusMobi: import("@reduxjs/toolkit").AsyncThunk<BusMobiData, BusMobiData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -42,7 +42,7 @@ export declare const createBusMobi: import("@reduxjs/toolkit").AsyncThunk<any, B
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchBusMobiById: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const fetchBusMobiById: import("@reduxjs/toolkit").AsyncThunk<BusMobiData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -52,7 +52,7 @@ export declare const fetchBusMobiById: import("@reduxjs/toolkit").AsyncThunk<any
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateBusMobi: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateBusMobi: import("@reduxjs/toolkit").AsyncThunk<BusMobiData, {
     buss_no: string;
     data: BusMobiData;
 }, {
@@ -65,7 +65,7 @@ export declare const updateBusMobi: import("@reduxjs/toolkit").AsyncThunk<any, {
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteBusMobi: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const deleteBusMobi: import("@reduxjs/toolkit").AsyncThunk<BusMobiData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;

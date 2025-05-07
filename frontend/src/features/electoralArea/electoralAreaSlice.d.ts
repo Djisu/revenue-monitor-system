@@ -7,7 +7,7 @@ export interface ElectoralAreaState {
     error: string | null;
 }
 export declare const initialState: ElectoralAreaState;
-export declare const fetchElectoralAreas: import("@reduxjs/toolkit").AsyncThunk<any[], void, {
+export declare const fetchElectoralAreas: import("@reduxjs/toolkit").AsyncThunk<ElectoralArea[], void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -17,7 +17,7 @@ export declare const fetchElectoralAreas: import("@reduxjs/toolkit").AsyncThunk<
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createElectoralArea: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const createElectoralArea: import("@reduxjs/toolkit").AsyncThunk<ElectoralArea, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -27,7 +27,7 @@ export declare const createElectoralArea: import("@reduxjs/toolkit").AsyncThunk<
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateElectoralArea: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateElectoralArea: import("@reduxjs/toolkit").AsyncThunk<ElectoralArea, {
     electoral_area: string;
     data: ElectoralArea;
 }, {
@@ -40,7 +40,7 @@ export declare const updateElectoralArea: import("@reduxjs/toolkit").AsyncThunk<
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteElectoralArea: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const deleteElectoralArea: import("@reduxjs/toolkit").AsyncThunk<ElectoralArea, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;

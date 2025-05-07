@@ -11,14 +11,26 @@ const BASE_URL = import.meta.env.VITE_BASE_URL ||
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitoring-backend.onrender.com');
 
 console.log('BASE_URL:', BASE_URL);
-declare var window: any;
+//declare let window: any;
 
-// Polyfill for process
-(window as any).process = {
+declare global {
+  interface Window {
+    process?: {
+      env: {
+        NODE_ENV: 'development' | 'production' | 'test';
+        [key: string]: string | undefined;
+      };
+    };
+  }
+}
+
+
+window.process = {
   env: {
-    NODE_ENV: 'development', // or 'production' based on your needs
+    NODE_ENV: 'development', // or set dynamically based on actual environment
   },
 };
+
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>

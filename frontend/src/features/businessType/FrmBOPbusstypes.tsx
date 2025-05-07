@@ -16,17 +16,6 @@ interface BusinessType {
   buss_type: string;
 }
 
-interface Business {
-  buss_no: string;
-  buss_name: string;
-  balance: number;
-  current_rate: number;
-  property_rate: number;
-  totalAmountDue: number;
-  transdate: string;
-  electoral_area: string;
-}
-
 const PropertyOfficerBudgetAssessmentForm: React.FC = () => {
   const [fiscalYear, setFiscalYear] = useState('');
   const [businessType, setBusinessType] = useState('');
@@ -35,7 +24,7 @@ const PropertyOfficerBudgetAssessmentForm: React.FC = () => {
   const [officers, setOfficers] = useState<Officer[]>([]);
   const [fiscalYears, setFiscalYears] = useState<FiscalYear[]>([]);
   const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
-  let [businesses, setBusinesses] = useState<Business[]>([]);
+  //const [businesses, setBusinesses] = useState<Business[]>([]);
 
   useEffect(() => {
     // Fetch officers
@@ -93,8 +82,8 @@ const PropertyOfficerBudgetAssessmentForm: React.FC = () => {
     const target = event.target as HTMLSelectElement;
     const selectedArea = target.value;
     setElectoralArea(selectedArea);
-    businesses = []
-    setBusinesses(businesses);
+    //businesses = []
+    //setBusinesses([]);
   };
 
   const handleBalanceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,7 +119,8 @@ const PropertyOfficerBudgetAssessmentForm: React.FC = () => {
         return;
       }
 
-      setBusinesses(businessesResponse.data);
+      //setBusinesses(businessesResponse.data);
+      console.log(businessesResponse.data)
 
       // Insert businesses into temporary table
       for (const business of businessesResponse.data) {

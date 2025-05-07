@@ -16,7 +16,7 @@ export interface ApiResponse {
     message: string;
 }
 export declare const initialState: OperatorState;
-export declare const fetchOperators: import("@reduxjs/toolkit").AsyncThunk<any[], void, {
+export declare const fetchOperators: import("@reduxjs/toolkit").AsyncThunk<OperatorData[], void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -26,7 +26,7 @@ export declare const fetchOperators: import("@reduxjs/toolkit").AsyncThunk<any[]
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchOperatorById: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const fetchOperatorById: import("@reduxjs/toolkit").AsyncThunk<OperatorData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -46,7 +46,7 @@ export declare const createOperator: import("@reduxjs/toolkit").AsyncThunk<strin
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateOperator: import("@reduxjs/toolkit").AsyncThunk<AxiosResponse<any, any>, {
+export declare const updateOperator: import("@reduxjs/toolkit").AsyncThunk<AxiosResponse<OperatorData, OperatorData>, {
     OperatorID: string;
     operatorData: OperatorData;
 }, {
@@ -59,7 +59,7 @@ export declare const updateOperator: import("@reduxjs/toolkit").AsyncThunk<Axios
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteOperator: import("@reduxjs/toolkit").AsyncThunk<AxiosResponse<any, any>, string, {
+export declare const deleteOperator: import("@reduxjs/toolkit").AsyncThunk<AxiosResponse<OperatorData, OperatorData>, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;

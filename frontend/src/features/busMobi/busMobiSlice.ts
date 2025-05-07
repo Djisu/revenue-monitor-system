@@ -143,7 +143,7 @@ const busMobiSlice = createSlice({
 });
 
 // Export the actions if needed
-export const {} = busMobiSlice.actions; // Add any synchronous actions if required
+export const object = busMobiSlice.actions; // Add any synchronous actions if required
 
 // Export the reducer
 export default busMobiSlice.reducer;

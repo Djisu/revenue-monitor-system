@@ -1,4 +1,4 @@
-interface BusTypeSummaryReport {
+export interface BusTypeSummaryReport {
     buss_type: string;        // VARCHAR(50)
     amountdue: number;       // DECIMAL(13,2)
     amountpaid: number;      // DECIMAL(13,2)

@@ -9,18 +9,18 @@ import { useAppSelector } from '../../hooks';
 
 
 const FrmClientPayments = () => {
-  let [businessNo, setBusinessNo] = useState<number>(0);
-  let [billedAmount, setBilledAmount] =  useState<number | null>(null);
-  let [officerNo, setOfficerNo] = useState('');
-  let [paidAmount, setPaidAmount] = useState<number>(0);
-  let [monthPaid, setMonthPaid] = useState('');
-  let transDate = new Date().toISOString().split('T')[0];
-  let [fiscalYear, setFiscalYear] = useState('');
-  let [receiptNo, setReceiptNo] = useState('');
-  let [email, setEmail] = useState('');
-  let [electoralArea, setElectoralArea] = useState('');
-  let [errorMessage, setErrorMessage] = useState('');
-  let [businessName, setBusinessName] = useState('');
+  const [businessNo, setBusinessNo] = useState<number>(0);
+  const [billedAmount, setBilledAmount] =  useState<number | null>(null);
+  const [officerNo, setOfficerNo] = useState('');
+  const [paidAmount, setPaidAmount] = useState<number>(0);
+  const [monthPaid, setMonthPaid] = useState('');
+  const transDate = new Date().toISOString().split('T')[0];
+  const [fiscalYear, setFiscalYear] = useState('');
+  const [receiptNo, setReceiptNo] = useState('');
+  const [email, setEmail] = useState('');
+  const [electoralArea, setElectoralArea] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [businessName, setBusinessName] = useState('');
 
   const dispatch = useAppDispatch();
   const billedAmountData = useAppSelector(state => state.busPayments.billedAmount);
@@ -128,11 +128,14 @@ const FrmClientPayments = () => {
      }else{
       console.log('data not found')
      }
-    } catch (error: any) {
-      console.error('Error fetching business:', error);
-      errorMessage = 'Error fetching business. Please try again.' 
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        console.error('Error fetching business:', error);
+        //errorMessage = 'Error fetching business. Please try again.' 
+        
+        setErrorMessage('Error fetching business. Please try again.' );
+      }
       
-      setErrorMessage(errorMessage);
     }
   };
 
@@ -156,8 +159,8 @@ const FrmClientPayments = () => {
 
     // Validation checks
     if (businessNo <= 0) {
-       errorMessage= 'Business Number is required'
-      setErrorMessage(errorMessage || "");
+       //errorMessage= 'Business Number is required'
+      setErrorMessage('Business Number is required');
      
       return;
     }
@@ -244,10 +247,13 @@ const FrmClientPayments = () => {
         // Handle unexpected response structure
         setErrorMessage('Unexpected response received.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle error, e.g., show error message
-      setErrorMessage('Failed to create payment. Please try again.');
-      console.error('Error creating payment:', error);
+      if (error instanceof Error){
+         setErrorMessage('Failed to create payment. Please try again.');
+         console.error('Error creating payment:', error);
+      }
+     
     }
   };
 
@@ -256,9 +262,17 @@ const FrmClientPayments = () => {
       <div>
         <Row className="mb-3">
           <Col>
-            <h4 className="text-primary">Collector's Payments Entry</h4>
+            <h4 className="text-primary">Collector Payments Entry</h4>
           </Col>
         </Row>
+        {errorMessage && (
+          <Row className="mb-3">
+            <Col>
+              <div style={{ color: 'red', fontWeight: 'bold' }}>{errorMessage}</div>
+            </Col>
+          </Row>
+        )}
+
         <Form onSubmit={handleSubmit}>
           <Row className="mb-3">
             <Col>

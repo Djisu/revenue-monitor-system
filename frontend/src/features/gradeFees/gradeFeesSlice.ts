@@ -63,7 +63,7 @@ export const createGradeFee = createAsyncThunk('gradeFees/createGradeFee', async
 
         console.log(`after axios.post, response.data: ${JSON.stringify(response.data)}`);
         return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
             throw new Error(error.response.data.message || 'Failed to create property class');
         }
@@ -84,7 +84,7 @@ async (params: { buss_type: string; grade: string; data: GradeFeesData }) => {
         console.log(`after axios.put, response.data: ${JSON.stringify(response.data)}`);
 
         return { buss_type: params.buss_type, grade: params.grade, data: params.data };
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
             throw new Error(error.response.data.message || 'Failed to create property class');
         }
@@ -185,7 +185,7 @@ const gradeFeesSlice = createSlice({
             state.loading = true;
             state.error = null;
         })
-        .addCase(updateGradeFee.fulfilled, (state: any, action) => {
+        .addCase(updateGradeFee.fulfilled, (state: GradeFeesState, action) => {
             const index = state.gradeFees.findIndex(
                 (fee: GradeFeesData) => fee.buss_type === action.payload.buss_type && fee.grade === action.payload.grade
             );
@@ -214,7 +214,7 @@ const gradeFeesSlice = createSlice({
         })
         .addCase(deleteGradeFee.fulfilled, (state, action) => {
             state.gradeFees = state.gradeFees.filter(
-                (fee: any) => !(fee.buss_type === action.payload.buss_type && fee.grade === action.payload.grade)
+                (fee: GradeFeesData) => !(fee.buss_type === action.payload.buss_type && fee.grade === action.payload.grade)
             );
         })
         .addCase(deleteGradeFee.rejected, (state, action) => {

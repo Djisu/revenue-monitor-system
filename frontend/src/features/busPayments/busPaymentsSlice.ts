@@ -127,7 +127,7 @@ export const createBusPayment = createAsyncThunk('busPayments/createBusPayment',
 export const fetchBilledAmount = createAsyncThunk('busPayments/fetchBilledAmount', async (buss_no: string) => {
     console.log('in fetchBilledAmount slice', buss_no);
 
-    let bussNo = parseInt(buss_no)
+    const bussNo = parseInt(buss_no)
     
     const response = await axios.get(`${BASE_URL}/api/busPayments/billedAmount/${bussNo}`);
     console.log('response data', response.data);
@@ -285,11 +285,9 @@ export const fetchDailyPayments = createAsyncThunk('businessType/dailypayments',
         } else {
             throw new Error(`Error fetching one business types: ${response.statusText}`);
         }
-    } catch (error: any) {
-        if (error.response && error.response.status === 404) {
-            throw new Error('Payment not found for the specified criteria.');
-        } else {
-            throw new Error(`Error fetching daily payments: ${error.message}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.log(error.message.toUpperCase()); // ✅ Safe
         }
     }
 });

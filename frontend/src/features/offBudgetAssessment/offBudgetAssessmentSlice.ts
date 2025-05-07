@@ -234,7 +234,7 @@ const offBudgetAssessmentSlice = createSlice({
 );
 
 // Export the actions if needed
-export const {} = offBudgetAssessmentSlice.actions; // Add any synchronous actions if required
+export const object = offBudgetAssessmentSlice.actions; // Add any synchronous actions if required
 
 // Export the reducer
 export default offBudgetAssessmentSlice.reducer;

@@ -10,7 +10,7 @@ export interface AccReceiptState {
     error: string | null;
 }
 export declare const initialState: AccReceiptState;
-export declare const fetchAccReceipts: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchAccReceipts: import("@reduxjs/toolkit").AsyncThunk<AccReceiptData[], void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -20,7 +20,7 @@ export declare const fetchAccReceipts: import("@reduxjs/toolkit").AsyncThunk<any
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createAccReceipt: import("@reduxjs/toolkit").AsyncThunk<any, AccReceiptData, {
+export declare const createAccReceipt: import("@reduxjs/toolkit").AsyncThunk<AccReceiptData, AccReceiptData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -30,7 +30,7 @@ export declare const createAccReceipt: import("@reduxjs/toolkit").AsyncThunk<any
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchAccReceiptById: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const fetchAccReceiptById: import("@reduxjs/toolkit").AsyncThunk<AccReceiptData, {
     batchno: string;
     fiscalyear: string;
 }, {
@@ -43,7 +43,7 @@ export declare const fetchAccReceiptById: import("@reduxjs/toolkit").AsyncThunk<
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateAccReceipt: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateAccReceipt: import("@reduxjs/toolkit").AsyncThunk<AccReceiptData, {
     batchno: string;
     data: AccReceiptData;
 }, {
@@ -56,7 +56,7 @@ export declare const updateAccReceipt: import("@reduxjs/toolkit").AsyncThunk<any
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteAccReceipt: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const deleteAccReceipt: import("@reduxjs/toolkit").AsyncThunk<AccReceiptData, {
     batchno: string;
     fiscalyear: number;
 }, {

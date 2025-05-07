@@ -126,7 +126,7 @@ const propertyRateSlice = createSlice({
                 state.rates = action.payload;
                 state.error = null;
             })
-            .addCase(fetchPropertyRates.rejected, (state: PropertyRateState, action: PayloadAction<unknown, any, any, SerializedError> ) => {
+            .addCase(fetchPropertyRates.rejected, (state: PropertyRateState, action: PayloadAction<unknown, string, unknown, SerializedError> ) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch property rates';
             })
@@ -138,7 +138,7 @@ const propertyRateSlice = createSlice({
                 state.rates = [action.payload]; // Add the new property rate
                 state.error = null;
             })
-            .addCase(fetchPropertyRateByPropertyClassAndFiscalyear.rejected, (state: PropertyRateState, action: PayloadAction<unknown, any, any, SerializedError> ) => {
+            .addCase(fetchPropertyRateByPropertyClassAndFiscalyear.rejected, (state: PropertyRateState, action: PayloadAction<unknown, string, unknown, SerializedError> ) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch property rate';
             })
@@ -150,7 +150,7 @@ const propertyRateSlice = createSlice({
                 state.rates.push(action.payload); // Add the new property rate
                 state.error = null;
             })
-            .addCase(createPropertyRate.rejected, (state: PropertyRateState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(createPropertyRate.rejected, (state: PropertyRateState, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to create property rate';
             })
@@ -165,7 +165,7 @@ const propertyRateSlice = createSlice({
                 }
                 state.error = null;
             })
-            .addCase(updatePropertyRate.rejected, (state: PropertyRateState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(updatePropertyRate.rejected, (state: PropertyRateState, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to update property rate';
             })
@@ -177,7 +177,7 @@ const propertyRateSlice = createSlice({
                 state.rates = state.rates.filter(rate => !(rate.property_class === action.meta.arg.property_Class && rate.fiscalyear === action.meta.arg.fiscalyear));
                 state.error = null;
             })
-            .addCase(deletePropertyRate.rejected, (state: PropertyRateState, action: PayloadAction<unknown, any, any, SerializedError>) => {
+            .addCase(deletePropertyRate.rejected, (state: PropertyRateState, action: PayloadAction<unknown, string, unknown, SerializedError>) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to delete property rate';
             });

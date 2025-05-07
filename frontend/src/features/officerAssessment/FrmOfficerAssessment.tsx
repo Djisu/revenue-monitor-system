@@ -43,15 +43,36 @@ interface FiscalYear {
 export interface Officer {
   officer_no: number;
   officer_name: string;
-  photo: Buffer;
+  photo: string;
 }
 
 interface OfficerBudgetResponse {
   exists: boolean;
-  data: any[]; // Adjust type as necessary
+  data: OfficerAssessment[]; // Adjust type as necessary
   status: number;
   statusText: string;
 }
+
+interface OfficerAssessment {
+  officer_name: string;
+  januaryamount: number;
+  februaryamount: number;
+  marchamount: number;
+  aprilamount: number;
+  mayamount: number;
+  juneamount: number;
+  julyamount: number;
+  augustamount: number;
+  septemberamount: number;
+  octoberamount: number;
+  novemberamount: number;
+  decemberamount: number;
+  officer_no: string;
+}
+
+// interface OfficerAssessmentBarChartProps {
+//   data: OfficerAssessment[];
+// }
 
 //type FetchClientsServedPayload = any[]; // Replace 'any[]' with the actual type
 
@@ -63,11 +84,11 @@ const FrmOfficerAssessment = () => {
 
   const [firstFiscalYear, setFirstFiscalYear] = useState(""); // Initialize as an empty string
   const [firstOfficer, setFirstOfficer] = useState('');
-  const [chartData, setChartData] = useState<any[]>([]); // Initialize as an empty array
+  const [chartData, setChartData] = useState<OfficerAssessment[]>([]); // Initialize as an empty array
 
   const [shouldFetchChartData, setShouldFetchChartData] = useState(false);
 
-  let [createClientsServedParams, setCreateClientsServedParams] = useState<CreateClientsServedParams | null>(null);
+  const [createClientsServedParams, setCreateClientsServedParams] = useState<CreateClientsServedParams | null>(null);
 
   //let [clientsServed, setClientsServed] = useState<number | null>(null);
 
@@ -100,10 +121,8 @@ const FrmOfficerAssessment = () => {
     }
   }, [dispatch, shouldFetchChartData]); 
 
-  let officersData = useAppSelector((state) => state.officer.officers);
-
-  
-  
+  const officersData = useAppSelector((state) => state.officer.officers);
+ 
   useEffect(() => {
     const fetchData = async () => {
       await dispatch(fetchOfficers());
@@ -155,14 +174,14 @@ const FrmOfficerAssessment = () => {
 
         if (budgetResponse && Array.isArray(budgetResponse.data)) {
             await Promise.all(budgetResponse.data.map(async officer => {
-                let officerNo = officer.officer_no; // Officer number from your existing data
+                const officerNo = officer.officer_no; // Officer number from your existing data
                 console.log('officerNo: ', officerNo);
 
-                let officerName = officer.officer_name; // Officer name from your existing data
+                const officerName = officer.officer_name; // Officer name from your existing data
                 console.log('officerName: ', officerName);
 
                 // Parse the fiscal year to a number
-                let fiscalYearValue = parseInt(firstFiscalYear, 10);
+                const fiscalYearValue = parseInt(firstFiscalYear, 10);
 
                 // Check if fiscalYearValue is a valid number
                 if (isNaN(fiscalYearValue)) {
@@ -171,11 +190,11 @@ const FrmOfficerAssessment = () => {
 
                 // Dispatch the thunk with the necessary parameters
                 console.log('on dispatch(fetchClientsServed')
-                let noOfClientsServed = await dispatch(fetchClientsServed({ officerNo, fiscalYear: fiscalYearValue })).unwrap();
+                const noOfClientsServed = await dispatch(fetchClientsServed({ officerNo, fiscalYear: fiscalYearValue })).unwrap();
                 console.log('noOfClientsServed: ', noOfClientsServed);
 
                 // Fetch the value of bills distributed
-                let valueOfBillsDistributed = await dispatch(fetchBillsDistributed({ officerNo, fiscalYear: fiscalYearValue })).unwrap();
+                const valueOfBillsDistributed = await dispatch(fetchBillsDistributed({ officerNo, fiscalYear: fiscalYearValue })).unwrap();
                 console.log('valueOfBillsDistributed: ', valueOfBillsDistributed);
 
                 // // Fetch all monthly amounts
@@ -303,7 +322,7 @@ const FrmOfficerAssessment = () => {
                 }
 
 
-                let totalReceiptToDate: number = 
+                const totalReceiptToDate: number = 
                 januaryAmount +  // Assuming value is the property holding the number
                 februaryAmount + 
                 marchAmount + 
@@ -320,7 +339,7 @@ const FrmOfficerAssessment = () => {
                 console.log('totalReceiptToDate: ', totalReceiptToDate)
 
                 // Calculate balance and remarks
-                let balance = valueOfBillsDistributed - totalReceiptToDate;
+                const balance = valueOfBillsDistributed - totalReceiptToDate;
                 console.log('balance: ', balance);
 
                 const remarks = (valueOfBillsDistributed > 0) ? (totalReceiptToDate / valueOfBillsDistributed) * 100 : 0;
@@ -366,13 +385,11 @@ const FrmOfficerAssessment = () => {
                 // Set to trigger fetching chart data
                 
                 setShouldFetchChartData(true);
-            }));
-
-           
+            }));         
         } else {
             console.log('No data available or response structure is invalid.');
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error processing preview:", error);
         // alert("Error processing preview");
     }

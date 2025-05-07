@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import PDFDocument from 'pdfkit';
+import puppeteer from 'puppeteer';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
@@ -9,15 +9,16 @@ import { dirname } from 'path';
 import pkg from 'pg';
 import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js';
 import { generatePdf } from '../../generatePdf.js';
+//const __filename = fileURLToPath(import.meta.url);
+await puppeteer.launch({
+    executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    headless: true
+});
 //import { createClient } from '../../db.js';
 const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
-const emailPassword = process.env.EMAIL_PASSWORD;
-const appPassword = process.env.APP_PASSWORD;
-const emailUser = process.env.EMAIL_USER;
-const port = process.env.PORT || 3001;
 // PostgreSQL connection configuration
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -55,32 +56,56 @@ async function getBusinessName(buss_no) {
 // Function to generate PDF
 async function generatePDF(receiptData, receiptsDir) {
     console.log('in generatePDF function');
-    return new Promise((resolve, reject) => {
-        const doc = new PDFDocument();
-        const receiptPath = path.join(receiptsDir, `receipt_${receiptData.ReceiptNo}.pdf`);
-        const writeStream = fs.createWriteStream(receiptPath); // Save to file
-        writeStream.on('finish', () => {
-            console.log('Receipt saved to file:', receiptPath);
-            resolve(receiptPath);
-        });
-        writeStream.on('error', (err) => {
-            console.error('Error writing receipt file:', err);
-            reject(err);
-        });
-        doc.pipe(writeStream);
-        // Add content to the PDF
-        doc.fontSize(25).text('Receipt', { align: 'center' });
-        doc.text(`Receipt No: ${receiptData.ReceiptNo}`);
-        doc.text(`Bus Number: ${receiptData.buss_no}`);
-        doc.text(`Officer No: ${receiptData.officer_no}`);
-        doc.text(`Amount: $${receiptData.paidAmount}`);
-        doc.text(`Month Paid: ${receiptData.monthpaid}`);
-        doc.text(`Transaction Date: ${receiptData.transdate}`);
-        doc.text(`Fiscal Year: ${receiptData.fiscal_year}`);
-        doc.text(`Email: ${receiptData.email}`);
-        doc.text(`Electoral Area: ${receiptData.electroral_area}`);
-        doc.end();
-    });
+    const receiptPath = path.join(receiptsDir, `receipt_${receiptData.ReceiptNo}.pdf`);
+    const receiptHTML = `
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 40px;
+                }
+                h1 {
+                    text-align: center;
+                }
+                .receipt-info {
+                    margin-top: 20px;
+                    font-size: 16px;
+                }
+                .receipt-info p {
+                    margin: 5px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Receipt</h1>
+            <div class="receipt-info">
+                <p><strong>Receipt No:</strong> ${receiptData.ReceiptNo}</p>
+                <p><strong>Bus Number:</strong> ${receiptData.buss_no}</p>
+                <p><strong>Officer No:</strong> ${receiptData.officer_no}</p>
+                <p><strong>Amount:</strong> $${receiptData.paidAmount}</p>
+                <p><strong>Month Paid:</strong> ${receiptData.monthpaid}</p>
+                <p><strong>Transaction Date:</strong> ${receiptData.transdate}</p>
+                <p><strong>Fiscal Year:</strong> ${receiptData.fiscal_year}</p>
+                <p><strong>Email:</strong> ${receiptData.email}</p>
+                <p><strong>Electoral Area:</strong> ${receiptData.electroral_area}</p>
+            </div>
+        </body>
+        </html>
+    `;
+    try {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setContent(receiptHTML);
+        await page.pdf({ path: receiptPath, format: 'A4' });
+        console.log('Receipt saved to file:', receiptPath);
+        await browser.close();
+        return receiptPath;
+    }
+    catch (err) {
+        console.error('Error generating PDF:', err);
+        throw err;
+    }
 }
 // Function to send email
 async function sendEmail(receiptPath, busPaymentsData) {
@@ -182,7 +207,7 @@ router.post('/create', async (req, res) => {
     const client = await pool.connect();
     try {
         // Insert the new BusPayments data
-        const result = await client.query(`INSERT INTO buspayments (buss_no, officer_no, paidAmount, monthpaid, transdate, 
+        await client.query(`INSERT INTO buspayments (buss_no, officer_no, paidAmount, monthpaid, transdate, 
                 fiscal_year, ReceiptNo, email, electroral_area) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`, [
             busPaymentsData.buss_no,
@@ -418,8 +443,6 @@ router.get('/defaulters/:electoralarea', async (req, res) => {
             res.status(400).json({ message: 'Invalid electoral area' });
             return;
         }
-        // Give me currentYear
-        const currentYear = new Date().getFullYear();
         await client.query('DELETE FROM balance');
         console.log('after DELETE FROM balance');
         const electoralareaResult = await client.query('SELECT * FROM business WHERE electroral_area ILIKE $1 and status = $2', [electoralarea, 'Active']);
@@ -459,7 +482,7 @@ router.get('/defaulters/:electoralarea', async (req, res) => {
                 console.log('totalPaid found');
                 const totalPaid = totalPaidResult.rows[0].totpay;
                 console.log('totalPaid:', totalPaid);
-                let varCurrentBalance = parseFloat(totalPayable) - parseFloat(totalPaid);
+                const varCurrentBalance = parseFloat(totalPayable) - parseFloat(totalPaid);
                 console.log('varCurrentBalance:', varCurrentBalance);
                 console.log('about to insert into balance');
                 if (varCurrentBalance > 0) {
@@ -482,8 +505,10 @@ router.get('/defaulters/:electoralarea', async (req, res) => {
         res.status(200).json({ message: 'Defaulters found', data: balResult.rows });
     }
     catch (error) {
-        console.error('Error in /defaulters/:electoralarea endpoint:', error);
-        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+        if (error instanceof Error) {
+            console.error('Error in /defaulters/:electoralarea endpoint:', error);
+            res.status(500).json({ message: 'Internal Server Error', error: error.message });
+        }
     }
     finally {
         client.release(); // Ensure the client is released back to the pool
@@ -491,8 +516,8 @@ router.get('/defaulters/:electoralarea', async (req, res) => {
 });
 router.get('/:fiscalyear/:receiptno', async (req, res) => {
     const client = await pool.connect();
-    let { fiscalyear, receiptno } = req.params;
-    let fiscalyearNew = parseInt(fiscalyear, 10);
+    const { fiscalyear, receiptno } = req.params;
+    const fiscalyearNew = parseInt(fiscalyear, 10);
     console.log('in router.get(/:fiscalyear/:receiptno: ', fiscalyearNew, receiptno);
     console.log('fiscalyearNew: ', fiscalyearNew);
     console.log('receiptno: ', receiptno);
@@ -595,12 +620,12 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req, res) =>
         if (varbalance > 0) {
             console.log('Credit the account ');
             // Credit the account       
-            const transsavingsDebit = await client.query('INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *', [intBussNo, formattedToday, 'BALANCE BROUGHT FORWARD', 0, varbalance, varbalance, 5, currentYear, termCount++]);
+            await client.query('INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *', [intBussNo, formattedToday, 'BALANCE BROUGHT FORWARD', 0, varbalance, varbalance, 5, currentYear, termCount++]);
         }
         else {
             console.log('Debit the account');
             // Debit the account
-            const transsavingsCredit = await client.query('INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *', [intBussNo, formattedToday, 'BALANCE BROUGHT FORWARD', varbalance, 0, varbalance, 5, currentYear, termCount++]);
+            await client.query('INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *', [intBussNo, formattedToday, 'BALANCE BROUGHT FORWARD', varbalance, 0, varbalance, 5, currentYear, termCount++]);
         }
         // Current details
         const busscurrbalanceResult = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1 AND transdate BETWEEN $2 AND $3 ORDER BY transdate ASC', [intBussNo, formattedStartDate, formattedEndDate]);
@@ -613,7 +638,7 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req, res) =>
         // loop through busscurrbalanceResult.rows and insert into transsavings
         for (const bussCurrbalanceRow of busscurrbalanceResult.rows) {
             varbalance = varbalance - parseFloat(bussCurrbalanceRow.current_balance);
-            const transsavingsResult = await client.query('INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *', [
+            await client.query('INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *', [
                 bussCurrbalanceRow.buss_no,
                 bussCurrbalanceRow.transdate,
                 'Annual Revenue Billing for Fiscal Year ' + bussCurrbalanceRow.fiscalyear,
@@ -635,7 +660,7 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req, res) =>
         if (busPaymentsDetailedResult.rows.length > 0) {
             for (const busPaymentRow of busPaymentsDetailedResult.rows) {
                 varbalance = varbalance + parseFloat(busPaymentRow.paidamount) || 0;
-                const transsavingsResult = await client.query('INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *', [
+                await client.query('INSERT INTO transsavings (buss_no, transdate, details, debit, credit, balance, userid, yearx, term) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *', [
                     busPaymentRow.buss_no,
                     busPaymentRow.transdate,
                     "Bill Payment for " + busPaymentRow.fiscal_year + ", receipt no: " + busPaymentRow.receiptno,
@@ -821,7 +846,7 @@ router.post('/billonebusiness/:bussNo', async (req, res) => {
         await ensurePermitDirIsEmpty();
         console.log('after ensurePermitDirIsEmpty()');
         // Select all businesses in the electoral area
-        let businessRows = await client.query('SELECT * FROM business WHERE buss_no = $1', [bussNo]);
+        const businessRows = await client.query('SELECT * FROM business WHERE buss_no = $1', [bussNo]);
         if (businessRows.rows.length === 0) {
             console.log('No business found for', bussNo);
             res.status(404).json({ message: `No business found for ${bussNo}` });
@@ -830,11 +855,10 @@ router.post('/billonebusiness/:bussNo', async (req, res) => {
         console.log('about to loop through businessesResult to find balances');
         // Update balancebf in busscurrbalance table for all businesses
         for (let i = 0; i < businessRows.rows.length; i++) {
-            const { buss_no } = businessRows.rows[i];
+            const buss_no = businessRows.rows[i];
             console.log('in the update busscurrbalance table loop');
-            ``;
             //let varCurrentRate = 0;
-            let varBalance = await findBusinessBalance(buss_no);
+            const varBalance = await findBusinessBalance(buss_no);
             console.log('varBalance is: ', varBalance);
             console.log('about to update busscurrbalance table');
             // Update busscurrbalance table with current balance and fiscal year
@@ -849,7 +873,7 @@ router.post('/billonebusiness/:bussNo', async (req, res) => {
         // Delete from tmp_BussCurrBalance
         await client.query('DELETE FROM tmpbusscurrbalance');
         // Insert into tmp_business
-        let tmpBusinessRows = await client.query(`
+        const tmpBusinessRows = await client.query(`
                 INSERT INTO tmpbusiness SELECT * FROM business WHERE buss_no = $1 AND current_rate > 0 ORDER BY buss_name ASC RETURNING *;
             `, [bussNo]);
         console.log('after insert into tmpbusiness and tmpBusinessRows.rows.length: ', tmpBusinessRows.rows.length);
@@ -863,7 +887,7 @@ router.post('/billonebusiness/:bussNo', async (req, res) => {
         await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
         console.log('after INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance');
         // Add serial numbers
-        let recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
+        const recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
         let permitNo = 1;
         for (let i = 0; i < recBusiness.rows.length; i++) {
             const varSerialNo = permitNo.toString().padStart(10, '0');
@@ -873,7 +897,7 @@ router.post('/billonebusiness/:bussNo', async (req, res) => {
         }
         console.log('after serial number generation');
         // Check if there are any bills in tmp_business
-        let recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_name ASC');
+        const recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_name ASC');
         if (recBills.rows.length === 0) {
             res.status(404).json({ message: 'No bills found for the electoral area' });
             return;
@@ -889,9 +913,15 @@ router.post('/billonebusiness/:bussNo', async (req, res) => {
                 console.log('BILL written to permitDir');
             }
             catch (error) {
-                console.error('Error generating PDF for bill:', bill, error);
-                res.status(500).json({ message: `Error generating PDF for bill ${bill.buss_no}: ${error.message}` });
-                return;
+                if (error instanceof Error) {
+                    console.error('Error generating PDF for bill:', bill, error);
+                    res.status(500).json({ message: `Error generating PDF for bill ${bill.buss_no}: ${error.message}` });
+                    return;
+                }
+                else {
+                    res.status(500).json({ message: `Error occurred for bill ${bill.buss_no}` });
+                    return;
+                }
             }
         }
         console.log('Clients Bill generated successfully');
@@ -985,7 +1015,6 @@ function generateRandomGRC() {
 }
 router.post('/createPaymentsForAllBusinesses', async (req, res) => {
     console.log('in router.post(/createPaymentsForAllBusinesses)');
-    const busPaymentsData = req.body;
     // Ensure the receipts directory exists
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
@@ -1010,7 +1039,7 @@ router.post('/createPaymentsForAllBusinesses', async (req, res) => {
         for (const business of businessesResult.rows) {
             const bussNo = business.buss_no;
             // Insert the new BusPayments data
-            const result = await client.query(`INSERT INTO buspayments (buss_no, officer_no, paidamount, monthpaid, transdate, 
+            await client.query(`INSERT INTO buspayments (buss_no, officer_no, paidamount, monthpaid, transdate, 
                     fiscal_year, receiptno, electroral_area, buss_type, email) 
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`, [
                 bussNo, // Use the buss_no from the business table
@@ -1039,17 +1068,17 @@ router.post('/createPaymentsForAllBusinesses', async (req, res) => {
             const updateOfficerBudgetResult = await updateOfficerBudget(params);
             console.log('updateOfficerBudgetResult for buss_no:', bussNo, updateOfficerBudgetResult);
             // Generate the receipt data
-            const receiptData = {
-                buss_no: bussNo,
-                officer_no: busPaymentsData.officer_no,
-                paidAmount: busPaymentsData.paidAmount,
-                monthpaid: busPaymentsData.monthpaid,
-                transdate: busPaymentsData.transdate,
-                fiscal_year: busPaymentsData.fiscal_year,
-                ReceiptNo: busPaymentsData.ReceiptNo,
-                email: busPaymentsData.email,
-                electroral_area: busPaymentsData.electroral_area
-            };
+            // const receiptData = {
+            //     buss_no: bussNo,
+            //     officer_no: busPaymentsData.officer_no,
+            //     paidAmount: busPaymentsData.paidAmount,
+            //     monthpaid: busPaymentsData.monthpaid,
+            //     transdate: busPaymentsData.transdate,
+            //     fiscal_year: busPaymentsData.fiscal_year,
+            //     ReceiptNo: busPaymentsData.ReceiptNo,
+            //     email: busPaymentsData.email,
+            //     electroral_area: busPaymentsData.electroral_area
+            // };
             // Generate the PDF receipt
             // const receiptPath = await generatePDF(receiptData, receiptsDir);
             // console.log('Receipt generated for buss_no:', bussNo);

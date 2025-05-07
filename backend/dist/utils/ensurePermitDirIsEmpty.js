@@ -29,14 +29,14 @@ async function ensurePermitDirIsEmpty() {
         }
         console.log('Permits directory emptied:', permitDir);
     }
-    catch (err) {
-        if (err.code === 'ENOENT') {
+    catch (error) {
+        if (error instanceof Error && error.code === 'ENOENT') {
             // Directory does not exist, create it
             await fsPromises.mkdir(permitDir, { recursive: true });
             console.log('Created permits directory:', permitDir);
         }
         else {
-            console.error('Error accessing permits directory:', err);
+            console.error('Error accessing permits directory:', error);
         }
     }
 }

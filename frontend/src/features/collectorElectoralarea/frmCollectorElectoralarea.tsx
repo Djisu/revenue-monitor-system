@@ -5,11 +5,13 @@ import {
     createCollectorElectoralArea,
     updateCollectorElectoralArea,
     deleteCollectorElectoralArea,
+    CollectorElectoralArea
 } from './collectorElectoralAreaSlice'; // Adjust the import path as necessary
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice'; // Adjust the import path as necessary
 import { fetchOfficers } from '../officer/officerSlice'; // Adjust the import path as necessary
 //import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+
 
 const CollectorElectoralAreaForm = () => {
     const navigate = useNavigate();
@@ -58,7 +60,7 @@ const CollectorElectoralAreaForm = () => {
         setIsUpdating(false);
     };
 
-    const handleEdit = (area: any) => {
+    const handleEdit = (area: CollectorElectoralArea) => {
         setSelectedOfficerNo(area.officer_no);
         setSelectedElectoralArea(area.electoralarea);
         setIsUpdating(true);

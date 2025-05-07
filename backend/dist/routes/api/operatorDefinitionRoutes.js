@@ -87,8 +87,13 @@ router.post('/create', async (req, res) => {
         res.status(201).json({ message: 'Operator created successfully' });
     }
     catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating operator', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error creating record', error });
+        }
     }
     finally {
         if (client) {
@@ -109,8 +114,13 @@ router.get('/all', async (req, res) => {
         res.status(200).json(rows.rows);
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching operators', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
     }
     finally {
         if (client) {
@@ -132,8 +142,13 @@ router.get('/:OperatorID', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching operator', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
     }
     finally {
         if (client) {
@@ -166,9 +181,13 @@ router.put('/:OperatorID', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating operator', error });
-        return;
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error updating record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error updating record', error });
+        }
     }
     finally {
         if (client) {
@@ -192,10 +211,13 @@ router.delete('/:OperatorID', async (req, res) => {
         res.status(200).json({ message: 'Operator deleted successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting operator', error });
-    }
-    finally {
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
         if (client) {
             client.release();
         }

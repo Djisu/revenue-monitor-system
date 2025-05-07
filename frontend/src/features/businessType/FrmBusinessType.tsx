@@ -5,7 +5,8 @@ import { Link } from 'react-router-dom';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
 
 export interface BusinessTypeData {
-    business_type: string; // Updated to match API response
+    Business_Type: string; // Updated to match API response
+    business_Type: string;
 }
 
 const FrmBusinessType: React.FC = () => {
@@ -23,7 +24,7 @@ const FrmBusinessType: React.FC = () => {
                 const response = await dispatch(fetchBusinessTypes()).unwrap();
                 setBusinessTypesData(response);
                 console.log("Fetched business types:", response);
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error("Error fetching business types", error);
                 alert("Error in fetching business types");
             }
@@ -90,9 +91,9 @@ const FrmBusinessType: React.FC = () => {
         }
     };
 
-    const handleRowClick = (bussType: any) => {
+    const handleRowClick = (bussType: BusinessTypeData) => {
         console.log("Row clicked:", bussType);
-        const businessTypeValue = bussType.business_type; 
+        const businessTypeValue = bussType.Business_Type || bussType.business_Type; // Updated to match API response
 
         console.log("Business type value:", businessTypeValue);
     
@@ -103,12 +104,12 @@ const FrmBusinessType: React.FC = () => {
         }
     };
 
-    const renderBusinessTypes = (businessTypes: any) => {
+    const renderBusinessTypes = (businessTypes: BusinessTypeData[]) => {
         console.log("Rendering businessTypes:", businessTypes);
         
-        return businessTypes.map((bussType: any, index: number) => (
+        return businessTypes.map((bussType: BusinessTypeData, index: number) => (
             <tr key={index}onClick={() => handleRowClick(bussType)}>
-                <td className="business-type-row">{bussType.Business_Type}</td>
+                <td className="business-type-row">{bussType.Business_Type || bussType.business_Type}</td>
             </tr>
         ));
     };
@@ -163,7 +164,7 @@ const FrmBusinessType: React.FC = () => {
                         </thead>
                         <tbody>                              
                                 {businessTypesData.length > 0 ? (
-                                      renderBusinessTypes(businessTypes)
+                                      renderBusinessTypes(businessTypes as BusinessTypeData[])
                             ) : (
                                 <tr>
                                     <td colSpan={1}>No business types available.</td>

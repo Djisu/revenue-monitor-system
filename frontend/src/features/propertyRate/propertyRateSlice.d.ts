@@ -10,7 +10,7 @@ export interface PropertyRateState {
     error: string | null;
 }
 export declare const initialState: PropertyRateState;
-export declare const fetchPropertyRates: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchPropertyRates: import("@reduxjs/toolkit").AsyncThunk<PropertyRateData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -20,7 +20,7 @@ export declare const fetchPropertyRates: import("@reduxjs/toolkit").AsyncThunk<a
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchPropertyRateByPropertyClassAndFiscalyear: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const fetchPropertyRateByPropertyClassAndFiscalyear: import("@reduxjs/toolkit").AsyncThunk<PropertyRateData, {
     property_Class: string;
     fiscalyear: number;
 }, {
@@ -33,7 +33,7 @@ export declare const fetchPropertyRateByPropertyClassAndFiscalyear: import("@red
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createPropertyRate: import("@reduxjs/toolkit").AsyncThunk<any, PropertyRateData, {
+export declare const createPropertyRate: import("@reduxjs/toolkit").AsyncThunk<PropertyRateData, PropertyRateData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -43,7 +43,7 @@ export declare const createPropertyRate: import("@reduxjs/toolkit").AsyncThunk<a
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updatePropertyRate: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updatePropertyRate: import("@reduxjs/toolkit").AsyncThunk<PropertyRateData, {
     property_Class: string;
     fiscalyear: number;
     propertyRateData: PropertyRateData;
@@ -57,7 +57,7 @@ export declare const updatePropertyRate: import("@reduxjs/toolkit").AsyncThunk<a
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deletePropertyRate: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const deletePropertyRate: import("@reduxjs/toolkit").AsyncThunk<PropertyRateData, {
     property_Class: string;
     fiscalyear: number;
 }, {

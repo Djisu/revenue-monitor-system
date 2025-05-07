@@ -28,19 +28,19 @@ import { fetchOperators, createOperator, updateOperator, deleteOperator, Operato
 // }
 
 const OperatorDefForm: React.FC = () => {
-  let [operatorid, setOperatorid] = useState<string>('');
-  let [operatorname, setOperatorname] = useState<string>('');
-  let [password, setPassword] = useState<string>('');
-  let [firstname, setFirstname] = useState<string>('');
-  let [lastname, setLastname] = useState<string>('');
-  let [email, setEmail] = useState<string>('');
-  let [operatorList, setOperatorList] = useState<OperatorData[]>([]);
-  let [error, setError] = useState<string>('');
-  let [successMessage, setSuccessMessage] = useState<string>('');
+  const [operatorid, setOperatorid] = useState<string>('');
+  const [operatorname, setOperatorname] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [firstname, setFirstname] = useState<string>('');
+  const [lastname, setLastname] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [operatorList, setOperatorList] = useState<OperatorData[]>([]);
+  const [error, setError] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
-  let dispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  let operatorListFromStore = useAppSelector((state) => state.operatorDefinition.operators);
+  const operatorListFromStore = useAppSelector((state) => state.operatorDefinition.operators);
 
 
 
@@ -56,8 +56,8 @@ const OperatorDefForm: React.FC = () => {
         const operatorListData = await dispatch(fetchOperators()).unwrap();
         console.log(operatorListData); // This is now the array of operators
 
-        operatorList = operatorListData
-        setOperatorList(operatorList); // Set the operator list directly
+        //operatorList = operatorListData
+        setOperatorList(operatorListData); // Set the operator list directly
     } catch (error) {
         console.error(error);
         setError('Error fetching operators');
@@ -317,7 +317,7 @@ const OperatorDefForm: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {operatorListFromStore.map((operator: any, index: number) => (
+          {operatorListFromStore.map((operator: OperatorData, index: number) => (
             <tr key={index} onClick={() => handleItemClick(operator)}>
               <td>{operator.operatorid}</td>
               <td>{operator.firstname}</td>
@@ -326,7 +326,24 @@ const OperatorDefForm: React.FC = () => {
           ))}
         </tbody>
       </Table>
-      
+      <Table>
+        <thead>
+          <tr>
+            <th>Operator ID</th>
+            <th>Operator Name</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          {operatorList.map((operator, index) => (
+            <tr key={index}>
+              <td>{operator.operatorid}</td>
+              <td>{operator.operatorname}</td>
+              <td>{operator.email}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
       <Button className="primary m-3" onClick={() => navigate('/main')}>Go Back</Button>
     </Container>
   );

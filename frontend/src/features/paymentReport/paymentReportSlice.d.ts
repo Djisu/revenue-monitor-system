@@ -13,7 +13,7 @@ export interface PaymentReportState {
     error: string | null;
 }
 export declare const initialState: PaymentReportState;
-export declare const fetchPaymentReports: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchPaymentReports: import("@reduxjs/toolkit").AsyncThunk<PaymentReportData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -23,7 +23,7 @@ export declare const fetchPaymentReports: import("@reduxjs/toolkit").AsyncThunk<
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchPaymentReportById: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const fetchPaymentReportById: import("@reduxjs/toolkit").AsyncThunk<PaymentReportData, {
     buss_no: string;
     fiscalyear: number;
 }, {
@@ -36,7 +36,7 @@ export declare const fetchPaymentReportById: import("@reduxjs/toolkit").AsyncThu
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createPaymentReport: import("@reduxjs/toolkit").AsyncThunk<any, PaymentReportData, {
+export declare const createPaymentReport: import("@reduxjs/toolkit").AsyncThunk<PaymentReportData, PaymentReportData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -46,7 +46,7 @@ export declare const createPaymentReport: import("@reduxjs/toolkit").AsyncThunk<
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updatePaymentReport: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updatePaymentReport: import("@reduxjs/toolkit").AsyncThunk<PaymentReportData, {
     buss_no: string;
     fiscalyear: number;
     paymentReportData: PaymentReportData;
@@ -60,7 +60,7 @@ export declare const updatePaymentReport: import("@reduxjs/toolkit").AsyncThunk<
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deletePaymentReport: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const deletePaymentReport: import("@reduxjs/toolkit").AsyncThunk<PaymentReportData, {
     buss_no: string;
     fiscalyear: number;
 }, {

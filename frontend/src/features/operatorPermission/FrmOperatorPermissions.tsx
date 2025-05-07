@@ -11,7 +11,6 @@ import {
 
 import { fetchOperators } from '../operatorDefinition/operatorDefinitionSlice';
 import  {OperatorPermissionData} from './OperatorPermissionData';
-import { OperatorData } from '../operatorDefinition/operatorDefinitionSlice';
 
 const FrmOperatorPermissions: React.FC = () => {
   const [operatorID, setOperatorID] = useState<string>('');
@@ -22,7 +21,7 @@ const FrmOperatorPermissions: React.FC = () => {
   
   const [error, setError] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
-  let [operatorList, setOperatorList] = useState<OperatorData[]>([]);
+  //const [operatorList, setOperatorList] = useState<OperatorData[]>([]);
   const [localOperatorPermissions, setLocalOperatorPermissions] = useState<OperatorPermissionData[]>([]);
 
   const dispatch = useAppDispatch();
@@ -48,8 +47,8 @@ console.log('operatorListData: ', operatorListData)
   const fetchOperatorList = async () => {
     try {
       const response = await dispatch(fetchOperators()).unwrap();
-      operatorList = response
-      setOperatorList(operatorList);
+      //operatorList = response
+     // setOperatorList(response);
       console.log('Fetched Operators:', response); // Log the fetched operators
     } catch (error) {
       console.error(error);

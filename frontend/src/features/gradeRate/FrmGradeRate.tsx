@@ -51,11 +51,11 @@ const GradeRateForm: React.FC = () => {
       console.log(`after dispatch(fetchGradeRates()).unwrap(), response.data: ${JSON.stringify(response.data)}`);
 
       if (response.data && Array.isArray(response.data)) {
-        const formattedGradeRates = response.data.map((gr: any) => ({
-          grade: gr?.grade,
-          minValuex: parseFloat(gr?.minValuex) || 0, // Provide default value if undefined
-          maxValuex: parseFloat(gr?.maxValuex) || 0, // Provide default value if undefined
-          rate: parseFloat(gr?.rate) || 0,       // Provide default value if undefined
+        const formattedGradeRates = response.data.map((gr: GradeRate) => ({
+          grade: gr.grade,
+          minValuex: gr.minValuex, // Ensure minValuex is a number
+          maxValuex: gr.maxValuex, // Ensure maxValuex is a number
+          rate: gr?.rate || 0,       // Provide default value if undefined
         }));
 
         dispatch(setGradeRates(formattedGradeRates));

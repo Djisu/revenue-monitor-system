@@ -1,18 +1,14 @@
 // backend/src/routes/api/offBudgetAssessmentRoutes.ts
-import express, { Request, Response, Router } from 'express';
+import { Request, Response, Router } from 'express';
 import * as dotenv from 'dotenv';
 
 import pkg, { QueryResult } from 'pg';
-import { createClient } from '../../db.js';
 const { Pool } = pkg;
 
 const router = Router();
 
 // Load environment variables from .env file
 dotenv.config();
-
-const nodeEnv = process.env.NODE_ENV;
-
 
 // PostgreSQL connection configuration
 const pool = new Pool({
@@ -22,15 +18,6 @@ const pool = new Pool({
     password: process.env.DB_PASSWORD || '',
     port: parseInt(process.env.DB_PORT || '5432', 10),
 });
-
-interface FiscalYear {
-    fiscal_year: number;
-}
-
-interface Officer {
-    officer_no: string;
-    officer_name: string;
-}
 
 // OffBudgetAssessment data interface
 interface OffBudgetAssessmentData {
@@ -146,7 +133,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     try {
        
         // Insert the new OffBudgetAssessment data
-        const result = await client.query(
+        await client.query(
             `INSERT INTO offbudgetassessment 
             (officer_name, january_amount, january_budget, february_amount, february_budget, 
             march_amount, march_budget, april_amount, april_budget, may_amount, may_budget, 
@@ -184,9 +171,14 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(201).json({ message: 'OffBudgetAssessment record created successfully' });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating OffBudgetAssessment record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error creating creating officer budget record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error creating creating officer budget record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -198,9 +190,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 router.get('/', async (req: Request, res: Response) => {
     const client = await pool.connect()
 
-
-    try {
-       
+    try {      
         const result = await client.query('SELECT * FROM offbudgetassessment');
         res.json(result.rows);
     } catch (error) {
@@ -219,9 +209,7 @@ router.get('/:officer_name', async (req: Request, res: Response) => {
 
     const client = await pool.connect()
 
-
-    try {
-       
+    try {       
         const result = await client.query('SELECT * FROM offbudgetassessment WHERE officer_name = $1', [officer_name]);
 
         if (Array.isArray(result.rows) && result.rows.length > 0) {
@@ -229,9 +217,14 @@ router.get('/:officer_name', async (req: Request, res: Response) => {
         } else {
             res.status(404).json({ message: 'OffBudgetAssessment record not found' });
         }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching OffBudgetAssessment record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error getting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -241,7 +234,7 @@ router.get('/:officer_name', async (req: Request, res: Response) => {
 
 // Read a single OffBudgetAssessment record by officer_name
 router.get('/:officer_no/:fiscalYear', async (req: Request, res: Response) => {
-    const { officer_no, fiscalYear } = req.params;
+    const { officer_no } = req.params;
 
     const client = await pool.connect()
 
@@ -255,9 +248,14 @@ router.get('/:officer_no/:fiscalYear', async (req: Request, res: Response) => {
         } else {
             res.status(404).json({ message: 'OffBudgetAssessment record not found' });
         }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching OffBudgetAssessment record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error getting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -315,9 +313,14 @@ router.put('/:officer_name', async (req: Request, res: Response): Promise<void> 
         );
 
         res.status(200).json({ message: 'OffBudgetAssessment record updated successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating OffBudgetAssessment record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error updating record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error updating record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -331,15 +334,19 @@ router.delete('/:officer_name', async (req: Request, res: Response) => {
 
     const client = await pool.connect()
 
-
     try {
        
         // Delete the OffBudgetAssessment record
         await client.query('DELETE FROM offbudgetassessment WHERE officer_name = $1', [officer_name]);
         res.status(200).json({ message: 'OffBudgetAssessment record deleted successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting OffBudgetAssessment record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
+        
     } finally {
         if (client) {
             client.release();
@@ -351,9 +358,7 @@ router.delete('/:officer_name', async (req: Request, res: Response) => {
 async function getFiscalYears(): Promise<number[]> {
     const client = await pool.connect()
 
-
-    try {
-       
+    try {      
         const result: QueryResult<{fiscal_year: number}> = await client.query('SELECT DISTINCT fiscal_year FROM tb_officerbudget ORDER BY fiscal_year');
 
         return result.rows.map(row => row.fiscal_year);
@@ -371,8 +376,7 @@ async function getFiscalYears(): Promise<number[]> {
 async function getOfficers(): Promise<{ officer_no: string; officer_name: string }[]> {
     const client = await pool.connect()
 
-    try {
-       
+    try {      
         const result = await client.query('SELECT * FROM tb_officer');
 
         return result.rows;
@@ -450,7 +454,7 @@ async function insertBudgetAssess(data: AssessmentData[]) {
 
     try {
        
-        for (let item of data) {
+        for (const item of data) {
             await client.query(
                 `INSERT INTO tb_budgetassess (month, budget, amount, variance, fiscalyear, assessmentby) 
                  VALUES ($1, $2, $3, $4, $5, $6)`,

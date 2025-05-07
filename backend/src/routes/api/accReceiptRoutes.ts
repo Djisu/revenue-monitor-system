@@ -1,18 +1,11 @@
-import express, { Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import * as dotenv from 'dotenv';
-
-import { QueryResult, PoolClient } from 'pg';
 import pkg from 'pg';
-//import { createClient } from '../../db.js'; // Adjust the path as needed
 
 const { Pool } = pkg;
 
 const router = Router();
-
-// Load environment variables from .env file
 dotenv.config();
-
-
 
 // PostgreSQL connection configuration
 const dbConfig = {
@@ -60,16 +53,16 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Insert the new AccReceipt data
-        const result = await client.query<QueryResult>(
+        await client.query(
             `INSERT INTO accreceipt (fiscalyear, batchno, firstno, lastno) 
-            VALUES ($1, $2, $3, $4)`,
+             VALUES ($1, $2, $3, $4)`,
             [
-                accReceiptData.fiscalyear,
-                accReceiptData.batchno,
-                accReceiptData.firstno,
-                accReceiptData.lastno,
+              accReceiptData.fiscalyear,
+              accReceiptData.batchno,
+              accReceiptData.firstno,
+              accReceiptData.lastno,
             ]
-        );
+          );
 
         res.status(201).json({ message: 'AccReceipt created successfully'});
         return;

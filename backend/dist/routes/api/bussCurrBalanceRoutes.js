@@ -1,8 +1,8 @@
+// backend/src/routes/api/bussCurrBalanceRoutes.ts
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pg from 'pg';
 const { Pool } = pg;
-// import { createClient } from '../../db.js';
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
             return;
         }
         // Insert the new BussCurrBalance data
-        const result = await client.query(`INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
+        await client.query(`INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalAmountDue, transdate, electoralarea) 
             VALUES ($1, $2, $3, $4, $5, $6, $7)`, [
             bussCurrBalanceData.buss_no,
             bussCurrBalanceData.fiscalyear,
@@ -39,9 +39,13 @@ router.post('/', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating BussCurrBalance record', error });
-        return;
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
@@ -56,9 +60,13 @@ router.get('/', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching busscurrbalance records', error });
-        return;
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
@@ -80,9 +88,13 @@ router.get('/:buss_no/:fiscalyear', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching busscurrbalance record', error });
-        return;
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
@@ -100,7 +112,7 @@ router.put('/:buss_no/:fiscalyear', async (req, res) => {
             return;
         }
         // Update the BussCurrBalance data
-        const result = await client.query(`UPDATE busscurrbalance SET fiscalyear = $1, balancebf = $2, current_balance = $3, totalAmountDue = $4, 
+        await client.query(`UPDATE busscurrbalance SET fiscalyear = $1, balancebf = $2, current_balance = $3, totalAmountDue = $4, 
             transdate = $5, electoralarea = $6 
             WHERE buss_no = $7 AND fiscalyear = $8`, [
             bussCurrBalanceData.fiscalyear,
@@ -116,9 +128,13 @@ router.put('/:buss_no/:fiscalyear', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating BussCurrBalance record', error });
-        return;
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();
@@ -135,14 +151,18 @@ router.delete('/:buss_no/:fiscalyear', async (req, res) => {
             return;
         }
         // Delete the BussCurrBalance record
-        const result = await client.query('DELETE FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
+        await client.query('DELETE FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
         res.status(200).json({ message: 'BussCurrBalance record deleted successfully' });
         return;
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting BussCurrBalance record', error });
-        return;
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating BusinessType record', error });
+        }
+        else {
+            res.status(500).json({ message: "Unknown error" });
+        }
     }
     finally {
         client.release();

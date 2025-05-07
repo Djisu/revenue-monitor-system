@@ -1,11 +1,8 @@
+// backend/src/routes/api/electoralAreaRoutes.ts
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
-//import { createClient } from '../../db.js';
 const { Pool } = pkg;
-// import { QueryResult, PoolClient } from 'pg';
-// import pkg from 'pg';
-// const { Pool } = pkg;
 const router = Router();
 // Load environment variables from .env file
 dotenv.config();
@@ -36,8 +33,13 @@ router.post('/create', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
     }
     finally {
         if (client) {
@@ -57,9 +59,13 @@ router.get('/all', async (req, res) => {
         return;
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Error fetching electoral area records', error });
-        return;
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
     }
     finally {
         if (client) {
@@ -81,8 +87,13 @@ router.get('/:electoral_area', async (req, res) => {
         }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Error fetching electoral area record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
     }
     finally {
         if (client) {
@@ -110,8 +121,13 @@ router.put('/:electoral_area', async (req, res) => {
         res.status(200).json({ success: true, message: 'Electoral area record updated successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Error updating electoral area record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
     }
     finally {
         if (client) {
@@ -136,8 +152,13 @@ router.delete('/delete/:electoral_area', async (req, res) => {
         res.status(200).json({ success: true, message: 'Electoral area record deleted successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Error deleting electoral area record', error });
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error deleting electoral area record', error });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
+        }
     }
     finally {
         if (client) {

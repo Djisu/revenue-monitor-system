@@ -1,8 +1,32 @@
-.env
-/config
-/backend/node_modules
-/node_modules
-/package-lock.json
-/Users/pauljesufleischer/revmonitor/backend/dist/routes/api/permits
-.env.production
+# Dependencies
 node_modules/
+
+# Compiled output
+dist/
+build/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Testing
+coverage/
+*.lcov
+
+# Environment files
+.env
+.env.local
+
+# Editor and OS-specific
+.DS_Store
+.vscode/
+.idea/

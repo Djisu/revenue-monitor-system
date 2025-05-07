@@ -7,7 +7,7 @@ const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
 import multer from 'multer';
-//import { createClient } from '../../db.js';
+
 
 // Define the File type from multer
 type File = Express.Multer.File;
@@ -46,6 +46,11 @@ interface CustomRequest extends Request {
 router.use(express.json());
 
 // Create a new officer record
+/* The above code snippet is defining a POST route handler for '/create' endpoint in a Node.js Express
+router. It is using multer middleware (upload.single('photo')) to handle file uploads with the field
+name 'photo'. The route handler is an asynchronous function that takes a custom request object
+(CustomRequest) and a response object (Response) as parameters. The function is not complete as it
+seems to be cut off with 'co' and ' */
 router.post('/create', upload.single('photo'), async (req: CustomRequest, res: Response): Promise<void> => {
     const officerData: OfficerData = req.body;
 
@@ -87,9 +92,14 @@ router.post('/create', upload.single('photo'), async (req: CustomRequest, res: R
         // }
 
         res.status(201).json({ message: 'Officer record created successfully' });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating officer record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error creating  record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error creating  record', error });
+        }
+        
     } finally {
         if (client) {
              client.release();
@@ -102,8 +112,7 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
     const { officer_no } = req.params;
     const officerData: OfficerData = req.body;
 
-     const client = await pool.connect(); // Get a client from the pool
-
+    const client = await pool.connect(); // Get a client from the pool
 
     try {
  
@@ -126,9 +135,14 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
         );
 
         res.status(200).json({ message: 'Officer record updated successfully' });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating officer record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error updating record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error updating record', error });
+        }
+        
     } finally {
         if (client) {
              client.release();
@@ -162,9 +176,14 @@ router.delete('/delete/:officer_no', async (req: Request, res: Response): Promis
         await client.query('DELETE FROM photos WHERE officer_no = $1', [officer_no]);
 
         res.status(200).json({ message: 'Officer record deleted successfully' });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting officer record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error deleting record', error });
+        }
+        
     } finally {
         if (client) {
              client.release();
@@ -173,11 +192,11 @@ router.delete('/delete/:officer_no', async (req: Request, res: Response): Promis
 });
 
 // Read all officer records
-router.get('/all', async (req: Request, res: Response): Promise<any> => {
+router.get('/all', async (req: Request, res: Response): Promise<void> => {
     console.log('router.get(/all XXXXXXXXX');
 
     
- const client = await pool.connect(); // Get a client from the pool
+    const client = await pool.connect(); // Get a client from the pool
 
     try {
         
@@ -213,9 +232,14 @@ router.get('/all', async (req: Request, res: Response): Promise<any> => {
         console.log('Fetched officers:');
 
         res.status(200).json(officers);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error getting officer records', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error getting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        
     } finally {
         if (client) {
              client.release();
@@ -251,9 +275,14 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
 
         // Send the binary photo data
         res.send(photoBuffer);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error getting officer record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error getting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        
     } finally {
         if (client) {
              client.release();
@@ -279,9 +308,14 @@ router.get('/retrieveByName/:officer_name', async (req: Request, res: Response) 
         }
 
         res.json(result.rows);
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: 'Error getting officer record', error });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+           console.error('Error:', error);
+           res.status(500).json({ success: false, message: 'Error getting record', error });
+        }else{
+            res.status(500).json({ success: false, message: 'Error getting record', error });
+        }
+        
     } finally {
         if (client) {
              client.release();
@@ -290,209 +324,3 @@ router.get('/retrieveByName/:officer_name', async (req: Request, res: Response) 
 });
 
 export default router;
-
-
-
-
-
-// // backend/src/routes/api/officerRoutes.ts
-// import * as dotenv from 'dotenv';
-// import express, { Router, Request, Response } from 'express';
-// import mysql, { ResultSetHeader } from 'mysql2/promise';
-// import multer, { diskStorage, StorageEngine } from 'multer';
-// import bodyParser from 'body-parser';
-
-// const router: Router = express.Router();
-
-// // Load environment variables from .env file
-// dotenv.config();
-
-// // MySQL connection configuration
-// const dbConfig = {
-//     host: process.env.DB_HOST || 'localhost',
-//     user: process.env.DB_USER || 'root',
-//     password: process.env.DB_PASSWORD || '',
-//     database: process.env.DB_NAME || 'revmonitor',
-// };
-
-// // Set up multer storage
-// const storage: StorageEngine = diskStorage({
-//     destination: (req: Request, file: Express.Multer.File, cb: (error: any, destination: string) => void) => {
-//         cb(null, 'uploads/');
-//     },
-//     filename: (req: Request, file: Express.Multer.File, cb: (error: any, filename: string) => void) => {
-//         cb(null, file.originalname);
-//     },
-// });
-
-
-// // Officer data interface
-// interface OfficerData {
-//     officer_no: string;
-//     officer_name: string;
-//     photo: string; // Assuming photo is a URL or base64 string
-// }
-
-// // Extend the Request interface to include the file property
-// interface CustomRequest extends Request {
-//     file?: Express.Multer.File; // Adding the file property
-// }
-
-// // Middleware
-// router.use(bodyParser.json());
-// const upload = multer({ storage: multer.memoryStorage() });
-
-// // Custom Request type to include photo buffer if needed
-// // interface CustomRequest extends Request {
-// //     body: {
-// //         officer_no: string;
-// //         photo: Buffer;  // Assuming photo is sent as a Buffer
-// //     };
-// // }
-
-// // Create a new officer record
-// router.post('/create', async (req: Request, res: Response): Promise<void> => {
-//     const officerData: OfficerData = req.body;
-
-//     const connection = await mysql.createConnection(dbConfig);
-    
-//     try {
-//         const [rows] = await connection.execute('SELECT * FROM officer WHERE officer_no = ?', [officerData.officer_no]);
-
-//         if (Array.isArray(rows) && rows.length > 0) {
-//             res.status(409).json({ message: 'Officer record already exists' });
-//             return;
-//         }
-
-//         // Insert the new officer data
-//         const [result] = await connection.execute<ResultSetHeader>(
-//             `INSERT INTO tb_officer (officer_no, officer_name, photo) 
-//             VALUES (?, ?, ?)`,
-//             [
-//                 officerData.officer_no,
-//                 officerData.officer_name,
-//                 officerData.photo,
-//             ]
-//         );
-
-//         res.status(201).json({ message: 'Officer record created successfully' });
-//     } catch (error) {
-//         console.error('Error:', error);
-//         res.status(500).json({ message: 'Error creating officer record', error });
-//     } finally {
-//         connection.end();
-//     }
-// });
-
-// // Update an officer record
-// router.put('/update/:officer_no', async (req: Request, res: Response): Promise<void> => {
-//     const { officer_no } = req.params;
-//     const officerData: OfficerData = req.body;
-
-//     const connection = await mysql.createConnection(dbConfig);
-//     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_officer WHERE officer_no = ?', [officerData.officer_no]);
-
-//         if (Array.isArray(rows) && rows.length == 0) {
-//             res.status(409).json({ message: 'Officer record does not exist' });
-//             return;
-//         }
-//         // Update the officer data
-//         const [result] = await connection.execute(
-//             `UPDATE tb_officer SET officer_name = ?, photo = ? 
-//             WHERE officer_no = ?`,
-//             [
-//                 officerData.officer_name,
-//                 officerData.photo,
-//                 officer_no
-//             ]
-//         );
-      
-//         res.status(200).json({ message: 'Officer record updated successfully' });
-//        return
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Error updating officer record', error });
-//     } finally {
-//         connection.end();
-//     }
-// });
-
-// // Delete an officer record
-// router.delete('/delete/:officer_no', async (req: Request, res: Response) => {
-//     const { officer_no } = req.params;
-
-//     const connection = await mysql.createConnection(dbConfig);
-
-//     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_officer WHERE officer_no = ?', [officer_no]);
-
-//         if (Array.isArray(rows) && rows.length == 0) {
-//             res.status(409).json({ message: 'Officer record does not exist' });
-//             return;
-//         }
-//         // Delete the officer record
-//         const [result] = await connection.execute('DELETE FROM tb_officer WHERE officer_no = ?', [officer_no]);
-      
-//       res.status(200).json({ message: 'Officer record deleted successfully' });
-//       return
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Error deleting officer record', error });
-//     } finally {
-//         connection.end();
-//     }
-// });
-
-// router.get('/retrieve', async (req: Request, res: Response) => {
-//     const connection = await mysql.createConnection(dbConfig);
-
-//     try {
-//         const [rows] = await connection.execute('SELECT * FROM tb_officer');
-
-//        //res.status(200).json({ message: 'Officer record retrieved successfully', rows: rows });
-//        res.json(rows);
-//        return
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Error getting officer records', error });
-//     } finally {
-//         connection.end();
-//     }
-// });
-
-// router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
-//     const connection = await mysql.createConnection(dbConfig);
-
-//     try {
-//         const [rows] = await connection.execute('SELECT officer_no FROM tb_officer WHERE officer_no = ?', [req.params.officer_no]);
-
-//         // res.status(200).json({ message: 'Officer record retrieved successfully', rows: rows });
-//         // return
-//         res.json(rows);
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Error getting officer record', error });
-//     } finally {
-//         connection.end();
-//     }
-// });
-
-// router.get('/retrieve/:officer_name', async (req: Request, res: Response) => {
-//     const connection = await mysql.createConnection(dbConfig);
-
-//     try {
-//         const [rows] = await connection.execute('SELECT officer_name FROM tb_officer WHERE officer_no = ?', [req.params.officer_no]);
-
-//         // res.status(200).json({ message: 'Officer record retrieved successfully', rows: rows });
-//         // return
-//         res.json(rows);
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Error getting officer record', error });
-//     } finally {
-//         connection.end();
-//     }
-// });
-
-// export default router;

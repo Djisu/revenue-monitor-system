@@ -12,7 +12,7 @@ export interface BudgetAssessState {
     error: string | null;
 }
 export declare const initialState: BudgetAssessState;
-export declare const fetchBudgetAssessRecords: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchBudgetAssessRecords: import("@reduxjs/toolkit").AsyncThunk<BudgetAssessData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -22,7 +22,7 @@ export declare const fetchBudgetAssessRecords: import("@reduxjs/toolkit").AsyncT
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createBudgetAssessRecord: import("@reduxjs/toolkit").AsyncThunk<any, BudgetAssessData, {
+export declare const createBudgetAssessRecord: import("@reduxjs/toolkit").AsyncThunk<BudgetAssessData, BudgetAssessData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -32,7 +32,7 @@ export declare const createBudgetAssessRecord: import("@reduxjs/toolkit").AsyncT
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchBudgetAssessRecordById: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const fetchBudgetAssessRecordById: import("@reduxjs/toolkit").AsyncThunk<BudgetAssessData, {
     month: string;
     fiscalyear: string;
 }, {
@@ -45,7 +45,7 @@ export declare const fetchBudgetAssessRecordById: import("@reduxjs/toolkit").Asy
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateBudgetAssessRecord: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateBudgetAssessRecord: import("@reduxjs/toolkit").AsyncThunk<BudgetAssessData, {
     month: string;
     fiscalyear: string;
     data: BudgetAssessData;
@@ -59,7 +59,7 @@ export declare const updateBudgetAssessRecord: import("@reduxjs/toolkit").AsyncT
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteBudgetAssessRecord: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const deleteBudgetAssessRecord: import("@reduxjs/toolkit").AsyncThunk<BudgetAssessData, {
     month: string;
     fiscalyear: string;
 }, {

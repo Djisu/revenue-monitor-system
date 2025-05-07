@@ -24,8 +24,12 @@ const FrmProducePropertyRates: React.FC = () => {
       const data = await response.json();
       setElectoralAreas(data.map((item: PropertyData) => item.electroral_area));
       setElectoralArea(data[0].electroral_area); // Set first electoral area as default
-    } catch (err) {
-      setError('No electoral areas found');
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        setError('No electoral areas found');
+      } else {
+        console.log('Unknown error')
+      }    
     }
   };
 
@@ -35,9 +39,13 @@ const FrmProducePropertyRates: React.FC = () => {
       const data = await response.json();
       setFiscalYears(data.map((item: PropertyData) => item.fiscal_year));
       setFiscalYear(data[0].fiscal_year); // Set first fiscal year as default
-    } catch (err) {
-      setError('No payments made yet');
-    }
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        setError('No electoral areas found');
+      } else {
+        console.log('Unknown error')
+      }  
+    }    
   };
 
   const handleElectoralAreaChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -69,9 +77,13 @@ const FrmProducePropertyRates: React.FC = () => {
       } else {
         setError('No records found in this electoral area');
       }
-    } catch (err) {
-      setError('Error generating report');
-    }
+    } catch (error: unknown) {
+      if (error instanceof Error){
+        setError('No electoral areas found');
+      } else {
+        console.log('Unknown error')
+      }  
+    }    
   };
 
   const handlePrintClick = () => {
@@ -155,4 +167,4 @@ const FrmProducePropertyRates: React.FC = () => {
   );
 };
 
-export default FrmProducePropertyRates;
+export default FrmProducePropertyRates

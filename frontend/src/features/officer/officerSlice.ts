@@ -101,7 +101,7 @@ export const createOfficer = createAsyncThunk<CreateOfficerReturnType, OfficerDa
             }
         );
         return { message: response.data.message } as CreateOfficerSuccess;  // Ensure this is cast correctly
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
             return rejectWithValue({ message: error.response.data.message || 'Failed to create officer' });
         }
@@ -116,7 +116,7 @@ export const updateOfficer = createAsyncThunk('officer/updateOfficer', async ({ 
     try {
         const response = await axios.put(`${BASE_URL}/api/officer/update/${officer_no}`, officerData);
         return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
             // Handle specific error responses
             throw new Error(error.response.data.message || 'Failed to update officer');
@@ -219,7 +219,7 @@ const officerSlice = createSlice({
 });
 
 // Export the actions if needed
-export const {} = officerSlice.actions; // Add any synchronous actions if required
+export const object = officerSlice.actions; // Add any synchronous actions if required
 
 // Export the reducer
 export default officerSlice.reducer;

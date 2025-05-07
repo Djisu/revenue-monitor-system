@@ -49,14 +49,14 @@ interface fetchParamsInt {
 }
 
 const OfficerBudgetAssessment: React.FC = () => {
-  let [firstFiscalDate, setFirstFiscalDate] = useState<string>('');
-  let [firstOfficer, setFirstOfficer] = useState<string>('');
-  let [fiscalYear, setFiscalYear] = useState<number>(0);
+  const [firstFiscalDate, setFirstFiscalDate] = useState<string>('');
+  const [firstOfficer, setFirstOfficer] = useState<string>('');
+  const [fiscalYear, setFiscalYear] = useState<number>(0);
   //let [fiscalYears, setFiscalYears] = useState<FiscalYear[]>([]);
   //let [officers, setOfficers] = useState<Officer[]>([]);
-  let [assessmentData, setAssessmentData] = useState<{ month: string; amount: number; }[]>([]);
+  const [assessmentData, setAssessmentData] = useState<{ month: string; amount: number; }[]>([]);
 
-  let officersData = useAppSelector((state) => state.officer.officers);
+  const officersData = useAppSelector((state) => state.officer.officers);
 
   const dispatch = useAppDispatch()
 
@@ -91,9 +91,9 @@ const OfficerBudgetAssessment: React.FC = () => {
   // };
 
   const handlePreviewClick = async () => {
-    let fiscalYearx = new Date(firstFiscalDate).getFullYear()
-    fiscalYear = fiscalYearx
-    setFiscalYear(fiscalYear)
+    const fiscalYearx = new Date(firstFiscalDate).getFullYear()
+    //fiscalYear = fiscalYearx
+    setFiscalYear(fiscalYearx)
 
     const fetchParams: fetchParamsInt = {    
        fiscalYear: fiscalYear, officerNo: firstOfficer 
@@ -170,7 +170,7 @@ const OfficerBudgetAssessment: React.FC = () => {
           style={{ marginRight: '10px' }}
         />
       </div>
-      <span style={{ color: 'red' }}>Selected Officer's Number: {firstOfficer}</span>
+      <span style={{ color: 'red' }}>Selected Officer Number: {firstOfficer}</span>
 
       <div style={{ marginTop: '20px' }}>
         <label style={{ marginRight: '10px', fontWeight: 'bold' }}>First Officer:</label>

@@ -130,7 +130,7 @@ const paymentReportSlice = createSlice({
 });
 
 // Export the actions if needed
-export const {} = paymentReportSlice.actions; // Add any synchronous actions if required
+export const object = paymentReportSlice.actions; // Add any synchronous actions if required
 
 // Export the reducer
 export default paymentReportSlice.reducer;

@@ -50,7 +50,7 @@ export const createElectoralArea = createAsyncThunk(
                 }
             );
             return response.data; // Assuming this is your success response
-        } catch (error) {
+        } catch (error: unknown) {
             if (axios.isAxiosError(error) && error.response) {
                 // Handle specific error responses
                 throw new Error(error.response.data.message || 'Failed to create electoral area');
@@ -67,7 +67,7 @@ export const updateElectoralArea = createAsyncThunk('electoralArea/updateElector
     try {
         const response = await axios.put(`${BASE_URL}/api/electoralArea/update/${electoral_area}`, data);
         return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
             // Handle specific error responses
             throw new Error(error.response.data.message || 'Failed to delete electoral area');
