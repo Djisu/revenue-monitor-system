@@ -65,6 +65,8 @@ export async function generatePdf(data: ReceiptData): Promise<Buffer> {
 
   try {
     const browser = await getBrowser();
+
+    
     const page = await browser.newPage();
     await page.setContent(receiptHTML);
     const pdfBuffer = await page.pdf({ format: 'A4' });
@@ -121,6 +123,8 @@ export async function generatePdfToPrinter(data: ReceiptData): Promise<void> {
 
   try {
     const browser = await getBrowser();
+
+    
     const page = await browser.newPage();
     await page.setContent(receiptHTML);
 
