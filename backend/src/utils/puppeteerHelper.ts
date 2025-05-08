@@ -1,12 +1,15 @@
+// puppeteerHelper.ts
 import puppeteer from 'puppeteer';
 
 export async function getBrowser() {
-  const executablePath =
-    process.env.NODE_ENV === 'production'
-      ? '/opt/render/.cache/puppeteer/chrome/linux-136.0.7103.49/chrome-linux64/chrome'
-      : undefined;
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  console.log('Puppeteer executablePath:', executablePath || 'default');
+  const executablePath = isProduction
+    ? '/opt/render/.cache/puppeteer/chrome/linux-136.0.7103.49/chrome-linux64/chrome' // Your Render path
+    : undefined;
+
+  console.log('Launching Puppeteer in', process.env.NODE_ENV);
+  console.log('Using executablePath:', executablePath || 'Default');
 
   return await puppeteer.launch({
     headless: true,
@@ -14,5 +17,6 @@ export async function getBrowser() {
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 }
+
 
 
