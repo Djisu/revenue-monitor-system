@@ -81,6 +81,7 @@ console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 //     console.log('in server createClient function')
 //     return new pkg.Client(dbConfig); // Use pkg.Client to create a new client instance
 // };
+console.log('about to access cors');
 // Middleware setup
 const allowedOrigins = [
     'https://revenue-monitor-system.onrender.com', // Production
