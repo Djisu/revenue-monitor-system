@@ -84,6 +84,7 @@ console.log("Resolved frontendPath:", frontendPath);
 // Serve static files before routes
 app.use(express.static(frontendPath));
 console.log('before app.get(/');
+console.log('Trying to serve:', path.join(frontendPath, 'index.html'));
 // Handle requests for the React app
 app.get('/', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
