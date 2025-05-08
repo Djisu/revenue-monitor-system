@@ -67,19 +67,19 @@ export async function generatePdfToPrinter(data) {
         doc.end();
     });
 }
-const receiptData = {
-    buss_no: '12345',
-    buss_name: 'My Business',
-    buss_type: 'Retail',
-    property_class: 'Commercial',
-    landmark: 'Near Park',
-    electroral_area: 'Area 1',
-    tot_grade: 'A',
-    current_rate: '100.00',
-    property_rate: '50.00',
-    serialno: '12345',
-};
-generatePdfToPrinter(receiptData).catch(console.error);
+// const receiptData: ReceiptData = {
+//   buss_no: '12345',
+//   buss_name: 'My Business',
+//   buss_type: 'Retail',
+//   property_class: 'Commercial',
+//   landmark: 'Near Park',
+//   electroral_area: 'Area 1',
+//   tot_grade: 'A',
+//   current_rate: '100.00',
+//   property_rate: '50.00',
+//   serialno: '12345',
+// };
+// generatePdfToPrinter(receiptData).catch(console.error);
 // import { getBrowser } from './utils/puppeteerHelper.js';
 // import { printPdf } from './utils/printHelper.js';
 // import path from 'path';
