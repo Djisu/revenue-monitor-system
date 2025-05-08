@@ -19,7 +19,6 @@
     "dependencies": {
         "backend": "workspace:*",
         "frontend": "workspace:*",
-        "puppeteer": "^24.8.2",
         "typescript": "5.4.5",
         "vite": "^6.2.2"
     },
