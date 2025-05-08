@@ -13,7 +13,8 @@
     "docs": "typedoc",
     "test": "npx vitest run --watch",
     "lint": "eslint 'src/**/*.{ts,js}'",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "npx puppeteer browsers install chrome"
   },
   "dependencies": {
     "@types/morgan": "^1.9.9",
