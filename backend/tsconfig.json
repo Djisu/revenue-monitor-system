@@ -1,30 +1,32 @@
 {
   "compilerOptions": {
-      "module": "ESNext", // Use ESNext module system
-      "target": "ESNext", // Target ESNext,
-      "outDir": "./dist", // Outputs compiled files to the dist folder
-      "rootDir": "./src",
-      "resolveJsonModule": true,
-      "allowSyntheticDefaultImports": true,
-      "strict": true,
-      "esModuleInterop": true,
-      "moduleResolution": "node",
-      "sourceMap": true,
-      "skipLibCheck": true,
-      "forceConsistentCasingInFileNames": true,
-      "types": ["node", "express", "vitest"],
-      "typeRoots": ["node_modules/@types", "src/@types"]
+    "module": "ESNext",                    // Use ESNext module system
+    "target": "ESNext",                    // Target ESNext,
+    "outDir": "./dist",                    // Outputs compiled files to the dist folder
+    "rootDir": "./src",                    // Input source directory
+    "resolveJsonModule": true,             // Allows importing JSON modules
+    "allowSyntheticDefaultImports": true,  // Allows synthetic default imports
+    "strict": true,                        // Enable strict type-checking options
+    "esModuleInterop": true,               // Allows interoperability with CommonJS modules
+    "moduleResolution": "node",            // Use Node module resolution strategy
+    "sourceMap": true,                     // Generate source maps for debugging
+    "skipLibCheck": true,                  // Skip type checking of declaration files
+    "forceConsistentCasingInFileNames": true, // Enforces consistent casing of file names
+    "types": ["node", "express", "vitest"],  // Explicitly include Node.js types
+    "typeRoots": ["./node_modules/@types", "../node_modules/@types", "src/@types", "./types"]             // Custom types (optional, only if you have custom types in `src/@types`)
   },
-  "include": ["src/**/*.ts", 
-              "src/types.d.ts", 
-              "tests/**/*.ts", 
-              "*.spec.ts", 
-              "dist/**/*.js", 
-              "dist/**/*.d.ts", 
-              "src/seedDatabase.ts",
-              "src"
-             ],
+  "include": [
+    "src/**/*.ts",
+    "src/types.d.ts",
+    "tests/**/*.ts",
+    "*.spec.ts",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "src/seedDatabase.ts",
+    "src"
+  ],
   "exclude": [
-      "node_modules"
+    "node_modules"
   ]
 }
+
