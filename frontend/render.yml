@@ -1,4 +1,2 @@
 build:
-  command: ./build.sh
-  tsconfig: ./tsconfig.json
-  rootDir: .
+  command:  yarn install && yarn build
