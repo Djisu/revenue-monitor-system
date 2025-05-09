@@ -77,7 +77,7 @@ const allowedOrigins = [
 ];
 const corsOptions = {
     origin: function (origin, callback) {
-        if (allowedOrigins.indexOf(origin) !== -1 || !origin) { // Allow requests with no origin (e.g., mobile apps)
+        if (typeof origin === 'string' && allowedOrigins.indexOf(origin) !== -1 || !origin) {
             callback(null, true);
         }
         else {
@@ -87,7 +87,9 @@ const corsOptions = {
     credentials: true,
     optionSuccessStatus: 200
 };
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); // Apply CORS to all routes
+// Handle preflight requests for all routes
+app.options('*', cors(corsOptions));
 console.log('After cors');
 app.use(morgan('dev')); // Logging middleware
 // Serve static files from the React app first

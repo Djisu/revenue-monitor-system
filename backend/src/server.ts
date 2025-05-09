@@ -87,8 +87,8 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  origin: function (origin: any, callback: any) {
-      if (allowedOrigins.indexOf(origin) !== -1 || !origin) { // Allow requests with no origin (e.g., mobile apps)
+  origin: function (origin: unknown, callback: (err: Error | null, origin?: boolean) => void) {
+      if (typeof origin === 'string' && allowedOrigins.indexOf(origin) !== -1 || !origin) {
           callback(null, true);
       } else {
           callback(new Error('Not allowed by CORS'));
@@ -98,7 +98,10 @@ const corsOptions = {
   optionSuccessStatus: 200
 };
 
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); // Apply CORS to all routes
+
+// Handle preflight requests for all routes
+app.options('*', cors(corsOptions));
 
 console.log('After cors')
 
