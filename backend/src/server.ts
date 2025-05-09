@@ -79,18 +79,25 @@ console.log('About to access cors')
 
 // Middleware setup for CORS
 const allowedOrigins = [
-    'https://revenue-monitor-system.onrender.com', // Production
-    'https://revenue-monitor-system-v6sq.onrender.com',
-    'http://localhost:3000',  // Local development
-    'http://localhost:5173',  // Local development
-    'http://localhost:8080',  // Local development
+  'https://revenue-monitor-system.onrender.com', // Production
+  'https://revenue-monitor-system-v6sq.onrender.com',
+  'http://localhost:3000',  // Local development
+  'http://localhost:5173',  // Local development
+  'http://localhost:8080',  // Local development
 ];
 
 const corsOptions = {
-    origin: allowedOrigins, 
-    credentials: true,
-    optionSuccessStatus: 200
+  origin: function (origin: any, callback: any) {
+      if (allowedOrigins.indexOf(origin) !== -1 || !origin) { // Allow requests with no origin (e.g., mobile apps)
+          callback(null, true);
+      } else {
+          callback(new Error('Not allowed by CORS'));
+      }
+  },
+  credentials: true,
+  optionSuccessStatus: 200
 };
+
 app.use(cors(corsOptions));
 
 console.log('After cors')
