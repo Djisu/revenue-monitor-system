@@ -75,15 +75,14 @@ const dbConfig = {
 };
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 
-console.log('About to access cors')
+console.log('GETTING TO cors')
 
 // Middleware setup for CORS
 const allowedOrigins = [
   'https://revenue-monitor-system.onrender.com', // Production
-  'https://revenue-monitor-system-v6sq.onrender.com',
+  'https://revenue-monitor-system-v6sq.onrender.com', // Staging
   'http://localhost:3000',  // Local development
   'http://localhost:5173',  // Local development
-  'http://localhost:8080',  // Local development
 ];
 
 const corsOptions = {
@@ -165,8 +164,6 @@ app.options('*', cors());
 //app.use(express.static(frontendPath));
 
 
-
-console.log('before app.use((error: unknown,')
 // Error handling middleware
 app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
     if (error instanceof HttpError) {
@@ -182,7 +179,7 @@ app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
     }
     next();
 });
-console.log('after app.use((error: unknown,')
+
 
 console.log('before app.get(/*')
 // Catch-all route for frontend app
