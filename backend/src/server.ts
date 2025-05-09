@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import bodyParser from 'body-parser';
 import colors from 'colors';
 import morgan from 'morgan';
@@ -77,32 +77,39 @@ console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 
 console.log('GETTING TO cors')
 
-// Middleware setup for CORS
-const allowedOrigins = [
+
+// Define allowed origins array with specific type
+const allowedOrigins: string[] = [
   'https://revenue-monitor-system.onrender.com', // Production
   'https://revenue-monitor-system-v6sq.onrender.com', // Frontend URL
   'http://localhost:3000', // Local development
   'http://localhost:5173', // Local development
 ];
 
-const corsOptions = {
-  origin: function (origin: unknown, callback: (err: Error | null, origin?: boolean) => void) {
-      if (typeof origin === 'string' && allowedOrigins.indexOf(origin) !== -1 || !origin) {
-          callback(null, true);
-      } else {
-          callback(new Error('Not allowed by CORS'));
-      }
+// Define corsOptions with correct type
+const corsOptions: CorsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, origin?: boolean) => void) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn('Blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
-  credentials: true // Allow credentials such as cookies
+  credentials: true, // Allow credentials such as cookies
 };
 
 // Apply CORS to all routes
 app.use(cors(corsOptions));
 
 // Handle preflight requests for all routes
-app.options('*', cors(corsOptions));
+app.options('*', cors(corsOptions), (_req: Request, res: Response) => {
+  res.sendStatus(200);
+});
+
+
 
 console.log('After cors')
 
