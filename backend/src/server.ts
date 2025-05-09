@@ -75,6 +75,7 @@ console.log('About to access cors')
 // Middleware setup for CORS
 const allowedOrigins = [
     'https://revenue-monitor-system.onrender.com', // Production
+    'https://revenue-monitor-system-v6sq.onrender.com',
     'http://localhost:3000',  // Local development
     'http://localhost:5173',  // Local development
     'http://localhost:8080',  // Local development
