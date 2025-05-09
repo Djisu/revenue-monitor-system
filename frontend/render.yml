@@ -1,2 +1,16 @@
-build:
-  command:  yarn install && yarn build
+services:
+  - type: web
+    name: backend
+    buildCommand: "yarn workspace backend install && yarn workspace backend build"
+    startCommand: "yarn workspace backend start"
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+
+  - type: web
+    name: frontend
+    buildCommand: "yarn workspace frontend install && yarn workspace frontend build"
+    startCommand: "yarn workspace frontend start"
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
