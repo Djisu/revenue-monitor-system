@@ -1,7 +1,7 @@
 services:
   - type: web
     name: backend
-    buildCommand: "yarn workspace backend install && yarn workspace backend build"
+    buildCommand: "corepack enable && corepack prepare yarn@stable --activate && yarn install && yarn workspace backend build"
     startCommand: "yarn workspace backend start"
     envVars:
       - key: NODE_VERSION
@@ -9,8 +9,10 @@ services:
 
   - type: web
     name: frontend
-    buildCommand: "yarn workspace frontend install && yarn workspace frontend build"
+    buildCommand: "corepack enable && corepack prepare yarn@stable --activate && yarn install && yarn workspace frontend build"
     startCommand: "yarn workspace frontend start"
     envVars:
       - key: NODE_VERSION
         value: "20"
+
+
