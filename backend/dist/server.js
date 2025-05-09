@@ -67,30 +67,34 @@ const dbConfig = {
 };
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 console.log('GETTING TO cors');
-// Middleware setup for CORS
+// Define allowed origins array with specific type
 const allowedOrigins = [
     'https://revenue-monitor-system.onrender.com', // Production
     'https://revenue-monitor-system-v6sq.onrender.com', // Frontend URL
     'http://localhost:3000', // Local development
     'http://localhost:5173', // Local development
 ];
+// Define corsOptions with correct type
 const corsOptions = {
-    origin: function (origin, callback) {
-        if (typeof origin === 'string' && allowedOrigins.indexOf(origin) !== -1 || !origin) {
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         }
         else {
+            console.warn('Blocked by CORS:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
     allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
-    credentials: true // Allow credentials such as cookies
+    credentials: true, // Allow credentials such as cookies
 };
 // Apply CORS to all routes
 app.use(cors(corsOptions));
 // Handle preflight requests for all routes
-app.options('*', cors(corsOptions));
+app.options('*', cors(corsOptions), (_req, res) => {
+    res.sendStatus(200);
+});
 console.log('After cors');
 app.use(morgan('dev')); // Logging middleware
 // Serve static files from the React app first
