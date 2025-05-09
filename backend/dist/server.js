@@ -76,7 +76,14 @@ const allowedOrigins = [
     'http://localhost:8080', // Local development
 ];
 const corsOptions = {
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) { // Allow requests with no origin (e.g., mobile apps)
+            callback(null, true);
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     optionSuccessStatus: 200
 };
