@@ -37,6 +37,9 @@ import bustypeDetailedReportRoute from './routes/api/bustypeDetailedReportRoute.
 import bustypeSummaryReportRoute from './routes/api/busTypeSummaryReportRoute.js';
 import textMessagingRoute from './routes/api/textmessagingRoute.js';
 
+import pkg from 'pg';
+const { Pool } = pkg;
+
 // Load environment variables from .env file
 dotenv.config(); 
 
@@ -66,7 +69,9 @@ const dbConfig = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'),
-    sslmode: 'disable',
+    ssl: {
+      rejectUnauthorized: false, // Important for Render.com
+    },
 };
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 
@@ -147,7 +152,7 @@ app.use('/api/bustypeSummaryReport', bustypeSummaryReportRoute);
 app.use('/api/textMessaging', textMessagingRoute);
 
 app.options('*', cors());
-app.use(express.static(frontendPath));
+//app.use(express.static(frontendPath));
 
 
 
@@ -171,18 +176,33 @@ console.log('after app.use((error: unknown,')
 
 console.log('before app.get(/*')
 // Catch-all route for frontend app
-app.get(/^(?!\/login).*$/, (req: Request, res: Response) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
-});
+// app.get(/^(?!\/login).*$/, (req: Request, res: Response) => {
+//   res.sendFile(path.join(frontendPath, 'index.html'));
+// });
 
-console.log('after app.get(*')
+// console.log('after app.get(*')
 
 
 // Start the server
 app.listen(port, async () => {
-    console.log(`Server is running on port ${port}`);
-    console.log(colors.green('PostgreSQL connected'));
+  console.log(`Server is running on port ${port}`);
+  console.log(colors.green('PostgreSQL connected'));
+
+  const pool = new Pool(dbConfig);
+
+  const client = await pool.connect()
+
+  // Test database connection
+  try {
+      const result = await client.query('SELECT NOW()');
+      console.log('Database connection test successful:', result.rows);
+      client.release();
+  } catch (err) {
+      console.error('Database connection test failed:', err);
+  }
 });
+
+console.log('after app.listen');
 
 // Handle process signals
 process.once('SIGUSR2', () => {
