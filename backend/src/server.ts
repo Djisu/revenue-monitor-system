@@ -80,9 +80,9 @@ console.log('GETTING TO cors')
 // Middleware setup for CORS
 const allowedOrigins = [
   'https://revenue-monitor-system.onrender.com', // Production
-  'https://revenue-monitor-system-v6sq.onrender.com', // Staging
-  'http://localhost:3000',  // Local development
-  'http://localhost:5173',  // Local development
+  'https://revenue-monitor-system-v6sq.onrender.com', // Frontend URL
+  'http://localhost:3000', // Local development
+  'http://localhost:5173', // Local development
 ];
 
 const corsOptions = {
@@ -93,11 +93,13 @@ const corsOptions = {
           callback(new Error('Not allowed by CORS'));
       }
   },
-  credentials: true,
-  optionSuccessStatus: 200
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+  credentials: true // Allow credentials such as cookies
 };
 
-app.use(cors(corsOptions)); // Apply CORS to all routes
+// Apply CORS to all routes
+app.use(cors(corsOptions));
 
 // Handle preflight requests for all routes
 app.options('*', cors(corsOptions));
