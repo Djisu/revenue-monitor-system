@@ -61,7 +61,9 @@ const dbConfig = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'),
-    ssl: false,
+    ssl: {
+        rejectUnauthorized: true, // Important for Render.com
+    },
 };
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 console.log('GETTING TO cors');
