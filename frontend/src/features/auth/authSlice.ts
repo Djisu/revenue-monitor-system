@@ -83,13 +83,21 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
 
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof Error){
-                // Handle errors from the backend
-                return rejectWithValue({ message: 'An error occurred' });
+            if (axios.isAxiosError(error)) {
+                // This will help log Axios specific errors, including status and response
+                console.error('Axios error details:', error.response?.data);
+                return rejectWithValue({
+                    message: error.response?.data.message || 'An error occurred during login',
+                });
+            } else if (error instanceof Error) {
+                // Handle general JavaScript errors (non-Axios)
+                console.error('Unexpected error:', error.message);
+                return rejectWithValue({ message: 'An unexpected error occurred' });
             }
+            return rejectWithValue({ message: 'An unknown error occurred' });
+        }
             
         }
-    }
 );
 
 
