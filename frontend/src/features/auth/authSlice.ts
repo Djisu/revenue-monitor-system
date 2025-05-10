@@ -40,7 +40,7 @@ export interface LoginError {
 }
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com/api');
 
 console.log('BASE_URL: ', BASE_URL)
 
