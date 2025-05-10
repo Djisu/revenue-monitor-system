@@ -45,7 +45,14 @@ router.post('/audit-log', async (req: Request, res: Response) => {
     res.status(200).json({ message: 'Audit log endpoint hit' });
 });
 
-// Login endpoint
+// import express, { Request, Response } from 'express';
+// import bcrypt from 'bcrypt';
+// import jwt from 'jsonwebtoken';
+// import { pool } from './db'; // Assuming you have a pool instance for DB connections
+// import config from './config'; // Assuming you have config for JWT secret
+
+// const router = express.Router();
+
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
     console.log('Route hit backend login', req.body);
 
@@ -57,12 +64,10 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
-     const client = await pool.connect()
+    const client = await pool.connect();
 
     try {
-       // await client.connect();
-
-        console.log('about to SELECT * FROM operatordefinition WHERE operatorname = $1')
+        console.log('about to SELECT * FROM operatordefinition WHERE operatorname = $1');
 
         // Check if an operator with the same username exists
         const { rows: operators } = await client.query<OperatorDefinition>(
@@ -122,9 +127,96 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         console.error('Error:', error);
         res.status(500).json({ json: '', user: [], message: 'Error during login' });
     } finally {
-        await client.release(); // Ensure connection is closed
+        try {
+            await client.release(); // Ensure connection is closed properly
+        } catch (releaseError) {
+            console.error('Error releasing client:', releaseError);
+        }
     }
 });
+
+
+
+// Login endpoint
+// router.post('/login', async (req: Request, res: Response): Promise<void> => {
+//     console.log('Route hit backend login', req.body);
+
+//     const { username, password } = req.body;
+
+//     // Validate inputs
+//     if (!username || !password) {
+//         res.status(400).json({ json: '', user: [], message: 'Username and password cannot be blank!' });
+//         return;
+//     }
+
+//      const client = await pool.connect()
+
+//     try {
+//        // await client.connect();
+
+//         console.log('about to SELECT * FROM operatordefinition WHERE operatorname = $1')
+
+//         // Check if an operator with the same username exists
+//         const { rows: operators } = await client.query<OperatorDefinition>(
+//             'SELECT * FROM operatordefinition WHERE operatorname = $1', 
+//             [username]
+//         );
+
+//         // Check if user exists
+//         if (operators.length === 0) {
+//             console.log('No user found, Invalid login parameters');
+//             res.json({ json: '', user: [], message: 'Invalid login parameters' });
+//             return;
+//         }
+
+//         // Compare the plain-text password with the hashed password
+//         const isPasswordMatch = await bcrypt.compare(password, operators[0].password);
+//         if (!isPasswordMatch) {
+//             res.json({ json: '', user: [], message: 'Invalid login parameters' });
+//             return;
+//         }
+
+//         // Log the login attempt
+//         const now = new Date();
+//         const formattedDateTime = now.toISOString().slice(0, 19).replace('T', ' ');
+
+//         await client.query(
+//             'INSERT INTO userlog (datex, userx, time_in) VALUES ($1, $2, $3)',
+//             [now, username, formattedDateTime]
+//         );
+
+//         // Check permissions
+//         const { rows: permissions } = await client.query<{ menus: string }>(
+//             'SELECT menus FROM operatorpermission WHERE operatorid = $1', 
+//             [operators[0].operatorid]
+//         );
+
+//         if (!permissions || permissions.length === 0) {
+//             res.status(500).json({ json: '', user: [], message: `No permissions found for user ${username}` });
+//             return;
+//         }
+
+//         const existingPermissions = permissions[0].menus.split(',');
+
+//         const user = {           
+//             firstname: operators[0].firstname, 
+//             lastname: operators[0].lastname,
+//             operatorid: operators[0].operatorid,
+//             existingPermissions 
+//         };
+
+//         // Generate JWT token
+//         const token = jwt.sign({ user }, config.jwtSecret as string, { expiresIn: '1h' });
+
+//         // Send back response
+//         res.json({ token, user });
+//     } catch (error) {
+//         console.error('Error:', error);
+//         res.status(500).json({ json: '', user: [], message: 'Error during login' });
+//     } finally {
+//         await client.release(); // Ensure connection is closed
+//     }
+// });
 
 // Request password reset endpoint
 router.post('/request-password-reset', async (req: Request, res: Response) => {
