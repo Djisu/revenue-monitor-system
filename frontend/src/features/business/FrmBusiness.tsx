@@ -227,6 +227,7 @@ export const FrmBusiness: React.FC = () => {
         }
     };
 
+
     return (
         <Card style={{ backgroundColor: '#add8e6' }}>
             <Card.Header>
@@ -237,7 +238,7 @@ export const FrmBusiness: React.FC = () => {
                     <Row>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="buss_no">Business Number:</Form.Label>
+                                <Form.Label>Business Number: Click to get a new business number </Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="buss_no"
@@ -251,31 +252,32 @@ export const FrmBusiness: React.FC = () => {
                         </Col>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="buss_name">Business Name:</Form.Label>
+                                <Form.Label>Business Name:</Form.Label>
                                 <Form.Control type="text" name="buss_name" id="buss_name" value={formData.buss_name} onChange={handleChange} />           
                             </Form.Group>
                         </Col>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="buss_address">Business Address:</Form.Label>
+                                <Form.Label>Business Address:</Form.Label>
                                 <Form.Control type="text" name="buss_address" id="buss_address" value={formData.buss_address} onChange={handleChange} />
                             </Form.Group>
                         </Col>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="street_name">Street Name:</Form.Label>
+                                <Form.Label>Street Name:</Form.Label>
                                 <Form.Control type="text" name="street_name" id="street_name" value={formData.street_name} onChange={handleChange} />
                             </Form.Group>
                         </Col>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="buss_town">Town:</Form.Label>
+                                <Form.Label>Town:</Form.Label>
                                 <Form.Control type="text" name="buss_town" id="buss_town" value={formData.buss_town} onChange={handleChange} />
                             </Form.Group>
                         </Col>
+                      
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="ceo">CEO:</Form.Label>
+                                <Form.Label>CEO:</Form.Label>
                                 <Form.Control type="text" name="ceo" id="ceo" value={formData.ceo} onChange={handleChange} />
                             </Form.Group>
                         </Col>
@@ -283,15 +285,14 @@ export const FrmBusiness: React.FC = () => {
                     <Row>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="landmark">Land Mark:</Form.Label>
+                                <Form.Label>Land Mark:</Form.Label>
                                 <Form.Control type="text" name="landmark" id="landmark" value={formData.landmark} onChange={handleChange} />
                             </Form.Group>
                         </Col>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="electoral_area">Electoral Area:</Form.Label>
-                                <Form.Control 
-                                    type="select" 
+                                <Form.Label>Electoral Area:</Form.Label>
+                                <Form.Select
                                     name="electroral_area" 
                                     id="electoral_area" 
                                     value={formData.electroral_area} 
@@ -300,12 +301,12 @@ export const FrmBusiness: React.FC = () => {
                                     {electoralAreas.map((area, index) => (
                                         <option key={index} value={area}>{area}</option>
                                     ))}
-                                </Form.Control>
+                                </Form.Select>
                             </Form.Group>
                         </Col>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="buss_permitNo">Property No:</Form.Label>
+                                <Form.Label>Property No:</Form.Label>
                                 <Form.Control type="text" name="buss_permitNo" id="buss_permitNo" value={formData.buss_permitNo} onChange={handleChange} />
                             </Form.Group>
                         </Col>
@@ -313,40 +314,40 @@ export const FrmBusiness: React.FC = () => {
                     <Row>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="buss_type">Business Type:</Form.Label>
-                                <Form.Control type="select" name="buss_type" id="buss_type" value={formData.buss_type} onChange={handleChange}>
+                                <Form.Label>Business Type:</Form.Label>
+                                <Form.Select name="buss_type" id="buss_type" value={formData.buss_type} onChange={handleChange}>
                                     <option>Select...</option>
                                     {bussTypes.map((businessType, index) => (
                                         <option key={index} value={businessType.business_type}>
                                             {businessType.business_type}
                                         </option>
                                     ))}
-                                </Form.Control>
+                                </Form.Select>
                             </Form.Group>
                         </Col>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="telno">Tel:</Form.Label>
+                                <Form.Label>Tel:</Form.Label>
                                 <Form.Control type="text" name="telno" id="telno" value={formData.telno} onChange={handleChange} />
                             </Form.Group>
                             <Form.Group>
-                                <Form.Label for="status">Status:</Form.Label>
-                                <Form.Control type="select" name="status" id="status" value={formData.status} onChange={handleChange}>
+                                <Form.Label>Status:</Form.Label>
+                                <Form.Select name="status" id="status" value={formData.status} onChange={handleChange}>
                                     <option>Select...</option>
                                     <option value="Active">Active</option>
                                     <option value="Dormant">Dormant</option>
-                                </Form.Control>
+                                </Form.Select>
                             </Form.Group>
                         </Col>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="emailaddress">Email Address:</Form.Label>
+                                <Form.Label>Email Address:</Form.Label>
                                 <Form.Control type="email" name="emailaddress" id="emailaddress" value={formData.emailaddress} onChange={handleChange} />
                             </Form.Group>
                         </Col>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="gps_address">GPS Address:</Form.Label>
+                                <Form.Label>GPS Address:</Form.Label>
                                 <Form.Control type="text" name="gps_address" id="gps_address" placeholder="Enter GPS Address" value={formData.gps_address} onChange={handleChange} />
                             </Form.Group>
                         </Col>
@@ -354,24 +355,24 @@ export const FrmBusiness: React.FC = () => {
                     <Row>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="property_class">Property Class:</Form.Label>
-                                <Form.Control type="select" name="property_class" id="property_class" value={formData.property_class} onChange={handleChange}>
+                                <Form.Label>Property Class:</Form.Label>
+                                <Form.Select name="property_class" id="property_class" value={formData.property_class} onChange={handleChange}>
                                     <option>Select...</option>
                                     {propertyClasses.map((classType, index) => (
                                         <option key={index} value={classType}>{classType}</option>
                                     ))}
-                                </Form.Control>
+                                </Form.Select>
                             </Form.Group>
                         </Col>
                         <Col md={4}>
                             <Form.Group>
-                                <Form.Label for="assessmentby">Collector:</Form.Label>
-                                <Form.Control type="select" name="assessmentby" id="assessmentby" value={formData.assessmentby} onChange={handleChange}>
+                                <Form.Label>Collector:</Form.Label>
+                                <Form.Select name="assessmentby" id="assessmentby" value={formData.assessmentby} onChange={handleChange}>
                                     <option>Select...</option>
                                     {assessments.map((assessment, index) => (
                                         <option key={index} value={assessment}>{assessment}</option>
                                     ))}
-                                </Form.Control>
+                                </Form.Select>
                             </Form.Group>
                         </Col>
                     </Row>

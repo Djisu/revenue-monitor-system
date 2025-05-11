@@ -28,7 +28,7 @@ import FrmClientPayments from './features/busPayments/FrmClientPayments';
 import FrmClientBalances from './features/busPayments/FrmClientBalances';
 import {FrmReceipts} from './features/accReceipt/FrmReceipts';
 import {FrmBillClient} from './features/business/FrmBillClient';
-import FrmChangeRevRate from './features/gradeRate/FrmChangeRevRate';
+//import {FrmChangeRevRate} from './features/gradeRate/FrmChangeRevRate';
 import FrmChangePrevBillAmount from './features/busPayments/FrmChangePrevBillAmount'; 
 import FrmBussOpeNos from './features/busPayments/FrmBussOpeNos';
 import FrmBusinessOperatingPermit from './features/busPayments/FrmBusinessOperationPermit';
@@ -102,7 +102,7 @@ const App: React.FC = () => {
                     <Route path="/ProcessClientNewBalances" element={<ProtectedRoute element={<FrmClientBalances />} />} />
                     <Route path="/EnterReceiptNumbers" element={<ProtectedRoute element={<FrmReceipts />} />} />
                     <Route path="/BillClient" element={<ProtectedRoute element={<FrmBillClient />} />} />
-                    <Route path="/ChangeLastYearRate" element={<ProtectedRoute element={<FrmChangeRevRate />} />} />
+                    {/* <Route path="/ChangeLastYearRate" element={<ProtectedRoute element={<FrmChangeRevRate />} />} /> */}
                     <Route path="/ChangePrevBillAmount" element={<ProtectedRoute element={<FrmChangePrevBillAmount />} />} />
                     <Route path="/BusinessOperatingPermitBusinessNumbers" element={<ProtectedRoute element={<FrmBussOpeNos />} />} />
                     <Route path="/BusinessOperatingPermit" element={<ProtectedRoute element={<FrmBusinessOperatingPermit />} />} />

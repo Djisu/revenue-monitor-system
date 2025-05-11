@@ -150,6 +150,14 @@ const FrmBusinessType: React.FC = () => {
                         Delete Old Record
                     </Button>
                 </Col>
+                
+            </Row>
+            <Row className="mt-3">
+                <Col>
+                    <Link to="/main" className="primary m-3">
+                        Go Back
+                    </Link>
+                </Col>
             </Row>
             <Row className="mt-3">
                 <Col>
@@ -174,13 +182,7 @@ const FrmBusinessType: React.FC = () => {
                     </Table>
                 </Col>
             </Row>
-            <Row className="mt-3">
-                <Col>
-                    <Link to="/main" className="primary m-3">
-                        Go Back
-                    </Link>
-                </Col>
-            </Row>
+          
         </Container>
     );
 };

@@ -226,7 +226,7 @@ const client = await pool.connect()
 
 // Get bills distributed
 router.get('/billsDistributed/:officer_no/:fiscal_year', async (req: Request, res: Response): Promise<void> => {
-    console.log('in router.get(/:officer_no/:fiscal_year')
+    console.log('in router.get(/billsDistributed/:officer_no/:fiscal_year')
 const client = await pool.connect()
 
      const { officer_no, fiscal_year } = req.params;
@@ -303,8 +303,7 @@ router.delete('/officerMonthAssess', async (req: Request, res: Response) => {
 router.post('/create', async (req: Request, res: Response): Promise<void> => {
    
 const client = await pool.connect()
-
-   
+  
     try {
         await client.query('BEGIN');
 

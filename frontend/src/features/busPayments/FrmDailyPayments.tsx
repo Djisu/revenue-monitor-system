@@ -201,8 +201,7 @@ const FrmDailyPayments: React.FC = () => {
                 <Form.Group>
                     <p className="text-center text-underline">Produce Daily Payments Report</p>
                     <Form.Label for="zone" className="font-weight-bold">Electoral Area:</Form.Label>
-                    <Form.Control 
-                        type="select" 
+                    <Form.Select
                         name="electoral_area" 
                         id="electoral_area" 
                         value={electoralArea} 
@@ -214,12 +213,11 @@ const FrmDailyPayments: React.FC = () => {
                                 {area.electoral_area}
                             </option>
                         ))}
-                    </Form.Control>
+                    </Form.Select>
                 </Form.Group>
                 <Form.Group>
                     <Form.Label for="bussType" className="font-weight-bold">Business Type/Profession:</Form.Label>
-                    <Form.Control  
-                           type="select" 
+                    <Form.Select
                            name="bussType" 
                            id="bussType" 
                            value={selectedBusinessType} 
@@ -232,7 +230,7 @@ const FrmDailyPayments: React.FC = () => {
                         {businessType.business_type}
                             </option>
                         ))}
-                    </Form.Control >
+                    </Form.Select >
                 </Form.Group>
                 <Form.Group>
                     <Form.Label for="firstDate" className="font-weight-bold">First Payment Date:</Form.Label>

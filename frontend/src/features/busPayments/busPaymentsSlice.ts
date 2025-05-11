@@ -221,21 +221,33 @@ export const deleteBusPayment = createAsyncThunk('busPayments/deleteBusPayment',
 
 // Newly added actions
 // Async thunk to fetch all BusinessType records
-export const billAllBusinesses = createAsyncThunk('businessType/billAllBusinesses', async () => {
-    console.log('inside billAllBusinesses thunk');
-
-    const response = await axios.post(`${BASE_URL}/api/busPayments/billallbusinesses`);
-
-    console.log('after billallbusinesses thunk, Response data:', response.data)
-
-    if (response.status >= 200 && response.status < 300) {
-        console.log('billallbusinesses thunk, response data:', response.data);
-
-        return await response.data; // This data will be available as `action.payload`
-    } else {
-        throw new Error(`Error fetching business types: ${response.statusText}`);
+export const billAllBusinesses = createAsyncThunk(
+    'businessType/billAllBusinesses',
+    async (_, { rejectWithValue }) => {
+        console.log('inside billAllBusinesses thunk');
+        
+        try {
+            const response = await axios.post(`${BASE_URL}/api/busPayments/billallbusinesses`);
+            
+            console.log('after billallbusinesses thunk, Response data:', response.data);
+            
+            if (response.status >= 200 && response.status < 300) {
+                console.log('billallbusinesses thunk, response data:', response.data);
+                return response.data; // This data will be available as `action.payload`
+            } else {
+                return rejectWithValue(`Error fetching business types: ${response.statusText}`);
+            }
+        } catch (error: unknown) {
+            if (error instanceof Error){
+               console.error('Error in billAllBusinesses thunk:', error);
+               return rejectWithValue(`Error fetching business types: ${error.message}`);
+            }
+            console.error('Unknown error in billAllBusinesses thunk:', error);
+            return rejectWithValue('Unknown error');
+        }
     }
-});
+);
+
 
 export const billOneBusiness = createAsyncThunk('businessType/billoneBusiness', async (bussNo: number) => {
     console.log('inside billOneBusiness thunk');
