@@ -53,8 +53,8 @@ router.post('/audit-log', async (req: Request, res: Response) => {
 
 // const router = express.Router();
 
-router.post('/login', async (req: Request, res: Response): Promise<void> => {
-    console.log('Route hit backend login', req.body);
+router.post('/auth/login', async (req: Request, res: Response): Promise<void> => {
+    console.log('Login request received:', req.body); // Log incoming request data
 
     const { username, password } = req.body;
 
