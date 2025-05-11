@@ -1,6 +1,6 @@
 // src/redux/slices/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction, SerializedError, Slice } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 export interface OperatorDefinition {
     OperatorID: string;
@@ -74,6 +74,11 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
 
             console.log('userId:', response.data.user.operatorid);
 
+            console.log('Stored token:', localStorage.getItem('token'));
+            console.log('Stored user:', localStorage.getItem('user'));
+            console.log('Stored operatorId:', localStorage.getItem('operatorId'));
+
+
             // Assuming existingPermissions is an array
             const permissions = response.data.user.existingPermissions; 
             //console.log('Permissions:', permissions);
@@ -84,16 +89,16 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
             return response.data;
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
-                // This will help log Axios specific errors, including status and response
-                console.error('Axios error details:', error.response?.data);
-                return rejectWithValue({
-                    message: error.response?.data.message || 'An error occurred during login',
-                });
-            } else if (error instanceof Error) {
-                // Handle general JavaScript errors (non-Axios)
-                console.error('Unexpected error:', error.message);
-                return rejectWithValue({ message: 'An unexpected error occurred' });
-            }
+                const axiosError = error as AxiosError;
+                console.error('Axios Error:', axiosError.response?.status, axiosError.response?.data);
+                if (axiosError.response?.data && typeof axiosError.response.data === 'object') {
+                    // Assuming that the object could have a message property
+                    const { message = 'An error occurred during login' } = axiosError.response.data as { message?: string };
+                    return rejectWithValue({ message });
+                } else {
+                    return rejectWithValue({ message: 'An error occurred during login' });
+                }
+            }           
             return rejectWithValue({ message: 'An unknown error occurred' });
         }
             

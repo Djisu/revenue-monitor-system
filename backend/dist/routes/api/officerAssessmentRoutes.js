@@ -156,7 +156,7 @@ async function GetOfficerName(officerNo) {
 }
 // Get bills distributed
 router.get('/billsDistributed/:officer_no/:fiscal_year', async (req, res) => {
-    console.log('in router.get(/:officer_no/:fiscal_year');
+    console.log('in router.get(/billsDistributed/:officer_no/:fiscal_year');
     const client = await pool.connect();
     const { officer_no, fiscal_year } = req.params;
     try {

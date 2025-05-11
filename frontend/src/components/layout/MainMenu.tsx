@@ -47,12 +47,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 UC_Update Existing Business Client--2
                             </NavDropdown.Item>
                             {/*Hidden menu items are commented out for now */}
-                            {/* <NavDropdown.Item onClick={() => handleMenuClick('PP', 'UpdateBusinessClientsBarometers')}>
-                                PP_Update Business Client's Barometers
-                            </NavDropdown.Item> */}
-                            <NavDropdown.Item onClick={() => handleMenuClick('BY', 'ListOfBusinesses')}>
-                                BY_List of All Business Clients
-                            </NavDropdown.Item>
+                           
                             <NavDropdown.Item onClick={() => handleMenuClick('SB', 'SetupBusinessType')}>
                                 SB_Setup Business Type
                             </NavDropdown.Item>

@@ -1,7 +1,6 @@
 import * as dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
-import bodyParser from 'body-parser';
 import colors from 'colors';
 import morgan from 'morgan';
 import path from 'path';
@@ -43,13 +42,24 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 // Middleware
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
-app.use(express.json());
+// app.use(bodyParser.json({ limit: '10mb' }));
+// app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Load environment variables
 const environment = process.env.NODE_ENV || 'development';
 dotenv.config({ path: `.env.${environment}` });
 dotenv.config();
+let sslEndVar = "";
+if (process.env.NODE_ENV === 'production') {
+    sslEndVar = 'rejectUnauthorized: true'; // Important for Render.com
+}
+else {
+    sslEndVar = false;
+}
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1); // Trust first proxy (required for HTTPS)
+}
 console.log('host:', process.env.DB_HOST);
 console.log('user:', process.env.DB_USER);
 console.log('database:', process.env.DB_NAME);
@@ -61,6 +71,7 @@ const dbConfig = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'),
+    //ssl: false,
     ssl: {
         rejectUnauthorized: true, // Important for Render.com
     },
@@ -97,6 +108,11 @@ app.options('*', cors(corsOptions), (_req, res) => {
 });
 console.log('After cors');
 app.use(morgan('dev')); // Logging middleware
+app.use((req, res, next) => {
+    console.log('Request Headers:', req.headers);
+    console.log('Request Body:', req.body);
+    next();
+});
 // Serve static files from the React app first
 const frontendPath = path.resolve(dirname(fileURLToPath(import.meta.url)), '../../frontend/dist');
 console.log("Resolved frontendPath:", frontendPath);
