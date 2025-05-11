@@ -19,6 +19,7 @@
     "packageManager": "yarn@4.9.1",
     "dependencies": {
         "backend": "workspace:*",
+        "cors": "^2.8.5",
         "frontend": "workspace:*",
         "typescript": "5.4.5",
         "vite": "^6.2.2"
