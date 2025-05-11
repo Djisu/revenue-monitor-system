@@ -94,7 +94,8 @@ console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 console.log('GETTING TO cors')
 
 
-// Define allowed origins array with specific type
+
+// Define allowed origins array
 const allowedOrigins: string[] = [
   'https://revenue-monitor-system.onrender.com', // Production
   'https://revenue-monitor-system-v6sq.onrender.com', // Frontend URL
@@ -105,15 +106,16 @@ const allowedOrigins: string[] = [
 // Define corsOptions with correct type
 const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, origin?: boolean) => void) => {
+    console.log('Checking origin:', origin); // Debugging log
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
+      callback(null, true); // Allow origin
     } else {
-      console.warn('Blocked by CORS:', origin);
-      callback(new Error('Not allowed by CORS'));
+      console.warn('Blocked by CORS:', origin); // Log blocked origin
+      callback(new Error('Not allowed by CORS')); // Reject with error
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
   credentials: true, // Allow credentials such as cookies
 };
 
@@ -122,8 +124,9 @@ app.use(cors(corsOptions));
 
 // Handle preflight requests for all routes
 app.options('*', cors(corsOptions), (_req: Request, res: Response) => {
-  res.sendStatus(200);
+  res.sendStatus(200); // Respond to preflight request with 200 status
 });
+
 
 
 

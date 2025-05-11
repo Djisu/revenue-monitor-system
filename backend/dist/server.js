@@ -78,7 +78,7 @@ const dbConfig = {
 };
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 console.log('GETTING TO cors');
-// Define allowed origins array with specific type
+// Define allowed origins array
 const allowedOrigins = [
     'https://revenue-monitor-system.onrender.com', // Production
     'https://revenue-monitor-system-v6sq.onrender.com', // Frontend URL
@@ -88,23 +88,24 @@ const allowedOrigins = [
 // Define corsOptions with correct type
 const corsOptions = {
     origin: (origin, callback) => {
+        console.log('Checking origin:', origin); // Debugging log
         if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
+            callback(null, true); // Allow origin
         }
         else {
-            console.warn('Blocked by CORS:', origin);
-            callback(new Error('Not allowed by CORS'));
+            console.warn('Blocked by CORS:', origin); // Log blocked origin
+            callback(new Error('Not allowed by CORS')); // Reject with error
         }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
     credentials: true, // Allow credentials such as cookies
 };
 // Apply CORS to all routes
 app.use(cors(corsOptions));
 // Handle preflight requests for all routes
 app.options('*', cors(corsOptions), (_req, res) => {
-    res.sendStatus(200);
+    res.sendStatus(200); // Respond to preflight request with 200 status
 });
 console.log('After cors');
 app.use(morgan('dev')); // Logging middleware

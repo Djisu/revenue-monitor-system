@@ -54,7 +54,9 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
             const response = await axios.post(`${BASE_URL}/api/auth/login`, {
                 username: credentials.username, // Ensure this matches 'OperatorName'
                 password: credentials.password
-            });
+            },
+            { withCredentials: true }
+            );
 
             console.log('Login response:', response.data);
 
