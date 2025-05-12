@@ -50,12 +50,12 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 const environment = process.env.NODE_ENV || 'development';
 dotenv.config({ path: `.env.${environment}` });
 dotenv.config();
-let sslEndVar = "";
+let sslConfig;
 if (process.env.NODE_ENV === 'production') {
-    sslEndVar = 'rejectUnauthorized: true'; // Important for Render.com
+    sslConfig = { rejectUnauthorized: true }; // Important for Render.com
 }
 else {
-    sslEndVar = false;
+    sslConfig = false;
 }
 if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1); // Trust first proxy (required for HTTPS)
@@ -72,9 +72,7 @@ const dbConfig = {
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'),
     //ssl: false,
-    ssl: {
-        rejectUnauthorized: true, // Important for Render.com
-    },
+    ssl: sslConfig,
 };
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 console.log('GETTING TO cors');
