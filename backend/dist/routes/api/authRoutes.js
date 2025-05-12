@@ -31,7 +31,7 @@ router.post('/audit-log', async (req, res) => {
 // import { pool } from './db'; // Assuming you have a pool instance for DB connections
 // import config from './config'; // Assuming you have config for JWT secret
 // const router = express.Router();
-router.post('/login', async (req, res) => {
+router.post('/auth/login', async (req, res) => {
     console.log('Login request received:', req.body); // Log incoming request data
     const { username, password } = req.body;
     // Validate inputs

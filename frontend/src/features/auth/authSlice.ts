@@ -55,7 +55,11 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
                 username: credentials.username, // Ensure this matches 'OperatorName'
                 password: credentials.password
             },
-            { withCredentials: true }
+            { withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+             }          
             );
 
             console.log('Login response:', response.data);
