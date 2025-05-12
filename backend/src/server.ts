@@ -58,12 +58,12 @@ const environment = process.env.NODE_ENV || 'development';
 dotenv.config({ path: `.env.${environment}` });
 dotenv.config();
 
-let sslEndVar: string | boolean = ""
+let sslConfig: false | { rejectUnauthorized: boolean };
 
 if (process.env.NODE_ENV === 'production') { 
-  sslEndVar =  'rejectUnauthorized: true' // Important for Render.com
-}else{
-  sslEndVar = false
+  sslConfig = { rejectUnauthorized: true }; // Important for Render.com
+} else {
+  sslConfig = false;
 }
 
 
@@ -85,9 +85,7 @@ const dbConfig = {
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'),
     //ssl: false,
-    ssl: {
-      rejectUnauthorized: true, // Important for Render.com
-    },
+    ssl: sslConfig,
 };
 console.log(colors.green('PostgreSQL configuration:'), dbConfig);
 
