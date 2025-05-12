@@ -93,9 +93,10 @@ console.log('GETTING TO cors')
 
 
 
-// Define allowed origins array
+// Define allowed origins array, // Production
 const allowedOrigins: string[] = [
-  'https://revenue-monitor-system.onrender.com', // Production
+  'https://revenue-monitor-system-v6sq.onrender.com', 
+  'https://revenue-monitor-system.onrender.com',
   'http://localhost:3000', // Local development
   'http://localhost:5173', // Local development
 ];

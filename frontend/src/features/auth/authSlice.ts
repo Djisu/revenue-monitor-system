@@ -1,6 +1,7 @@
 // src/redux/slices/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction, SerializedError, Slice } from '@reduxjs/toolkit';
 import axios, { AxiosError } from 'axios';
+//import https from 'https';, AxiosRequestConfig
 
 export interface OperatorDefinition {
     OperatorID: string;
@@ -50,17 +51,18 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
     async (credentials, { rejectWithValue }) => {
         console.log('Sending login request:', { username: credentials.username, password: credentials.password });
 
+        // const sslConfig: AxiosRequestConfig['httpsAgent'] = import.meta.env.MODE === 'production' 
+        //     ? new https.Agent({ rejectUnauthorized: true })
+        //     : false; // httpsAgent: sslConfig,
+
+
         try {
-            const response = await axios.post(`${BASE_URL}/api/auth/login`, {
+            const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/auth/login`, {
                 username: credentials.username, // Ensure this matches 'OperatorName'
                 password: credentials.password
-            },
-            { withCredentials: true,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-             }          
-            );
+            }, {               
+                withCredentials: true,              
+            });
 
             console.log('Login response:', response.data);
 
@@ -70,12 +72,10 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
                 return rejectWithValue({ message: response.data.message || 'Invalid credentials' });
             }
 
-            //console.log('Token:', response.data.token);
-
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.user));
 
-            console.log(response.data.user.firstname +  ' ' + response.data.user.lastname)
+            console.log(response.data.user.firstname + ' ' + response.data.user.lastname);
             localStorage.setItem('operatorId', JSON.stringify(response.data.user.operatorid));
 
             console.log('userId:', response.data.user.operatorid);
@@ -84,11 +84,9 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
             console.log('Stored user:', localStorage.getItem('user'));
             console.log('Stored operatorId:', localStorage.getItem('operatorId'));
 
-
             // Assuming existingPermissions is an array
             const permissions = response.data.user.existingPermissions; 
-            //console.log('Permissions:', permissions);
-            
+
             // Store permissions if they exist
             localStorage.setItem('existingPermissions', JSON.stringify(permissions));
 
@@ -98,17 +96,15 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
                 const axiosError = error as AxiosError;
                 console.error('Axios Error:', axiosError.response?.status, axiosError.response?.data);
                 if (axiosError.response?.data && typeof axiosError.response.data === 'object') {
-                    // Assuming that the object could have a message property
                     const { message = 'An error occurred during login' } = axiosError.response.data as { message?: string };
                     return rejectWithValue({ message });
                 } else {
                     return rejectWithValue({ message: 'An error occurred during login' });
                 }
-            }           
+            }
             return rejectWithValue({ message: 'An unknown error occurred' });
         }
-            
-        }
+    }
 );
 
 
