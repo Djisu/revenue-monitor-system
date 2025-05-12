@@ -98,7 +98,6 @@ console.log('GETTING TO cors')
 // Define allowed origins array
 const allowedOrigins: string[] = [
   'https://revenue-monitor-system.onrender.com', // Production
-  'https://revenue-monitor-system-v6sq.onrender.com', // Frontend URL
   'http://localhost:3000', // Local development
   'http://localhost:5173', // Local development
 ];
