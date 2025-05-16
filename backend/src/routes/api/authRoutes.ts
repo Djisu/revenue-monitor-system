@@ -1,17 +1,22 @@
 // backend/src/routes/api/loginRoutes.ts
 // backend/src/routes/api/loginRoutes.ts
 import { Router, Request, Response } from 'express';
-import { sendResetEmailUser } from '../../utils/emailUser.js';
+//import { sendResetEmailUser } from '../../utils/emailUser.js';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import pkg from 'pg';
 
+import path from 'path'; 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { HttpError } from 'http-errors';
+import fs from 'fs'; // Import the fs module to check file existence
+
 const { Pool } = pkg;
 
 dotenv.config();
-
 
 interface OperatorDefinition {
     operatorid: string;
@@ -24,7 +29,31 @@ interface OperatorDefinition {
     resettokenexpiration?: Date;
 }
 
-dotenv.config();
+// Determine the environment (development or production)
+const environment = process.env.NODE_ENV || 'development';  // Defaults to 'development'
+console.log('Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
+
+
+// Construct the path to the appropriate .env file
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const envPath = path.resolve(__dirname, '..', '.env.' + environment);
+console.log('envPath:', envPath); // Debugging log
+
+// Check if the .env file exists
+if (!fs.existsSync(envPath)) {
+  console.error(`.env file not found at ${envPath}. Please ensure the file exists.`);
+  process.exit(1); // Exit the process if the file is not found
+}
+
+// Load the environment variables from the .env file
+dotenv.config({ path: envPath });
+
+console.log('environment:', environment);
+console.log('NODE_ENV after dotenv.config:', process.env.NODE_ENV); // Debugging log
+
+
+//dotenv.config();
 
 let sslConfig: false | { rejectUnauthorized: boolean };
 
@@ -66,6 +95,8 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     console.log('Login request received:', req.body); // Log incoming request data
 
     const { username, password } = req.body;
+
+    console.log(' config.jwtSecret: ',  config.jwtSecret)
 
     // Validate inputs
     if (!username || !password) {
@@ -258,7 +289,7 @@ router.post('/request-password-reset', async (req: Request, res: Response) => {
             [token, new Date(Date.now() + 25200000), email]
         );
 
-        await sendResetEmailUser(email, token); // Function to send email
+        //await sendResetEmailUser(email, token); // Function to send email
         res.status(200).json({ message: 'Password reset email sent.' });
     } catch (error) {
         console.error('Error:', error);

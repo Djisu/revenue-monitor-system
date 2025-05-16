@@ -8,7 +8,7 @@
     "allowSyntheticDefaultImports": true,  // Allows synthetic default imports
     "strict": true,                        // Enable strict type-checking options
     "esModuleInterop": true,               // Allows interoperability with CommonJS modules
-    "moduleResolution": "node",            // Use Node module resolution strategy
+    "moduleResolution": "Node",            // Use Node module resolution strategy
     "sourceMap": true,                     // Generate source maps for debugging
     "skipLibCheck": true,                  // Skip type checking of declaration files
     "forceConsistentCasingInFileNames": true, // Enforces consistent casing of file names
@@ -22,11 +22,11 @@
     "*.spec.ts",
     "dist/**/*.js",
     "dist/**/*.d.ts",
-    "src/seedDatabase.ts",
     "src"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ]
 }
 
