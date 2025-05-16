@@ -4,7 +4,7 @@ import { Router } from 'express';
 import { QueryResult } from 'pg';
 
 import pkg from 'pg';
-import { Business } from '../../models/Business';
+import { Business } from '../../models/Business.js';
 
 
 
