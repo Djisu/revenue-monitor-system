@@ -34,17 +34,13 @@ export const FrmBillClient: React.FC = () => {
   const handleBillClick = async () => {
     console.log('in handleBillClick')
 
-    try {
-    
-      
+    try {      
       const response = await dispatch(billOneBusiness(bussNo)).unwrap()
 
       if (response){
         alert('Billing successful');
         setAmount(0);
-      }
-        
-     
+      }             
     } catch (error) {
       console.error(error);
       setError('Error billing client');
@@ -82,7 +78,6 @@ export const FrmBillClient: React.FC = () => {
     }
   };
   
-
   return (
     <Container>
      

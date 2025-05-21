@@ -16,24 +16,53 @@ const { Pool } = pkg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const router = Router();
-// Load environment variables from .env file
+// Load the environment variables from the .env file
 dotenv.config();
-// PostgreSQL connection configuration
-const pool = new Pool({
+// Determine the environment (development or production)
+const env = process.env.NODE_ENV || 'development'; // Defaults to 'development'
+console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
+const permitDir = path.join(__dirname, 'permits');
+//const rootDir = path.resolve(__dirname, '..');
+const envPath = path.resolve(__dirname, `../.env.${env}`);
+console.log('[BACKEND] envPath:', envPath); // Debugging log
+// Check if the .env file exists
+if (!fs.existsSync(envPath)) {
+    console.error(`[BACKEND] .env file not found at ${envPath}. Please ensure the file exists.`);
+    process.exit(1); // Exit the process if the file is not found
+}
+// Load the environment variables from the .env file
+dotenv.config({ path: envPath });
+console.log('[BACKEND] environment:', env);
+console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV); // Debugging log
+// Example usage of environment variables
+const DB_HOST = process.env.DB_HOST;
+const DB_USER = process.env.DB_USER;
+const DB_NAME = process.env.DB_NAME;
+const DB_PORT = process.env.DB_PORT;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const JWT_SECRET = process.env.JWT_SECRET;
+console.log('Initial NODE_ENV:', process.env.NODE_ENV);
+console.log('DB_HOST:', DB_HOST);
+console.log('DB_USER:', DB_USER);
+console.log('DB_NAME:', DB_NAME);
+console.log('DB_PORT:', DB_PORT);
+console.log('DB_PASSWORD:', DB_PASSWORD);
+console.log('JWT_SECRET:', JWT_SECRET);
+// SSL configuration
+let sslConfig;
+if (process.env.NODE_ENV === 'production') {
+    sslConfig = { rejectUnauthorized: true }; // Important for Render.com
+}
+else {
+    sslConfig = false;
+}
+const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'postgres',
+    user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'revmonitor',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-});
-// // Nodemailer transporter setup
-// const transporter = nodemailer.createTransport({
-//     service: 'gmail',
-//     auth: {
-//         user: process.env.EMAIL_USER,
-//         pass: process.env.APP_PASSWORD
-//     }
-// });
+};
+const pool = new Pool(dbConfig);
 // Function to get Business name from buss_no
 async function getBusinessName(buss_no) {
     const client = await pool.connect();
@@ -55,22 +84,33 @@ async function getBusinessName(buss_no) {
 // Function to generate PDF
 function generateReceiptContent(doc, data, totalPayable, varSerialNo) {
     console.log('in generateReceiptContent');
-    doc.fontSize(20).text('Business Operating Permit', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(12);
-    doc.text(`Serial No: ${varSerialNo}`);
-    doc.moveDown(0.5).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-    doc.moveDown();
-    doc.text(`Account No: ${data.buss_no}`);
-    doc.text(`Business Name: ${data.buss_name}`);
-    doc.text(`Type: ${data.buss_type}`);
-    doc.text(`Property Class: ${data.property_class}`);
-    doc.text(`Landmark: ${data.landmark}`);
-    doc.text(`Electoral Area: ${data.electroral_area}`);
-    doc.text(`Total Grade: ${data.tot_grade}`);
-    doc.text(`Current Rate: ${data.current_rate}`);
-    doc.text(`Property Rate: ${data.property_rate}`);
-    doc.text(`Total Payable GHC: ${totalPayable.toFixed(2)}`);
+    try {
+        doc.fontSize(20).text('Business Operating Permit', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(12);
+        doc.text(`Serial No: ${varSerialNo}`);
+        doc.moveDown(0.5).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+        doc.moveDown();
+        doc.text(`Account No: ${data.buss_no}`);
+        doc.text(`Business Name: ${data.buss_name}`);
+        doc.text(`Type: ${data.buss_type}`);
+        doc.text(`Property Class: ${data.property_class}`);
+        doc.text(`Landmark: ${data.landmark}`);
+        doc.text(`Electoral Area: ${data.electroral_area}`);
+        doc.text(`Total Grade: ${data.tot_grade}`);
+        doc.text(`Current Rate: ${data.current_rate}`);
+        doc.text(`Property Rate: ${data.property_rate}`);
+        doc.text(`Total Payable GHC: ${totalPayable.toFixed(2)}`);
+        console.log('Receipt generated');
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.log('Error occurred ', error);
+        }
+        else {
+            console.log('Unknown error');
+        }
+    }
 }
 export async function generatePdf(data) {
     console.log('in generatePdf');
@@ -79,6 +119,7 @@ export async function generatePdf(data) {
     const totalPayable = currentRate + propertyRate;
     const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
     const varSerialNo = baseSerialNo.toString().padStart(10, '0');
+    console.log('about to  return new Promise<Buffer>((resolve, reject) => {');
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument({ size: 'A4', margin: 40 });
         const chunks = [];
@@ -87,33 +128,45 @@ export async function generatePdf(data) {
         doc.on('error', reject);
         generateReceiptContent(doc, data, totalPayable, varSerialNo);
         doc.end();
+        console.log('after generateReceiptContent(doc, data, totalPayable, varSerialNo);');
     });
 }
 export async function generatePdfToPrinter(data) {
     console.log('in generatePdfToPrinter');
-    const currentRate = parseFloat(data.current_rate);
-    const propertyRate = parseFloat(data.property_rate);
-    const totalPayable = currentRate + propertyRate;
-    const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
-    const varSerialNo = baseSerialNo.toString().padStart(10, '0');
-    const outputDir = path.join(__dirname, 'receipts');
-    if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-    }
-    const pdfPath = path.join(outputDir, `receipt-${varSerialNo}.pdf`);
-    return new Promise((resolve, reject) => {
-        const doc = new PDFDocument({ size: 'A4', margin: 40 });
-        const stream = fs.createWriteStream(pdfPath);
-        stream.on('finish', async () => {
-            console.log(`PDF generated successfully at ${pdfPath}`);
-            await printPdf(pdfPath);
-            resolve();
+    try {
+        const currentRate = parseFloat(data.current_rate);
+        const propertyRate = parseFloat(data.property_rate);
+        const totalPayable = currentRate + propertyRate;
+        const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
+        const varSerialNo = baseSerialNo.toString().padStart(10, '0');
+        console.log('about to create our directory path');
+        const outputDir = path.join(__dirname, 'receipts');
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+        }
+        const pdfPath = path.join(outputDir, `receipt-${varSerialNo}.pdf`);
+        return new Promise((resolve, reject) => {
+            const doc = new PDFDocument({ size: 'A4', margin: 40 });
+            const stream = fs.createWriteStream(pdfPath);
+            stream.on('finish', async () => {
+                console.log(`PDF generated successfully at ${pdfPath}`);
+                await printPdf(pdfPath);
+                resolve();
+            });
+            stream.on('error', reject);
+            doc.pipe(stream);
+            generateReceiptContent(doc, data, totalPayable, varSerialNo);
+            doc.end();
         });
-        stream.on('error', reject);
-        doc.pipe(stream);
-        generateReceiptContent(doc, data, totalPayable, varSerialNo);
-        doc.end();
-    });
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.log('Error occurred: ', error);
+        }
+        else {
+            console.log('Unknown error');
+        }
+    }
 }
 //   async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalanceBF: number, 
 //     txtCurrentRate: number, txtRate: number, cboElectoralArea: string, cboAssessmentBy: string): Promise<boolean> {
@@ -960,11 +1013,24 @@ router.post('/billonebusiness/:bussNo', async (req, res) => {
             console.log('Generating PDF for bill:', bill.buss_no);
             try {
                 const pdfBuffer = await generatePdf(bill);
+                console.log('in billonebusiness after const pdfBuffer = await generatePdf(bill);');
+                console.log('about to  fs.writeFileSync(path.join(__dirname,');
+                console.log('__dirname: ', __dirname);
+                console.log('path.join(__dirname, "permits", "permit_${bill.buss_no}.pdf")): ', path.join(__dirname, 'permits', `permit_${bill.buss_no}.pdf`));
+                // creating directory if it does not exist
+                const permitsDir = path.join(__dirname, "permits");
+                if (!fs.existsSync(permitsDir)) {
+                    fs.mkdirSync(permitsDir, { recursive: true });
+                }
+                const filePath = path.join(permitsDir, `permit_${bill.buss_no}.pdf`);
+                fs.writeFileSync(filePath, pdfBuffer);
                 // Save the PDF to a file or handle it as needed
                 fs.writeFileSync(path.join(__dirname, 'permits', `permit_${bill.buss_no}.pdf`), pdfBuffer);
                 console.log('BILL written to permitDir');
+                console.log('about to  await generatePdfToPrinter(bill)');
                 // To printer
                 await generatePdfToPrinter(bill);
+                console.log('after await generatePdfToPrinter(bill)');
             }
             catch (error) {
                 if (error instanceof Error) {

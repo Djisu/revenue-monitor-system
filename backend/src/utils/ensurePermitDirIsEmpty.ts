@@ -12,6 +12,8 @@ const fsPromises = fs.promises;
 
 
 async function ensurePermitDirIsEmpty() {
+    console.log('in ensurePermitDirIsEmpty!!!')
+    
     try {
         // Check if the directory exists
         await fsPromises.access(permitDir);

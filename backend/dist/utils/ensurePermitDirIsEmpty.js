@@ -8,6 +8,7 @@ const __dirname = dirname(__filename);
 const permitDir = path.join(__dirname, 'permits');
 const fsPromises = fs.promises;
 async function ensurePermitDirIsEmpty() {
+    console.log('in ensurePermitDirIsEmpty!!!');
     try {
         // Check if the directory exists
         await fsPromises.access(permitDir);
