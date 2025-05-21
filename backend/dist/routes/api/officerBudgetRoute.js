@@ -1,22 +1,64 @@
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
-import nodemailer from 'nodemailer';
 import pg from 'pg';
 const { Pool } = pg;
-// PostgreSQL connection pool
-const emailPassword = process.env.EMAIL_PASSWORD;
-const emailUser = process.env.EMAIL_USER;
-// PostgreSQL connection configuration
-const pool = new Pool({
+const router = Router();
+// experiment ///
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import fs from 'fs';
+// Load the environment variables from the .env file
+dotenv.config();
+// Determine the environment (development or production)
+const env = process.env.NODE_ENV || 'development'; // Defaults to 'development'
+console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
+// Construct the path to the appropriate .env file from the root directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const permitDir = path.join(__dirname, 'permits');
+//const rootDir = path.resolve(__dirname, '..');
+const envPath = path.resolve(__dirname, `../.env.${env}`);
+console.log('[BACKEND] envPath:', envPath); // Debugging log
+// Check if the .env file exists
+if (!fs.existsSync(envPath)) {
+    console.error(`[BACKEND] .env file not found at ${envPath}. Please ensure the file exists.`);
+    process.exit(1); // Exit the process if the file is not found
+}
+// Load the environment variables from the .env file
+dotenv.config({ path: envPath });
+console.log('[BACKEND] environment:', env);
+console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV); // Debugging log
+// Example usage of environment variables
+const DB_HOST = process.env.DB_HOST;
+const DB_USER = process.env.DB_USER;
+const DB_NAME = process.env.DB_NAME;
+const DB_PORT = process.env.DB_PORT;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const JWT_SECRET = process.env.JWT_SECRET;
+console.log('Initial NODE_ENV:', process.env.NODE_ENV);
+console.log('DB_HOST:', DB_HOST);
+console.log('DB_USER:', DB_USER);
+console.log('DB_NAME:', DB_NAME);
+console.log('DB_PORT:', DB_PORT);
+console.log('DB_PASSWORD:', DB_PASSWORD);
+console.log('JWT_SECRET:', JWT_SECRET);
+// SSL configuration
+let sslConfig;
+if (process.env.NODE_ENV === 'production') {
+    sslConfig = { rejectUnauthorized: true }; // Important for Render.com
+}
+else {
+    sslConfig = false;
+}
+const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'postgres',
+    user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'revmonitor',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-});
-const router = Router();
-// Load environment variables from .env file
-dotenv.config();
+};
+const pool = new Pool(dbConfig);
+// end of experiment ///
 router.get('/all', async (req, res) => {
     console.log('in router.get(/all');
     const client = await pool.connect();
@@ -512,37 +554,6 @@ router.post('/updateBudget', async (req, res) => {
             });
             return;
         }
-        // The send email will be replaced by text message
-        // Send email to officer
-        const officerEmail = await pool.query(`
-            SELECT email FROM officer 
-            WHERE officer_no = $1`, [officer_no]);
-        if (officerEmail.rows.length === 0) {
-            res.status(404).send('Officer email not found');
-            return; // Skip email if officer email not found
-        }
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: emailUser,
-                pass: emailPassword
-            }
-        });
-        const mailOptions = {
-            from: emailUser,
-            to: officerEmail.rows[0].email,
-            subject: 'RevMonitor - Budget Updated',
-            text: `Your budget for ${month} has been updated successfully. Please check your email for more details.`
-        };
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error('Error sending email:', error);
-            }
-            else {
-                console.log('Email sent:', info.messageId);
-            }
-        });
-        console.log('Sending email to officer successful');
         res.status(200).json({
             status: 'success',
             message: 'Budget record updated successfully',
