@@ -36,6 +36,15 @@ export const initialState: OfficerState = {
     message: null,
 };
 
+console.log('import.meta.env.VITE_BASE_URL: ', import.meta.env.VITE_BASE_URL)
+console.log('import.meta.env.MODE: ', import.meta.env.MODE)
+console.log('import.meta.env: ', import.meta.env)
+console.log('import.meta.env.PROD: ', import.meta.env.PROD)
+console.log('import.meta.env.DEV: ', import.meta.env.DEV)
+console.log('import.meta.env.SSR: ', import.meta.env.SSR)   
+console.log('import.meta.env.BASE_URL: ', import.meta.env.BASE_URL)
+
+// Determine the base URL based on the environment
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
 

@@ -2,23 +2,35 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
+
+console.log('>>> VITE_DEV_PORT:', process.env.VITE_DEV_PORT);
+console.log('>>> VITE server config loading...');
+console.log('>>> process.env.PORT:', process.env.PORT);
 
 export default defineConfig({
   root: '.',
   plugins: [react()],
   server: {
-    open: true, // Automatically open the browser
+    port: 5173,
+    strictPort: true,
+    open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000', // Your backend server
+        target: 'http://localhost:3000',
         changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
-  },
+  },  
   build: {
-    chunkSizeWarningLimit: 1500, // Set the limit to 1.5 MB (1500 kB)
-    outDir: 'dist', // Ensure the output directory is set to 'dist'
-    sourcemap: true, // optional
+    chunkSizeWarningLimit: 1500,
+    outDir: 'dist',
+    sourcemap: true,
     target: 'esnext',
     rollupOptions: {
       external: [],
@@ -29,13 +41,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  base: '', // Make sure it's set to an empty string if you're deploying to the root
+  base: '',
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   },
 });
-
-
-
-
 
