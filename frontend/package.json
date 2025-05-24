@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "start": "serve -s dist -l 10000",
-    "dev": "vite",
+    "dev": "vite --port 5173 --strictPort",
     "build": "vite build",
     "serve": "vite preview",
     "test": "vitest run",
@@ -46,6 +46,7 @@
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
     "@vitejs/plugin-react": "^4.4.1",
+    "cross-env": "^7.0.3",
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -66,5 +67,7 @@
   "resolutions": {
     "negotiator": "^0.6.3"
   },
-  "proxy": "http://localhost:3000"
+  "proxy": {
+    "/api": "http://localhost:3000"
+  }
 }

@@ -18,11 +18,14 @@
   "include": [
     "src/**/*.ts",
     "src/types.d.ts",
+    "src/**/*",
     "tests/**/*.ts",
     "*.spec.ts",
     "dist/**/*.js",
     "dist/**/*.d.ts",
-    "src"
+    "src",
+    "src/routes",
+    "src/routes/*.env"
   ],
   "exclude": [
     "node_modules",
