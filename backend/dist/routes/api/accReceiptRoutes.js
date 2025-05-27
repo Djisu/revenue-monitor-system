@@ -16,7 +16,7 @@ console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging l
 // Construct the path to the appropriate .env file from the root directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const permitDir = path.join(__dirname, 'permits');
+//const permitDir = path.join(__dirname, 'permits');
 //const rootDir = path.resolve(__dirname, '..');
 const envPath = path.resolve(__dirname, `../.env.${env}`);
 console.log('[BACKEND] envPath:', envPath); // Debugging log
@@ -57,6 +57,7 @@ const dbConfig = {
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'revmonitor',
+    ssl: sslConfig,
 };
 // Create a connection pool
 const pool = new Pool(dbConfig);
@@ -65,15 +66,43 @@ router.post('/create', async (req, res) => {
     console.log('router.post(/create)', req.body);
     const client = await pool.connect();
     const accReceiptData = req.body;
-    console.log(accReceiptData);
+    console.log("accReceiptData: ", accReceiptData);
     try {
-        // Check if an operator permission with the same OperatorID already exists
-        const accReceipt = await client.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2', [accReceiptData.batchno, accReceiptData.fiscalyear]);
-        if (accReceipt.rows.length > 0) {
-            res.status(409).json({ message: 'Account reception with this batch number and fiscal year already exists.' });
+        console.log('accReceiptData.batchno: ', accReceiptData.batchno);
+        console.log('accReceiptData.fiscalyear: ', accReceiptData.fiscalyear);
+        console.log('accReceiptData.firstno: ', accReceiptData.firstno);
+        console.log('accReceiptData.lastno: ', accReceiptData.lastno);
+        // Verification
+        if (accReceiptData.firstno > accReceiptData.lastno) {
+            res.status(400).json({ success: false, message: 'First number cannot be greater than last number' });
             return;
         }
+        console.log('after firstno > lastno');
+        if (accReceiptData.firstno < 0 || accReceiptData.lastno < 0) {
+            res.status(400).json({ success: false, message: 'First number and last number must be greater than 0' });
+            return;
+        }
+        console.log('after firstno < 0 || lastno < 0');
+        if (accReceiptData.fiscalyear < 2023) {
+            res.status(400).json({ success: false, message: 'Fiscal year must be greater than 2023' });
+            return;
+        }
+        console.log('after fiscalyear < 2023');
+        if (accReceiptData.batchno.includes(' ')) {
+            res.status(400).json({ success: false, message: 'Batch number cannot contain spaces' });
+            return;
+        }
+        console.log('after batchno.includes(\' \')');
+        console.log('about to SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2');
+        // Check if an operator permission with the same OperatorID already exists
+        const accReceipt = await client.query('SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2 AND firstno = $3 AND lastno = $4', [accReceiptData.batchno, accReceiptData.fiscalyear, accReceiptData.firstno, accReceiptData.lastno]);
+        if (accReceipt.rows.length > 0) {
+            res.status(409).json({ success: false, message: 'Account reception with this batch number and fiscal year already exists.' });
+            return;
+        }
+        console.log('after SELECT * FROM accreceipt WHERE batchno = $1 AND fiscalyear = $2');
         // Insert the new AccReceipt data
+        console.log('about to INSERT INTO accreceipt (fiscalyear, batchno, firstno, lastno) VALUES ($1, $2, $3, $4)');
         await client.query(`INSERT INTO accreceipt (fiscalyear, batchno, firstno, lastno) 
              VALUES ($1, $2, $3, $4)`, [
             accReceiptData.fiscalyear,
@@ -81,7 +110,9 @@ router.post('/create', async (req, res) => {
             accReceiptData.firstno,
             accReceiptData.lastno,
         ]);
-        res.status(201).json({ message: 'AccReceipt created successfully' });
+        console.log('after INSERT INTO accreceipt (fiscalyear, batchno, firstno, lastno) VALUES ($1, $2, $3, $4)');
+        res.status(201).json({ success: true, message: 'AccReceipt created successfully' });
+        console.log('about to return');
         return;
     }
     catch (error) {

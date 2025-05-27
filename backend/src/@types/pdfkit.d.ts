@@ -16,7 +16,7 @@ declare module 'pdfkit' {
     }
   
     class PDFDocument {
-      constructor(options?: any);
+      constructor(options?: unknown);
       pipe(stream: Stream): void;
       text(text: string, options?: TextOptions): this;
       text(text: string, x: number, y: number, options?: TextOptions): this;

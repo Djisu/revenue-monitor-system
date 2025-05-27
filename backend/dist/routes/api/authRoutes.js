@@ -10,6 +10,7 @@ import pkg from 'pg';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+//import { HttpError } from 'http-errors';
 import fs from 'fs'; // Import the fs module to check file existence
 const { Pool } = pkg;
 dotenv.config();

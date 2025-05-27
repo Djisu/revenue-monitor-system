@@ -86,7 +86,7 @@ export const FrmReceipts: React.FC = () => {
 
             const response = await dispatch(createAccReceipt(data));
 
-            if (response.payload.success) {
+            if (response.meta.requestStatus === 'fulfilled') {
                 alert("Record successfully added");
                 // Clear input fields
                 setFiscalYear(0);

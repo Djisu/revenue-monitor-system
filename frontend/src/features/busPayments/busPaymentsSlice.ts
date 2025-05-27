@@ -23,6 +23,7 @@ export interface BusPaymentsState {
     loading: boolean;
     error: string | null;
     billedAmount: number;
+    receiptValidationMessage?: string; // Add this new property
 }
 
 export interface BillData {
@@ -35,6 +36,7 @@ export const initialState: BusPaymentsState = {
     loading: false,
     error: null,
     billedAmount: 0,
+    receiptValidationMessage: undefined // Initialize it
 };
 
 export interface FetchDailyPaymentsArgs {
@@ -47,6 +49,7 @@ export interface FetchDailyPaymentsArgs {
 interface FetchParams {
     fiscalyear: string;
     receiptno: string;
+    batchno: string;
 }
 
 
@@ -91,9 +94,6 @@ export const fetchTransSavings = createAsyncThunk('busPayments/fetchBusPayments'
 // Async thunk to create a new BusPayments record
 export const createBusPayment = createAsyncThunk('busPayments/createBusPayment', async (data: BusPaymentsData) => {
     console.log('createBusPayment slice', data);
-
-    // const response = await axios.post(`${BASE_URL}/api/busPayments/create`, data);
-    // return response.data;
 
      // Call the API to create a new business
      try {
@@ -306,34 +306,44 @@ export const fetchDailyPayments = createAsyncThunk('businessType/dailypayments',
 
 export const fetchFiscalyearReceiptno = createAsyncThunk(
     'businessType/fetchFiscalyearReceiptno',
-    async ({ fiscalyear, receiptno }: FetchParams) => {
-        console.log('inside fetchFiscalyearReceiptno thunk');
+    async ({ fiscalyear, receiptno, batchno }: FetchParams) => {
+        try {
+            console.log('inside fetchFiscalyearReceiptno thunk');
 
-        console.log('fiscalyear: ', fiscalyear);
-        console.log('receiptno: ', receiptno)
-
-        // get year from system date
-
-        const year = fiscalyear.split('-')[0];
-        fiscalyear = year;
-
-        console.log('fiscalyear: ', fiscalyear)
-
-        const response = await axios.get(
-            `${BASE_URL}/api/busPayments/${fiscalyear}/${receiptno}`,
-            {
-                headers: { 'Content-Type': 'application/json' },
+            console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+            
+            console.log('fiscalyear: ', fiscalyear);
+            console.log('receiptno: ', receiptno)
+        
+            if (!batchno){
+                console.log('No batch found')
             }
-        );
+            console.log('batchno: ', batchno)
 
-        console.log('after fetchFiscalyearReceiptno thunk, Response data:', response.data);
+            // get year from system date
+            const year = fiscalyear.split('-')[0];
+            fiscalyear = year;
 
-        if (response.status >= 200 && response.status < 300) {
-            console.log('fetchFiscalyearReceiptno thunk, response data.data:', response.data.data);
+            console.log('fiscalyear: ', fiscalyear)
 
-            return await response.data; // This data will be available as `action.payload`
-        } else {
-            throw new Error(`Error fetching one business types: ${response.statusText}`);
+            const response = await axios.get(
+                `${BASE_URL}/api/busPayments/${fiscalyear}/${receiptno}/${batchno}`,
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            );
+
+            console.log('response text:', response.data.message);
+
+            if (response.status >= 200 && response.status < 300) {
+                console.log('fetchFiscalyearReceiptno thunk:', response.data.message);
+                return response.data.message;
+            } else {
+                throw new Error(`Error fetching receipt validation: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error('Error in fetchFiscalyearReceiptno thunk:', error);
+            throw error;
         }
     }
 );
@@ -489,10 +499,15 @@ const busPaymentsSlice = createSlice({
             .addCase(fetchFiscalyearReceiptno.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchFiscalyearReceiptno.fulfilled, (state, action) => {
+            .addCase(fetchFiscalyearReceiptno.fulfilled, (state, action: PayloadAction<string>) => {
                 state.loading = false;
-                state.busPayments.push(...action.payload); // Add the new BusPayments record
+                // Don't push the string to busPayments array
+                // Instead, we can store it in a new state property or just use it in the component
                 state.error = null;
+                // If you need to store the message somewhere, add a new property to your state interface
+                // and store it there, for example:
+                 // Store the message in a new state property if needed
+                 state.receiptValidationMessage = action.payload;
             })
             .addCase(fetchFiscalyearReceiptno.rejected, (state, action) => {
                 state.loading = false;

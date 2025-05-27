@@ -4,8 +4,8 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 import express, { Request, Response, NextFunction } from 'express';
-import cors, { CorsOptions } from 'cors';
-//import bodyParser from 'body-parser';
+import cors from 'cors';
+//import bodyParser from 'body-parser'; //, { CorsOptions }
 import colors from 'colors';
 
 import { HttpError } from 'http-errors';
@@ -128,7 +128,7 @@ const dbConfig = {
 };
 
 //const port = process.env.PORT || 5000;
-const port = process.env.BACKEND_PORT || 5000;
+const port = process.env.BACKEND_PORT || 4000;
 
 console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
 
@@ -140,8 +140,8 @@ console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
 // ];
 
 const allowedOrigins: string[] = [
-  '[https://revenue-monitor-system-v6sq.onrender.com](https://revenue-monitor-system-v6sq.onrender.com)', 
-  '[https://revenue-monitor-system.onrender.com](https://revenue-monitor-system.onrender.com)',
+  'https://revenue-monitor-system-v6sq.onrender.com', 
+  'https://revenue-monitor-system.onrender.com',
   'http://localhost:5173', // Local development
 ];
 
@@ -200,7 +200,12 @@ const frontendPath = path.resolve(__dirname, '../../frontend/dist');
 console.log('[BACKEND] Resolved frontendPath:', frontendPath);
 
 // Serve static files before routes
-app.use(express.static(frontendPath));
+// app.use(express.static(frontendPath));
+app.use(express.static(frontendPath, {
+  setHeaders: (res, path) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  },
+}));
 
 // Handle requests for the React app
 app.get('/', (req: Request, res: Response) => {
@@ -273,6 +278,20 @@ app.listen(port, async () => {
   } catch (err) {
       console.error('[BACKEND] Database connection test failed:', err);
   }
+});
+
+app.get('/', (req, res) => {
+  res.removeHeader('Cache-Control');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+
+  // Set the Pragma header to disable caching
+  res.header('Pragma', 'no-cache');
+
+  // Set the Expires header to a date in the past
+  res.header('Expires', 'Mon, 01 Jan 1990 00:00:00 GMT');
+
+  // Send the response
+  res.send('Hello World!');
 });
 
 console.log('[BACKEND] after app.listen');

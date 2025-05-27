@@ -24,7 +24,7 @@ import FrmBusinessType from './features/businessType/FrmBusinessType';
 import FrmChangeBussType from './features/businessType/FrmChangeBussType'
 //import FrmOfficerBudget from './features/officerBudget/FrmOfficerBudget';
 import FrmOfficerBudget from './features/officerBudget/FrmOfficerBudget';
-import FrmClientPayments from './features/busPayments/FrmClientPayments';
+import FrmClientPayments1 from './features/busPayments/FrmClientPayments1';
 import FrmClientBalances from './features/busPayments/FrmClientBalances';
 import {FrmReceipts} from './features/accReceipt/FrmReceipts';
 import {FrmBillClient} from './features/business/FrmBillClient';
@@ -98,7 +98,7 @@ const App: React.FC = () => {
                     <Route path="/SetupBusinessType" element={<ProtectedRoute element={<FrmBusinessType />} />} />
                     <Route path="/ChangeBusinessType" element={<ProtectedRoute element={<FrmChangeBussType />} />} />
                     <Route path="/OfficerBudget" element={<ProtectedRoute element={<FrmOfficerBudget />} />} />
-                    <Route path="/CollectorPayment" element={<ProtectedRoute element={<FrmClientPayments />} />} />
+                    <Route path="/CollectorPayment" element={<ProtectedRoute element={<FrmClientPayments1 />} />} />
                     <Route path="/ProcessClientNewBalances" element={<ProtectedRoute element={<FrmClientBalances />} />} />
                     <Route path="/EnterReceiptNumbers" element={<ProtectedRoute element={<FrmReceipts />} />} />
                     <Route path="/BillClient" element={<ProtectedRoute element={<FrmBillClient />} />} />
