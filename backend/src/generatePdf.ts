@@ -54,7 +54,7 @@ export async function generatePdf(data: ReceiptData): Promise<Buffer> {
 
   return new Promise<Buffer>((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margin: 40 });
-    const chunks: any[] = [];
+    const chunks: Uint8Array[] = [];
 
     doc.on('data', chunk => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));

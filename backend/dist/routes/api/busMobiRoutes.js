@@ -17,7 +17,7 @@ console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging l
 // Construct the path to the appropriate .env file from the root directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const permitDir = path.join(__dirname, 'permits');
+//const permitDir = path.join(__dirname, 'permits');
 //const rootDir = path.resolve(__dirname, '..');
 const envPath = path.resolve(__dirname, `../.env.${env}`);
 console.log('[BACKEND] envPath:', envPath); // Debugging log
@@ -57,6 +57,7 @@ const dbConfig = {
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'revmonitor',
+    ssl: sslConfig,
 };
 const pool = new Pool(dbConfig);
 // Function to sanitize input data

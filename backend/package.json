@@ -6,8 +6,8 @@
   "description": "A revenue monitoring system built with Node.js and MongoDB",
   "scripts": {
     "build": "tsc && node -e \"require('fs-extra').copy('src/routes/.env.development', 'dist/routes/.env.development')\"",
-    "start": "nodemon dist/server.js --env PORT=3000",
-    "dev": "nodemon dist/server.js --ext ts,js,json --exec ts-node",
+    "start": "nodemon dist/server.js --env PORT=4000",
+    "dev": "nodemon dist/server.js --env BACKEND_PORT=4000 PORT=4000 --ext ts,js,json --exec ts-node",
     "test": "npx vitest run --watch",
     "lint": "eslint 'src/**/*.{ts,js}'",
     "prepare": "husky",

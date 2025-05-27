@@ -73,7 +73,7 @@ dotenv.config();
 const env = process.env.NODE_ENV || 'development';  // Defaults to 'development'
 console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
 
-const permitDir = path.join(__dirname, 'permits');
+//const permitDir = path.join(__dirname, 'permits');
 
 //const rootDir = path.resolve(__dirname, '..');
 const envPath = path.resolve(__dirname, `../.env.${env}`);
@@ -122,6 +122,7 @@ const dbConfig = {
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'revmonitor',
+    ssl: sslConfig,
 };
 
 const pool = new Pool(dbConfig);
@@ -516,26 +517,6 @@ router.post('/create', async (req: Request, res: Response) => {
     }
 });
 
-// router.post('/sendEmail', async (req: Request, res: Response) => {
-//     console.log('router.post(/sendEmail Sending test email: ');
-
-//     try {
-//         const mailOptions: SendMailOptions = {
-//             from: process.env.EMAIL_USER,
-//             to: 'pfleischer2002@yahoo.co.uk', // Use the email address provided in the request body
-//             subject: 'Test Email',
-//             text: 'This is a test email.'
-//         };
-
-//         await transporter.sendMail(mailOptions);
-//         res.status(200).json({ message: 'Email sent successfully' });
-//     } catch (emailError) {
-//         console.error('Error sending email:', emailError);
-//         res.status(500).json({ message: 'Error sending email', emailError });
-//     }
-// });
-
-
 router.get('/billedAmount/:bussNo', async (req: Request, res: Response): Promise<void> => {
     const { bussNo } = req.params;
 
@@ -580,7 +561,6 @@ router.get('/billedAmount/:bussNo', async (req: Request, res: Response): Promise
         }
     }
 });
-
 
 // Read all BusPayments records
 router.get('/all', async (req: Request, res: Response) => {
@@ -823,43 +803,39 @@ router.get('/defaulters/:electoralarea', async (req: Request, res: Response): Pr
     }
 });
 
-router.get('/:fiscalyear/:receiptno', async (req: Request, res: Response): Promise<void> => {
+router.get('/:fiscalyear/:receiptno/:batchno', async (req: Request, res: Response): Promise<void> => {
  
     const client = await pool.connect()
 
-    const {fiscalyear, receiptno} = req.params
+    const {fiscalyear, receiptno, batchno} = req.params
 
-   const fiscalyearNew = parseInt(fiscalyear, 10)
+    const fiscalyearNew = parseInt(fiscalyear, 10)
 
-    console.log('in router.get(/:fiscalyear/:receiptno: ', fiscalyearNew, receiptno)
+     if (!fiscalyearNew || !receiptno) {
+            res.status(404).json({ error: 'Invalid parameters' })
+            return
+    }
 
     console.log('fiscalyearNew: ', fiscalyearNew) 
-    console.log('receiptno: ', receiptno)   
-
-    const varBatchNo = receiptno.substring(0,2)
-    console.log('varBatchNo: ', varBatchNo)
+    console.log('receiptno: ', receiptno) 
+    console.log('batchno: ', batchno)  
 
     const varReceiptNo = parseInt(receiptno.split('-')[1], 10);
     console.log('typeof varReceiptNo: ', typeof varReceiptNo)
 
     try {   
-        if (!fiscalyearNew || !receiptno) {
-            res.status(404).send({message: 'Invalid parameters'})
-            return
-        }
 
         console.log('about to SELECT * FROM buspayments WHERE fiscal_year = $1 AND receiptno = $2')
-
         
         const result: QueryResult = await client.query('SELECT * FROM buspayments WHERE fiscal_year = $1 AND receiptno = $2', [fiscalyearNew, receiptno])
 
         if (result.rows && result.rows.length > 0) {
-            res.status(200).send({message: 'Receipt number already entered. Enter another receipt number'})
+            res.status(200).json({ message: 'Fake receipt number' })
             return 
         }
 
         console.log('about to SELECT * FROM accreceipt WHERE batchno LIKE $1')
-       // Read from accreceipt
+        // Read from accreceipt
         const query = `
             SELECT * 
             FROM accreceipt 
@@ -868,7 +844,7 @@ router.get('/:fiscalyear/:receiptno', async (req: Request, res: Response): Promi
             AND fiscalyear = $3
         `;
 
-        const values = [varBatchNo, varReceiptNo, fiscalyearNew];
+        const values = [batchno, receiptno, fiscalyearNew];
         const batchResult = await client.query(query, values);  
 
         console.log('query: ', query)
@@ -876,21 +852,19 @@ router.get('/:fiscalyear/:receiptno', async (req: Request, res: Response): Promi
 
         console.log('batchResult.rows.length: ', batchResult.rows.length)
         
-        if (batchResult.rows.length > 0) {
-            console.log('Genuine receipt number');
-            res.status(200).send({message: 'Genuine receipt number'})
-            return
-        } else {
+        if (batchResult.rows.length === 0) {
             console.log('Fake receipt number');
-            res.status(200).send({message: "Fake receipt number"})
-        } 
+            res.status(200).json({ message: 'Fake receipt number' })
+        } else{
+            console.log('Genuine receipt number');
+            res.status(200).json({ message: 'Genuine receipt number' })
+        }
     } catch (error: unknown) {
-        res.status(500).send({message: 'Server error', error})
-    }finally{
+        res.status(500).json({ error: 'Server error' })
+    } finally {
         client.release()
     }
 })
-
 //const generateRandomTerm = () => Math.floor(Math.random() * 10000).toString(); // Generates a random number between 0-9999
 
 // Read a single BusPayments record by date range

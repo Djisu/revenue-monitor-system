@@ -45,10 +45,23 @@ export const fetchAccReceipts = createAsyncThunk('accReceipts/fetchAccReceipts',
 export const createAccReceipt = createAsyncThunk('accReceipts/createAccReceipt', async (data: AccReceiptData) => {
     try {
         console.log('in createAccReceipt')
+        console.log('data: ', data)
+        console.log('BASE_URL: ', BASE_URL)
+        console.log('api/accReceipts/create: ', `${BASE_URL}/api/accReceipts/create`)
+        console.log('headers: ', {
+            headers: { 'Content-Type': 'application/json' },
+        })
+        
         const response = await axios.post(`${BASE_URL}/api/accReceipts/create`, data); 
 
-        console.log('in createAccReceipt after response: ', response.data.data)
-        return response.data.data;
+        console.log('in createAccReceipt after response: ', response.data)
+        console.log('response.data.success: ', response.data.success)
+
+        // Add success property if it doesn't exist
+        return {
+            ...response.data,
+            success: response.status >= 200 && response.status < 300
+        };
     } catch (error) {
         console.log('in createAccReceipt error: ', error)
         throw error; // Rethrow the error to be caught in the slice

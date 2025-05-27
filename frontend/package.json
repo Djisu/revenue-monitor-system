@@ -7,9 +7,9 @@
   "type": "module",
   "scripts": {
     "start": "serve -s dist -l 10000",
-    "dev": "vite --port 5173 --strictPort",
+    "dev": "PORT=5173 vite --port=5173 --strictPort",
     "build": "vite build",
-    "serve": "vite preview",
+    "serve": "vite preview --port=5173",
     "test": "vitest run",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",

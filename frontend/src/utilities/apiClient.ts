@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+(import.meta.env.MODE === 'development' ? 'http://localhost:4000' : 'https://typescript-church-new.onrender.com');
 
 
 // Create an Axios instance
