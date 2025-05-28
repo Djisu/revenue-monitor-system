@@ -25,6 +25,8 @@ const FrmClientPayments1 = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [businessName, setBusinessName] = useState('');
 
+  const [isReceiptValid, setIsReceiptValid] = useState<boolean | null>(null);
+
   const dispatch = useAppDispatch();
   const billedAmountData = useAppSelector(state => state.busPayments.billedAmount);
 
@@ -60,12 +62,18 @@ const FrmClientPayments1 = () => {
     try {
       if (receiptNo) {  
         const action = await dispatch(fetchFiscalyearReceiptno({ fiscalyear: fiscalYear, receiptno: receiptNo, batchno: batchNo }));
-        console.log('action.payload.message:', action.payload.message);
+        console.log('action.payload:', action.payload);
   
-        if (action.payload.message === 'Fake receipt number') {
-          alert(action.payload.message);
+        alert(action.payload);
+
+        if (action.payload === 'Fake receipt number') {
+          alert(action.payload);
+          console.log('about to set isReceiptValid to false');
+          setIsReceiptValid(false);
           return false; // Invalid receipt
         }else{
+          console.log('about to set isReceiptValid to true');
+          setIsReceiptValid(true);
           return true; // Valid receipt
         }    
       }     
@@ -104,8 +112,7 @@ const FrmClientPayments1 = () => {
 
         console.log('response.buss_no: ', response.data.buss_no)
 
-
-       await  dispatch(fetchBilledAmount(response.data.buss_no)).unwrap();
+        await  dispatch(fetchBilledAmount(response.data.buss_no)).unwrap();
 
         if (fetchBilledAmount.fulfilled.match(response)){
           console.log('Billed Amount:', response.payload.billedAmount);
@@ -113,21 +120,14 @@ const FrmClientPayments1 = () => {
         }else{
           console.log('Billed Amount not found in response')
         }
-
-        // Generate a unique receipt number
-        // const uniqueReceiptNo = generateUniqueNumber();
-        // setReceiptNo(uniqueReceiptNo);
      }else{
       console.log('data not found')
      }
     } catch (error: unknown) {
       if (error instanceof Error){
-        console.error('Error fetching business:', error);
-        //errorMessage = 'Error fetching business. Please try again.' 
-        
+        console.error('Error fetching business:', error);  
         setErrorMessage('Error fetching business. Please try again.' );
-      }
-      
+      }      
     }
   };
 
@@ -145,9 +145,7 @@ const FrmClientPayments1 = () => {
 
     // Validation checks
     if (businessNo && businessNo <= 0) {
-       //errorMessage= 'Business Number is required'
       setErrorMessage('Business Number is required');
-     
       return;
     }
     if (!officerNo) {
@@ -183,14 +181,27 @@ const FrmClientPayments1 = () => {
       return;
     }
 
-    // Check if receiptNo is valid before proceeding
-    const isReceiptValid = await checkReceiptNo(receiptNo,  batchNo);
-    if (!isReceiptValid) {
+    console.log('about to valiate receipt number');
+    console.log('receiptNo: ', receiptNo)
+    console.log('batchNo: ', batchNo)
+    console.log('fiscalYear: ', fiscalYear)
+
+    // // Check if receiptNo is valid before proceeding
+    // const isReceiptValid = await checkReceiptNo(receiptNo,  batchNo);
+
+     console.log('isReceiptValid: ', isReceiptValid)
+  
+    if (isReceiptValid === false) {
       setErrorMessage('Invalid receipt number. Please check and try again.');
       return; // Stop further execution if invalid
+    }else{
+      setErrorMessage('');
+      console.log('Genuine receipt number');
     }
 
-    // Create the busPayment object with the correct field names
+    console.log('about to create busPayment object');
+
+    // // Create the busPayment object with the correct field names
     const busPayment: BusPaymentsData = {
       buss_no: businessNo.toString(),
       officer_no: officerNo,
@@ -203,39 +214,42 @@ const FrmClientPayments1 = () => {
       electroral_area: electoralArea,
     };
 
-    console.log('busPayment:', busPayment);
-    try {
-      const response = await dispatch(createBusPayment(busPayment)).unwrap();
-      console.log('XXXXXXXXXXX', response)
-      // Log the response to verify
-      console.log('Response.message:', response.message);
-      alert(response.message)
+    // console.log('busPayment:', busPayment);
+     try {
+        const response = await dispatch(createBusPayment(busPayment)).unwrap();
+        console.log('XXXXXXXXXXX', response)
+        console.log('response.message:', response.message);
+        console.log('response.receiptUrl:', response.receiptUrl);
 
-      // Check if the response indicates success
-  if (response && response.message){     
-        setBusinessNo(0);
-        setOfficerNo('');
-        setPaidAmount(0);
-        setMonthPaid('');
-        setFiscalYear('');
-        setReceiptNo('');
-        setEmail('');
-        setBilledAmount(0);
-        setElectoralArea(''); // Make sure to reset this too
-        setBusinessName(''); // And this
-        setBatchNo(''); // And this
-        alert('Payment successfully added');
-      } else {
-        // Handle unexpected response structure
-        setErrorMessage('Unexpected response received.');
+        // Log the response to verify
+        console.log('Response.message:', response.message);
+        alert(response.message)
+
+        // Check if the response indicates success
+        if (response && response.message){     
+          setBusinessNo(0);
+          setOfficerNo('');
+          setPaidAmount(0);
+          setMonthPaid('');
+          setFiscalYear('');
+          setReceiptNo('');
+          setEmail('');
+          setBilledAmount(0);
+          setElectoralArea('');
+          setBusinessName(''); 
+          setBatchNo(''); 
+          setIsReceiptValid(false);
+          alert('Payment successfully added');
+        } else {
+          // Handle unexpected response structure
+          setErrorMessage('Unexpected response received.');
       }
     } catch (error: unknown) {
       // Handle error, e.g., show error message
       if (error instanceof Error){
          setErrorMessage('Failed to create payment. Please try again.');
          console.error('Error creating payment:', error);
-      }
-     
+      }   
     }
   };
 
@@ -258,7 +272,7 @@ const FrmClientPayments1 = () => {
         <Form onSubmit={handleSubmit}>
           <Row className="mb-3">
             <Col>
-              <Form.Label>Business Number: {businessName}</Form.Label>
+              <Form.Label>Business Name: <span style={{ color: 'red', fontWeight: 'bold' }}>{businessName}</span></Form.Label>
               <Form.Control
                 type="text"
                 value={businessNo === 0 ? '' : businessNo.toString()}

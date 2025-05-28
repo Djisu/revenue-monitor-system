@@ -210,7 +210,9 @@ function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayabl
   
     console.log('about to  return new Promise<Buffer>((resolve, reject) => {')
     return new Promise<Buffer>((resolve, reject) => {
+
       const doc = new PDFDocument({ size: 'A4', margin: 40 });
+
       const chunks: any[] = [];
   
       doc.on('data', chunk => chunks.push(chunk));
@@ -236,13 +238,24 @@ function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayabl
         const varSerialNo = baseSerialNo.toString().padStart(10, '0');
     
         console.log('about to create our directory path')
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
+        const receiptsDir = path.join(__dirname, 'receipts');
+              
+        console.log('receiptsDir: ', receiptsDir)
+        console.log('__dirname: ', __dirname)
+        console.log('path.join(__dirname, "receipts"): ', path.join(__dirname, 'receipts'))
+        console.log('path.join(__dirname, "receipts", `receipt-${varSerialNo}.pdf`): ', path.join(__dirname, 'receipts', `receipt-${varSerialNo}.pdf`))
+    
+        console.log('about to create our directory path')
         const outputDir = path.join(__dirname, 'receipts');
         if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
         }
     
-        const pdfPath = path.join(outputDir, `receipt-${varSerialNo}.pdf`);
-    
+        const pdfPath = path.join(receiptsDir, `receipt-${varSerialNo}.pdf`);
+        console.log('pdfPath: ', pdfPath)
+
         return new Promise<void>((resolve, reject) => {
             const doc = new PDFDocument({ size: 'A4', margin: 40 });
             const stream = fs.createWriteStream(pdfPath);
@@ -268,60 +281,6 @@ function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayabl
     }
 }
   
-//   async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalanceBF: number, 
-//     txtCurrentRate: number, txtRate: number, cboElectoralArea: string, cboAssessmentBy: string): Promise<boolean> {
-    
-//     const client = await pool.connect();
-
-//     try {
-//         const varFiscalYear = dtTransdate.getFullYear();
-//         const today = new Date();
-        
-//         const deleteQuery = `
-//             SELECT *  
-//             FROM busscurrbalance 
-//             WHERE buss_no = $1;
-//         `;
-//         const newResults = await client.query(deleteQuery, [txtBussNo]);
-
-//         if (newResults.rows.length > 0) {
-//             return false;
-//         }
-
-//         // Insert or update record in busscurrbalance
-//         const insertNewRecordQuery = `
-//             INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea, assessmentby) 
-//             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-//             ON CONFLICT (buss_no) DO UPDATE 
-//             SET balancebf = EXCLUDED.balancebf, 
-//                 current_balance = EXCLUDED.current_balance, 
-//                 totalamountdue = EXCLUDED.totalamountdue, 
-//                 transdate = EXCLUDED.transdate, 
-//                 electoralarea = EXCLUDED.electoralarea, 
-//                 assessmentby = EXCLUDED.assessmentby;
-//         `;
-
-//         const insertValues = [
-//             txtBussNo, varFiscalYear, 0, 0, 0, today, cboElectoralArea, cboAssessmentBy
-//         ];
-
-//         await client.query(insertNewRecordQuery, insertValues);
-
-//         return true;
-//     } catch (error: unknown) {
-//         if (error instanceof Error) {
-//             console.error(error);
-//             return false;
-//         } else {
-//             console.error('Unknown error:', error);
-//             return false;
-//         }
-//     } finally {
-//         client.release();
-//     }
-// }
-
-
 router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoralarea/:bussType', async (req: Request, res: Response): Promise<void> => {
    
     console.log('router.get(/dailypayments/:formattedFirstDate/:formattedLastDate/:electoralarea/:bussType');
@@ -379,8 +338,6 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
         }
 
         // Continue processing if records are found
-
-
         interface Row {
             buss_no: string;
             officer_no: string;
@@ -420,6 +377,7 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
 });
 
 router.post('/create', async (req: Request, res: Response) => {
+    console.log('in router.post(/create)');
     console.log('router.post(/create XXXXXXXXX ');
 
     const busPaymentsData: BusPaymentsData = req.body;
@@ -436,10 +394,20 @@ router.post('/create', async (req: Request, res: Response) => {
         console.log('Receipts directory already exists:', receiptsDir);
     }
 
-    console.log('about to enter payment into buspayments table')
+    console.log('INSERT INTO buspayments (buss_no, officer_no, paidAmount, monthpaid, transdate,')
     const client = await pool.connect()
 
     try {
+        // Get business details for the receipt
+        const businessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [busPaymentsData.buss_no]);
+        
+        if (businessResult.rows.length === 0) {
+            res.status(404).json({ success: false, message: 'Business not found' });
+            return;
+        }
+        
+        const businessData = businessResult.rows[0];
+
         // Insert the new BusPayments data
         await client.query(
             `INSERT INTO buspayments (buss_no, officer_no, paidAmount, monthpaid, transdate, 
@@ -460,6 +428,7 @@ router.post('/create', async (req: Request, res: Response) => {
         console.log('Payment entered into buspayment table')
 
         // Going to updateOfficerBudget function to update the officer budget
+        console.log('Going to updateOfficerBudget function to update the officer budget')
         const params: Params = {
             paymentMonth: busPaymentsData.monthpaid,
             amount: busPaymentsData.paidAmount,
@@ -472,46 +441,79 @@ router.post('/create', async (req: Request, res: Response) => {
         };
 
         const updateOfficerBudgetResult = await updateOfficerBudget(params);
+        console.log('updateOfficerBudgetResult:', updateOfficerBudgetResult);
+        if (!updateOfficerBudgetResult) {
+            console.error('Error updating officer budget');
+            res.status(500).json({success: false, message: 'Error updating officer budget' });
+            return;
+        }
         console.log('back to router.create parent endpoint:', updateOfficerBudgetResult)
 
         console.log('about to generate receipt')
-        // Generate the receipt data
-        const receiptData = {
+        
+        // Prepare the receipt data in the format expected by generatePdf
+        const receiptData: ReceiptData = {
             buss_no: busPaymentsData.buss_no,
-            buss_name: await getBusinessName(busPaymentsData.buss_no),
-            buss_type: '', // Add this property
-            property_class: '', // Add this property
-            landmark: '', // Add this property
+            buss_name: businessData.buss_name || await getBusinessName(busPaymentsData.buss_no),
+            buss_type: businessData.buss_type || '',
+            property_class: businessData.property_class || '',
+            landmark: businessData.landmark || '',
             electroral_area: busPaymentsData.electroral_area,
-            tot_grade: '', // Add this property
-            current_rate: '', // Add this property
-            property_rate: '', // Add this property
-            paidAmount: busPaymentsData.paidAmount,
-            monthpaid: busPaymentsData.monthpaid,
-            transdate: busPaymentsData.transdate,
-            fiscal_year: busPaymentsData.fiscal_year,
-            ReceiptNo: busPaymentsData.ReceiptNo,
-            email: busPaymentsData.email,
+            tot_grade: businessData.tot_grade || '',
+            current_rate: busPaymentsData.paidAmount.toString(), // Use the paid amount as current rate for receipt
+            property_rate: '0', // Set to 0 for payment receipts
+            serialno: busPaymentsData.ReceiptNo // Use receipt number as serial number
         };
 
-        // Generate the PDF receipt
-        const receiptPath = await generatePdf(receiptData);
+        console.log('Receipt data prepared:', receiptData);
 
-        console.log('from generatePDF back to the parent endpoint')
+        try {
+            // Generate the PDF receipt
+            const pdfBuffer = await generatePdf(receiptData);
+            
+            // Save the PDF to a file
+            const receiptFileName = `receipt-${busPaymentsData.buss_no}-${busPaymentsData.ReceiptNo}.pdf`;
+            const receiptFilePath = path.join(receiptsDir, receiptFileName);
+            
+            fs.writeFileSync(receiptFilePath, pdfBuffer);
+            console.log(`Receipt PDF saved to: ${receiptFilePath}`);
+            
+            // Optionally print the receipt
+            try {
+                await generatePdfToPrinter(receiptData);
+                console.log('Receipt sent to printer');
+            } catch (printError) {
+                console.error('Error printing receipt:', printError);
+                // Continue even if printing fails
+            }
 
-        console.log('about to send email');
+            console.log('from generatePDF back to the parent endpoint');
+            console.log('about to text message');
 
-        // To be replaced by a text message
-        //await sendEmail(receiptPath, busPaymentsData);
+            // To be replaced by a text message
+            //await sendEmail(receiptPath, busPaymentsData);
 
-        res.status(200).json({
-            message: 'BusPayments record created successfully and email sent.',
-            receiptUrl: receiptPath,
-        });
-           
+            res.status(200).json({
+                success: true,
+                message: 'BusPayments record created successfully and receipt generated.',
+                receiptUrl: receiptFilePath,
+            });
+        } catch (pdfError) {
+            console.error('Error generating PDF:', pdfError);
+            // Still return success for the payment, but note the PDF error
+            res.status(200).json({
+                success: true,
+                message: 'BusPayments record created successfully, but there was an error generating the receipt.',
+                error: pdfError instanceof Error ? pdfError.message : 'Unknown PDF generation error'
+            });
+        }
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating BusPayments record or sending email', error });
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error creating BusPayments record or generating receipt', 
+            error: error instanceof Error ? error.message : 'Unknown error' 
+        });
     } finally {
         client.release();
     }
@@ -1131,7 +1133,6 @@ router.delete('/:buss_no', async (req: Request, res: Response) => {
     }
 });
 
-
 router.post('/billallbusinesses', async (req: Request, res: Response): Promise<void> => {
     console.log('in router.post(/billallbusinesses');
 
@@ -1148,9 +1149,10 @@ router.post('/billallbusinesses', async (req: Request, res: Response): Promise<v
     }
 
     const client = await pool.connect()
+    const thisYear = new Date().getFullYear();
 
     try {
-        await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [new Date().getFullYear()]);
+        await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [thisYear]);
 
         const result: QueryResult = await client.query('SELECT * FROM gradefees ORDER BY buss_type ASC, grade ASC');
 
@@ -1181,23 +1183,131 @@ router.post('/billallbusinesses', async (req: Request, res: Response): Promise<v
                 'INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea, assessmentby) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
                 [
                     businessRow.buss_no,
-                    new Date().getFullYear(),
+                    thisYear,
                     0, // balancebf
                     businessRow.current_rate,
                     0, // totalamountdue
                     new Date().toISOString().split('T')[0], // transdate
                     businessRow.electroral_area,
-                    businessRow.assessmentby // Add the appropriate value for `assessmentby`
+                    businessRow.assessmentby
                 ]
             );
         }
-       
-        res.status(200).json({ success: true, message: 'All businesses billed successfully' });
-        return
+        
+        /////////Produce permits for all businesses/////////////////////
+        
+        // Ensure the permits directory is empty
+        await ensurePermitDirIsEmpty();
+        console.log('after ensurePermitDirIsEmpty()');
+
+        // Get all businesses with current_rate > 0
+        const businessRows = await client.query('SELECT * FROM business WHERE current_rate > 0');
+
+        if (businessRows.rows.length === 0) {
+            console.log('No businesses found with current_rate > 0');
+            res.status(404).json({ success: false, message: 'No businesses found with current_rate > 0' });
+            return;
+        }
+
+        console.log('about to loop through businesses to find balances');
+
+        // Update balancebf in busscurrbalance table for all businesses
+        for (let i = 0; i < businessRows.rows.length; i++) {
+            const buss_no = businessRows.rows[i]['buss_no'];
+            const varBalance = await findBusinessBalance(buss_no);
+
+            // Update busscurrbalance table with current balance and fiscal year
+            await client.query('UPDATE busscurrbalance SET balancebf = $1 WHERE buss_no = $2 AND fiscalyear = $3', 
+                [varBalance, buss_no, thisYear]);
+        }
+
+        console.log('Finished updating balances');
+
+        // Clear temporary tables
+        await client.query('DELETE FROM tmpbusiness');
+        await client.query('DELETE FROM tmpbusscurrbalance');
+
+        // Insert into tmp_business
+        const tmpBusinessRows = await client.query(`
+            INSERT INTO tmpbusiness SELECT * FROM business WHERE current_rate > 0 ORDER BY buss_name ASC RETURNING *;
+        `);
+
+        console.log('after insert into tmpbusiness, count:', tmpBusinessRows.rows.length);
+
+        // Insert into tmpbusscurrbalance
+        await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1', [thisYear]);
+
+        // Add serial numbers
+        const recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
+        let permitNo = 1;
+
+        for (let i = 0; i < recBusiness.rows.length; i++) {
+            const varSerialNo = permitNo.toString().padStart(10, '0');
+            await client.query('UPDATE tmpbusiness SET serialno = $1 WHERE buss_no = $2', 
+                [varSerialNo, recBusiness.rows[i].buss_no]);
+            permitNo++;
+        }
+        
+        console.log('after serial number generation');
+
+        // Check if there are any bills in tmp_business
+        const recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_name ASC');
+
+        if (recBills.rows.length === 0) {
+            res.status(404).json({ success: false, message: 'No bills found to generate' });
+            return;
+        }
+
+        console.log('ABOUT TO GENERATE PDFs for all businesses');
+
+        // Create permits directory if it doesn't exist
+        const permitsDir = path.join(__dirname, "permits");
+        if (!fs.existsSync(permitsDir)) {
+            fs.mkdirSync(permitsDir, { recursive: true });
+        }
+
+        // Produce Bills now
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (const bill of recBills.rows) {     
+            console.log('Generating PDF for bill:', bill.buss_no);
+
+            try {       
+                const pdfBuffer = await generatePdf(bill);
+                
+                // Save the PDF to a file
+                const filePath = path.join(permitsDir, `permit_${bill.buss_no}.pdf`);
+                fs.writeFileSync(filePath, pdfBuffer);
+                
+                console.log(`PDF saved for business ${bill.buss_no}`);
+                
+                // Send to printer
+                await generatePdfToPrinter(bill);
+                successCount++;
+            } catch (error: unknown) {
+                errorCount++;
+                if (error instanceof Error){
+                    console.error('Error generating PDF for bill:', bill.buss_no, error.message);
+                } else {
+                    console.error('Unknown error generating PDF for bill:', bill.buss_no);
+                }
+                // Continue with next business instead of stopping the whole process
+                continue;
+            }
+        }
+
+        console.log(`All bills generated. Success: ${successCount}, Errors: ${errorCount}`);
+
+        res.status(200).json({ 
+            success: true, 
+            message: `All businesses billed successfully. Generated ${successCount} PDFs with ${errorCount} errors.` 
+        });
+        return;
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ success: false, message: 'Error billing all businesses', error });
-        return
+        return;
     } finally {
         // Ensure client is released
         if (client) {
@@ -1209,31 +1319,34 @@ router.post('/billallbusinesses', async (req: Request, res: Response): Promise<v
 router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Promise<void> => {
     console.log('in router.post(/billonebusiness');
 
-      // Ensure the receipts directory exists
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = dirname(__filename);
-      const receiptsDir = path.join(__dirname, 'receipts');
-  
-      if (!fs.existsSync(receiptsDir)) {
-          fs.mkdirSync(receiptsDir, { recursive: true });
-          console.log('Created receipts directory:', receiptsDir);
-      } else {
-          console.log('Receipts directory already exists:', receiptsDir);
-      }
+    // Ensure the receipts directory exists
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const receiptsDir = path.join(__dirname, 'receipts');
+
+    if (!fs.existsSync(receiptsDir)) {
+        fs.mkdirSync(receiptsDir, { recursive: true });
+        console.log('Created receipts directory:', receiptsDir);
+    } else {
+        console.log('Receipts directory already exists:', receiptsDir);
+    }
 
     const { bussNo } = req.params;
-    const client = await pool.connect()
-
+    const client = await pool.connect();
     const thisYear = new Date().getFullYear();
-    console.log('thisYear:', thisYear);
-
+    
     try {
         await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
 
         // Select one business
         const businessesResult: QueryResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [bussNo]);
 
-        console.log('businessesResult.rows.length: ', businessesResult.rows.length)
+        if (businessesResult.rows.length === 0) {
+            res.status(404).json({ success: false, message: `No business found with ID ${bussNo}` });
+            return;
+        }
+
+        console.log('businessesResult.rows.length: ', businessesResult.rows.length);
         console.log('ABOUT TO BILL ONE BUSINESS');
 
         // Insert into busscurrbalance
@@ -1242,171 +1355,116 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
                 'INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea, assessmentby) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
                 [
                     businessRow.buss_no,
-                    new Date().getFullYear(),
+                    thisYear,
                     0, // balancebf
                     businessRow.current_rate,
                     0, // totalamountdue
                     new Date().toISOString().split('T')[0], // transdate
                     businessRow.electroral_area,
-                    businessRow.assessmentby // Add the appropriate value for `assessmentby`
+                    businessRow.assessmentby
                 ]
             );
         }
 
         /////////Produce permits/////////////////////
       
-            // Ensure the permits directory is empty
-            await ensurePermitDirIsEmpty();
-            console.log('after ensurePermitDirIsEmpty()');
+        // Ensure the permits directory is empty
+        await ensurePermitDirIsEmpty();
+        console.log('after ensurePermitDirIsEmpty()');
 
-            // Select all businesses in the electoral area
-            const businessRows = await client.query('SELECT * FROM business WHERE buss_no = $1', [bussNo]);
+        // Get the business balance
+        const buss_no = businessesResult.rows[0].buss_no;
+        const varBalance = await findBusinessBalance(buss_no);
 
-            if (businessRows.rows.length === 0) {
-                console.log('No business found for', bussNo);
+        console.log('varBalance is: ', varBalance);
+        
+        // Update busscurrbalance table with current balance and fiscal year
+        await client.query('UPDATE busscurrbalance SET balancebf = $1 WHERE buss_no = $2 AND fiscalyear = $3', 
+            [varBalance, buss_no, thisYear]);
 
-                res.status(404).json({ message: `No business found for ${bussNo}` });
-                return;
-            }
+        // Clear temporary tables
+        await client.query('DELETE FROM tmpbusiness');
+        await client.query('DELETE FROM tmpbusscurrbalance');
 
-             console.log('about to loop through businessesResult to find balances')
+        // Insert into tmp_business
+        const tmpBusinessRows = await client.query(`
+            INSERT INTO tmpbusiness SELECT * FROM business WHERE buss_no = $1 AND current_rate > 0 ORDER BY buss_name ASC RETURNING *;
+        `, [bussNo]);
 
-            // Update balancebf in busscurrbalance table for all businesses
-            for (let i = 0; i < businessRows.rows.length; i++) {
-                const buss_no  = businessRows.rows[i]['buss_no'];
-                console.log('in the update busscurrbalance table loop');
+        console.log('after insert into tmpbusiness, count:', tmpBusinessRows.rows.length);
 
-                //let varCurrentRate = 0;
-                const varBalance = await findBusinessBalance(buss_no);
-
-                console.log('varBalance is: ', varBalance)
-                console.log('about to update busscurrbalance table');
-
-                // Update busscurrbalance table with current balance and fiscal year
-                await client.query('UPDATE busscurrbalance SET balancebf = $1 WHERE buss_no = $2 AND fiscalyear = $3', [varBalance, buss_no, thisYear]);
-
-                console.log('after updating busscurrbalance table');
-            }
-
-            console.log('Finish  loop through businessesResult')
-
-            console.log('about to DELETE FROM tmpbusiness')
-            // Delete from tmp_business
-            await client.query('DELETE FROM tmpbusiness');
-
-            console.log('about to DELETE FROM tmpbusscurrbalance')
-            // Delete from tmp_BussCurrBalance
-            await client.query('DELETE FROM tmpbusscurrbalance');
-
-            // Insert into tmp_business
-            const tmpBusinessRows = await client.query(`
-                INSERT INTO tmpbusiness SELECT * FROM business WHERE buss_no = $1 AND current_rate > 0 ORDER BY buss_name ASC RETURNING *;
-            `, [bussNo]);
-
-            console.log('after insert into tmpbusiness and tmpBusinessRows.rows.length: ', tmpBusinessRows.rows.length);
-
-            const recReport = await client.query('SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
-
-            console.log('after SELECT DISTINCT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2');
-            console.log('recReport.rows.length:', recReport.rows.length);
-
-            if (recReport.rows.length === 0) {
-                res.status(404).json({ message: 'No paid bills found for the business client' });
-                return;
-            }
-
-            await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
-
-            console.log('after INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance');
-
-            // Add serial numbers
-            const recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
-            let permitNo = 1;
-
-            for (let i = 0; i < recBusiness.rows.length; i++) {
-                const varSerialNo = permitNo.toString().padStart(10, '0');
-
-                console.log(`Updating buss_no: ${recBusiness.rows[i].buss_no}, Serial No: ${varSerialNo}`);
-
-                await client.query('UPDATE tmpbusiness SET serialno = $1 WHERE buss_no = $2', [varSerialNo, recBusiness.rows[i].buss_no]);
-
-                permitNo++;
-            }
-            console.log('after serial number generation');
-
-            // Check if there are any bills in tmp_business
-            const recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_name ASC');
-
-            if (recBills.rows.length === 0) {
-                res.status(404).json({ message: 'No bills found for the electoral area' });
-                return;
-            }
-
-            console.log('ABOUT TO GENERATE PDFs');
-
-            // Produce Bills now
-            for (const bill of recBills.rows) {     
-                console.log('Generating PDF for bill:', bill.buss_no);
-
-                try {       
-                    const pdfBuffer = await generatePdf(bill);
-
-                    console.log('in billonebusiness after const pdfBuffer = await generatePdf(bill);')
-
-                    console.log('about to  fs.writeFileSync(path.join(__dirname,')
-                    console.log('__dirname: ', __dirname)
-                    console.log('path.join(__dirname, "permits", "permit_${bill.buss_no}.pdf")): ', path.join(__dirname, 'permits', `permit_${bill.buss_no}.pdf`))
-
-                    // creating directory if it does not exist
-                    const permitsDir = path.join(__dirname, "permits");
-
-                    if (!fs.existsSync(permitsDir)) {
-                    fs.mkdirSync(permitsDir, { recursive: true });
-                    }
-
-                    const filePath = path.join(permitsDir, `permit_${bill.buss_no}.pdf`);
-                    fs.writeFileSync(filePath, pdfBuffer);
-
-
-                    // Save the PDF to a file or handle it as needed
-                    fs.writeFileSync(path.join(__dirname, 'permits', `permit_${bill.buss_no}.pdf`), pdfBuffer);
-                    console.log('BILL written to permitDir')
-
-                    console.log('about to  await generatePdfToPrinter(bill)')
-                    // To printer
-                    await generatePdfToPrinter(bill);
-                    console.log('after await generatePdfToPrinter(bill)')
-                } catch (error: unknown) {
-                    if (error instanceof Error){
-                         console.error('Error generating PDF for bill:', bill, error);
-                        res.status(500).json({ message: `Error generating PDF for bill ${bill.buss_no}: ${error.message}` });
-                        return;
-                    }else{
-                        res.status(500).json({ message: `Error occurred for bill ${bill.buss_no}` });
-                        return;
-                    }
-                   
-                }
-            }
-
-            console.log('Clients Bill generated successfully');
-
-            ////////End of permits production///////////
-            res.status(200).json({ success: true, message: 'One business billed successfully' });
-            return
-        } catch (error: unknown) {
-            console.error('Error:', error);
-            res.status(500).json({ success: false, message: 'Error billing one business', error });
-            return
-        } finally {
-            // Ensure client is released
-            if (client) {
-                client.release();
-            }
+        if (tmpBusinessRows.rows.length === 0) {
+            res.status(404).json({ success: false, message: 'Business has no current rate set' });
+            return;
         }
+
+        // Insert into tmpbusscurrbalance
+        await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', 
+            [thisYear, bussNo]);
+
+        // Add serial number
+        const varSerialNo = "0000000001"; // For single business
+        await client.query('UPDATE tmpbusiness SET serialno = $1 WHERE buss_no = $2', [varSerialNo, bussNo]);
+
+        // Get the business for PDF generation
+        const recBills = await client.query('SELECT * FROM tmpbusiness WHERE buss_no = $1', [bussNo]);
+
+        if (recBills.rows.length === 0) {
+            res.status(404).json({ success: false, message: 'No bill found to generate' });
+            return;
+        }
+
+        console.log('ABOUT TO GENERATE PDF');
+
+        // Create permits directory if it doesn't exist
+        const permitsDir = path.join(__dirname, "permits");
+        if (!fs.existsSync(permitsDir)) {
+            fs.mkdirSync(permitsDir, { recursive: true });
+        }
+
+        // Generate the PDF
+        try {
+            const bill = recBills.rows[0];
+            const pdfBuffer = await generatePdf(bill);
+            
+            // Save the PDF to a file
+            const filePath = path.join(permitsDir, `permit_${bill.buss_no}.pdf`);
+            fs.writeFileSync(filePath, pdfBuffer);
+            
+            console.log(`PDF saved for business ${bill.buss_no}`);
+            
+            // Send to printer
+            await generatePdfToPrinter(bill);
+            
+            console.log('Client Bill generated successfully');
+            
+            res.status(200).json({ success: true, message: 'One business billed successfully' });
+            return;
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error('Error generating PDF:', error.message);
+                res.status(500).json({ success: false, message: `Error generating PDF: ${error.message}` });
+            } else {
+                console.error('Unknown error generating PDF');
+                res.status(500).json({ success: false, message: 'Unknown error generating PDF' });
+            }
+            return;
+        }
+    } catch (error: unknown) {
+        console.error('Error:', error);
+        if (error instanceof Error) {
+            res.status(500).json({ success: false, message: `Error billing business: ${error.message}` });
+        } else {
+            res.status(500).json({ success: false, message: 'Error billing business' });
+        }
+        return;
+    } finally {
+        // Ensure client is released
+        if (client) {
+            client.release();
+        }
+    }
 });
-
-
 
 // async function findPreviousBalance(bussNo: number): Promise<number> {
 // const client = await pool.connect()

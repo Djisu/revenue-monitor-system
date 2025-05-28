@@ -10,7 +10,6 @@ const permitDir = path.join(__dirname, 'permits');
 
 const fsPromises = fs.promises;
 
-
 async function ensurePermitDirIsEmpty() {
     console.log('in ensurePermitDirIsEmpty!!!')
     
