@@ -197,7 +197,7 @@ function generatePermitContent(doc: PDFDocument, data: PermitData, totalPayable:
         //doc.layout = 'landscape';
         
         // Add logo images at the upper corners
-        const leftLogoPath = path.resolve(process.cwd(), 'src/assets/Ashma Logo BIG.JPG');
+        const leftLogoPath = path.resolve(process.cwd(), 'src/assets/Coat_of_arms_of_Ghana.svg.png');
         console.log('Trying to load logo from:', leftLogoPath);
         if (fs.existsSync(leftLogoPath)) {
             doc.image(leftLogoPath, 50, 40, { width: 80 });
@@ -240,7 +240,13 @@ function generatePermitContent(doc: PDFDocument, data: PermitData, totalPayable:
         doc.text(`Paid Month: ${data.monthpaid}`, leftColumnX, startY + 75);
         
         // Right column
-        doc.text(`Date: ${data.transdate}`, rightColumnX, startY);
+        // Format the date as DD/MM/YYYY
+        const formattedDate = new Date(data.transdate).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        doc.text(`Date: ${formattedDate}`, rightColumnX, startY);
         doc.text(`Paid Year: ${data.fiscal_year}`, rightColumnX, startY + 30);
         doc.text(`ReceiptNo: ${data.ReceiptNo}`, rightColumnX, startY + 60);
         doc.text(`Electoral Area: ${data.electroral_area}`, rightColumnX, startY + 75);
