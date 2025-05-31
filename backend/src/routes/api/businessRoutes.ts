@@ -93,7 +93,7 @@ export interface BusinessData {
     buss_address?: string;
     buss_type?: string;
     buss_town?: string;
-    buss_permitno?: string;
+    bussPermitNo?: string;
     street_name?: string;
     landmark?: string;
     electroral_area?: string;
@@ -123,6 +123,7 @@ export interface BusinessData {
     gps_address?: string; 
     serialNo?: number;
     buss_location: string;
+    property_type?: string;
 }
 
 interface ReceiptData {
@@ -228,7 +229,7 @@ function sanitizeBusinessData(data: BusinessData): BusinessData {
         buss_address: data.buss_address || '',
         buss_type: data.buss_type || '',
         buss_town: data.buss_town || '',
-        buss_permitno: data.buss_permitno || '',
+        bussPermitNo: data.bussPermitNo || '',
         street_name: data.street_name || '',
         landmark: data.landmark || '',
         electroral_area: data.electroral_area || '',
@@ -258,6 +259,7 @@ function sanitizeBusinessData(data: BusinessData): BusinessData {
         gps_address: data.gps_address || '',
         serialNo: Number(data.serialNo) || 0,
         buss_location: data.buss_location || '',
+        property_type: data.property_type || '',
     };
 }
 
@@ -331,7 +333,6 @@ async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalance
     }
 }
 
-
 // Read all businesses
 router.get('/all', async (req: Request, res: Response) => {
       const client = await pool.connect()
@@ -362,11 +363,9 @@ router.get('/all', async (req: Request, res: Response) => {
 // Read last business
 router.get('/last', async (req: Request, res: Response) => {
     console.log('in router.get(/last')
-      const client = await pool.connect()
+    const client = await pool.connect()
 
-    try {
-       
-        
+    try {        
         // Fetch the last business
         const result = await client.query('SELECT * FROM business ORDER BY buss_no DESC LIMIT 1');
         
@@ -409,7 +408,7 @@ router.get('/:buss_no', async (req: Request, res: Response): Promise<void> => {
        return       
     }
 
-     const client = await pool.connect()
+    const client = await pool.connect()
     
     try {
         // Debugging: Log the query being executed
@@ -417,13 +416,13 @@ router.get('/:buss_no', async (req: Request, res: Response): Promise<void> => {
 
         const newBuss_no = parseInt(buss_no);
         const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [newBuss_no]);
-       // client.release();
 
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found', data: [] });
             return 
           
         } 
+        console.log('Fetched Business details: ', result.rows[0])
         res.status(200).json({ message: 'Business record found', data: result.rows[0] });
         return 
     } catch (error: unknown) {
@@ -445,11 +444,8 @@ router.get('/:buss_no', async (req: Request, res: Response): Promise<void> => {
 router.get('/electoralAreas', async (req: Request, res: Response) => {
       const client = await pool.connect()
     try {
-       
-
         const result = await client.query('SELECT DISTINCT electroral_area FROM business');
        
-
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'No electoral areas found' });
         } else {
@@ -473,11 +469,9 @@ router.get('/electoral/:electoral_area', async (req: Request, res: Response) => 
     const { electoral_area } = req.params;
      const client = await pool.connect()
 
-    try {
-       
+    try {       
         const result = await client.query('SELECT * FROM business WHERE electroral_area = $1', [electoral_area]);
       
-
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'No businesses found for the electoral area' });
         } else {
@@ -567,13 +561,13 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
             status, current_rate, property_rate,
             totalmarks, emailaddress, noofemployees, 
             noofbranches, balancenew, gps_address, 
-            serialNo, buss_location) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35);
+            serialNo, buss_location, property_type) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36);
     `;
     
     const insertValues = [
         sanitizedData.buss_no, sanitizedData.buss_name, sanitizedData.buss_address,
-        sanitizedData.buss_type, sanitizedData.buss_town, sanitizedData.buss_permitno,
+        sanitizedData.buss_type, sanitizedData.buss_town, sanitizedData.bussPermitNo,
         sanitizedData.street_name, sanitizedData.landmark, sanitizedData.electroral_area,
         sanitizedData.property_class, sanitizedData.tot_grade, sanitizedData.ceo,
         sanitizedData.telno, sanitizedData.strategiclocation, sanitizedData.productvariety,
@@ -583,7 +577,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         sanitizedData.status, sanitizedData.current_rate, sanitizedData.property_rate,
         sanitizedData.totalmarks, sanitizedData.emailaddress, sanitizedData.noofemployees,
         sanitizedData.noofbranches, sanitizedData.BALANCENEW, sanitizedData.gps_address,
-        sanitizedData.serialNo, sanitizedData.buss_location, 
+        sanitizedData.serialNo, sanitizedData.buss_location, sanitizedData.property_type,
     ];
     
     // Ensure the number of columns matches the number of values
@@ -623,12 +617,16 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
 // Update a business record
 router.put('/:buss_no', async (req: Request, res: Response) => {
-    console.log('in router.put(/:buss_no)');
+    console.log('in router.put(/:buss_no)', req.body);
 
-     const client = await pool.connect()
+    if (!req.body.bussPermitNo){
+        console.log('no permit number')
+        return
+    }
+
+    const client = await pool.connect()
+
     try{
-        
-
     const { buss_no } = req.params;
 
     //console.log('THIS IS THE businessData:', businessData);
@@ -642,7 +640,7 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
         sanitizedData.buss_address === null || sanitizedData.buss_address === undefined ||
         sanitizedData.buss_type === null || sanitizedData.buss_type === undefined ||
         sanitizedData.buss_town === null || sanitizedData.buss_town === undefined ||
-        sanitizedData.buss_permitno === null || sanitizedData.buss_permitno === undefined ||
+        sanitizedData.bussPermitNo === null || sanitizedData.bussPermitNo === undefined ||
         sanitizedData.street_name === null || sanitizedData.street_name === undefined ||
         sanitizedData.landmark === null || sanitizedData.landmark === undefined ||
         sanitizedData.electroral_area === null || sanitizedData.electroral_area === undefined ||
@@ -671,14 +669,13 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
         isNaN(sanitizedData.BALANCENEW as number) ||
         sanitizedData.gps_address === null || sanitizedData.gps_address === undefined ||
         sanitizedData.serialNo === null || sanitizedData.serialNo === undefined ||
-        sanitizedData.buss_location === null || sanitizedData.buss_location === undefined
+        sanitizedData.buss_location === null || sanitizedData.buss_location === undefined ||
+        sanitizedData.property_type === null || sanitizedData.property_type === undefined
     ) {
         console.log('Invalid or missing input data');
         res.status(400).json({ success: false, message: 'Invalid or missing input data' });
         return;
     }
-
-  
 
         // Check if a business with the same buss_no already exists
         const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
@@ -726,8 +723,9 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
                 BALANCENEW = $31, 
                 gps_address = $32, 
                 serialNo = $33, 
-                buss_location = $34
-            WHERE buss_no = $35;
+                buss_location = $34,
+                property_type = $35
+            WHERE buss_no = $36;
         `;
 
         const updateValues = [
@@ -735,7 +733,7 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
             sanitizedData.buss_address,
             sanitizedData.buss_type,
             sanitizedData.buss_town,
-            sanitizedData.buss_permitno,
+            sanitizedData.bussPermitNo,
             sanitizedData.street_name,
             sanitizedData.landmark,
             sanitizedData.electroral_area,
@@ -765,6 +763,7 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
             sanitizedData.gps_address,
             sanitizedData.serialNo,
             sanitizedData.buss_location,
+            sanitizedData.property_type,
             buss_no
         ];
 
@@ -792,10 +791,8 @@ router.put('/:buss_no', async (req: Request, res: Response) => {
 router.delete('/delete/:buss_no', async (req: Request, res: Response) => {
     const { buss_no } = req.params;
 
-     const client = await pool.connect()
+    const client = await pool.connect()
     try {
-        
-
         // Check if a business with the same buss_no already exists
         const existingBusinessResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
 
@@ -823,8 +820,7 @@ router.delete('/delete/:buss_no', async (req: Request, res: Response) => {
 
 // Process business operating permits for a fiscal year
 router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req: Request, res: Response) => {
-   
-   
+     
     console.log('in router.post(/processOperatingPermits/:electoral_area/:fiscal_year)', req.params);
 
      const client = await pool.connect()
@@ -1017,10 +1013,8 @@ async function findBusinessBalance(bussNo: number): Promise<number> {
 
 // Function to find total payable based on business number
 export async function findTotalPayable(txtBussNo: number): Promise<number> {
-     const client = await pool.connect()
+    const client = await pool.connect()
     try {
-       
-
         // Prepare the SQL query
         const query = `
             SELECT SUM(current_balance) AS totsum

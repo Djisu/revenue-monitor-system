@@ -9,7 +9,7 @@ import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
 import { fetchOfficers } from '../officer/officerSlice';
 //import {fetchGradeRates} from '../gradeRate/gradeRateSlice';
-import {fetchPropertyRateByPropertyClassAndFiscalyear} from '../propertyRate/propertyRateSlice';
+// import {fetchPropertyRateByPropertyClassAndFiscalyear} from '../propertyRate/propertyRateSlice';
 
 interface ElectoralArea {
   electoral_area: string;
@@ -33,6 +33,7 @@ export interface BusinessVars {
   telNo: string;
   businessType: string;
   buss_town: string;
+  buss_permitno: string;
   streetName: string;
   landMark: string;
   electroral_area:  string;
@@ -57,6 +58,7 @@ export interface BusinessVars {
   gps_address: string;
   noOfEmployees: number;
   noOfBranches: number;
+  property_type: string;
 }
 
 export interface BusinessData {
@@ -65,6 +67,7 @@ export interface BusinessData {
   buss_address?: string;
   buss_type?: string;
   buss_town?: string;
+  buss_permitno: string;
   street_name?: string;
   landmark?: string;
   electroral_area?: string;
@@ -93,6 +96,7 @@ export interface BusinessData {
   noofemployees?: number;
   noofbranches?: number;
   BALANCENEW?: number;
+  property_type: string;
 }
 
 const FrmUpdateClient: React.FC = () => {
@@ -105,7 +109,7 @@ const FrmUpdateClient: React.FC = () => {
   const [businessType, setBusinessType] = useState('');
 
   const [bussTown, setBussTown] = useState('');
-  //const [bussPermitNo, setBussPermitNo] = useState('');
+  const [bussPermitNo, setBussPermitNo] = useState('');
   const [streetName, setStreetName] = useState('');
   const [landMark, setLandMark] = useState('');
   //const [electoralArea, setElectoralArea] = useState('');
@@ -119,7 +123,6 @@ const FrmUpdateClient: React.FC = () => {
   const [status, setStatus] = useState('Active');
   const [emailAddress, setEmailAddress] = useState('');
   const [gpsAddress, setGpsAddress] = useState('');
-
 
   const [noOfBranches, setNoOfBranches] = useState<number>(0);
  
@@ -155,6 +158,7 @@ const FrmUpdateClient: React.FC = () => {
 
   const [selectedBusinessType, setSelectedBusinessType] = useState('');
   const [selectedOfficer, setSelectedOfficer] = useState('');
+  const [propertyType, setPropertyType] = useState('');
  
 
   const dispatch = useAppDispatch();
@@ -183,8 +187,6 @@ const FrmUpdateClient: React.FC = () => {
     }
   }, [businessesData]);
      
-  
-
     const electoralAreaResponse = useAppSelector((state) => state.electoralArea.electoralAreas);
     //console.log('electoralAreaResponse:', electoralAreaResponse);
     useEffect(() => {
@@ -208,7 +210,8 @@ const FrmUpdateClient: React.FC = () => {
 
     // Get property classes from the Redux store
     const propertyClassData = useAppSelector((state) => state.propertyClass.propertyClasses);
-        //console.log('propertyClassData:', propertyClassData);
+    
+    //console.log('propertyClassData:', propertyClassData);
     useEffect(() => {
       setPropertyClasses(propertyClassData.map((classType) => classType.property_class));
     }, [propertyClassData]);
@@ -274,6 +277,7 @@ const FrmUpdateClient: React.FC = () => {
         telno: data.telNo,
         buss_type: data.businessType,
         buss_town: data.buss_town,
+        bussPermitNo: data.buss_permitno,
         street_name: data.streetName,
         landmark: data.landMark,
         electroral_area: electoralArea,
@@ -298,6 +302,7 @@ const FrmUpdateClient: React.FC = () => {
         gps_address: gpsAddress,
         noOfEmployees: data.noOfEmployees,
         noOfBranches: data.noOfBranches,
+        property_type: data.property_type
     };
 };
 
@@ -315,6 +320,7 @@ const handleEditClick = async () => {
             telNo: telNo,
             businessType: businessType,
             buss_town: bussTown,
+            buss_permitno: bussPermitNo,
             streetName: streetName,
             landMark: landMark,
             electroral_area: electoralArea,
@@ -338,7 +344,8 @@ const handleEditClick = async () => {
             assessment: assessment,
             transdate: transdate,
             noOfEmployees: noOfEmployees,
-            noOfBranches: noOfBranches
+            noOfBranches: noOfBranches, 
+            property_type: propertyType
         })
     };
     console.log('THIS IS THE UPDATED gps_address:  ', gpsAddress)
@@ -360,8 +367,6 @@ const handleEditClick = async () => {
     alert(response.message)
 };
 
-
-
   const handleExitClick = () => {
     // Reset form fields
     setBusinessNo(0);
@@ -381,6 +386,8 @@ const handleEditClick = async () => {
     setPropertyRate(0);
     setCurrentRate(0);
     setBalanceBF(0);
+    setPropertyType('');
+    setBussPermitNo('');
    
     setStatus('');
     setEmailAddress('');
@@ -422,6 +429,10 @@ const handleEditClick = async () => {
     setBusinessType(item.buss_type || "");
     setSelectedBusinessType(item.buss_type || "");
     setBussTown(item.buss_town || "");
+
+    setBussPermitNo(item.buss_permitno || "");
+
+    setPropertyType(item.property_type || "");
     
     setStreetName(item.street_name || "");
     setLandMark(item.landmark || "");
@@ -457,34 +468,36 @@ const handleEditClick = async () => {
     setTotalMarks(item.totalmarks || 0);
     setGpsAddress(item.gps_address || "");
     setFinalGrade(item.tot_grade || "");
+    setCurrentRate(item.current_rate || 0)
   };
 
-  const getRate = async (propertyClass: string) => {
-    console.log('in getRate, onBlur triggered with:', propertyClass);
-    try {
-      // Convert propertyClass to a number if necessary
-      const propClass = propertyClass
-      const fiscalYear = Number(new Date().getFullYear());
+  // const getRate = async (propertyClass: string) => {
+  //   console.log('in getRate, onBlur triggered with:', propertyClass);
+    
+  //   try {
+  //     // Convert propertyClass to a number if necessary
+  //     const propClass = propertyClass
+  //     const fiscalYear = Number(new Date().getFullYear());
 
-      // Dispatch the async thunk and unwrap the result
-      const response = await dispatch(fetchPropertyRateByPropertyClassAndFiscalyear({property_Class: propClass, fiscalyear: fiscalYear})).unwrap();
+  //     // Dispatch the async thunk and unwrap the result
+  //     const response = await dispatch(fetchPropertyRateByPropertyClassAndFiscalyear({property_Class: propClass, fiscalyear: fiscalYear})).unwrap();
 
-      console.log('response:', response);
-      // Check if response is an array or an object
-      if (Array.isArray(response) && response[0].rate !== undefined) {
-        setPropertyRate(response[0].rate);
-      } else if (response && response.rate !== undefined) {
-        setPropertyRate(response.rate);
-      } else {
-        console.error('rate is undefined in the response');
-        setPropertyRate(0); // or some default value
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error){
-        console.error('Error fetching property rate:', error);
-      }     
-    }
-  };
+  //     console.log('response:', response);
+  //     // Check if response is an array or an object
+  //     if (Array.isArray(response) && response[0].rate !== undefined) {
+  //       setPropertyRate(response[0].rate);
+  //     } else if (response && response.rate !== undefined) {
+  //       setPropertyRate(response.rate);
+  //     } else {
+  //       console.error('rate is undefined in the response');
+  //       setPropertyRate(0); // or some default value
+  //     }
+  //   } catch (error: unknown) {
+  //     if (error instanceof Error){
+  //       console.error('Error fetching property rate:', error);
+  //     }     
+  //   }
+  // };
 
   const getBusiness = async (businessId: string) => {
     console.log('in getBusiness, onBlur triggered with:', businessId);
@@ -502,15 +515,13 @@ const handleEditClick = async () => {
       console.log('response: ', response.data)
 
       // Check if response is an array or an object
-     // if(Array.isArray(response)) {
-        
-     if (response) {
-          setBusinessNo(response.data.buss_no || ''); // This can now be an empty string
-          setBusinessName(response.data.buss_name || '');
-          // Handle other fields similarly...
-      }
-
-
+      // if(Array.isArray(response)) {
+          
+      if (response) {
+            setBusinessNo(response.data.buss_no || ''); // This can now be an empty string
+            setBusinessName(response.data.buss_name || '');
+            // Handle other fields similarly...
+        }
 
         // set response fields to the following state variables
         setBusinessNo(response.data.buss_no);
@@ -525,11 +536,16 @@ const handleEditClick = async () => {
         // setSelectedBusinessType(response.data.buss_type);
         console.log('buss_town:', response.data.buss_town)
         setBussTown(response.data.buss_town);
+
+        setBussPermitNo(response.data.buss_permitno);
        
         setStreetName(response.data.street_name);
         setLandMark(response.data.landmark);
         setElectoralArea(response.data.electroral_area);
         setPropertyClass(response.data.property_class);
+        setEmailAddress(response.data.emailAddress)
+
+        setCurrentRate(response.data.current_rate)
 
         //getRate(response.data.property_class)
       
@@ -662,7 +678,7 @@ const handleEditClick = async () => {
                 <Form.Select 
                   value={propertyClass} 
                   onChange={(e) => setPropertyClass(e.target.value)}
-                  onBlur={(e) => getRate(e.target.value)}
+                  // onBlur={(e) => getRate(e.target.value)}
                 >
                 <option>Select Property Class</option>
                 {propertyClasses.map((cls, index) => (
@@ -726,6 +742,13 @@ const handleEditClick = async () => {
               <Form.Control value={currentRate} onChange={(e) => setCurrentRate(Number(e.target.value))} />
             </Col>
           </Row>
+          <Row className="mb-3">
+            <Col>
+              <Form.Label>Permit Number:</Form.Label>
+              <Form.Control value={bussPermitNo} onChange={(e) => setBussPermitNo(e.target.value)} />
+            </Col>
+          </Row>
+
           <Row className="mb-3">
             <Col>
               <Form.Label>Balance BF:</Form.Label>
@@ -1212,7 +1235,19 @@ const handleEditClick = async () => {
         </Row>
      </div>
 
-        
+     <Row className="mb-3">
+        <Col>
+          <Form.Label>Property Type:</Form.Label>
+          <Form.Select value={propertyType} onChange={(e) => setPropertyType(e.target.value)}>
+            <option value="">Select Property Type</option>
+            <option value="Commercial">Commercial</option>
+            <option value="Residential">Residential</option>
+            <option value="Industrial">Industrial</option>
+            <option value="Agricultural">Agricultural</option>
+            <option value="Mixed Use">Mixed Use</option>
+          </Form.Select>
+        </Col>
+      </Row>   
     <div>
     <Row className="mb-3">
       <Col>

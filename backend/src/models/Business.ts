@@ -34,5 +34,6 @@ export interface Business {
     gps_address?: string; 
     serialNo?: number;
     buss_location?: string;
+    property_type?: string;
 }
 
