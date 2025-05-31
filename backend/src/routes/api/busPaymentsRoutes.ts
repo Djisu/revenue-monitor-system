@@ -5,21 +5,36 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-
 import { QueryResult } from 'pg';
-
 import pkg from 'pg';
-
 import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'   
-
 import PDFDocument from 'pdfkit';
-
+import { Stream } from 'stream';
 import { printPdf } from '../../utils/printHelper.js';
+//import AshmaLogo from '../../assets/Ashma-Logo-BIG.JPG';
+//import AshmaLogo from '../../assets/Ashma-Logo-BIG.JPG';
+ 
+ 
+//'revenue-monitor-system/backend/src/assets/Ashma Logo BIG.JPG'
 
 const { Pool } = pkg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Define TextOptions interface for PDFDocument
+interface TextOptions {
+    align?: 'left' | 'center' | 'right' | 'justify';
+    width?: number;
+    height?: number;
+    ellipsis?: boolean | string;
+    continued?: boolean;
+    lineBreak?: boolean;
+    paragraphGap?: number;
+    indent?: number;
+    columns?: number;
+    columnGap?: number;
+  }
 
 interface PermitData {
   buss_no: string;
@@ -174,37 +189,72 @@ function generatePermitContent(doc: PDFDocument, data: PermitData, totalPayable:
   }
 
   // Function to generate PDF
-function generateReceiptContent(doc: PDFDocument, data: BusPaymentsData) {
+  function generateReceiptContent(doc: PDFDocument, data: BusPaymentsData) {
     console.log('in generateReceiptContent')
 
-    try{
-        doc.fontSize(20).text('Payment Receipt', { align: 'left' });
-        doc.moveDown();
-    
+    try {
+        // Set to landscape orientation
+        //doc.layout = 'landscape';
+        
+        // Add logo images at the upper corners
+        const leftLogoPath = path.resolve(process.cwd(), 'src/assets/Ashma Logo BIG.JPG');
+        console.log('Trying to load logo from:', leftLogoPath);
+        if (fs.existsSync(leftLogoPath)) {
+            doc.image(leftLogoPath, 50, 40, { width: 80 });
+        } else {
+            console.log('Logo file not found at:', leftLogoPath);
+        }
+        
+        // Right logo - use absolute path from project root
+        const rightLogoPath = path.resolve(process.cwd(), 'src/assets/Ashma Logo BIG.JPG');
+        if (fs.existsSync(rightLogoPath)) {
+            doc.image(rightLogoPath, doc.page.width - 130, 40, { width: 80 });
+        }
+        
+        // Add more vertical space to avoid overlapping with logos
+        // Add more vertical space to avoid overlapping with logos
+        const titleY = 180; // Increased from 140 to 180 for more space
+        
+        // Move cursor to the new position
+        doc.y = titleY;
+        
+        // Title centered between the logos
+        doc.fontSize(20);
+        doc.text('Payment Receipt', { align: 'center' });
+        doc.moveDown(2); // Increased from default to 2 lines
+        
+        // Horizontal line
         doc.fontSize(12);
-        doc.moveDown(0.5).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-    
-        doc.moveDown();
-        doc.text(`Business No: ${data.buss_no}`);
-        doc.text(`Collector No: ${data.officer_no}`);
-       
-        doc.text(`Paid Amount: ${data.paidAmount}`);
-        doc.text(`Paid Month: ${data.monthpaid}`);
-        doc.text(`Date: ${data.transdate}`);
-        doc.text(`Paid Year: ${data.fiscal_year}`);
-        doc.text(`ReceiptNo: ${data.ReceiptNo}`);
-        doc.text(`Electoral Area: ${data.electroral_area}`);
+        doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke();
+        doc.moveDown(2); // Increased from 0.5 to 2 lines
+        
+        // Create two columns for the receipt information
+        const leftColumnX = 100;
+        const rightColumnX = 400;
+        const startY = doc.y + 20; // Add extra space after the line
+        
+        // Left column
+        doc.text(`Business No: ${data.buss_no}`, leftColumnX, startY);
+        doc.text(`Collector No: ${data.officer_no}`, leftColumnX, startY + 25);
+        doc.text(`Paid Amount: ${data.paidAmount}`, leftColumnX, startY + 50);
+        doc.text(`Paid Month: ${data.monthpaid}`, leftColumnX, startY + 75);
+        
+        // Right column
+        doc.text(`Date: ${data.transdate}`, rightColumnX, startY);
+        doc.text(`Paid Year: ${data.fiscal_year}`, rightColumnX, startY + 30);
+        doc.text(`ReceiptNo: ${data.ReceiptNo}`, rightColumnX, startY + 60);
+        doc.text(`Electoral Area: ${data.electroral_area}`, rightColumnX, startY + 75);
 
         console.log('Receipt generated')
-    }catch(error: unknown){
-        if (error instanceof Error){
+    } catch(error: unknown) {
+        if (error instanceof Error) {
             console.log('Error occurred ', error)
-        }else{
+        } else {
             console.log('Unknown error')
         }
     }    
-  }
-  
+}
+
 //   export async function generatePdf(data: PermitData): Promise<Buffer> {
 //     console.log('in generatePdf');
   
@@ -262,10 +312,10 @@ function generateReceiptContent(doc: PDFDocument, data: BusPaymentsData) {
   export async function generatePdfReceipt(data: BusPaymentsData): Promise<Buffer> {
     console.log('in generatePdf');
   
-    console.log('about to  return new Promise<Buffer>((resolve, reject) => {')
+    console.log('about to return new Promise<Buffer>((resolve, reject) => {')
     return new Promise<Buffer>((resolve, reject) => {
-
-      const doc = new PDFDocument({ size: 'A4', margin: 40 });
+      // Create document with landscape orientation
+      const doc = new PDFDocument({ size: 'letter', layout: 'landscape', margin: 40 });
 
       const chunks: any[] = [];
   
@@ -275,9 +325,9 @@ function generateReceiptContent(doc: PDFDocument, data: BusPaymentsData) {
   
       generateReceiptContent(doc, data);
       doc.end();
-      console.log('after generateReceiptContent(doc, data, totalPayable, varSerialNo);')
+      console.log('after generateReceiptContent(doc, data);')
     });
-  }
+}
 
   export async function generatePdfToPrinterPermit(data: PermitData): Promise<void> {
     console.log('in generatePdfToPrinter');
