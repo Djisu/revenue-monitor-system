@@ -8,6 +8,9 @@ import pkg from 'pg';
 import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js';
 import PDFDocument from 'pdfkit';
 import { printPdf } from '../../utils/printHelper.js';
+//import AshmaLogo from '../../assets/Ashma-Logo-BIG.JPG';
+//import AshmaLogo from '../../assets/Ashma-Logo-BIG.JPG';
+//'revenue-monitor-system/backend/src/assets/Ashma Logo BIG.JPG'
 const { Pool } = pkg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -112,19 +115,49 @@ function generatePermitContent(doc, data, totalPayable, varSerialNo) {
 function generateReceiptContent(doc, data) {
     console.log('in generateReceiptContent');
     try {
-        doc.fontSize(20).text('Payment Receipt', { align: 'left' });
-        doc.moveDown();
+        // Set to landscape orientation
+        //doc.layout = 'landscape';
+        // Add logo images at the upper corners
+        const leftLogoPath = path.resolve(process.cwd(), 'src/assets/Ashma Logo BIG.JPG');
+        console.log('Trying to load logo from:', leftLogoPath);
+        if (fs.existsSync(leftLogoPath)) {
+            doc.image(leftLogoPath, 50, 40, { width: 80 });
+        }
+        else {
+            console.log('Logo file not found at:', leftLogoPath);
+        }
+        // Right logo - use absolute path from project root
+        const rightLogoPath = path.resolve(process.cwd(), 'src/assets/Ashma Logo BIG.JPG');
+        if (fs.existsSync(rightLogoPath)) {
+            doc.image(rightLogoPath, doc.page.width - 130, 40, { width: 80 });
+        }
+        // Add more vertical space to avoid overlapping with logos
+        // Add more vertical space to avoid overlapping with logos
+        const titleY = 180; // Increased from 140 to 180 for more space
+        // Move cursor to the new position
+        doc.y = titleY;
+        // Title centered between the logos
+        doc.fontSize(20);
+        doc.text('Payment Receipt', { align: 'center' });
+        doc.moveDown(2); // Increased from default to 2 lines
+        // Horizontal line
         doc.fontSize(12);
-        doc.moveDown(0.5).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-        doc.moveDown();
-        doc.text(`Business No: ${data.buss_no}`);
-        doc.text(`Collector No: ${data.officer_no}`);
-        doc.text(`Paid Amount: ${data.paidAmount}`);
-        doc.text(`Paid Month: ${data.monthpaid}`);
-        doc.text(`Date: ${data.transdate}`);
-        doc.text(`Paid Year: ${data.fiscal_year}`);
-        doc.text(`ReceiptNo: ${data.ReceiptNo}`);
-        doc.text(`Electoral Area: ${data.electroral_area}`);
+        doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke();
+        doc.moveDown(2); // Increased from 0.5 to 2 lines
+        // Create two columns for the receipt information
+        const leftColumnX = 100;
+        const rightColumnX = 400;
+        const startY = doc.y + 20; // Add extra space after the line
+        // Left column
+        doc.text(`Business No: ${data.buss_no}`, leftColumnX, startY);
+        doc.text(`Collector No: ${data.officer_no}`, leftColumnX, startY + 25);
+        doc.text(`Paid Amount: ${data.paidAmount}`, leftColumnX, startY + 50);
+        doc.text(`Paid Month: ${data.monthpaid}`, leftColumnX, startY + 75);
+        // Right column
+        doc.text(`Date: ${data.transdate}`, rightColumnX, startY);
+        doc.text(`Paid Year: ${data.fiscal_year}`, rightColumnX, startY + 30);
+        doc.text(`ReceiptNo: ${data.ReceiptNo}`, rightColumnX, startY + 60);
+        doc.text(`Electoral Area: ${data.electroral_area}`, rightColumnX, startY + 75);
         console.log('Receipt generated');
     }
     catch (error) {
@@ -176,16 +209,17 @@ export async function generatePdfPermit(data) {
 }
 export async function generatePdfReceipt(data) {
     console.log('in generatePdf');
-    console.log('about to  return new Promise<Buffer>((resolve, reject) => {');
+    console.log('about to return new Promise<Buffer>((resolve, reject) => {');
     return new Promise((resolve, reject) => {
-        const doc = new PDFDocument({ size: 'A4', margin: 40 });
+        // Create document with landscape orientation
+        const doc = new PDFDocument({ size: 'letter', layout: 'landscape', margin: 40 });
         const chunks = [];
         doc.on('data', chunk => chunks.push(chunk));
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
         generateReceiptContent(doc, data);
         doc.end();
-        console.log('after generateReceiptContent(doc, data, totalPayable, varSerialNo);');
+        console.log('after generateReceiptContent(doc, data);');
     });
 }
 export async function generatePdfToPrinterPermit(data) {
@@ -385,7 +419,7 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
     }
 });
 router.post('/create', async (req, res) => {
-    console.log('in router.post(/create)');
+    console.log('in router.post(/create): ', req.body);
     console.log('router.post(/create XXXXXXXXX ');
     const busPaymentsData = req.body;
     // Ensure the receipts directory exists
@@ -443,7 +477,7 @@ router.post('/create', async (req, res) => {
             res.status(500).json({ success: false, message: 'Error updating officer budget' });
             return;
         }
-        console.log('back to router.create parent endpoint:', updateOfficerBudgetResult);
+        console.log('back in router.create parent endpoint:', updateOfficerBudgetResult);
         console.log('about to generate receipt');
         // Prepare the receipt data in the format expected by generatePdf
         const receiptData = {
@@ -479,7 +513,7 @@ router.post('/create', async (req, res) => {
                 console.error('Error printing receipt:', printError);
                 // Continue even if printing fails
             }
-            console.log('from generatePDF back to the parent endpoint');
+            console.log('from generatePdfToPrinterReceipt back to the parent endpoint');
             console.log('about to text message');
             // To be replaced by a text message
             //await sendEmail(receiptPath, busPaymentsData);

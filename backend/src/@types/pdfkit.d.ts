@@ -25,11 +25,13 @@ declare module 'pdfkit' {
       moveTo(x: number, y: number): this;
       lineTo(x: number, y: number): this;
       stroke(): this;
+      image(src: string, x: number, y: number, options?: { width?: number; height?: number }): this;
       end(): void;
       on(event: 'data', callback: (chunk: Buffer) => void): void;
       on(event: 'end', callback: () => void): void;
       on(event: 'error', callback: (err: Error) => void): void;
       y: number; 
+      page: { width: number; height: number };
     }
   
     export default PDFDocument;

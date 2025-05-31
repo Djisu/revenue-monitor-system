@@ -275,6 +275,7 @@ const FrmClientPayments1 = () => {
               <Form.Label>Business Name: <span style={{ color: 'red', fontWeight: 'bold' }}>{businessName}</span></Form.Label>
               <Form.Control
                 type="text"
+                placeholder='Enter Business Number'
                 value={businessNo === 0 ? '' : businessNo.toString()}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -291,7 +292,7 @@ const FrmClientPayments1 = () => {
          <Row className="mb-3">
             <Col>
               <Form.Label>
-                Amount Payable: <span style={{ color: 'red', fontWeight: 'bold' }}>{billedAmount || 0}</span>
+                Amount Payable(Current rate + property rate): <span style={{ color: 'red', fontWeight: 'bold' }}>{billedAmount || 0}</span>
               </Form.Label>
               <Form.Control
                 type="number"
