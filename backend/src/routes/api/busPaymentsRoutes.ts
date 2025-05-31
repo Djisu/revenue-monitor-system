@@ -1,7 +1,6 @@
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 
-//import nodemailer, { SendMailOptions } from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -12,23 +11,17 @@ import { QueryResult } from 'pg';
 import pkg from 'pg';
 
 import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'   
-//import { generateReceiptContent } from '../../generatePdf.js';
 
 import PDFDocument from 'pdfkit';
 
 import { printPdf } from '../../utils/printHelper.js';
 
-
-//const __filename = fileURLToPath(import.meta.url);
-
-
-//import { createClient } from '../../db.js';
 const { Pool } = pkg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-interface ReceiptData {
+interface PermitData {
   buss_no: string;
   buss_name: string;
   buss_type: string;
@@ -73,9 +66,6 @@ dotenv.config();
 const env = process.env.NODE_ENV || 'development';  // Defaults to 'development'
 console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
 
-//const permitDir = path.join(__dirname, 'permits');
-
-//const rootDir = path.resolve(__dirname, '..');
 const envPath = path.resolve(__dirname, `../.env.${env}`);
 
 console.log('[BACKEND] envPath:', envPath); // Debugging log
@@ -129,21 +119,6 @@ const pool = new Pool(dbConfig);
 
 // end of experiment ///
 
-
-
-// BusPayments data interface
-interface BusPaymentsData {
-    buss_no: string;
-    officer_no: string;
-    paidAmount: number;
-    monthpaid: string;
-    transdate: string;
-    fiscal_year: string;
-    ReceiptNo: string;
-    email: string;
-    electroral_area: string;
-}
-
 // Function to get Business name from buss_no
 async function getBusinessName(buss_no: string): Promise<string> {
     const client = await pool.connect()
@@ -165,8 +140,8 @@ async function getBusinessName(buss_no: string): Promise<string> {
 }
 
 // Function to generate PDF
-function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayable: number, varSerialNo: string) {
-    console.log('in generateReceiptContent')
+function generatePermitContent(doc: PDFDocument, data: PermitData, totalPayable: number, varSerialNo: string) {
+    console.log('in generatePermitContent')
 
     try{
         doc.fontSize(20).text('Business Operating Permit', { align: 'center' });
@@ -188,6 +163,38 @@ function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayabl
         doc.text(`Property Rate: ${data.property_rate}`);
         doc.text(`Total Payable GHC: ${totalPayable.toFixed(2)}`);
 
+        console.log('Permit generated')
+    }catch(error: unknown){
+        if (error instanceof Error){
+            console.log('Error occurred ', error)
+        }else{
+            console.log('Unknown error')
+        }
+    }    
+  }
+
+  // Function to generate PDF
+function generateReceiptContent(doc: PDFDocument, data: BusPaymentsData) {
+    console.log('in generateReceiptContent')
+
+    try{
+        doc.fontSize(20).text('Payment Receipt', { align: 'left' });
+        doc.moveDown();
+    
+        doc.fontSize(12);
+        doc.moveDown(0.5).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+    
+        doc.moveDown();
+        doc.text(`Business No: ${data.buss_no}`);
+        doc.text(`Collector No: ${data.officer_no}`);
+       
+        doc.text(`Paid Amount: ${data.paidAmount}`);
+        doc.text(`Paid Month: ${data.monthpaid}`);
+        doc.text(`Date: ${data.transdate}`);
+        doc.text(`Paid Year: ${data.fiscal_year}`);
+        doc.text(`ReceiptNo: ${data.ReceiptNo}`);
+        doc.text(`Electoral Area: ${data.electroral_area}`);
+
         console.log('Receipt generated')
     }catch(error: unknown){
         if (error instanceof Error){
@@ -198,7 +205,34 @@ function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayabl
     }    
   }
   
-  export async function generatePdf(data: ReceiptData): Promise<Buffer> {
+//   export async function generatePdf(data: PermitData): Promise<Buffer> {
+//     console.log('in generatePdf');
+  
+//     const currentRate = parseFloat(data.current_rate);
+//     const propertyRate = parseFloat(data.property_rate);
+//     const totalPayable = currentRate + propertyRate;
+  
+//     const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
+//     const varSerialNo = baseSerialNo.toString().padStart(10, '0');
+  
+//     console.log('about to  return new Promise<Buffer>((resolve, reject) => {')
+//     return new Promise<Buffer>((resolve, reject) => {
+
+//       const doc = new PDFDocument({ size: 'A4', margin: 40 });
+
+//       const chunks: any[] = [];
+  
+//       doc.on('data', chunk => chunks.push(chunk));
+//       doc.on('end', () => resolve(Buffer.concat(chunks)));
+//       doc.on('error', reject);
+  
+//       generatePermitContent(doc, data, totalPayable, varSerialNo);
+//       doc.end();
+//       console.log('after generateReceiptContent(doc, data, totalPayable, varSerialNo);')
+//     });
+//   }
+
+  export async function generatePdfPermit(data: PermitData): Promise<Buffer> {
     console.log('in generatePdf');
   
     const currentRate = parseFloat(data.current_rate);
@@ -219,17 +253,36 @@ function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayabl
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
   
-      generateReceiptContent(doc, data, totalPayable, varSerialNo);
+      generatePermitContent(doc, data, totalPayable, varSerialNo);
       doc.end();
       console.log('after generateReceiptContent(doc, data, totalPayable, varSerialNo);')
     });
   }
+
+  export async function generatePdfReceipt(data: BusPaymentsData): Promise<Buffer> {
+    console.log('in generatePdf');
   
-  export async function generatePdfToPrinter(data: ReceiptData): Promise<void> {
+    console.log('about to  return new Promise<Buffer>((resolve, reject) => {')
+    return new Promise<Buffer>((resolve, reject) => {
+
+      const doc = new PDFDocument({ size: 'A4', margin: 40 });
+
+      const chunks: any[] = [];
+  
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+  
+      generateReceiptContent(doc, data);
+      doc.end();
+      console.log('after generateReceiptContent(doc, data, totalPayable, varSerialNo);')
+    });
+  }
+
+  export async function generatePdfToPrinterPermit(data: PermitData): Promise<void> {
     console.log('in generatePdfToPrinter');
   
     try {
-
         const currentRate = parseFloat(data.current_rate);
         const propertyRate = parseFloat(data.property_rate);
         const totalPayable = currentRate + propertyRate;
@@ -269,7 +322,7 @@ function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayabl
             stream.on('error', reject);
         
             doc.pipe(stream);
-            generateReceiptContent(doc, data, totalPayable, varSerialNo);
+            generatePermitContent(doc, data, totalPayable, varSerialNo);
             doc.end();
         });
     }catch(error: unknown){
@@ -280,6 +333,111 @@ function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayabl
         }
     }
 }
+
+export async function generatePdfToPrinterReceipt(data: BusPaymentsData): Promise<void> {
+    console.log('in generatePdfToPrinter');
+  
+    try {
+        console.log('about to create our directory path')
+
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
+        const receiptsDir = path.join(__dirname, 'receipts');
+              
+        console.log('receiptsDir: ', receiptsDir)
+        console.log('__dirname: ', __dirname)
+        console.log('path.join(__dirname, "receipts"): ', path.join(__dirname, 'receipts'))
+        console.log('path.join(__dirname, "receipts", `receipt-${varSerialNo}.pdf`): ', path.join(__dirname, 'receipts', `receipt-${data.buss_no}.pdf`))
+    
+        console.log('about to create our directory path')
+        const outputDir = path.join(__dirname, 'receipts');
+        if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+        }
+    
+        const pdfPath = path.join(receiptsDir, `receipt-${data.buss_no}.pdf`);
+        console.log('pdfPath: ', pdfPath)
+
+        return new Promise<void>((resolve, reject) => {
+            const doc = new PDFDocument({ size: 'A4', margin: 40 });
+            const stream = fs.createWriteStream(pdfPath);
+        
+            stream.on('finish', async () => {
+                console.log(`PDF generated successfully at ${pdfPath}`);
+                await printPdf(pdfPath);
+                resolve();
+            });
+        
+            stream.on('error', reject);
+        
+            doc.pipe(stream);
+            generateReceiptContent(doc, data);
+            doc.end();
+        });
+    }catch(error: unknown){
+        if (error instanceof Error){
+            console.log('Error occurred: ', error)
+        }else{
+            console.log('Unknown error')
+        }
+    }
+}
+   
+//   export async function generatePdfToPrinter(data: PermitData): Promise<void> {
+//     console.log('in generatePdfToPrinter');
+  
+//     try {
+//         const currentRate = parseFloat(data.current_rate);
+//         const propertyRate = parseFloat(data.property_rate);
+//         const totalPayable = currentRate + propertyRate;
+    
+//         const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
+//         const varSerialNo = baseSerialNo.toString().padStart(10, '0');
+    
+//         console.log('about to create our directory path')
+//         const __filename = fileURLToPath(import.meta.url);
+//         const __dirname = dirname(__filename);
+//         const receiptsDir = path.join(__dirname, 'receipts');
+              
+//         console.log('receiptsDir: ', receiptsDir)
+//         console.log('__dirname: ', __dirname)
+//         console.log('path.join(__dirname, "receipts"): ', path.join(__dirname, 'receipts'))
+//         console.log('path.join(__dirname, "receipts", `receipt-${varSerialNo}.pdf`): ', path.join(__dirname, 'receipts', `receipt-${varSerialNo}.pdf`))
+    
+//         console.log('about to create our directory path')
+//         const outputDir = path.join(__dirname, 'receipts');
+//         if (!fs.existsSync(outputDir)) {
+//         fs.mkdirSync(outputDir, { recursive: true });
+//         }
+    
+//         const pdfPath = path.join(receiptsDir, `receipt-${varSerialNo}.pdf`);
+//         console.log('pdfPath: ', pdfPath)
+
+//         return new Promise<void>((resolve, reject) => {
+//             const doc = new PDFDocument({ size: 'A4', margin: 40 });
+//             const stream = fs.createWriteStream(pdfPath);
+        
+//             stream.on('finish', async () => {
+//                 console.log(`PDF generated successfully at ${pdfPath}`);
+//                 await printPdf(pdfPath);
+//                 resolve();
+//             });
+        
+//             stream.on('error', reject);
+        
+//             doc.pipe(stream);
+//             generatePermitContent(doc, data, totalPayable, varSerialNo);
+//             doc.end();
+//         });
+//     }catch(error: unknown){
+//         if (error instanceof Error){
+//             console.log('Error occurred: ', error)
+//         }else{
+//             console.log('Unknown error')
+//         }
+//     }
+// }
+
   
 router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoralarea/:bussType', async (req: Request, res: Response): Promise<void> => {
    
@@ -295,9 +453,6 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
     const client = await pool.connect()
 
     try {
-       
-
-        // Prepare the base query and parameters
         // Prepare the base query and parameters
         let query = `SELECT * FROM buspayments WHERE transdate >= $1 AND transdate <= $2`;
         const params = [formattedFirstDate, lastformattedLastDate];
@@ -324,8 +479,8 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
         // Handle no records found
         if (result.rows.length === 0) {
             console.log('No BusPayments records found');
-             res.status(404).json({ message: 'No BusPayments records found', data: [] });
-             return
+            res.status(404).json({ message: 'No BusPayments records found', data: [] });
+            return
         }
         
         // Continue processing if records are found
@@ -377,7 +532,7 @@ router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoral
 });
 
 router.post('/create', async (req: Request, res: Response) => {
-    console.log('in router.post(/create)');
+    console.log('in router.post(/create): ', req.body);
     console.log('router.post(/create XXXXXXXXX ');
 
     const busPaymentsData: BusPaymentsData = req.body;
@@ -429,6 +584,7 @@ router.post('/create', async (req: Request, res: Response) => {
 
         // Going to updateOfficerBudget function to update the officer budget
         console.log('Going to updateOfficerBudget function to update the officer budget')
+
         const params: Params = {
             paymentMonth: busPaymentsData.monthpaid,
             amount: busPaymentsData.paidAmount,
@@ -447,47 +603,52 @@ router.post('/create', async (req: Request, res: Response) => {
             res.status(500).json({success: false, message: 'Error updating officer budget' });
             return;
         }
-        console.log('back to router.create parent endpoint:', updateOfficerBudgetResult)
+        console.log('back in router.create parent endpoint:', updateOfficerBudgetResult)
 
         console.log('about to generate receipt')
-        
+
         // Prepare the receipt data in the format expected by generatePdf
-        const receiptData: ReceiptData = {
+        const receiptData: BusPaymentsData = {
             buss_no: busPaymentsData.buss_no,
-            buss_name: businessData.buss_name || await getBusinessName(busPaymentsData.buss_no),
-            buss_type: businessData.buss_type || '',
-            property_class: businessData.property_class || '',
-            landmark: businessData.landmark || '',
-            electroral_area: busPaymentsData.electroral_area,
-            tot_grade: businessData.tot_grade || '',
-            current_rate: busPaymentsData.paidAmount.toString(), // Use the paid amount as current rate for receipt
-            property_rate: '0', // Set to 0 for payment receipts
-            serialno: busPaymentsData.ReceiptNo // Use receipt number as serial number
+            officer_no: busPaymentsData.officer_no,
+            paidAmount: busPaymentsData.paidAmount,
+            monthpaid: busPaymentsData.monthpaid,
+            transdate: businessData.transdate,
+            fiscal_year: busPaymentsData.fiscal_year,
+            ReceiptNo: busPaymentsData.ReceiptNo,
+            electroral_area: busPaymentsData.electroral_area, 
+            email: busPaymentsData.email
         };
 
         console.log('Receipt data prepared:', receiptData);
 
         try {
+            console.log("about to const pdfBuffer = await generatePdfReceipt(receiptData);")
             // Generate the PDF receipt
-            const pdfBuffer = await generatePdf(receiptData);
+            const pdfBuffer = await generatePdfReceipt(receiptData);
             
+            console.log("after const pdfBuffer = await generatePdfReceipt(receiptData);")
+
             // Save the PDF to a file
             const receiptFileName = `receipt-${busPaymentsData.buss_no}-${busPaymentsData.ReceiptNo}.pdf`;
+            console.log('receiptFileName: ', receiptFileName)
+
             const receiptFilePath = path.join(receiptsDir, receiptFileName);
+            console.log('receiptFilePath: ', receiptFilePath)
             
             fs.writeFileSync(receiptFilePath, pdfBuffer);
             console.log(`Receipt PDF saved to: ${receiptFilePath}`);
             
             // Optionally print the receipt
             try {
-                await generatePdfToPrinter(receiptData);
+                await generatePdfToPrinterReceipt(receiptData);
                 console.log('Receipt sent to printer');
             } catch (printError) {
                 console.error('Error printing receipt:', printError);
                 // Continue even if printing fails
             }
 
-            console.log('from generatePDF back to the parent endpoint');
+            console.log('from generatePdfToPrinterReceipt back to the parent endpoint');
             console.log('about to text message');
 
             // To be replaced by a text message
@@ -1274,7 +1435,7 @@ router.post('/billallbusinesses', async (req: Request, res: Response): Promise<v
             console.log('Generating PDF for bill:', bill.buss_no);
 
             try {       
-                const pdfBuffer = await generatePdf(bill);
+                const pdfBuffer = await generatePdfPermit(bill);
                 
                 // Save the PDF to a file
                 const filePath = path.join(permitsDir, `permit_${bill.buss_no}.pdf`);
@@ -1283,7 +1444,7 @@ router.post('/billallbusinesses', async (req: Request, res: Response): Promise<v
                 console.log(`PDF saved for business ${bill.buss_no}`);
                 
                 // Send to printer
-                await generatePdfToPrinter(bill);
+                await generatePdfToPrinterPermit(bill);
                 successCount++;
             } catch (error: unknown) {
                 errorCount++;
@@ -1322,13 +1483,13 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
     // Ensure the receipts directory exists
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    const receiptsDir = path.join(__dirname, 'receipts');
+    const permitsDir = path.join(__dirname, 'permits');
 
-    if (!fs.existsSync(receiptsDir)) {
-        fs.mkdirSync(receiptsDir, { recursive: true });
-        console.log('Created receipts directory:', receiptsDir);
+    if (!fs.existsSync(permitsDir)) {
+        fs.mkdirSync(permitsDir, { recursive: true });
+        console.log('Created receipts directory:', permitsDir);
     } else {
-        console.log('Receipts directory already exists:', receiptsDir);
+        console.log('Receipts directory already exists:', permitsDir);
     }
 
     const { bussNo } = req.params;
@@ -1425,7 +1586,7 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
         // Generate the PDF
         try {
             const bill = recBills.rows[0];
-            const pdfBuffer = await generatePdf(bill);
+            const pdfBuffer = await generatePdfPermit(bill);
             
             // Save the PDF to a file
             const filePath = path.join(permitsDir, `permit_${bill.buss_no}.pdf`);
@@ -1434,7 +1595,7 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
             console.log(`PDF saved for business ${bill.buss_no}`);
             
             // Send to printer
-            await generatePdfToPrinter(bill);
+            await generatePdfToPrinterPermit(bill);
             
             console.log('Client Bill generated successfully');
             

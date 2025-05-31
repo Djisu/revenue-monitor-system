@@ -134,7 +134,7 @@ function sanitizeBusinessData(data) {
         buss_address: data.buss_address || '',
         buss_type: data.buss_type || '',
         buss_town: data.buss_town || '',
-        buss_permitno: data.buss_permitno || '',
+        bussPermitNo: data.bussPermitNo || '',
         street_name: data.street_name || '',
         landmark: data.landmark || '',
         electroral_area: data.electroral_area || '',
@@ -164,6 +164,7 @@ function sanitizeBusinessData(data) {
         gps_address: data.gps_address || '',
         serialNo: Number(data.serialNo) || 0,
         buss_location: data.buss_location || '',
+        property_type: data.property_type || '',
     };
 }
 const fsPromises = fs.promises;
@@ -297,11 +298,11 @@ router.get('/:buss_no', async (req, res) => {
         console.log('Executing query for buss_no:', buss_no);
         const newBuss_no = parseInt(buss_no);
         const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [newBuss_no]);
-        // client.release();
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found', data: [] });
             return;
         }
+        console.log('Fetched Business details: ', result.rows[0]);
         res.status(200).json({ message: 'Business record found', data: result.rows[0] });
         return;
     }
@@ -437,12 +438,12 @@ router.post('/create', async (req, res) => {
             status, current_rate, property_rate,
             totalmarks, emailaddress, noofemployees, 
             noofbranches, balancenew, gps_address, 
-            serialNo, buss_location) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35);
+            serialNo, buss_location, property_type) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36);
     `;
         const insertValues = [
             sanitizedData.buss_no, sanitizedData.buss_name, sanitizedData.buss_address,
-            sanitizedData.buss_type, sanitizedData.buss_town, sanitizedData.buss_permitno,
+            sanitizedData.buss_type, sanitizedData.buss_town, sanitizedData.bussPermitNo,
             sanitizedData.street_name, sanitizedData.landmark, sanitizedData.electroral_area,
             sanitizedData.property_class, sanitizedData.tot_grade, sanitizedData.ceo,
             sanitizedData.telno, sanitizedData.strategiclocation, sanitizedData.productvariety,
@@ -452,7 +453,7 @@ router.post('/create', async (req, res) => {
             sanitizedData.status, sanitizedData.current_rate, sanitizedData.property_rate,
             sanitizedData.totalmarks, sanitizedData.emailaddress, sanitizedData.noofemployees,
             sanitizedData.noofbranches, sanitizedData.BALANCENEW, sanitizedData.gps_address,
-            sanitizedData.serialNo, sanitizedData.buss_location,
+            sanitizedData.serialNo, sanitizedData.buss_location, sanitizedData.property_type,
         ];
         // Ensure the number of columns matches the number of values
         if (insertValues.length !== 35) {
@@ -482,7 +483,11 @@ router.post('/create', async (req, res) => {
 });
 // Update a business record
 router.put('/:buss_no', async (req, res) => {
-    console.log('in router.put(/:buss_no)');
+    console.log('in router.put(/:buss_no)', req.body);
+    if (!req.body.bussPermitNo) {
+        console.log('no permit number');
+        return;
+    }
     const client = await pool.connect();
     try {
         const { buss_no } = req.params;
@@ -494,7 +499,7 @@ router.put('/:buss_no', async (req, res) => {
             sanitizedData.buss_address === null || sanitizedData.buss_address === undefined ||
             sanitizedData.buss_type === null || sanitizedData.buss_type === undefined ||
             sanitizedData.buss_town === null || sanitizedData.buss_town === undefined ||
-            sanitizedData.buss_permitno === null || sanitizedData.buss_permitno === undefined ||
+            sanitizedData.bussPermitNo === null || sanitizedData.bussPermitNo === undefined ||
             sanitizedData.street_name === null || sanitizedData.street_name === undefined ||
             sanitizedData.landmark === null || sanitizedData.landmark === undefined ||
             sanitizedData.electroral_area === null || sanitizedData.electroral_area === undefined ||
@@ -523,7 +528,8 @@ router.put('/:buss_no', async (req, res) => {
             isNaN(sanitizedData.BALANCENEW) ||
             sanitizedData.gps_address === null || sanitizedData.gps_address === undefined ||
             sanitizedData.serialNo === null || sanitizedData.serialNo === undefined ||
-            sanitizedData.buss_location === null || sanitizedData.buss_location === undefined) {
+            sanitizedData.buss_location === null || sanitizedData.buss_location === undefined ||
+            sanitizedData.property_type === null || sanitizedData.property_type === undefined) {
             console.log('Invalid or missing input data');
             res.status(400).json({ success: false, message: 'Invalid or missing input data' });
             return;
@@ -571,15 +577,16 @@ router.put('/:buss_no', async (req, res) => {
                 BALANCENEW = $31, 
                 gps_address = $32, 
                 serialNo = $33, 
-                buss_location = $34
-            WHERE buss_no = $35;
+                buss_location = $34,
+                property_type = $35
+            WHERE buss_no = $36;
         `;
         const updateValues = [
             sanitizedData.buss_name,
             sanitizedData.buss_address,
             sanitizedData.buss_type,
             sanitizedData.buss_town,
-            sanitizedData.buss_permitno,
+            sanitizedData.bussPermitNo,
             sanitizedData.street_name,
             sanitizedData.landmark,
             sanitizedData.electroral_area,
@@ -609,6 +616,7 @@ router.put('/:buss_no', async (req, res) => {
             sanitizedData.gps_address,
             sanitizedData.serialNo,
             sanitizedData.buss_location,
+            sanitizedData.property_type,
             buss_no
         ];
         const updateResult = await client.query(updateBusinessQuery, updateValues);
