@@ -60,6 +60,19 @@ const FrmClientPayments1 = () => {
     console.log('receiptNo:', receiptNo);
     
     try {
+      if (receiptNo.length === 0){
+        alert('Enter the receipt number');
+        return;
+      }
+      if (receiptNo.length > 10){
+        alert('Receipt number cannot be more than 10 characters');
+        return;
+      }
+      // if receiptNo contains a space or letters, remove it
+      receiptNo = receiptNo.replace(/\s/g, '');
+      receiptNo = receiptNo.replace(/\D/g, '');
+      console.log('receiptNo after removing spaces and letters:', receiptNo);
+
       if (receiptNo) {  
         const action = await dispatch(fetchFiscalyearReceiptno({ fiscalyear: fiscalYear, receiptno: receiptNo, batchno: batchNo }));
         console.log('action.payload:', action.payload);
@@ -94,6 +107,10 @@ const FrmClientPayments1 = () => {
 
        if ( response) {
          console.log('there is response:', response.data);
+
+         console.log('response.data.emailaddress: ', response.data.emailaddress)
+
+        setEmail(response.data.emailaddress);
 
         // Set response fields to the following state variables
         setOfficerNo(response.data.assessmentby);
@@ -214,7 +231,8 @@ const FrmClientPayments1 = () => {
       electroral_area: electoralArea,
     };
 
-    // console.log('busPayment:', busPayment);
+     console.log('busPayment:', busPayment);
+
      try {
         const response = await dispatch(createBusPayment(busPayment)).unwrap();
         console.log('XXXXXXXXXXX', response)
@@ -227,18 +245,20 @@ const FrmClientPayments1 = () => {
 
         // Check if the response indicates success
         if (response && response.message){     
+          // Reset form fields after successful submission
           setBusinessNo(0);
           setOfficerNo('');
           setPaidAmount(0);
-          setMonthPaid('');
-          setFiscalYear('');
+          setMonthPaid(setMonthString(new Date().getMonth())); // Reset to current month
           setReceiptNo('');
           setEmail('');
           setBilledAmount(0);
           setElectoralArea('');
           setBusinessName(''); 
           setBatchNo(''); 
-          setIsReceiptValid(false);
+          setIsReceiptValid(null);
+          setErrorMessage('');
+          setFiscalYear(new Date().getFullYear().toString());
           alert('Payment successfully added');
         } else {
           // Handle unexpected response structure
@@ -307,8 +327,7 @@ const FrmClientPayments1 = () => {
               <Form.Control
                 type="text"
                 value={receiptNo}
-                onChange={(e) => setReceiptNo(e.target.value)}
-               
+                onChange={(e) => setReceiptNo(e.target.value)}              
               />
             </Col>
           </Row>
@@ -319,10 +338,32 @@ const FrmClientPayments1 = () => {
                 type="text"
                 value={batchNo}
                 onChange={(e) => setBatchNo(e.target.value)}
-                onBlur={(e) => checkReceiptNo(e.target.value, receiptNo)}
+                onBlur={() => {
+                  if (batchNo && receiptNo && fiscalYear) {
+                    checkReceiptNo(batchNo, receiptNo);
+                  }
+                }}
               />
             </Col>
-          </Row>  
+            <Col>
+              <Button type="submit" variant="primary">
+                Validate receipt
+              </Button>
+            </Col>
+          </Row> 
+          
+          <Row className="mb-3">
+            <Col>
+              <Button type="submit" variant="primary">
+                Click to pay
+              </Button>
+            </Col>
+            <Col>
+              <Link to="/main" style={{ textDecoration: "none" }}>
+                Go Back
+              </Link>
+            </Col>
+          </Row>     
           <Row className="mb-3">
             <Col>
               <Form.Label>Officer Number:</Form.Label>
@@ -339,7 +380,7 @@ const FrmClientPayments1 = () => {
             <Col>
               <Form.Label>Month Paid:</Form.Label>
               <Form.Control
-                value={monthPaid}
+                 value={monthPaid || ''}
                 readOnly // If you want it to be read-only
               />
             </Col>
@@ -348,7 +389,7 @@ const FrmClientPayments1 = () => {
             <Col>
               <Form.Label>Transaction Date:</Form.Label>
               <Form.Control
-                value={transDate}
+                 value={transDate || ''}
                 readOnly
               />
             </Col>
@@ -356,7 +397,7 @@ const FrmClientPayments1 = () => {
           <Row className="mb-3">
             <Col>
               <Form.Label>Fiscal Year:</Form.Label>
-              <Form.Control value={fiscalYear} readOnly />
+              <Form.Control value={fiscalYear || ''} readOnly />
             </Col>
           </Row>
           
@@ -364,8 +405,8 @@ const FrmClientPayments1 = () => {
             <Col>
               <Form.Label>Email:</Form.Label>
               <Form.Control
-                value={email}
-                readOnly
+               value={email || ''}
+               onChange={(e) => setEmail(e.target.value)}
               />
             </Col>
           </Row>
@@ -378,20 +419,7 @@ const FrmClientPayments1 = () => {
               />
             </Col>
           </Row>
-          <Row className="mb-3">
-            <Col>
-              <Button type="submit" variant="primary">
-                Click to pay
-              </Button>
-            </Col>
-          </Row>
-          <Row className="mt-3">
-            <Col>
-              <Link to="/main" style={{ textDecoration: "none" }}>
-                Go Back
-              </Link>
-            </Col>
-          </Row>
+        
         </Form>
       </div>
     </div>

@@ -80,43 +80,28 @@ async function getBusinessName(buss_no) {
         client.release();
     }
 }
+// Function to get Business name from buss_no
+async function getTelNo(buss_no) {
+    const client = await pool.connect();
+    try {
+        const result = await client.query('SELECT * FROM business WHERE buss_no = $1', [buss_no]);
+        if (result.rows.length === 0) {
+            return 'Business not found';
+        }
+        return result.rows[0].telno;
+    }
+    catch (error) {
+        console.error('Error:', error);
+        return 'Error getting business name';
+    }
+    finally {
+        client.release();
+    }
+}
 // Function to generate PDF
 function generatePermitContent(doc, data, totalPayable, varSerialNo) {
     console.log('in generatePermitContent');
     try {
-        doc.fontSize(20).text('Business Operating Permit', { align: 'center' });
-        doc.moveDown();
-        doc.fontSize(12);
-        doc.text(`Serial No: ${varSerialNo}`);
-        doc.moveDown(0.5).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-        doc.moveDown();
-        doc.text(`Account No: ${data.buss_no}`);
-        doc.text(`Business Name: ${data.buss_name}`);
-        doc.text(`Type: ${data.buss_type}`);
-        doc.text(`Property Class: ${data.property_class}`);
-        doc.text(`Landmark: ${data.landmark}`);
-        doc.text(`Electoral Area: ${data.electroral_area}`);
-        doc.text(`Total Grade: ${data.tot_grade}`);
-        doc.text(`Current Rate: ${data.current_rate}`);
-        doc.text(`Property Rate: ${data.property_rate}`);
-        doc.text(`Total Payable GHC: ${totalPayable.toFixed(2)}`);
-        console.log('Permit generated');
-    }
-    catch (error) {
-        if (error instanceof Error) {
-            console.log('Error occurred ', error);
-        }
-        else {
-            console.log('Unknown error');
-        }
-    }
-}
-// Function to generate PDF
-function generateReceiptContent(doc, data) {
-    console.log('in generateReceiptContent');
-    try {
-        // Set to landscape orientation
-        //doc.layout = 'landscape';
         // Add logo images at the upper corners
         const leftLogoPath = path.resolve(process.cwd(), 'src/assets/Coat_of_arms_of_Ghana.svg.png');
         console.log('Trying to load logo from:', leftLogoPath);
@@ -132,39 +117,38 @@ function generateReceiptContent(doc, data) {
             doc.image(rightLogoPath, doc.page.width - 130, 40, { width: 80 });
         }
         // Add more vertical space to avoid overlapping with logos
-        // Add more vertical space to avoid overlapping with logos
         const titleY = 180; // Increased from 140 to 180 for more space
         // Move cursor to the new position
         doc.y = titleY;
         // Title centered between the logos
         doc.fontSize(20);
-        doc.text('Payment Receipt', { align: 'center' });
+        doc.text('Business Operating Permit', { align: 'center' });
         doc.moveDown(2); // Increased from default to 2 lines
         // Horizontal line
         doc.fontSize(12);
         doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke();
         doc.moveDown(2); // Increased from 0.5 to 2 lines
-        // Create two columns for the receipt information
+        // Create two columns for the permit information
         const leftColumnX = 100;
         const rightColumnX = 400;
         const startY = doc.y + 20; // Add extra space after the line
         // Left column
-        doc.text(`Business No: ${data.buss_no}`, leftColumnX, startY);
-        doc.text(`Collector No: ${data.officer_no}`, leftColumnX, startY + 25);
-        doc.text(`Paid Amount: ${data.paidAmount}`, leftColumnX, startY + 50);
-        doc.text(`Paid Month: ${data.monthpaid}`, leftColumnX, startY + 75);
+        doc.fillColor('red') // Set text color to red
+            .text(`Serial No: ${varSerialNo}`, leftColumnX, startY)
+            .fillColor('black'); // Reset text color back to black for subsequent text
+        doc.text(`Account No: ${data.buss_no}`, leftColumnX, startY + 25);
+        doc.text(`Business Name: ${data.buss_name}`, leftColumnX, startY + 50);
+        doc.text(`Type: ${data.buss_type}`, leftColumnX, startY + 75);
+        doc.text(`Property Class: ${data.property_class}`, leftColumnX, startY + 100);
         // Right column
-        // Format the date as DD/MM/YYYY
-        const formattedDate = new Date(data.transdate).toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-        doc.text(`Date: ${formattedDate}`, rightColumnX, startY);
-        doc.text(`Paid Year: ${data.fiscal_year}`, rightColumnX, startY + 30);
-        doc.text(`ReceiptNo: ${data.ReceiptNo}`, rightColumnX, startY + 60);
-        doc.text(`Electoral Area: ${data.electroral_area}`, rightColumnX, startY + 75);
-        console.log('Receipt generated');
+        // doc.text(`Landmark: ${data.landmark}`, rightColumnX, startY);
+        doc.text(`Electoral Area: ${data.electroral_area}`, rightColumnX, startY + 25);
+        doc.text(`Total Grade: ${data.tot_grade}`, rightColumnX, startY + 50);
+        doc.text(`Current Rate: ${data.current_rate}`, rightColumnX, startY + 75);
+        doc.text(`Property Rate: ${data.property_rate}`, rightColumnX, startY + 100);
+        // Total at the bottom
+        doc.text(`Total Payable GHC: ${totalPayable.toFixed(2)}`, 50, doc.y + 150, { align: 'center' });
+        console.log('Permit generated');
     }
     catch (error) {
         if (error instanceof Error) {
@@ -175,25 +159,94 @@ function generateReceiptContent(doc, data) {
         }
     }
 }
-//   export async function generatePdf(data: PermitData): Promise<Buffer> {
-//     console.log('in generatePdf');
-//     const currentRate = parseFloat(data.current_rate);
-//     const propertyRate = parseFloat(data.property_rate);
-//     const totalPayable = currentRate + propertyRate;
-//     const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
-//     const varSerialNo = baseSerialNo.toString().padStart(10, '0');
-//     console.log('about to  return new Promise<Buffer>((resolve, reject) => {')
-//     return new Promise<Buffer>((resolve, reject) => {
-//       const doc = new PDFDocument({ size: 'A4', margin: 40 });
-//       const chunks: any[] = [];
-//       doc.on('data', chunk => chunks.push(chunk));
-//       doc.on('end', () => resolve(Buffer.concat(chunks)));
-//       doc.on('error', reject);
-//       generatePermitContent(doc, data, totalPayable, varSerialNo);
-//       doc.end();
-//       console.log('after generateReceiptContent(doc, data, totalPayable, varSerialNo);')
-//     });
-//   }
+// Function to generate PDF
+async function generateReceiptContent(doc, data) {
+    console.log('in generateReceiptContent to text message');
+    try {
+        // Simple text-based receipt in portrait format
+        // Move cursor to the top
+        doc.y = 40;
+        // Title centered
+        doc.fontSize(16);
+        doc.text('Payment Receipt Confirmation', { align: 'center' });
+        doc.moveDown(1);
+        // Horizontal line
+        doc.fontSize(12);
+        doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke();
+        doc.moveDown(1);
+        // Receipt information in a single column format
+        const startY = doc.y + 10;
+        const leftMargin = 50;
+        // Format the date as DD/MM/YYYY
+        const formattedDate = new Date(data.transdate).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        // Receipt details
+        doc.text(`Transaction Date: ${formattedDate}`, leftMargin, startY);
+        doc.moveDown(0.5);
+        doc.text(`Business No: ${data.buss_no}`, leftMargin, doc.y);
+        doc.moveDown(0.5);
+        doc.text(`Collector No: ${data.officer_no}`, leftMargin, doc.y);
+        doc.moveDown(0.5);
+        doc.text(`Receipt No: ${data.ReceiptNo}`, leftMargin, doc.y);
+        doc.moveDown(0.5);
+        doc.text(`Paid Amount: GHC ${data.paidAmount}`, leftMargin, doc.y);
+        doc.moveDown(0.5);
+        doc.text(`Paid Month: ${data.monthpaid}`, leftMargin, doc.y);
+        doc.moveDown(0.5);
+        doc.text(`Fiscal Year: ${data.fiscal_year}`, leftMargin, doc.y);
+        doc.moveDown(0.5);
+        doc.text(`Electoral Area: ${data.electroral_area}`, leftMargin, doc.y);
+        doc.moveDown(1.5);
+        // Footer message
+        doc.text('This is a digital confirmation of your payment. The official government receipt has been issued separately.', leftMargin, doc.y, { align: 'center', width: doc.page.width - 100 });
+        // Get the phone number from the database
+        const telNo = await getTelNo(data.buss_no);
+        // Send SMS notification
+        try {
+            // Import the sendSmsViaInfobip function from textmessagingRoute
+            import('../api/textmessagingRoute.js').then(async (textModule) => {
+                // Prepare SMS message
+                const message = `Payment Receipt: GHC ${data.paidAmount} received for Business No: ${data.buss_no}. Receipt No: ${data.ReceiptNo}. Thank you.`;
+                // Send SMS using the telNo retrieved from the database
+                if (telNo && telNo !== 'Business not found' && telNo !== 'Error getting business name') {
+                    try {
+                        console.log(`Attempting to send SMS to ${telNo} with message: ${message}`);
+                        await textModule.sendSmsViaInfobip(telNo, // Using telNo from database
+                        message, 'ASHMA' // Sender ID
+                        );
+                        console.log('SMS notification sent to:', telNo);
+                    }
+                    catch (innerError) {
+                        console.log('Error in SMS sending:', innerError);
+                        // Continue with receipt generation even if SMS fails
+                    }
+                }
+                else {
+                    console.log('No valid phone number available for SMS notification');
+                }
+            }).catch(err => {
+                console.log('Error importing textmessagingRoute:', err);
+                // Continue with receipt generation even if module import fails
+            });
+        }
+        catch (smsError) {
+            console.log('Error in SMS notification block:', smsError);
+            // Continue with receipt generation even if SMS fails
+        }
+        ;
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.log('Error occurred ', error);
+        }
+        else {
+            console.log('Unknown error');
+        }
+    }
+}
 export async function generatePdfPermit(data) {
     console.log('in generatePdf');
     const currentRate = parseFloat(data.current_rate);
@@ -217,8 +270,8 @@ export async function generatePdfReceipt(data) {
     console.log('in generatePdf');
     console.log('about to return new Promise<Buffer>((resolve, reject) => {');
     return new Promise((resolve, reject) => {
-        // Create document with landscape orientation
-        const doc = new PDFDocument({ size: 'letter', layout: 'landscape', margin: 40 });
+        // Create document with portrait orientation
+        const doc = new PDFDocument({ size: 'A4', margin: 40 });
         const chunks = [];
         doc.on('data', chunk => chunks.push(chunk));
         doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -229,7 +282,7 @@ export async function generatePdfReceipt(data) {
     });
 }
 export async function generatePdfToPrinterPermit(data) {
-    console.log('in generatePdfToPrinter');
+    console.log('in generatePdfToPrinterPermits');
     try {
         const currentRate = parseFloat(data.current_rate);
         const propertyRate = parseFloat(data.property_rate);
@@ -239,17 +292,17 @@ export async function generatePdfToPrinterPermit(data) {
         console.log('about to create our directory path');
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = dirname(__filename);
-        const receiptsDir = path.join(__dirname, 'receipts');
-        console.log('receiptsDir: ', receiptsDir);
+        const permitsDir = path.join(__dirname, 'permits');
+        console.log('permitsDir: ', permitsDir);
         console.log('__dirname: ', __dirname);
-        console.log('path.join(__dirname, "receipts"): ', path.join(__dirname, 'receipts'));
-        console.log('path.join(__dirname, "receipts", `receipt-${varSerialNo}.pdf`): ', path.join(__dirname, 'receipts', `receipt-${varSerialNo}.pdf`));
+        console.log('path.join(__dirname, "permits"): ', path.join(__dirname, 'permits'));
+        console.log('path.join(__dirname, "permits", `receipt-${varSerialNo}.pdf`): ', path.join(__dirname, 'permits', `permits-${varSerialNo}.pdf`));
         console.log('about to create our directory path');
-        const outputDir = path.join(__dirname, 'receipts');
+        const outputDir = path.join(__dirname, 'permits');
         if (!fs.existsSync(outputDir)) {
             fs.mkdirSync(outputDir, { recursive: true });
         }
-        const pdfPath = path.join(receiptsDir, `receipt-${varSerialNo}.pdf`);
+        const pdfPath = path.join(permitsDir, `receipt-${varSerialNo}.pdf`);
         console.log('pdfPath: ', pdfPath);
         return new Promise((resolve, reject) => {
             const doc = new PDFDocument({ size: 'A4', margin: 40 });
@@ -284,7 +337,7 @@ export async function generatePdfToPrinterReceipt(data) {
         console.log('receiptsDir: ', receiptsDir);
         console.log('__dirname: ', __dirname);
         console.log('path.join(__dirname, "receipts"): ', path.join(__dirname, 'receipts'));
-        console.log('path.join(__dirname, "receipts", `receipt-${varSerialNo}.pdf`): ', path.join(__dirname, 'receipts', `receipt-${data.buss_no}.pdf`));
+        console.log('path.join(__dirname, "receipts", `receipt-${data.buss_no}.pdf`): ', path.join(__dirname, 'receipts', `receipt-${data.buss_no}.pdf`));
         console.log('about to create our directory path');
         const outputDir = path.join(__dirname, 'receipts');
         if (!fs.existsSync(outputDir)) {
@@ -293,6 +346,7 @@ export async function generatePdfToPrinterReceipt(data) {
         const pdfPath = path.join(receiptsDir, `receipt-${data.buss_no}.pdf`);
         console.log('pdfPath: ', pdfPath);
         return new Promise((resolve, reject) => {
+            // Use portrait format for the text receipt
             const doc = new PDFDocument({ size: 'A4', margin: 40 });
             const stream = fs.createWriteStream(pdfPath);
             stream.on('finish', async () => {
@@ -315,50 +369,6 @@ export async function generatePdfToPrinterReceipt(data) {
         }
     }
 }
-//   export async function generatePdfToPrinter(data: PermitData): Promise<void> {
-//     console.log('in generatePdfToPrinter');
-//     try {
-//         const currentRate = parseFloat(data.current_rate);
-//         const propertyRate = parseFloat(data.property_rate);
-//         const totalPayable = currentRate + propertyRate;
-//         const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
-//         const varSerialNo = baseSerialNo.toString().padStart(10, '0');
-//         console.log('about to create our directory path')
-//         const __filename = fileURLToPath(import.meta.url);
-//         const __dirname = dirname(__filename);
-//         const receiptsDir = path.join(__dirname, 'receipts');
-//         console.log('receiptsDir: ', receiptsDir)
-//         console.log('__dirname: ', __dirname)
-//         console.log('path.join(__dirname, "receipts"): ', path.join(__dirname, 'receipts'))
-//         console.log('path.join(__dirname, "receipts", `receipt-${varSerialNo}.pdf`): ', path.join(__dirname, 'receipts', `receipt-${varSerialNo}.pdf`))
-//         console.log('about to create our directory path')
-//         const outputDir = path.join(__dirname, 'receipts');
-//         if (!fs.existsSync(outputDir)) {
-//         fs.mkdirSync(outputDir, { recursive: true });
-//         }
-//         const pdfPath = path.join(receiptsDir, `receipt-${varSerialNo}.pdf`);
-//         console.log('pdfPath: ', pdfPath)
-//         return new Promise<void>((resolve, reject) => {
-//             const doc = new PDFDocument({ size: 'A4', margin: 40 });
-//             const stream = fs.createWriteStream(pdfPath);
-//             stream.on('finish', async () => {
-//                 console.log(`PDF generated successfully at ${pdfPath}`);
-//                 await printPdf(pdfPath);
-//                 resolve();
-//             });
-//             stream.on('error', reject);
-//             doc.pipe(stream);
-//             generatePermitContent(doc, data, totalPayable, varSerialNo);
-//             doc.end();
-//         });
-//     }catch(error: unknown){
-//         if (error instanceof Error){
-//             console.log('Error occurred: ', error)
-//         }else{
-//             console.log('Unknown error')
-//         }
-//     }
-// }
 router.get('/dailypayments/:formattedFirstDate/:lastformattedLastDate/:electoralarea/:bussType', async (req, res) => {
     console.log('router.get(/dailypayments/:formattedFirstDate/:formattedLastDate/:electoralarea/:bussType');
     const { formattedFirstDate, lastformattedLastDate, electoralarea, bussType } = req.params;

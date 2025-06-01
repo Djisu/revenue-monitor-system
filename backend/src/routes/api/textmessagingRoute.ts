@@ -1,90 +1,86 @@
-// import express from 'express';
-// import * as dotenv from 'dotenv';
-// import { Router, Request, Response } from 'express';
-// import axios, { AxiosRequestConfig } from 'axios';
+import express from 'express';
+import * as dotenv from 'dotenv';
+import { Router, Request, Response } from 'express';
+import axios from 'axios';
 
+const router: Router = express.Router();
 
+// Load environment variables from .env file
+dotenv.config();
 
-// const router: Router = express.Router();
-
-// // Load environment variables from .env file
-// dotenv.config();
-// console.log('about to test')
-
-// const arkesel_api_key = process.env.ARKESEL_API_KEY;
-
-// if (!arkesel_api_key) {
-//     console.error('ARKESEL_API_KEY environment variable not set');
-//     process.exit(1);
-// }
-
-// // Define an interface for the request body
-// interface SmsRequestBody {
-//     sender: string;
-//     message: string;
-//     recipients: string[];
-//     scheduled_date?: string;
-//     callback_url?: string;
-// }
-
-
-// // Endpoint to send SMS
-// router.post('/send-sms', async (req: Request<object, object, SmsRequestBody>, res: Response): Promise<void> => {
-//     const { sender, message, recipients, scheduled_date, callback_url } = req.body;
-
-//     //console.log('in router.post(/send-sms), arkesel_api_key: ', arkesel_api_key);
-
-//     console.log('Sending SMS:', sender, message, recipients, scheduled_date, callback_url);
-
-//     // Validate required fields
-//     if (!sender || !message || !recipients || !Array.isArray(recipients) || recipients.length === 0) {
-//          res.status(400).json({ success: false, message: 'Invalid input parameters' });
-//         return
-//     }
-
-//     // Prepare data for SMS
-//     const data: SmsRequestBody = { sender, message, recipients };
-
-//     // Add optional fields
-//     if (scheduled_date) {
-//         data.scheduled_date = scheduled_date;
-//     }
-//     if (callback_url) {
-//         data.callback_url = callback_url;
-//     }
-
+/**
+ * Sends an SMS message using the Infobip API directly via axios
+ * @param phoneNumber - The recipient's phone number
+ * @param message - The message content
+ * @param sender - The sender ID
+ * @returns Promise resolving to the Infobip response
+ */
+export async function sendSmsViaInfobip(
+  phoneNumber: string,
+  message: string,
+  sender: string
+): Promise<any> {
+  try {
+    console.log('Sending SMS via direct API call to Infobip');
+    console.log('API key:', process.env.INFOBIP_API_KEY?.substring(0, 5) + '...');
+    console.log('Base URL:', process.env.INFOBIP_URL || 'https://api.infobip.com');
     
+    // Format phone number if needed (ensure it has country code)
+    const formattedPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber : `+233${phoneNumber.replace(/^0/, '')}`;
+    console.log('Formatted phone number:', formattedPhoneNumber);
+    
+    // Make direct API call to Infobip
+    const response = await axios({
+      method: 'POST',
+      url: `${process.env.INFOBIP_URL || 'https://api.infobip.com'}/sms/2/text/advanced`,
+      headers: {
+        'Authorization': `App ${process.env.INFOBIP_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      data: {
+        messages: [
+          {
+            from: sender,
+            destinations: [
+              {
+                to: formattedPhoneNumber
+              }
+            ],
+            text: message
+          }
+        ]
+      }
+    });
+    
+    console.log('SMS sent successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error sending SMS via Infobip:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('Infobip API response:', error.response.data);
+    }
+    throw error;
+  }
+}
 
-//     // Config for Axios request
-//     const config: AxiosRequestConfig<unknown> = {
-//         method: 'post',
-//         url: 'https://sms.arkesel.com/api/v2/sms/send',
-//         headers: {
-//             'api-key': arkesel_api_key
-//         },
-//         data: data,
-//     };
+// Endpoint to send SMS
+router.post('/send-sms-infobip', async (req: Request, res: Response): Promise<void> => {
+  const { phoneNumber, message, sender } = req.body;
 
-//     try {
-//         const response = await axios(config);
-//         res.status(200).json({ success: true, data: response.data });
-//         return
-//     } catch (error: unknown) {
-//         console.error('Error sending SMS:', error);
-//         res.status(500).json({ success: false, message: 'Error sending SMS', error });
-//         return
-//     }
-// });
+  // Validate required fields
+  if (!phoneNumber || !message || !sender) {
+    res.status(400).json({ success: false, message: 'Missing required parameters' });
+    return;
+  }
 
+  try {
+    const response = await sendSmsViaInfobip(phoneNumber, message, sender);
+    res.status(200).json({ success: true, data: response });
+  } catch (error) {
+    console.error('Error in /send-sms-infobip endpoint:', error);
+    res.status(500).json({ success: false, message: 'Error sending SMS', error });
+  }
+});
 
-// export default router;
-
-
-
-
-
-
-
-
-
-
+export default router;

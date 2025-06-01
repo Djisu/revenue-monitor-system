@@ -26,6 +26,7 @@ declare module 'pdfkit' {
       lineTo(x: number, y: number): this;
       stroke(): this;
       image(src: string, x: number, y: number, options?: { width?: number; height?: number }): this;
+      fillColor(color: string): this;
       end(): void;
       on(event: 'data', callback: (chunk: Buffer) => void): void;
       on(event: 'end', callback: () => void): void;
