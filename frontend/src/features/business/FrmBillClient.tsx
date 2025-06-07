@@ -83,7 +83,7 @@ export const FrmBillClient: React.FC = () => {
      
       {error && <Alert variant="danger">{error}</Alert>}
       <Form>
-      <p className="bold-blue">Bill a Business for Current Fiscal Year</p>
+      <p className="bold-blue">Produce Permits for One Business</p>
         <Form.Group controlId="formBussNo">
           <Form.Label>Business Number:</Form.Label>
           <Form.Control
@@ -101,6 +101,7 @@ export const FrmBillClient: React.FC = () => {
           <Form.Control
             type="text"
             value={bussName}
+            placeholder='Enter Business Number'
             readOnly
           />
         </Form.Group>
