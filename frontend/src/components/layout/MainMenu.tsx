@@ -97,11 +97,14 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                              {/* <NavDropdown.Item onClick={() => handleMenuClick('CP', 'TemporalCollectorPayment')}>
                                 CP_Temporal Collector Payment
                             </NavDropdown.Item> */}
-                            <NavDropdown.Item onClick={() => handleMenuClick('PB', 'ProcessClientNewBalances')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('PB', 'ProcessClientNewBalances')}>
                                 PB_Bill All Businesses for the CURRENT Fiscal Year--3
+                            </NavDropdown.Item> */}
+                            <NavDropdown.Item onClick={() => handleMenuClick('BO', 'BusinessOperatingPermit')}>
+                                BO_Produce Business Operating Permits for all Electoral Areas/Zones--3
                             </NavDropdown.Item>
-                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'BillClient')}>
-                                CP_Bill One Business Client for the CURRENT Fiscal Year--3
+                            <NavDropdown.Item onClick={() => handleMenuClick('CP', 'BillClient')}>
+                                CP_Bill Business Operating Permits for One Business/Client--3
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('RR', 'EnterReceiptNumbers')}>
                                 RR_Enter Receipt Numbers From Accountant General
@@ -119,9 +122,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             {/* <NavDropdown.Item onClick={() => handleMenuClick('BN', 'BusinessOperatingPermitBusinessNumbers')}>
                                 BN_Produce Business Operating Permits (Business Numbers)
                             </NavDropdown.Item> */}
-                            <NavDropdown.Item onClick={() => handleMenuClick('BO', 'BusinessOperatingPermit')}>
-                                BO_Produce Business Operating Permits for all Electoral Areas/Zones
-                            </NavDropdown.Item>
+                          
                             {/* Hidden menu items are commented out for now */}
                             {/* <NavDropdown.Item onClick={() => handleMenuClick('MJ', 'BusinessOperatingPermitBusstypes')}>
                                 MJ_Produce Business Operating Permits (Buss types)

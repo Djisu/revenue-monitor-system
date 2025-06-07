@@ -293,7 +293,10 @@ const businessSlice = createSlice({
             .addCase(fetchBusinessById.fulfilled, (state, action) => {
                 state.loading = false;
                 // Handle the fetched single business as needed
-                state.businesses.push(...action.payload); // Add the new business
+               // state.businesses.push(...action.payload); // Add the new business
+               if (action.payload && action.payload.data) {
+                  state.businesses = action.payload.data;
+               }
                 state.error = null;
             })
             .addCase(fetchBusinessById.rejected, (state, action) => {

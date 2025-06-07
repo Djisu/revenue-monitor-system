@@ -142,6 +142,14 @@ interface ReceiptData {
 function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayable: number, varSerialNo: string) {
     console.log('in generateReceiptContent')
 
+    // Format today's date as DD/MM/YYYY
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+
     doc.fontSize(20).text('Business Operating Permit', { align: 'center' });
     doc.moveDown();
   
@@ -150,6 +158,7 @@ function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayabl
     doc.moveDown(0.5).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
   
     doc.moveDown();
+    doc.text(`Transaction Date: ${formattedDate}`);
     doc.text(`Account No: ${data.buss_no}`);
     doc.text(`Business Name: ${data.buss_name}`);
     doc.text(`Type: ${data.buss_type}`);
@@ -160,9 +169,9 @@ function generateReceiptContent(doc: PDFDocument, data: ReceiptData, totalPayabl
     doc.text(`Current Rate: ${data.current_rate}`);
     doc.text(`Property Rate: ${data.property_rate}`);
     doc.text(`Total Payable GHC: ${totalPayable.toFixed(2)}`);
-  }
+}
   
-  export async function generatePdf(data: ReceiptData): Promise<Buffer> {
+export async function generatePdf(data: ReceiptData): Promise<Buffer> {
     console.log('in generatePdf');
   
     const currentRate = parseFloat(data.current_rate);
@@ -422,6 +431,7 @@ router.get('/:buss_no', async (req: Request, res: Response): Promise<void> => {
             return 
           
         } 
+
         console.log('Fetched Business details: ', result.rows[0])
         res.status(200).json({ message: 'Business record found', data: result.rows[0] });
         return 
@@ -494,12 +504,11 @@ router.get('/electoral/:electoral_area', async (req: Request, res: Response) => 
 router.get('/name/:buss_name', async (req: Request, res: Response) => {
     const { buss_name } = req.params;
 
-      const client = await pool.connect()
+    const client = await pool.connect()
     try {
        
         const result = await client.query('SELECT * FROM business WHERE buss_name = $1', [buss_name]);
       
-
         if (result.rows.length === 0) {
             res.status(404).json({ message: 'Business record not found' });
         } else {

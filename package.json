@@ -18,7 +18,7 @@
         "start:dev": "bash ./start-with-fixed-ports.sh",
         "postinstall": "yarn build"
     },
-    "packageManager": "yarn@4.9.1",
+    "packageManager": "yarn@4.9.2",
     "dependencies": {
         "backend": "workspace:*",
         "cors": "^2.8.5",

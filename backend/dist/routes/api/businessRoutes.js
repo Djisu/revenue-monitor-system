@@ -66,12 +66,20 @@ const dbConfig = {
 const pool = new Pool(dbConfig);
 function generateReceiptContent(doc, data, totalPayable, varSerialNo) {
     console.log('in generateReceiptContent');
+    // Format today's date as DD/MM/YYYY
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
     doc.fontSize(20).text('Business Operating Permit', { align: 'center' });
     doc.moveDown();
     doc.fontSize(12);
     doc.text(`Serial No: ${varSerialNo}`);
     doc.moveDown(0.5).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
     doc.moveDown();
+    doc.text(`Transaction Date: ${formattedDate}`);
     doc.text(`Account No: ${data.buss_no}`);
     doc.text(`Business Name: ${data.buss_name}`);
     doc.text(`Type: ${data.buss_type}`);
