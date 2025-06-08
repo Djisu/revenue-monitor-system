@@ -133,12 +133,7 @@ async function generatePermitContent(doc, data, totalPayable, varSerialNo, arrea
             console.log('Right logo file not found at:', rightLogoPath);
         }
         // Add more vertical space to avoid overlapping with logos
-        doc.moveDown(4); // Move down to create space after logos
-        // Title centered between the logos
         doc.fontSize(20)
-            .text('Business Operating Permit', { align: 'center' });
-        doc.moveDown(1);
-        doc.fontSize(13)
             .text('Marcory Municipal Assembly', { align: 'center' });
         doc.fontSize(13)
             .text('P.O. Box 23', { align: 'center' });
@@ -146,6 +141,11 @@ async function generatePermitContent(doc, data, totalPayable, varSerialNo, arrea
             .text('Marcory', { align: 'center' });
         doc.moveDown(1);
         doc.moveDown(1);
+        doc.moveDown(1);
+        doc.fontSize(13)
+            .text('BUSINESS OPERATING PERMIT AND DEMAND NOTICE', { align: 'center' });
+        //doc.moveDown(2); // Move down to create space after logos
+        // Title centered between the logos      
         doc.moveDown(1);
         // Horizontal line
         doc.fontSize(12)
@@ -163,6 +163,12 @@ async function generatePermitContent(doc, data, totalPayable, varSerialNo, arrea
         doc.text('CORPORATE DETAILS', leftColumnX, headerY);
         // Right column header - use the same y position
         doc.text(`FINANCIAL DETAILS ${formattedYear}`, rightColumnX, headerY);
+        // Horizontal line
+        doc.fontSize(12)
+            .moveTo(50, doc.y)
+            .lineTo(doc.page.width - 50, doc.y)
+            .stroke();
+        doc.moveDown(1);
         doc.moveDown(2);
         // Serial number in red
         doc.fillColor('red')
@@ -225,88 +231,6 @@ async function generatePermitContent(doc, data, totalPayable, varSerialNo, arrea
         }
     }
 }
-// async function generatePermitContent(doc: PDFDocument, data: PermitData, totalPayable: number, varSerialNo: string) {
-//     console.log('in generatePermitContent')
-//     // Find Arrears
-//     // const arrears: number = await findPreviousBalance(parseInt(data.buss_no));
-//     // console.log('arrears:', arrears);
-//     // // Fix the type issue by converting current_rate to number before adding
-//     // const varTotalPayable = parseFloat(data.current_rate) + arrears;
-//     // console.log('varTotalPayable:', varTotalPayable);
-//     // Format the date as DD/MM/YYYY
-//     const formattedDate = new Date().toLocaleDateString('en-GB', {
-//         day: '2-digit',
-//         month: '2-digit',
-//         year: 'numeric'
-//     });
-//     console.log('formattedDate:', formattedDate);
-//     const formattedYear = new Date().toLocaleDateString('en-GB', {
-//         year: 'numeric'
-//     });
-//     console.log('formattedYear:', formattedYear);
-//     try {
-//         // Add logo images at the upper corners
-//         const leftLogoPath = path.resolve(process.cwd(), 'src/assets/Coat_of_arms_of_Ghana.svg.png');
-//         console.log('Trying to load logo from:', leftLogoPath);
-//         if (fs.existsSync(leftLogoPath)) {
-//             console.log('Left logo added successfully');
-//             doc.image(leftLogoPath, 50, 40, { width: 80 });
-//         } else {
-//             console.log('Logo file not found at:', leftLogoPath);
-//         }
-//         // Right logo - use absolute path from project root
-//         const rightLogoPath = path.resolve(process.cwd(), 'src/assets/Ashma Logo BIG.JPG');
-//         console.log('Trying to load logo from:', rightLogoPath);
-//         if (fs.existsSync(rightLogoPath)) {
-//             console.log('Right logo added successfully');
-//             doc.image(rightLogoPath, doc.page.width - 130, 40, { width: 80 });
-//         }else {
-//             console.log('Logo file not found at:', rightLogoPath);
-//         }
-//         // Add more vertical space to avoid overlapping with logos
-//         const titleY = 180; // Increased from 140 to 180 for more space
-//         // Move cursor to the new position
-//         doc.y = titleY;
-//         // Title centered between the logos
-//         doc.fontSize(20);
-//         doc.text('Business Operating Permit', { align: 'center' });
-//         doc.moveDown(2); // Increased from default to 2 lines
-//         // Horizontal line
-//         doc.fontSize(12);
-//         doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke();
-//         doc.moveDown(2); // Increased from 0.5 to 2 lines
-//         // Create two columns for the permit information
-//         const leftColumnX = 100;
-//         const rightColumnX = 400;
-//         const startY = doc.y + 20; // Add extra space after the line
-//         // // Left column header
-//         // doc.text('CORPORATE DETAILS', leftColumnX, doc.y);
-//         // doc.moveDown(0.5);
-//         // Left column
-//         doc.fillColor('red')  // Set text color to red
-//         .text(`Serial No: ${varSerialNo}`, leftColumnX, startY)
-//         .fillColor('black');  // Reset text color back to black for subsequent text
-//         doc.text(`Account No: ${data.buss_no}`, leftColumnX, startY + 25);
-//         doc.text(`Business Name: ${data.buss_name}`, leftColumnX, startY + 50);
-//         doc.text(`Type: ${data.buss_type}`, leftColumnX, startY + 75);
-//         doc.text(`Property Class: ${data.property_class}`, leftColumnX, startY + 100);
-//         // Right column
-//         // doc.text(`Landmark: ${data.landmark}`, rightColumnX, startY);
-//         doc.text(`Electoral Area: ${data.electroral_area}`, rightColumnX, startY + 25);
-//         doc.text(`Total Grade: ${data.tot_grade}`, rightColumnX, startY + 50);
-//         doc.text(`Current Rate: ${data.current_rate}`, rightColumnX, startY + 75);
-//         doc.text(`Property Rate: ${data.property_rate}`, rightColumnX, startY + 100);
-//         // // Total at the bottom
-//         // doc.text(`Total Payable GHC: ${totalPayable.toFixed(2)}`, 50, doc.y + 150, { align: 'center' });
-//         console.log('Permit generated')
-//     } catch(error: unknown) {
-//         if (error instanceof Error) {
-//             console.log('Error occurred ', error)
-//         } else {
-//             console.log('Unknown error')
-//         }
-//     }    
-// }
 // Function to generate PDF
 async function generateReceiptContent(doc, data) {
     console.log('in generateReceiptContent to text message');
