@@ -101,7 +101,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                                 PB_Bill All Businesses for the CURRENT Fiscal Year--3
                             </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('BO', 'BusinessOperatingPermit')}>
-                                BO_Produce Business Operating Permits for all Electoral Areas/Zones--3
+                                BO_Produce Business Operating Permits for One Electoral Area--3
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('CP', 'BillClient')}>
                                 CP_Bill Business Operating Permits for One Business/Client--3

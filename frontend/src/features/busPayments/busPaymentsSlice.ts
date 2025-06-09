@@ -193,7 +193,7 @@ export const fetchBusPaymentByTwoDates = createAsyncThunk('busPayments/fetchBusP
     const formattedStartDate = startDate.toISOString().split('T')[0];
     const formattedEndDate = endDate.toISOString().split('T')[0];
 
-    const response = await axios.get(`${BASE_URL}/api/busPayments/${bussNo}/${formattedStartDate}/${formattedEndDate}`);
+    const response = await axios.get(`${BASE_URL}/api/busPayments/getpayments/${bussNo}/${formattedStartDate}/${formattedEndDate}`);
 
     console.log('response data', response.data);
     if (response.status >= 200 && response.status < 300) {

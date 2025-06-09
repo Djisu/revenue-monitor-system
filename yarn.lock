@@ -3239,6 +3239,7 @@ __metadata:
     axios: "npm:^0.26.1"
     bcrypt: "npm:^5.0.1"
     chalk: "npm:^4.1.2"
+    chart.js: "npm:^4.4.9"
     colors: "npm:^1.4.0"
     concurrently: "npm:^7.1.0"
     config: "npm:^3.3.12"
@@ -3271,6 +3272,7 @@ __metadata:
     pdfkit: "npm:^0.17.1"
     pg: "npm:^8.7.3"
     prettier: "npm:^3.5.3"
+    react-bootstrap: "npm:^2.10.10"
     shx: "npm:^0.4.0"
     supertest: "npm:^7.0.0"
     swagger-jsdoc: "npm:^6.2.8"
@@ -3673,7 +3675,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chart.js@npm:^4.4.8":
+"chart.js@npm:^4.4.8, chart.js@npm:^4.4.9":
   version: 4.4.9
   resolution: "chart.js@npm:4.4.9"
   dependencies:
@@ -9588,7 +9590,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-bootstrap@npm:^2.10.9":
+"react-bootstrap@npm:^2.10.10, react-bootstrap@npm:^2.10.9":
   version: 2.10.10
   resolution: "react-bootstrap@npm:2.10.10"
   dependencies:

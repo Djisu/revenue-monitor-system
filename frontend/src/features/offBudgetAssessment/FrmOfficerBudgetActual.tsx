@@ -162,7 +162,20 @@ const FrmOfficerBudgetActual = () => {
                     {localBudgetData.length > 0 && (
                         <>
                             <h2>Monthly Budget vs Actuals</h2>
-                            <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+                            <div style={{ height: '400px', width: '100%' }}>
+                                <Bar 
+                                    data={chartData} 
+                                    options={{ 
+                                        responsive: true, 
+                                        maintainAspectRatio: false,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true
+                                            }
+                                        }
+                                    }} 
+                                />
+                            </div>
                             <table className="table mt-4">
                                 <thead>
                                     <tr>

@@ -114,9 +114,7 @@ router.post('/create', upload.single('photo'), async (req: CustomRequest, res: R
       const client = await pool.connect(); // Get a client from the pool
 
 
-    try {
-        
-       
+    try {     
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', 
         [officerData.officer_no])).rows;
 
@@ -135,7 +133,6 @@ router.post('/create', upload.single('photo'), async (req: CustomRequest, res: R
                 officerData.photo,
             ]
         );
- 
 
         res.status(201).json({ message: 'Officer record created successfully' });
     } catch (error: unknown) {
@@ -200,12 +197,9 @@ router.put('/update/:officer_no', upload.single('photo'), async (req: CustomRequ
 router.delete('/delete/:officer_no', async (req: Request, res: Response): Promise<void> => {
     const { officer_no } = req.params;
 
-      const client = await pool.connect(); // Get a client from the pool
+    const client = await pool.connect(); // Get a client from the pool
 
-
-    try {
-        
-       
+    try {      
         const existingOfficer = (await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no])).rows;
 
         if (existingOfficer.length == 0) {
@@ -244,8 +238,7 @@ router.get('/all', async (req: Request, res: Response): Promise<void> => {
     
     const client = await pool.connect(); // Get a client from the pool
 
-    try {
-        
+    try {       
         console.log('about to client.query')
 
         const result: QueryResult = await client.query(`
@@ -303,8 +296,6 @@ router.get('/retrieve/:officer_no', async (req: Request, res: Response) => {
 
 
     try {
-        
-
         const result: QueryResult = await client.query('SELECT * FROM officer WHERE officer_no = $1', [officer_no]);
 
         if (result.rows.length == 0) {

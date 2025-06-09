@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+//import { ChangeEvent } from 'react';
 import { useAppDispatch, useAppSelector } from '../../hooks';
 import { useNavigate } from 'react-router-dom';
-import { Form, Button, Alert, Table, Spinner } from 'react-bootstrap'
+import { Form, Button, Alert, Table, Spinner } from 'react-bootstrap';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { fetchBusTypeSummaryReports, BusTypeSummaryReport } from './BusTypeSummaryReportSlice';
@@ -34,38 +35,46 @@ const FrmManagementSummariseReport: React.FC = () => {
     }, [dispatch]);
 
     const managementReportData = useAppSelector((state) => state.reports.reports);
-
     useEffect(() => {
         setManagementReport(managementReportData);
     }, [managementReportData]);
 
     useEffect(() => {
         const total = managementReport.reduce((acc, curr) => acc + (curr.amountdue - curr.amountpaid), 0);
-        //totalBalance = total
         setTotalBalance(total);
     }, [managementReport]);
 
     const electoralAreaData = useAppSelector((state) => state.electoralArea.electoralAreas);
+    console.log('electoralAreaData: ', electoralAreaData)
 
     useEffect(() => {
         if (Array.isArray(electoralAreaData)) {
-            setElectoralAreas(electoralAreaData.map((area) => area.electoral_area));
+            setElectoralAreas(electoralAreaData.map((area) => area.electroral_area));
         } else {
             console.error('Expected electoralAreaData to be an array but got:', electoralAreaData);
         }
     }, [electoralAreaData]);
 
     const businessTypes = useAppSelector((state) => state.businessType.businessTypes);
-
     useEffect(() => {
         if (Array.isArray(businessTypes)) {
             setBussTypes(businessTypes);
         }
     }, [businessTypes]);
 
-    const handleZoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setZone(e.target.value);
-    };
+    // const handleZoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    //     setZone(e.target.value);
+    // };
+
+    type SelectControlElement = HTMLSelectElement | HTMLInputElement | HTMLTextAreaElement;
+
+    function handleZoneChange(e: React.ChangeEvent<SelectControlElement>) {
+        if (e.target instanceof HTMLSelectElement) {
+            // Handle the change
+            setZone(e.target.value);
+        }
+    }
+    
 
     const handleFirstDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFirstDate(e.target.value);
@@ -78,23 +87,15 @@ const FrmManagementSummariseReport: React.FC = () => {
     const handleProduceReport = async () => {
         setIsLoading(true);
         setError('');
-
         try {
-            const answer = await dispatch(fetchBusTypeSummaryReports({
-                firstDate,
-                lastDate,
-                zone,
-                bussType
-            }));
-
+            const answer = await dispatch(fetchBusTypeSummaryReports({ firstDate, lastDate, zone, bussType }));
             if (answer && answer.payload) {
                 setManagementReport(answer.payload);
             }
         } catch (error: unknown) {
-            if (error instanceof Error){
-                 setError(error.message);
+            if (error instanceof Error) {
+                setError(error.message);
             }
-           
         } finally {
             setIsLoading(false);
         }
@@ -105,26 +106,26 @@ const FrmManagementSummariseReport: React.FC = () => {
         buss_type: report.buss_type,
         amountdue: report.amountdue,
         amountpaid: report.amountpaid,
-        balance: report.amountdue - report.amountpaid
+        balance: report.amountdue - report.amountpaid,
     }));
 
     // Chart data
     const chartData = {
-        labels: businessList.map(business => business.electoral_area), // Use electoral_area as labels
+        labels: businessList.map((business) => business.electoral_area), // Use electoral_area as labels
         datasets: [
             {
                 label: 'Amount Due',
-                data: businessList.map(business => business.amountdue),
+                data: businessList.map((business) => business.amountdue),
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
             },
             {
                 label: 'Amount Paid',
-                data: businessList.map(business => business.amountpaid),
+                data: businessList.map((business) => business.amountpaid),
                 backgroundColor: 'rgba(54, 162, 235, 0.5)',
             },
             {
                 label: 'Balance',
-                data: businessList.map(business => business.balance),
+                data: businessList.map((business) => business.balance),
                 backgroundColor: 'rgba(75, 192, 192, 0.5)',
             },
         ],
@@ -133,7 +134,7 @@ const FrmManagementSummariseReport: React.FC = () => {
     return (
         <div>
             <div className="container mt-5">
-                {error && <Alert color="danger">{error}</Alert>}
+                {error && <Alert variant="danger">{error}</Alert>}
                 {isLoading ? (
                     <div className="text-center">
                         <Spinner style={{ width: '3rem', height: '3rem' }} />
@@ -142,23 +143,41 @@ const FrmManagementSummariseReport: React.FC = () => {
                     <div>
                         <p>Total Balance: {totalBalance}</p>
                         <Form>
-                            <Form.Group>
+                            <Form.Group className="mb-3">
                                 <p className="text-center text-underline">Produce Daily Payments Report</p>
-
                                 {/* Render the Bar chart here */}
-                                <Bar data={chartData} />
-
-                                <Form.Label for="zone" className="font-weight-bold">Electoral Area:</Form.Label>
-                                <Form.Control type="select" name="zone" id="zone" value={zone} onChange={handleZoneChange}>
+                                <div className="mb-3">
+                                    <Bar data={chartData} />
+                                </div>
+                                <Form.Label htmlFor="zone" className="font-weight-bold">
+                                    Electoral Area:
+                                </Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    name="zone"
+                                    id="zone"
+                                    value={zone}
+                                    onChange={handleZoneChange}
+                                >
                                     <option value="All electoral areas">All electoral areas</option>
                                     {electoralAreas.map((area, index) => (
-                                        <option key={index} value={area}>{area}</option>
+                                        <option key={index} value={area}>
+                                            {area}
+                                        </option>
                                     ))}
                                 </Form.Control>
                             </Form.Group>
-                            <Form.Group>
-                                <Form.Label for="bussType" className="font-weight-bold">Business Type/Profession:</Form.Label>
-                                <Form.Control type="select" name="bussType" id="bussType" value={bussType} onChange={(e) => setBussType(e.target.value)}>
+                            <Form.Group className="mb-3">
+                                <Form.Label htmlFor="bussType" className="font-weight-bold">
+                                    Business Type/Profession:
+                                </Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    name="bussType"
+                                    id="bussType"
+                                    value={bussType}
+                                    onChange={(e) => setBussType(e.target.value)}
+                                >
                                     <option value="All business types">All business types</option>
                                     {bussTypes.map((businessType, index) => (
                                         <option key={index} value={businessType.business_type}>
@@ -167,8 +186,10 @@ const FrmManagementSummariseReport: React.FC = () => {
                                     ))}
                                 </Form.Control>
                             </Form.Group>
-                            <Form.Group>
-                                <Form.Label for="firstDate" className="font-weight-bold">First Payment Date:</Form.Label>
+                            <Form.Group className="mb-3">
+                                <Form.Label htmlFor="firstDate" className="font-weight-bold">
+                                    First Payment Date:
+                                </Form.Label>
                                 <Form.Control
                                     type="date"
                                     name="firstDate"
@@ -177,8 +198,10 @@ const FrmManagementSummariseReport: React.FC = () => {
                                     onChange={handleFirstDateChange}
                                 />
                             </Form.Group>
-                            <Form.Group>
-                                <Form.Label for="lastDate" className="font-weight-bold">Last Payment Date:</Form.Label>
+                            <Form.Group className="mb-3">
+                                <Form.Label htmlFor="lastDate" className="font-weight-bold">
+                                    Last Payment Date:
+                                </Form.Label>
                                 <Form.Control
                                     type="date"
                                     name="lastDate"
@@ -187,9 +210,9 @@ const FrmManagementSummariseReport: React.FC = () => {
                                     onChange={handleLastDateChange}
                                 />
                             </Form.Group>
-                            <Form.Group>
+                            <Form.Group className="mb-3">
                                 <div className="d-flex justify-content-between">
-                                    <Button color="success" onClick={handleProduceReport} disabled={isLoading}>
+                                    <Button variant="success" onClick={handleProduceReport} disabled={isLoading}>
                                         Produce Summarized Report
                                     </Button>
                                     <Button variant="secondary" onClick={() => navigate("/main")} style={{ marginLeft: '40px', marginTop: '10px' }}>
@@ -234,51 +257,14 @@ export default FrmManagementSummariseReport;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // import React, { useState, useEffect } from 'react';
 // import { useAppDispatch, useAppSelector } from '../../hooks';
 // import { useNavigate } from 'react-router-dom';
-// import { Form, FormGroup, Label, Form.Control, Button, Alert, Table, Spinner } from 'reactstrap';
+// import { Form, Button, Alert, Table, Spinner } from 'react-bootstrap'
 // import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 // import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 // import { fetchBusTypeSummaryReports, BusTypeSummaryReport } from './BusTypeSummaryReportSlice';
 // import { Bar } from 'react-chartjs-2';
-// //import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
 // interface BusinessTypeData {
 //     Business_Type: string;
@@ -287,16 +273,16 @@ export default FrmManagementSummariseReport;
 // }
 
 // const FrmManagementSummariseReport: React.FC = () => {
-//     let [zone, setZone] = useState<string>('');
-//     let [electoralAreas, setElectoralAreas] = useState<string[]>([]);
-//     let [bussType, setBussType] = useState<string>('');
-//     let [firstDate, setFirstDate] = useState<string>('');
-//     let [lastDate, setLastDate] = useState<string>('');
-//     let [bussTypes, setBussTypes] = useState<BusinessTypeData[]>([]);
-//     let [error, setError] = useState<string>('');
-//     let [isLoading, setIsLoading] = useState<boolean>(false);
-//     let [managementReport, setManagementReport] = useState<BusTypeSummaryReport[]>([]);
-//     let [totalBalance, setTotalBalance] = useState<number>(0);
+//     const [zone, setZone] = useState<string>('');
+//     const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
+//     const [bussType, setBussType] = useState<string>('');
+//     const [firstDate, setFirstDate] = useState<string>('');
+//     const [lastDate, setLastDate] = useState<string>('');
+//     const [bussTypes, setBussTypes] = useState<BusinessTypeData[]>([]);
+//     const [error, setError] = useState<string>('');
+//     const [isLoading, setIsLoading] = useState<boolean>(false);
+//     const [managementReport, setManagementReport] = useState<BusTypeSummaryReport[]>([]);
+//     const [totalBalance, setTotalBalance] = useState<number>(0);
 
 //     const navigate = useNavigate();
 //     const dispatch = useAppDispatch();
@@ -312,18 +298,10 @@ export default FrmManagementSummariseReport;
 //         setManagementReport(managementReportData);
 //     }, [managementReportData]);
 
-//     // const businessList = managementReport.map((report) => ({
-//     //     electoral_area: report.electoral_area,
-//     //     buss_type: report.buss_type,
-//     //     amountdue: report.amountdue,
-//     //     amountpaid: report.amountpaid,
-//     //     balance: report.amountdue - report.amountpaid,
-//     // }));
-
 //     useEffect(() => {
 //         const total = managementReport.reduce((acc, curr) => acc + (curr.amountdue - curr.amountpaid), 0);
-//         totalBalance = total
-//         setTotalBalance(totalBalance);
+//         //totalBalance = total
+//         setTotalBalance(total);
 //     }, [managementReport]);
 
 //     const electoralAreaData = useAppSelector((state) => state.electoralArea.electoralAreas);
@@ -368,13 +346,14 @@ export default FrmManagementSummariseReport;
 //                 bussType
 //             }));
 
-//             console.log('answer: ', answer)
 //             if (answer && answer.payload) {
-//                 console.log('answer.payload: ', answer.payload)
 //                 setManagementReport(answer.payload);
 //             }
-//         } catch (error: any) {
-//             setError(error.message);
+//         } catch (error: unknown) {
+//             if (error instanceof Error){
+//                  setError(error.message);
+//             }
+           
 //         } finally {
 //             setIsLoading(false);
 //         }
@@ -414,93 +393,138 @@ export default FrmManagementSummariseReport;
 //         <div>
 //             <div className="container mt-5">
 //                 {error && <Alert color="danger">{error}</Alert>}
-//                 <div>
-//                     <Form>
-//                         <FormGroup>
-//                             <p className="text-center text-underline">Produce Daily Payments Report</p>
+//                 {isLoading ? (
+//                     <div className="text-center">
+//                         <Spinner style={{ width: '3rem', height: '3rem' }} />
+//                     </div>
+//                 ) : (
+//                     <div>
+//                         <p>Total Balance: {totalBalance}</p>
+//                         <Form>
+//                             <Form.Group>
+//                                 <p className="text-center text-underline">Produce Daily Payments Report</p>
 
-//                              {/* Render the Bar chart here */}
-//                              <Bar data={chartData} />
+//                                 {/* Render the Bar chart here */}
+//                                 <Bar data={chartData} />
 
-//                             <Label for="zone" className="font-weight-bold">Electoral Area:</Label>
-//                             <Input type="select" name="zone" id="zone" value={zone} onChange={handleZoneChange}>
-//                                 <option value="All electoral areas">All electoral areas</option>
-//                                 {electoralAreas.map((area, index) => (
-//                                     <option key={index} value={area}>{area}</option>
-//                                 ))}
-//                             </Input>
-//                         </FormGroup>
-//                         <FormGroup>
-//                             <Label for="bussType" className="font-weight-bold">Business Type/Profession:</Label>
-//                             <Input type="select" name="bussType" id="bussType" value={bussType} onChange={(e) => setBussType(e.target.value)}>
-//                                 <option value="All business types">All business types</option>
-//                                 {bussTypes.map((businessType, index) => (
-//                                     <option key={index} value={businessType.business_type}>
-//                                         {businessType.business_type}
-//                                     </option>
-//                                 ))}
-//                             </Input>
-//                         </FormGroup>
-//                         <FormGroup>
-//                             <Label for="firstDate" className="font-weight-bold">First Payment Date:</Label>
-//                             <Input
-//                                 type="date"
-//                                 name="firstDate"
-//                                 id="firstDate"
-//                                 value={firstDate}
-//                                 onChange={handleFirstDateChange}
-//                             />
-//                         </FormGroup>
-//                         <FormGroup>
-//                             <Label for="lastDate" className="font-weight-bold">Last Payment Date:</Label>
-//                             <Input
-//                                 type="date"
-//                                 name="lastDate"
-//                                 id="lastDate"
-//                                 value={lastDate}
-//                                 onChange={handleLastDateChange}
-//                             />
-//                         </FormGroup>
-//                         <FormGroup>
-//                             <div className="d-flex justify-content-between">
-//                                 <Button color="success" onClick={handleProduceReport} disabled={isLoading}>
-//                                     Produce Summarized Report
-//                                 </Button>
-//                                 <Button variant="secondary" onClick={() => navigate("/main")} style={{ marginLeft: '40px', marginTop: '10px' }}>
-//                                     Go Back
-//                                 </Button>
-//                                 <Table striped bordered hover className="mt-3">
-//                                     <thead>
-//                                         <tr>
-//                                             <th>Electoral Area</th>
-//                                             <th>Business Type/Profession</th>
-//                                             <th>Amount Due</th>
-//                                             <th>Amount Paid</th>
-//                                             <th>Balance</th>
-//                                         </tr>
-//                                     </thead>
-//                                     <tbody>
-//                                         {businessList.map((business, index) => (
-//                                             <tr key={index}>
-//                                                 <td>{business.electoral_area}</td>
-//                                                 <td>{business.buss_type}</td>
-//                                                 <td>{business.amountdue}</td>
-//                                                 <td>{business.amountpaid}</td>
-//                                                 <td>{business.balance}</td>
+//                                 <Form.Label for="zone" className="font-weight-bold">Electoral Area:</Form.Label>
+//                                 <Form.Control type="select" name="zone" id="zone" value={zone} onChange={handleZoneChange}>
+//                                     <option value="All electoral areas">All electoral areas</option>
+//                                     {electoralAreas.map((area, index) => (
+//                                         <option key={index} value={area}>{area}</option>
+//                                     ))}
+//                                 </Form.Control>
+//                             </Form.Group>
+//                             <Form.Group>
+//                                 <Form.Label for="bussType" className="font-weight-bold">Business Type/Profession:</Form.Label>
+//                                 <Form.Control as="select" name="bussType" id="bussType" value={bussType} onChange={(e) => setBussType(e.target.value)}>
+//                                     <option value="All business types">All business types</option>
+//                                     {bussTypes.map((businessType, index) => (
+//                                         <option key={index} value={businessType.business_type}>
+//                                             {businessType.business_type}
+//                                         </option>
+//                                     ))}
+//                                 </Form.Control>
+//                             </Form.Group>
+//                             <Form.Group>
+//                                 <Form.Label for="firstDate" className="font-weight-bold">First Payment Date:</Form.Label>
+//                                 <Form.Control
+//                                     type="date"
+//                                     name="firstDate"
+//                                     id="firstDate"
+//                                     value={firstDate}
+//                                     onChange={handleFirstDateChange}
+//                                 />
+//                             </Form.Group>
+//                             <Form.Group>
+//                                 <Form.Label for="lastDate" className="font-weight-bold">Last Payment Date:</Form.Label>
+//                                 <Form.Control
+//                                     type="date"
+//                                     name="lastDate"
+//                                     id="lastDate"
+//                                     value={lastDate}
+//                                     onChange={handleLastDateChange}
+//                                 />
+//                             </Form.Group>
+//                             <Form.Group>
+//                                 <div className="d-flex justify-content-between">
+//                                     <Button color="success" onClick={handleProduceReport} disabled={isLoading}>
+//                                         Produce Summarized Report
+//                                     </Button>
+//                                     <Button variant="secondary" onClick={() => navigate("/main")} style={{ marginLeft: '40px', marginTop: '10px' }}>
+//                                         Go Back
+//                                     </Button>
+//                                     <Table striped bordered hover className="mt-3">
+//                                         <thead>
+//                                             <tr>
+//                                                 <th>Electoral Area</th>
+//                                                 <th>Business Type/Profession</th>
+//                                                 <th>Amount Due</th>
+//                                                 <th>Amount Paid</th>
+//                                                 <th>Balance</th>
 //                                             </tr>
-//                                         ))}
-//                                     </tbody>
-//                                 </Table>
-//                             </div>
-//                         </FormGroup>
-//                     </Form>
-//                 </div>
+//                                         </thead>
+//                                         <tbody>
+//                                             {businessList.map((business, index) => (
+//                                                 <tr key={index}>
+//                                                     <td>{business.electoral_area}</td>
+//                                                     <td>{business.buss_type}</td>
+//                                                     <td>{business.amountdue}</td>
+//                                                     <td>{business.amountpaid}</td>
+//                                                     <td>{business.balance}</td>
+//                                                 </tr>
+//                                             ))}
+//                                         </tbody>
+//                                     </Table>
+//                                 </div>
+//                             </Form.Group>
+//                         </Form>
+//                     </div>
+//                 )}
 //             </div>
 //         </div>
 //     );
 // };
 
 // export default FrmManagementSummariseReport;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

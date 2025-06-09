@@ -143,7 +143,7 @@ const FrmOfficerBudget = () => {
                                     <td>{budget.officer_name}</td>
                                     <td>{budget.fiscal_year}</td>
                                     <td>{budget.annual_budget}</td>
-                                    <td>{budget.actual_total}</td>
+                                    <td>{budget.Actual_total}</td>
                                     <td>{budget.outstanding}</td>
                                 </tr>
                             ))

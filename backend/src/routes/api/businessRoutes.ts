@@ -284,12 +284,12 @@ async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalance
     console.log(txtCurrentRate)
 
     try {
-        const deleteQuery = `
-            DELETE  
-            FROM busscurrbalance 
-            WHERE buss_no = $1;
-        `;
-        await client.query(deleteQuery, [txtBussNo]);
+        // const deleteQuery = `
+        //     DELETE  
+        //     FROM busscurrbalance 
+        //     WHERE buss_no = $1;
+        // `;
+        // await client.query(deleteQuery, [txtBussNo]);
 
         // Find previous fiscal year balance
         const varFiscalYear = dtTransdate.getFullYear();
@@ -910,33 +910,48 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
             return;
         }
 
-        await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea ILIKE  $2', [fiscal_year, electoral_area]);
+        await client.query('INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea ILIKE  $2',
+         [fiscal_year, electoral_area]
+        );
 
         console.log('after INSERT INTO tmpbusscurrbalance SELECT * FROM busscurrbalance');
 
+        // Delete from tmpbusiness where buss_no not in tmpbusscurrbalance
+        //await client.query('DELETE FROM tmpbusiness WHERE buss_no NOT IN (SELECT buss_no FROM tmpbusscurrbalance)');
+
         // Add serial numbers
         const recBusiness = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no');
+       
 
         if (recBusiness.rows.length === 0) {
+            console.log('No businesses found for the electoral area');
+            console.log('electoral_area:', electoral_area);
             res.status(404).json({ message: 'No businesses found for the electoral area' });
             return;
         }
+        console.log('after SELECT * FROM tmpbusiness ORDER BY buss_no');
 
+        console.log('recBusiness.rows.length:', recBusiness.rows.length);
+        console.log('recBusiness.rows:', recBusiness.rows);
+        
+
+        console.log('about to add serial numbers')
         let permitNo = 1;
 
         for (let i = 0; i < recBusiness.rows.length; i++) {
+                     
             const varSerialNo = permitNo.toString().padStart(10, '0');
     
             console.log(`Updating buss_no: ${recBusiness.rows[i].buss_no}, Serial No: ${varSerialNo}`);
     
-            await client.query('UPDATE tmpbusiness SET serialno = $1 WHERE buss_no = $2', [varSerialNo, recBusiness.rows[i].buss_no]);
-    
+            await client.query('UPDATE tmpbusiness SET serialno = $1 WHERE buss_no = $2', [varSerialNo, recBusiness.rows[i].buss_no]);        
             permitNo++;
+            
         }
         console.log('after serial number generation');
 
         // Check if there are any bills in tmp_business
-        const recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_name ASC');
+        const recBills = await client.query('SELECT * FROM tmpbusiness ORDER BY buss_no ASC');
 
         if (recBills.rows.length === 0) {
             res.status(404).json({ message: 'No bills found for the electoral area' });
@@ -945,25 +960,47 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
 
         console.log('ABOUT TO GENERATE PDFs');
 
+        // Create permits directory - delete if exists and recreate
+        const permitsDir = path.join(__dirname, "permits");
+        if (fs.existsSync(permitsDir)) {
+            fs.rmSync(permitsDir, { recursive: true, force: true });
+            console.log('Existing permits directory deleted');
+        }
+        fs.mkdirSync(permitsDir, { recursive: true });
+        console.log('Permits directory created');
+
+
         // Produce Bills now
         for (const bill of recBills.rows) {
             console.log('Generating PDF for bill:', bill.buss_no);
 
             try {
-                const pdfBuffer = await generatePdf(bill);
+                const pdfBuffer = await generatePdfPermit(bill);
                 // Save the PDF to a file or handle it as needed
-                fs.writeFileSync(path.join(__dirname, 'permits', `permit_${bill.buss_no}.pdf`), pdfBuffer);
+                // fs.writeFileSync(path.join(__dirname, 'permits', `permit_${bill.buss_no}.pdf`), pdfBuffer);
+                const filePath = path.join(permitsDir, `permit_${bill.buss_no}.pdf`);
+                fs.writeFileSync(filePath, pdfBuffer);
+                
+                console.log(`PDF saved for business ${bill.buss_no}`);
 
                 // To printer
-                await generatePdfToPrinter(bill);
+                //await generatePdfToPrinter(bill);
+                // Send to printer
+                await generatePdfToPrinterPermit(bill);
+                
+                console.log('Client Bill generated successfully');
+                
+                // res.status(200).json({ success: true, message: 'One business billed successfully' });
+                // return;
             } catch (error: unknown) {
                 if (error instanceof Error){
                     console.error('Error generating PDF for bill:', bill, error);
-                    res.status(500).json({ message: `Error generating PDF for bill ${bill.buss_no}: ${error.message}` });
-                    return;
+                    // res.status(500).json({ message: `Error generating PDF for bill ${bill.buss_no}: ${error.message}` });
+                    // return;
                 }else{
-                    res.status(500).json({ message: `Error unknown for bill ${bill.buss_no}` });
-                    return;
+                    console.log( `Error unknown for bill ${bill.buss_no}`);
+                    // res.status(500).json({ message: `Error unknown for bill ${bill.buss_no}` });
+                    // return;
                 }                
             }
         }
@@ -981,6 +1018,354 @@ router.post('/processOperatingPermits/:electoral_area/:fiscal_year', async (req:
         client.release()
     }
 });
+
+// a function to find out if a business exists in the busscurrbalance table or not. it is just a function and not an endpoint. 
+export async function checkIfBusinessExists(buss_no: number): Promise<boolean> {
+    const client = await pool.connect()
+
+    try {
+        const result = await client.query('SELECT * FROM busscurrbalance WHERE buss_no = $1', [buss_no]);
+
+        if (result.rows.length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error(error);
+            throw new Error('Error checking if business exists');
+        } else {
+            console.error('Unknown error:', error);
+            throw new Error('Unknown error');
+        }
+    } finally {
+        client.release();
+    }
+}
+
+interface PermitData {
+    buss_no: string;
+    buss_name: string;
+    buss_type: string;
+    property_class: string;
+    landmark: string;
+    electroral_area: string;
+    tot_grade: string;
+    current_rate: string;
+    property_rate: string;
+    serialno?: string;
+  }
+
+export async function generatePdfPermit(data: PermitData): Promise<Buffer> {
+    console.log('in generatePdfPermit');
+  
+    const currentRate = parseFloat(data.current_rate);
+    const propertyRate = parseFloat(data.property_rate);
+    const totalPayable = currentRate + propertyRate;
+
+    // Calculate arrears before creating the PDF
+    const arrears = await findPreviousBalance(parseInt(data.buss_no));
+  
+    const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
+    const varSerialNo = baseSerialNo.toString().padStart(10, '0');
+  
+    console.log('about to  return new Promise<Buffer>((resolve, reject) => {')
+    return new Promise<Buffer>((resolve, reject) => {
+
+      const doc = new PDFDocument({ size: 'A4', margin: 40 });
+
+      const chunks: any[] = [];
+  
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+  
+      generatePermitContent(doc, data, totalPayable, varSerialNo, arrears);
+      doc.end();
+      console.log('after generatePermitContent(doc, data, totalPayable, varSerialNo);')
+    });
+  }
+
+  export async function generatePdfToPrinterPermit(data: PermitData): Promise<void> {
+    console.log('in generatePdfToPrinterPermits');
+  
+    try {
+        const currentRate = parseFloat(data.current_rate);
+        const propertyRate = parseFloat(data.property_rate);
+        const totalPayable = currentRate + propertyRate;
+
+
+        // Calculate arrears before creating the PDF
+        const arrears = await findPreviousBalance(parseInt(data.buss_no));
+        console.log('arrears:', arrears);
+    
+        const baseSerialNo = data.serialno !== undefined ? parseInt(data.serialno, 10) : 0;
+        const varSerialNo = baseSerialNo.toString().padStart(10, '0');
+    
+        console.log('about to create our directory path')
+
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
+        const permitsDir = path.join(__dirname, 'permits');
+              
+        console.log('permitsDir: ', permitsDir)
+        console.log('__dirname: ', __dirname)
+        console.log('path.join(__dirname, "permits"): ', path.join(__dirname, 'permits'))
+        console.log('path.join(__dirname, "permits", `permits-${varSerialNo}.pdf`): ', path.join(__dirname, 'permits', `permits-${varSerialNo}.pdf`))
+    
+        console.log('about to create our directory path')
+        const outputDir = path.join(__dirname, 'permits');
+
+        if (!fs.existsSync(outputDir)) {
+           fs.mkdirSync(outputDir, { recursive: true });
+        }
+    
+        const pdfPath = path.join(permitsDir, `permits-${varSerialNo}.pdf`);
+
+        console.log('pdfPath: ', pdfPath)
+
+        return new Promise<void>((resolve, reject) => {
+            const doc = new PDFDocument({ size: 'A4', margin: 40 });
+            const stream = fs.createWriteStream(pdfPath);
+        
+            stream.on('finish', async () => {
+                console.log(`PDF generated successfully at ${pdfPath}`);
+                await printPdf(pdfPath);
+                resolve();
+            });
+        
+            stream.on('error', reject);
+        
+            doc.pipe(stream);
+            generatePermitContent(doc, data, totalPayable, varSerialNo, arrears);
+            doc.end();
+        });
+    }catch(error: unknown){
+        if (error instanceof Error){
+            console.log('Error occurred: ', error)
+        }else{
+            console.log('Unknown error')
+        }
+    }
+}
+
+async function generatePermitContent(doc: PDFDocument, data: PermitData, 
+    totalPayable: number, varSerialNo: string, arrears: number) {
+    console.log('in generatePermitContent: XXXXXXXXXXXXXXXXXXXXXXXXXX', data.buss_no)
+
+    // Fix the type issue by converting current_rate to number before adding
+    const varTotalPayable = parseFloat(data.current_rate) + arrears;
+    
+    // Format the date as DD/MM/YYYY
+    const formattedDate = new Date().toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+
+    const formattedYear = new Date().toLocaleDateString('en-GB', {
+        year: 'numeric'
+    });
+
+    try {
+        // Add logo images at the upper corners
+        const leftLogoPath = path.resolve(process.cwd(), 'src/assets/Coat_of_arms_of_Ghana.svg.png');
+        console.log('Trying to load logo from:', leftLogoPath);
+        if (fs.existsSync(leftLogoPath)) {
+            doc.image(leftLogoPath, 50, 40, { width: 80 });
+            console.log('Left logo added successfully');
+        } else {
+            console.log('Logo file not found at:', leftLogoPath);
+        }
+        
+        // Right logo - use absolute path from project root
+        const rightLogoPath = path.resolve(process.cwd(), 'src/assets/Ashma Logo BIG.JPG');
+        console.log('Trying to load right logo from:', rightLogoPath);
+        if (fs.existsSync(rightLogoPath)) {
+            doc.image(rightLogoPath, doc.page.width - 130, 40, { width: 80 });
+            console.log('Right logo added successfully');
+        } else {
+            console.log('Right logo file not found at:', rightLogoPath);
+        }
+        
+        // Add more vertical space to avoid overlapping with logos
+        doc.fontSize(20)
+        .text('Marcory Municipal Assembly', { align: 'center' });
+
+        doc.fontSize(13)
+        .text('P.O. Box 23', { align: 'center' });
+
+        doc.fontSize(13)
+        .text('Marcory', { align: 'center' });
+     
+        doc.moveDown(1);
+        
+        doc.moveDown(1);
+        
+        doc.moveDown(1);
+
+        doc.fontSize(13)
+        .text('BUSINESS OPERATING PERMIT AND DEMAND NOTICE', { align: 'center' });   
+        
+        //doc.moveDown(2); // Move down to create space after logos
+        
+        // Title centered between the logos      
+        doc.moveDown(1);
+        
+        // Horizontal line
+        doc.fontSize(12)
+           .moveTo(50, doc.y)
+           .lineTo(doc.page.width - 50, doc.y)
+           .stroke();
+        
+        doc.moveDown(1);
+        
+        // Create two columns for the permit information
+        const leftColumnX = 100;
+        const rightColumnX = 350;
+       
+        const startY = doc.y + 20; // Add extra space after the line
+        
+        // Save the current y position to use for both headers
+        const headerY = doc.y;
+
+        // Left column header
+        doc.text('CORPORATE DETAILS', leftColumnX, headerY);
+        // Right column header - use the same y position
+        doc.text(`FINANCIAL DETAILS ${formattedYear}`, rightColumnX, headerY);
+        // Horizontal line
+        doc.fontSize(12)
+           .moveTo(50, doc.y)
+           .lineTo(doc.page.width - 50, doc.y)
+           .stroke();
+        
+        doc.moveDown(1);
+        doc.moveDown(2);
+        
+        // Serial number in red
+        doc.fillColor('red')
+           .text(`Serial No: ${varSerialNo}`, leftColumnX, doc.y)
+           .fillColor('black');
+
+        // Save the Y position after the serial number for the right column
+        const firstItemY = doc.y;
+        
+        // Left column content
+        doc.moveDown(0.8); // Add space after serial number
+        const accountY = doc.y;
+        doc.text(`Account No: ${data.buss_no}`, leftColumnX, accountY);
+        
+        doc.moveDown(0.8); // Add consistent spacing between items
+        const businessNameY = doc.y;
+        doc.text(`Business Name: ${data.buss_name}`, leftColumnX, businessNameY);
+        
+        // Right column content - first two items
+        doc.text(`Arrears: GHC ${arrears.toFixed(2)}`, rightColumnX, accountY);
+        doc.text(`Current Rate: GHC ${data.current_rate}`, rightColumnX, businessNameY);
+        
+        // Add Total Payable between Business Name and Type of Business
+        const totalPayableY = businessNameY + 25; // Position it 25 points below business name
+        doc.text(`Total Payable: GHC ${varTotalPayable.toFixed(2)}`, rightColumnX, totalPayableY);
+        
+        // Continue with left column after the gap
+        doc.moveDown(5);
+        const businessTypeY = doc.y;
+        doc.text(`Type of Business: ${data.buss_type}`, leftColumnX, businessTypeY);
+        
+        doc.moveDown(0.8);
+        const businessCategoryY = doc.y;
+        doc.text(`Business Category: ${data.tot_grade}`, leftColumnX, businessCategoryY);
+        
+        doc.moveDown(0.8);
+        const propertyClassY = doc.y;
+        doc.text(`Property Class: ${data.property_class}`, leftColumnX, propertyClassY);
+        
+        doc.moveDown(0.8);
+        const landmarkY = doc.y;
+        doc.text(`Landmark: ${data.landmark || 'N/A'}`, leftColumnX, landmarkY);
+        
+        doc.moveDown(0.8);
+        const electoralAreaY = doc.y;
+        doc.text(`Electoral Area: ${data.electroral_area}`, leftColumnX, electoralAreaY);
+        
+        // Return to the position after the electoral area
+        doc.y = electoralAreaY;
+        
+        doc.moveDown(5); // Add more space before signatures
+        doc.text('Municipal Finance Officer', rightColumnX, doc.y);
+        doc.moveDown(2);
+        doc.text('Distributed By', rightColumnX, doc.y);
+        doc.moveDown(1);
+        doc.text(`Date Issued: ${formattedDate}`, rightColumnX, doc.y);
+        
+        // Add a footer note at the bottom of the page
+        const currentYear = new Date().getFullYear();
+        const footerY = doc.page.height - 50;
+
+        // Set smaller font for the footer text
+        doc.fontSize(8)
+           .text(`This bill must be paid in full on or before the latter of 31 March, ${currentYear} or within two weeks of distribution date.`, 
+                 50, 
+                 footerY, 
+                 { 
+                   align: 'center',
+                   width: doc.page.width - 100
+                 });
+
+        console.log('Permit content generated successfully');
+    } catch(error: unknown) {
+        if (error instanceof Error) {
+            console.log('Error occurred while generating permit content:', error.message);
+            console.log(error.stack);
+        } else {
+            console.log('Unknown error occurred while generating permit content');
+        }
+    }    
+}
+
+async function findPreviousBalance(bussNo: number): Promise<number> {
+    console.log('in findPreviousBalance')
+    console.log('bussNo:', bussNo); // Debugging statement to verify the value
+
+    const client = await pool.connect()
+
+    try {
+        const currentYear = new Date().getFullYear();
+
+        // Find previous payments
+        const prevPaymentsResult = await client.query(
+            'SELECT SUM(paidAmount) AS totsum FROM buspayments WHERE buss_no = $1 AND fiscal_year < $2',
+            [bussNo, currentYear]
+        );
+
+        const prevPayments = prevPaymentsResult.rows[0]?.totsum ?? 0;
+
+        // Find previous billings
+        const prevBalancesResult = await client.query(
+            'SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear < $2',
+            [bussNo, currentYear]
+        );
+
+        const prevBalances = prevBalancesResult.rows[0]?.current_balance ?? 0;
+
+        console.log('prevPayments:', prevPayments);
+        console.log('prevBalances:', prevBalances);
+
+        console.log('prevBalances - prevPayments:', prevBalances - prevPayments);
+
+        // Calculate balance
+        return prevBalances - prevPayments;
+    } catch (error) {
+        console.error(error);
+        throw new Error('Error fetching previous balance');
+    } finally {
+        client.release();
+    }
+}
+
+
+
 
 // Function to find business balance
 async function findBusinessBalance(bussNo: number): Promise<number> {

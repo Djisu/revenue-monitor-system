@@ -19,6 +19,7 @@
     "axios": "^0.26.1",
     "bcrypt": "^5.0.1",
     "chalk": "^4.1.2",
+    "chart.js": "^4.4.9",
     "colors": "^1.4.0",
     "concurrently": "^7.1.0",
     "config": "^3.3.12",
@@ -39,6 +40,7 @@
     "pdf-to-printer": "^5.6.0",
     "pdfkit": "^0.17.1",
     "pg": "^8.7.3",
+    "react-bootstrap": "^2.10.10",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^4.3.0",
     "winston": "^3.3.3"

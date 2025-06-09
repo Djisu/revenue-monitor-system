@@ -152,8 +152,6 @@ const pool = new Pool(dbConfig);
 
 // end of experiment ///
 
-
-
 router.get('/all', async (req: Request, res: Response): Promise<void> => {
     console.log('in router.get(/all')
 
@@ -333,7 +331,6 @@ router.post('/addBudget', async (req: Request<object, object, AddBudgetRequest>,
     console.log("in router.post(/addBudget): ", req.body);
 
     const client = await pool.connect()
-
 
     try { 
         

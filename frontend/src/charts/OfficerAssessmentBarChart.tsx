@@ -137,6 +137,7 @@ const OfficerAssessmentBarChart: React.FC<MyBarChartProps> = ({ data }) => {
   // Chart options configuration
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top' as const,
@@ -146,11 +147,16 @@ const OfficerAssessmentBarChart: React.FC<MyBarChartProps> = ({ data }) => {
         text: 'Officer Assessment',
       },
     },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
   };
 
   return (
-    <div>
-      <Bar data={chartData} options={options}  height={400} />
+    <div style={{ height: '500px', width: '100%' }}>
+      <Bar data={chartData} options={options} />
     </div>
   );
 };
@@ -402,6 +408,5 @@ export default OfficerAssessmentBarChart;
 // // };
 
 // // export default OfficerAssessmentBarChart;
-
 
 

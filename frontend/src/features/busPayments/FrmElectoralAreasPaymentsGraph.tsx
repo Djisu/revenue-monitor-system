@@ -119,7 +119,7 @@ const FrmElectoralAreasPaymentsGraph = () => {
                    {/* Render the graph */}
                     {Object.keys(aggregatedData).length > 0 && (
                         <div className="mt-4">
-                            <Bar data={chartData} options={{ scales: { y: { beginAtZero: true } } }} />
+                            <Bar data={chartData} options={{ scales: { y: { beginAtZero: true } } }}  height={400} />
                             <table className="mt-4" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
                                     <tr>
