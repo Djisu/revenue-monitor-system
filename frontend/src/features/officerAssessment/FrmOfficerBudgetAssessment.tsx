@@ -211,8 +211,20 @@ const OfficerBudgetAssessment: React.FC = () => {
                   },
               ],
           }} 
-          options={{ scales: { y: { beginAtZero: true } } }} 
-      />
+          options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { 
+                  y: { 
+                      beginAtZero: true,
+                      ticks: {
+                          precision: 0
+                      }
+                  } 
+              }
+          }}
+          height={300}
+        />
         <table style={{ marginTop: '20px', width: '100%', borderCollapse: 'collapse' }}>
             <thead>
                 <tr>

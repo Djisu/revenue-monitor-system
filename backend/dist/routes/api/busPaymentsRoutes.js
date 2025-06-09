@@ -183,7 +183,14 @@ async function generatePermitContent(doc, data, totalPayable, varSerialNo, arrea
         doc.moveDown(0.8); // Add consistent spacing between items
         const businessNameY = doc.y;
         doc.text(`Business Name: ${data.buss_name}`, leftColumnX, businessNameY);
-        doc.moveDown(0.8);
+        // Right column content - first two items
+        doc.text(`Arrears: GHC ${arrears.toFixed(2)}`, rightColumnX, accountY);
+        doc.text(`Current Rate: GHC ${data.current_rate}`, rightColumnX, businessNameY);
+        // Add Total Payable between Business Name and Type of Business
+        const totalPayableY = businessNameY + 25; // Position it 25 points below business name
+        doc.text(`Total Payable: GHC ${varTotalPayable.toFixed(2)}`, rightColumnX, totalPayableY);
+        // Continue with left column after the gap
+        doc.moveDown(5);
         const businessTypeY = doc.y;
         doc.text(`Type of Business: ${data.buss_type}`, leftColumnX, businessTypeY);
         doc.moveDown(0.8);
@@ -198,13 +205,9 @@ async function generatePermitContent(doc, data, totalPayable, varSerialNo, arrea
         doc.moveDown(0.8);
         const electoralAreaY = doc.y;
         doc.text(`Electoral Area: ${data.electroral_area}`, leftColumnX, electoralAreaY);
-        // Right column content - use the saved Y positions from left column
-        doc.text(`Arrears: GHC ${arrears.toFixed(2)}`, rightColumnX, accountY);
-        doc.text(`Current Rate: GHC ${data.current_rate}`, rightColumnX, businessNameY);
-        doc.text(`Total Payable: GHC ${varTotalPayable.toFixed(2)}`, rightColumnX, businessTypeY);
         // Return to the position after the electoral area
         doc.y = electoralAreaY;
-        doc.moveDown(3); // Add more space before signatures
+        doc.moveDown(5); // Add more space before signatures
         doc.text('Municipal Finance Officer', rightColumnX, doc.y);
         doc.moveDown(2);
         doc.text('Distributed By', rightColumnX, doc.y);
@@ -921,8 +924,9 @@ router.get('/:fiscalyear/:receiptno/:batchno', async (req, res) => {
 });
 //const generateRandomTerm = () => Math.floor(Math.random() * 10000).toString(); // Generates a random number between 0-9999
 // Read a single BusPayments record by date range
-router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req, res) => {
+router.get('/getpayments/:bussNo/:formattedStartDate/:formattedEndDate', async (req, res) => {
     const { bussNo, formattedStartDate, formattedEndDate } = req.params;
+    console.log('in router.get(/getpayments/:bussNo/:formattedStartDate/:formattedEndDate: ', req.params);
     // Get today's date
     const today = new Date();
     const formattedToday = today.toISOString().split('T')[0]; // Convert to YYYY-MM-DD
@@ -939,7 +943,6 @@ router.get('/:bussNo/:formattedStartDate/:formattedEndDate', async (req, res) =>
         res.status(400).json({ message: 'Invalid date format, use YYYY-MM-DD' });
         return;
     }
-    console.log('XXXXXXX in router.get(/:bussNo/:formattedStartDate/:formattedEndDate): ', req.params);
     const client = await pool.connect();
     console.log("intBussNo: ", intBussNo);
     console.log("formattedStartDate: ", formattedStartDate);

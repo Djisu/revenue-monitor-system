@@ -81,8 +81,6 @@ const pool = new Pool(dbConfig);
 
 // end of experiment ///
 
-
-
 // Electoral area data interface
 interface ElectoralAreaData {
     electoral_area: string;
@@ -98,8 +96,6 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const client = await pool.connect()
 
     try {
-       
-
         // Check for existing electoral area record
         const result: QueryResult = await client.query(
             'SELECT * FROM electoralarea WHERE electoral_area = $1',
@@ -140,12 +136,10 @@ router.get('/all', async (req: Request, res: Response): Promise<void> => {
      const client = await pool.connect()
 
     try {
-      
-
-        const result: QueryResult = await client.query('SELECT * FROM electoralarea');
+        const result: QueryResult = await client.query('SELECT DISTINCT electroral_area FROM business');
 
         // Map the rows to an array of electoral areas
-        const electoralAreas = result.rows.map(row => ({ electoral_area: row.electoral_area }));
+        const electoralAreas = result.rows.map(row => ({ electroral_area: row.electroral_area }));
 
         console.log('Electoral Areas:', electoralAreas);
         res.status(200).json(electoralAreas); // Return the array directly
@@ -156,8 +150,7 @@ router.get('/all', async (req: Request, res: Response): Promise<void> => {
            res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
         }else{
             res.status(500).json({ success: false, message: 'Error creating electoral area record', error });
-        }
-        
+        }  
     } finally {
         if (client) {
             client.release();

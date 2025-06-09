@@ -5,7 +5,7 @@ import axios from 'axios';
 
 // Define the initial state
 export interface ElectoralArea {
-    electoral_area: string;
+    electroral_area: string;
 }
 
 export interface ElectoralAreaState {
@@ -118,7 +118,7 @@ const electoralAreaSlice = createSlice({
                         console.warn('Resetting electoralAreas to an empty array');
                         state.electoralAreas = [];
                     }
-                    state.electoralAreas.push({ electoral_area: action.payload.message });
+                    state.electoralAreas.push({ electroral_area: action.payload.message });
                     console.log('After push, electoralAreas:', state.electoralAreas);
                 } else {
                     state.error = action.payload.message;
@@ -129,7 +129,7 @@ const electoralAreaSlice = createSlice({
                 state.error = action.error.message || 'Failed to create electoral area';
             })
             .addCase(updateElectoralArea.fulfilled, (state, action) => {
-                const index = state.electoralAreas.findIndex(area => area.electoral_area === action.meta.arg.electoral_area);
+                const index = state.electoralAreas.findIndex(area => area.electroral_area === action.meta.arg.electoral_area);
                 if (index !== -1) {
                     state.electoralAreas[index] = action.payload;
                 }
@@ -144,7 +144,7 @@ const electoralAreaSlice = createSlice({
                     console.warn('electoralAreas is not an array, resetting to empty array');
                     state.electoralAreas = [];
                 }
-                state.electoralAreas = state.electoralAreas.filter(area => area.electoral_area !== action.meta.arg);
+                state.electoralAreas = state.electoralAreas.filter(area => area.electroral_area !== action.meta.arg);
                 state.error = null;
                 console.log('electoralAreas after delete:', state.electoralAreas);
             })

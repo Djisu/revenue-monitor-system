@@ -25,7 +25,7 @@ const frmBusinessOperatingPermit: React.FC = () => {
     // Update electoralAreas state when ElectoralAreasData changes
     useEffect(() => {
         if (ElectoralAreasData && Array.isArray(ElectoralAreasData)) {
-            setElectoralAreas(ElectoralAreasData.map(area => area.electoral_area));
+            setElectoralAreas(ElectoralAreasData.map(area => area.electroral_area));
             console.log('Electoral Areas Data:', ElectoralAreasData); // Debugging statement
         } else {
             console.error('Expected ElectoralAreasData to be an array but got:', ElectoralAreasData);

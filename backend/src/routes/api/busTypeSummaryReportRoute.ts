@@ -137,13 +137,25 @@ const pool = new Pool(dbConfig);
 
 // Create
 router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Request, res: Response): Promise<Response | void | unknown> => {
-   const client = await pool.connect()
+    console.log('router.get(/create/:firstDate/:lastDate/:zone/:bussType/:user: ', req.params);
+
+    const client = await pool.connect();
 
     try {
         const { lastDate, zone, bussType, user } = req.params;
+        console.log('lastDate:', lastDate);
+       
         console.log('zone:', zone);
         console.log('bussType:', bussType);
         console.log('user:', user);
+
+        const trimmedZone = zone.trim();
+        const trimmedBussType = bussType.trim();
+
+        const cleanZone = trimmedZone.replace(/\s+/g, ' ').trim();
+        const cleanBussType = trimmedBussType.replace(/\s+/g, ' ').trim();
+   
+
         
         const userId: string = String(user); // Convert user to string
         console.log('User ID: ', userId);
@@ -151,6 +163,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
         const thisYear = lastDate.substring(0, 4);
         console.log('This year: ', thisYear);
         
+        console.log('about to DELETE FROM bustypesummaryreport WHERE user_id = $1');
         // Delete from bustypesummaryreport table for the specific user
         await client.query('DELETE FROM bustypesummaryreport WHERE user_id = $1', [userId]);
 
@@ -158,7 +171,7 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
         const searchResult: QueryResult<Business> = await client.query('SELECT * FROM bustypesummaryreport WHERE user_id = $1', [userId]);
         if (searchResult.rows.length > 0) {           
             console.log('Deleted records NOT DELETED!!!!!');
-            res.status(404).json({message: "Deleted records NOT DELETED", data: []})
+            return res.status(404).json({ message: "Deleted records NOT DELETED", data: [] });
         }
 
         // Begin querying business data based on zone
@@ -167,22 +180,45 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
 
         if (zone === 'All electoral areas') {
             // When zone is "All electoral areas", only filter by bussType if it is not "All business types"
+            console.log('zone is All electoral areas');
             if (bussType === 'All business types') {
+                console.log('bussType is All business types');
                 result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1', ['Active']);
             } else {
-                result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND buss_type ILIKE $2', ['Active', bussType]);
+                console.log('bussType is specific');
+                result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND buss_type ILIKE $2', ['Active', cleanBussType]);
             }
         } else {
             // When a specific zone is provided
+            console.log('zone is specific');
             if (bussType === 'All business types') {
-                result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND electroral_area ILIKE $2', ['Active', zone]);
+                console.log('bussType is All business types');
+                const varQuery = `SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND electroral_area ILIKE $2`;
+                console.log('varQuery: ', varQuery);
+                console.log('cleanZone: ', cleanZone);
+                result = await client.query(varQuery, ['Active', cleanZone]);
+                //result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND electroral_area ILIKE $2', ['Active', cleanZone]);
+                console.log('Query Result:', result.rows);
             } else {
-                result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND electroral_area ILIKE $2 AND buss_type ILIKE $3', ['Active', zone, bussType]);
+                console.log('bussType is specific');
+                const varQuery = `SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND electroral_area ILIKE $2 AND buss_type ILIKE $3`;
+
+                console.log('varQuery: ', varQuery);
+                console.log('cleanZone: ', cleanZone);
+                console.log('cleanBussType: ', cleanBussType);
+                result = await client.query(varQuery, ['Active', cleanZone, cleanBussType]);
+                //result = await client.query('SELECT DISTINCT electroral_area FROM business WHERE status = $1 AND electroral_area ILIKE $2 AND buss_type ILIKE $3', ['Active', cleanZone, cleanBussType]);
+          
+                console.log('Query Result:', result.rows);
+          
             }
         }
 
+        console.log('result.rows: ', result.rows);
+
         console.log('result.rows.length: ', result.rows.length);
         if (result.rows.length === 0) {
+            console.log('404---No businesses found in the selected zone');
             return res.status(404).json({ message: 'No businesses found in the selected zone', data: [] });
         }
 
@@ -202,32 +238,50 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
             console.log('==========================================');
 
             // Calculate current balance
-            console.log('busscurrbalance')
+            console.log('busscurrbalance: XXXXX');
+
+            let recSumm
+
             if (bussType === 'All business types') {
-                console.log('All business types')
-                const recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea ILIKE $2', 
+                console.log('All business types');
+                recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND electoralarea ILIKE $2', 
                     [thisYear, row.electroral_area]
                 );
-                varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
+                if (recSumm && recSumm.rows.length > 0){
+                    varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
+               }
+               if(recSumm.rows[0].totsum === null){
+                   varCurrRate = 0;
+               }       
             } else {
-                console.log('specific business type')
-                const recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type ILIKE $2 AND electoralarea ILIKE $3', 
+                console.log('specific business type');
+                recSumm = await client.query('SELECT SUM(current_balance) AS totsum FROM busscurrbalance WHERE fiscalyear = $1 AND buss_type ILIKE $2 AND electoralarea ILIKE $3', 
                    [thisYear, bussType, row.electroral_area]
                 );
-                varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
+                console.log('recSumm.rows: ', recSumm.rows);
+
+                console.log('recSumm.rows.length: ', recSumm.rows.length)
+
+                if (recSumm && recSumm.rows.length > 0){
+                     varCurrRate = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totsum) : 0;
+                }
+                if(recSumm.rows[0].totsum === null){
+                    varCurrRate = 0;
+                }              
             }
+
             console.log('varCurrRate: ', varCurrRate);
 
             // Calculate total payments
-            console.log('buspayments')
+            console.log('buspayments');
             if (bussType === 'All business types') {
-                console.log('All business types')
+                console.log('All business types');
                 const recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND electroral_area ILIKE $2', 
                    [thisYear, row.electroral_area]
                 );
                 varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
             } else {
-                console.log('specific business type')
+                console.log('specific business type');
                 const recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type ILIKE $2 AND electroral_area ILIKE $3', 
                    [thisYear, bussType, row.electroral_area]
                 );
@@ -236,18 +290,27 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
             console.log('varPayment: ', varPayment);
 
             // Calculate balance
-            varBalance = varCurrRate - varPayment;
+            if (varCurrRate === 0){
+                varBalance = varPayment - varCurrRate;
+            } else {
+                varBalance = varCurrRate - varPayment;
+            }
+            
             console.log('varBalance: ', varBalance);
 
             // Insert into bustypesummaryreport
+            console.log('about to INSERT INTO bustypesummaryreport(buss_type, amountdue, amountpaid, balance, electoral_area, transdate, user_id)' +
+            'VALUES ($1, $2, $3, $4, $5, $6, $7)');
             const insertQuery = `
                 INSERT INTO bustypesummaryreport(buss_type, amountdue, amountpaid, balance, electoral_area, transdate, user_id)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
             `;
             await client.query(insertQuery, [bussType, varCurrRate, varPayment, varBalance, row.electroral_area, lastDate, userId]);
+            console.log('Inserted into bustypesummaryreport');
         }
 
         // Fetching the report
+        console.log('Fetching the report');
         const results: QueryResult<BusTypeSummaryReport> = await client.query(`SELECT DISTINCT * FROM bustypesummaryreport WHERE buss_type = $1 AND user_id = $2`, [bussType, userId]);
 
         // Return the response
@@ -258,19 +321,19 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
             console.log('404---No data found in bustypesummaryreport');
             return res.status(404).json({ message: 'No data found in bustypesummaryreport', data: [] });
         }
+     
     } catch (error: unknown) {
         if (error instanceof Error){
            console.error('Error:', error);
-           res.status(500).json({ success: false, message: 'Error creating BusinessType record', error }); 
+           return res.status(500).json({ success: false, message: 'Error creating BusinessType record', error }); 
         }else{
-            res.status(500).json({message: "Unknown error"})
+            return res.status(500).json({ message: "Unknown error" });
         }
         
     } finally {
         client.release();
     }
 });
-
 
 router.put('/update/:firstDate/:lastDate/:zone/:bussType', async (req: Request, res: Response): Promise<Response | void | unknown> => {
     try {

@@ -253,7 +253,8 @@ router.delete('/:buss_no/:fiscalyear', async (req: Request, res: Response) => {
         }
 
         // Delete the BussCurrBalance record
-        await client.query('DELETE FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
+        // I MUST UPDATE
+        //await client.query('DELETE FROM busscurrbalance WHERE buss_no = $1 AND fiscalyear = $2', [buss_no, fiscalyear]);
 
         res.status(200).json({ message: 'BussCurrBalance record deleted successfully' });
         return

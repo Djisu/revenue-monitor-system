@@ -96,9 +96,9 @@ router.post('/create', async (req, res) => {
 router.get('/all', async (req, res) => {
     const client = await pool.connect();
     try {
-        const result = await client.query('SELECT * FROM electoralarea');
+        const result = await client.query('SELECT DISTINCT electroral_area FROM business');
         // Map the rows to an array of electoral areas
-        const electoralAreas = result.rows.map(row => ({ electoral_area: row.electoral_area }));
+        const electoralAreas = result.rows.map(row => ({ electroral_area: row.electroral_area }));
         console.log('Electoral Areas:', electoralAreas);
         res.status(200).json(electoralAreas); // Return the array directly
         return;
