@@ -1250,7 +1250,7 @@ router.post('/billallbusinesses', async (req, res) => {
     const client = await pool.connect();
     const thisYear = new Date().getFullYear();
     try {
-        await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [thisYear]);
+        //await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [thisYear]);
         const result = await client.query('SELECT * FROM gradefees ORDER BY buss_type ASC, grade ASC');
         if (result.rows.length === 0) {
             res.status(409).json({ success: true, message: 'No records found' });
@@ -1267,6 +1267,7 @@ router.post('/billallbusinesses', async (req, res) => {
         console.log('ABOUT TO BILL ALL BUSINESSES');
         // Insert into busscurrbalance
         for (const businessRow of businessesResult.rows) {
+            //  I MUST UPDATE
             await client.query('INSERT INTO busscurrbalance (buss_no, fiscalyear, balancebf, current_balance, totalamountdue, transdate, electoralarea, assessmentby) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [
                 businessRow.buss_no,
                 thisYear,
