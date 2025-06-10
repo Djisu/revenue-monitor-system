@@ -1478,7 +1478,7 @@ router.post('/billonebusiness/:bussNo', async (req: Request, res: Response): Pro
     const thisYear = new Date().getFullYear();
     
     try {
-        //await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
+        await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1 AND buss_no = $2', [thisYear, bussNo]);
 
         // Select one business
         const businessesResult: QueryResult = await client.query('SELECT * FROM business WHERE buss_no = $1', [bussNo]);

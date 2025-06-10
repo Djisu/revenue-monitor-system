@@ -182,12 +182,12 @@ async function addRecord(txtBussNo, dtTransdate, txtBalanceBF, txtCurrentRate, t
     console.log(txtBalanceBF);
     console.log(txtCurrentRate);
     try {
-        const deleteQuery = `
-            DELETE  
-            FROM busscurrbalance 
-            WHERE buss_no = $1;
-        `;
-        await client.query(deleteQuery, [txtBussNo]);
+        // const deleteQuery = `
+        //     DELETE  
+        //     FROM busscurrbalance 
+        //     WHERE buss_no = $1;
+        // `;
+        // await client.query(deleteQuery, [txtBussNo]);
         // Find previous fiscal year balance
         const varFiscalYear = dtTransdate.getFullYear();
         const varPrevFiscalYear = varFiscalYear - 1;

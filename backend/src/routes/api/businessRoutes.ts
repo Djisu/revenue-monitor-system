@@ -1364,9 +1364,6 @@ async function findPreviousBalance(bussNo: number): Promise<number> {
     }
 }
 
-
-
-
 // Function to find business balance
 async function findBusinessBalance(bussNo: number): Promise<number> {
     console.log('in findBusinessBalance()');  
