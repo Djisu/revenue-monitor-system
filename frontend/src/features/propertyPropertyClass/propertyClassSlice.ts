@@ -5,6 +5,8 @@ import axios from 'axios';
 // Define the type for PropertyClass data
 export interface PropertyClassData {
     property_class: string;
+    description: string;
+    frequency: string;
     rate: number;
 }
 
@@ -26,14 +28,25 @@ const BASE_URL = import.meta.env.VITE_BASE_URL ||
 
 // Async thunk to fetch all property classes
 export const fetchPropertyClasses = createAsyncThunk('propertyClass/fetchPropertyClasses', async () => {
-    const response = await axios.get(`${BASE_URL}/api/propertyClass/all`);
+    try {
+        const response = await axios.get(`${BASE_URL}/api/propertyClass/all`);
+        if (response.status >= 200 && response.status < 300) {
 
-    if (response.status >= 200 && response.status < 300) {
-        return await response.data.data; // This data will be available as `action.payload`
-    } else {
-        throw new Error(`Error fetching property classes : ${response.statusText}`);
+            console.log('fetchPropertyClasses response:', response.data.data);
+
+            return response.data.data; // This should be the structure you expect
+        } else {
+            throw new Error(`Error fetching property classes: ${response.statusText}`);
+        }
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            throw new Error(error.message);
+        } else {
+            throw new Error('Network error or other issue');
+        }
     }
 });
+
 
 // Async thunk to fetch a single property class by property_class
 export const fetchPropertyClassById = createAsyncThunk('propertyClass/fetchPropertyClassById', async (property_class: string) => {
@@ -145,6 +158,8 @@ const propertyClassSlice = createSlice({
                     // Ensure the payload includes a rate, or provide a default value
                     const newPropertyClass: PropertyClassData = {
                         property_class: action.payload.message,
+                        description: action.payload.description,
+                        frequency: action.payload.frequency,
                         rate: action.payload.rate !== undefined ? action.payload.rate : 0, // Provide a default rate value if necessary
                     };
 

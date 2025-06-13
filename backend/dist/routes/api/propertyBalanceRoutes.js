@@ -1,138 +1,164 @@
-"use strict";
-// // backend/src/routes/api/propertyBalanceRoutes.ts
-// import express from 'express';
-// import * as dotenv from 'dotenv';
-// import { Router, Request, Response } from 'express';
-// import pkg from 'pg';
-// const { Pool } = pkg;
-// import type { QueryResult } from 'pg';  // Import QueryResult as a type
-// const router = Router();
-// // Load environment variables from .env file
-// dotenv.config();
-// const nodeEnv = process.env.NODE_ENV;
-// let frontendUrl = "" // Set frontend URL based on node environment
-// if (nodeEnv === 'development'){
-//     frontendUrl = "http://localhost:5173";
-// } else if (nodeEnv === 'production'){
-//     frontendUrl = "https://revenue-monitor-system.onrender.com";
-// } else if (nodeEnv === 'test'){
-//     console.log('Just testing')
-// } else {
-//     console.log('Invalid node environment variable') //.slice()
-// }
-// // PostgreSQL connection configuration
-// const pool = new Pool({
-//     host: process.env.DB_HOST || 'localhost',
-//     user: process.env.DB_USER || 'postgres',
-//     password: process.env.DB_PASSWORD || '',
-//     database: process.env.DB_NAME || 'revmonitor',
-//     port: parseInt(process.env.DB_PORT || '5432'),
-// });
-// // PropertyBalance data interface
-// interface PropertyBalanceData {
-//     house_no: string;
-//     billamount: number;
-//     paidamount: number;
-//     balance: number;
-// }
-// // Create a new property balance record
-// router.post('create/', async (req: Request, res: Response): Promise<void> => {
-//     const propertyBalanceData: PropertyBalanceData = req.body;
-//     try {
-//         const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [propertyBalanceData.house_no]);
-//         if (rows.length > 0) {
-//             res.status(409).json({ message: 'Property balance record already exists' });
-//             return;
-//         }
-//         // Insert the new property balance data
-//         const result = await pool.query(
-//             `INSERT INTO propertybalance 
-//             (house_no, billamount, paidamount, balance) 
-//             VALUES ($1, $2, $3, $4)`,
-//             [
-//                 propertyBalanceData.house_no,
-//                 propertyBalanceData.billamount,
-//                 propertyBalanceData.paidamount,
-//                 propertyBalanceData.balance,
-//             ]
-//         );
-//         res.status(201).json({ message: 'Property balance record created successfully' });
-//     } catch (error) {
-//         console.error('Error:', error);
-//         res.status(500).json({ message: 'Error creating property balance record', error });
-//     }
-// });
-// // Read all property balance records
-// router.get('/', async (req: Request, res: Response) => {
-//     try {
-//         const { rows } = await pool.query('SELECT * FROM propertybalance');
-//         res.json(rows);
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Error fetching property balance records', error });
-//     }
-// });
-// // Read a single property balance record by house_no
-// router.get('/:house_no', async (req: Request, res: Response) => {
-//     const { house_no } = req.params;
-//     try {
-//         const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
-//         if (rows.length > 0) {
-//             res.json(rows[0]); // Return the first row
-//         } else {
-//             res.status(404).json({ message: 'Property balance record not found' });
-//         }
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Error fetching property balance record', error });
-//     }
-// });
-// // Update a property balance record
-// router.put('update/:house_no', async (req: Request, res: Response): Promise<void> => {
-//     const { house_no } = req.params;
-//     const propertyBalanceData: PropertyBalanceData = req.body;
-//     try {
-//         const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
-//         if (rows.length == 0) {
-//             res.status(404).json({ message: 'Property balance record not found' });
-//             return;
-//         }
-//         // Update the property balance data
-//         await pool.query(
-//             `UPDATE propertybalance 
-//             SET billamount = $1, paidamount = $2, balance = $3 
-//             WHERE house_no = $4`,
-//             [
-//                 propertyBalanceData.billamount,
-//                 propertyBalanceData.paidamount,
-//                 propertyBalanceData.balance,
-//                 house_no
-//             ]
-//         );
-//         res.status(200).json({ message: 'Property balance record updated successfully' });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Error updating property balance record', error });
-//     }
-// });
-// // Delete a property balance record
-// router.delete('/delete/:house_no', async (req: Request, res: Response) => {
-//     const { house_no } = req.params;
-//     try {
-//         const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
-//         if (rows.length == 0) {
-//             res.status(404).json({ message: 'Property balance record not found' });
-//             return;
-//         }
-//         // Delete the property balance record
-//         await pool.query('DELETE FROM propertybalance WHERE house_no = $1', [house_no]);
-//         res.status(200).json({ message: 'Property balance record deleted successfully' });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Error deleting property balance record', error });
-//     }
-// });
-// export default router;
+// backend/src/routes/api/propertyBalanceRoutes.ts
+import * as dotenv from 'dotenv';
+import { Router } from 'express';
+import pkg from 'pg';
+const { Pool } = pkg;
+//import { createClient } from '../../db.js';
+const router = Router();
+// experiment ///
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import fs from 'fs';
+// Load the environment variables from the .env file
+dotenv.config();
+// Determine the environment (development or production)
+const env = process.env.NODE_ENV || 'development'; // Defaults to 'development'
+console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
+// Construct the path to the appropriate .env file from the root directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+//const permitDir = path.join(__dirname, 'permits');
+//const rootDir = path.resolve(__dirname, '..');
+const envPath = path.resolve(__dirname, `../.env.${env}`);
+console.log('[BACKEND] envPath:', envPath); // Debugging log
+// Check if the .env file exists
+if (!fs.existsSync(envPath)) {
+    console.error(`[BACKEND] .env file not found at ${envPath}. Please ensure the file exists.`);
+    process.exit(1); // Exit the process if the file is not found
+}
+// Load the environment variables from the .env file
+dotenv.config({ path: envPath });
+console.log('[BACKEND] environment:', env);
+console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV); // Debugging log
+// Example usage of environment variables
+const DB_HOST = process.env.DB_HOST;
+const DB_USER = process.env.DB_USER;
+const DB_NAME = process.env.DB_NAME;
+const DB_PORT = process.env.DB_PORT;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const JWT_SECRET = process.env.JWT_SECRET;
+console.log('Initial NODE_ENV:', process.env.NODE_ENV);
+console.log('DB_HOST:', DB_HOST);
+console.log('DB_USER:', DB_USER);
+console.log('DB_NAME:', DB_NAME);
+console.log('DB_PORT:', DB_PORT);
+console.log('DB_PASSWORD:', DB_PASSWORD);
+console.log('JWT_SECRET:', JWT_SECRET);
+// SSL configuration
+let sslConfig;
+if (process.env.NODE_ENV === 'production') {
+    sslConfig = { rejectUnauthorized: true }; // Important for Render.com
+}
+else {
+    sslConfig = false;
+}
+const dbConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'revmonitor',
+    ssl: sslConfig,
+};
+const pool = new Pool(dbConfig);
+// Create a new property balance record
+router.post('create/', async (req, res) => {
+    const propertyBalanceData = req.body;
+    try {
+        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [propertyBalanceData.house_no]);
+        if (rows.length > 0) {
+            res.status(409).json({ message: 'Property balance record already exists' });
+            return;
+        }
+        // Insert the new property balance data
+        const result = await pool.query(`INSERT INTO propertybalance 
+            (house_no, billamount, paidamount, balance) 
+            VALUES ($1, $2, $3, $4)`, [
+            propertyBalanceData.house_no,
+            propertyBalanceData.billamount,
+            propertyBalanceData.paidamount,
+            propertyBalanceData.balance,
+        ]);
+        res.status(201).json({ message: 'Property balance record created successfully' });
+    }
+    catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: 'Error creating property balance record', error });
+    }
+});
+// Read all property balance records
+router.get('/', async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT * FROM propertybalance');
+        res.json(rows);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching property balance records', error });
+    }
+});
+// Read a single property balance record by house_no
+router.get('/:house_no', async (req, res) => {
+    const { house_no } = req.params;
+    try {
+        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
+        if (rows.length > 0) {
+            res.json(rows[0]); // Return the first row
+        }
+        else {
+            res.status(404).json({ message: 'Property balance record not found' });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching property balance record', error });
+    }
+});
+// Update a property balance record
+router.put('update/:house_no', async (req, res) => {
+    const { house_no } = req.params;
+    const propertyBalanceData = req.body;
+    try {
+        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
+        if (rows.length == 0) {
+            res.status(404).json({ message: 'Property balance record not found' });
+            return;
+        }
+        // Update the property balance data
+        await pool.query(`UPDATE propertybalance 
+            SET billamount = $1, paidamount = $2, balance = $3 
+            WHERE house_no = $4`, [
+            propertyBalanceData.billamount,
+            propertyBalanceData.paidamount,
+            propertyBalanceData.balance,
+            house_no
+        ]);
+        res.status(200).json({ message: 'Property balance record updated successfully' });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error updating property balance record', error });
+    }
+});
+// Delete a property balance record
+router.delete('/delete/:house_no', async (req, res) => {
+    const { house_no } = req.params;
+    try {
+        const { rows } = await pool.query('SELECT * FROM propertybalance WHERE house_no = $1', [house_no]);
+        if (rows.length == 0) {
+            res.status(404).json({ message: 'Property balance record not found' });
+            return;
+        }
+        // Delete the property balance record
+        await pool.query('DELETE FROM propertybalance WHERE house_no = $1', [house_no]);
+        res.status(200).json({ message: 'Property balance record deleted successfully' });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error deleting property balance record', error });
+    }
+});
+export default router;
 // // // backend/src/routes/api/propertyBalanceRoutes.ts
 // // import express from 'express';
 // // import * as dotenv from 'dotenv';

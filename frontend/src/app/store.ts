@@ -20,7 +20,7 @@ import  operatorDefinitionReducer from '../features/operatorDefinition/operatorD
 import  operatorPermissionReducer from '../features/operatorPermission/operatorPermissionSlice';
 import  paymentReportReducer from '../features/paymentReport/paymentReportSlice';
 //import  propertyBalanceReducer from '../features/propertyBalance/propertyBalanceSlice';
-import  propertyClassReducer from '../features/propertyClass/propertyClassSlice';
+import  propertyClassReducer from '../features/propertyPropertyClass/propertyClassSlice';
 // import  propertyCollectorElectoralarealReducer from '../features/propertyCollectorElectoralArea/propertyCollectorElectoralAreaSlice';
 // import  propertyOfficerAssessmentReducer from '../features/propertyOfficerAssessment/propertyOfficerAssessmentSlice';
 // import  propertyOfficerBudgetReducer from '../features/propertyOfficerBudget/propertyOfficerBudgetSlice';

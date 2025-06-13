@@ -713,7 +713,8 @@ router.get('/:buss_no', async (req, res) => {
         client.release();
     }
 });
-router.post('/:electoralArea', async (req, res) => {
+router.post('/electoralareapayments/:electoralArea', async (req, res) => {
+    console.log('router.post(/electoralareapayments/:electoralArea');
     let { electoralArea } = req.params;
     electoralArea = electoralArea.toString();
     console.log('Received electoral area:', electoralArea);
@@ -1250,6 +1251,7 @@ router.post('/billallbusinesses', async (req, res) => {
     const client = await pool.connect();
     const thisYear = new Date().getFullYear();
     try {
+        // Quite destruction to clear all busscurrbalance records for this year
         //await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [thisYear]);
         const result = await client.query('SELECT * FROM gradefees ORDER BY buss_type ASC, grade ASC');
         if (result.rows.length === 0) {

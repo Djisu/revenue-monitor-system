@@ -4,6 +4,7 @@ import { ChartData } from 'chart.js';
 import { useAppDispatch, useAppSelector } from '../../app/store';
 import { fetchBusPaymentByElectoralArea } from './busPaymentsSlice';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
+
 import { Button, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import aggregatePaymentsByElectoralArea from '../../utilities/aggregatePaymentsByElectoralArea';
@@ -22,6 +23,7 @@ const FrmElectoralAreasPaymentsGraph = () => {
     //const [fiscalYear, setFiscalYear] = useState<number>(2023); // Default fiscal year
     const [localBudgetData, setLocalBudgetData] = useState<BusPaymentsData[]>([]);
     const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
+
     const [electoralArea, setElectoralArea] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false); // Loading state
 
@@ -31,15 +33,23 @@ const FrmElectoralAreasPaymentsGraph = () => {
         dispatch(fetchElectoralAreas());
     }, [dispatch]);
 
-    useEffect(() => {
-        console.log('localBudgetData: ', localBudgetData);
-    },[localBudgetData, dispatch])
+
+    // useEffect(() => {
+    //     console.log('localBudgetData: ', localBudgetData);
+    // },[localBudgetData, dispatch])
 
     const electoralAreaData = useAppSelector((state) => state.electoralArea.electoralAreas);
+    console.log('electoralAreaData: ', electoralAreaData)
 
     useEffect(() => {
-        if (electoralAreaData && Array.isArray(electoralAreaData)) {
-            setElectoralAreas(electoralAreaData.map((area) => area.electoral_area));
+        if (!electoralAreaData){
+            console.log('electoral areas not fetched!!!')
+        }
+        
+        if (Array.isArray(electoralAreaData)) {
+            setElectoralAreas(electoralAreaData.map((area) => area.electroral_area));
+        } else {
+            console.error('Expected electoralAreaData to be an array but got:', electoralAreaData);
         }
     }, [electoralAreaData]);
 
@@ -106,8 +116,14 @@ const FrmElectoralAreasPaymentsGraph = () => {
                     >
                         <option value="All electoral areas">All electoral areas</option> {/* Default option */}
                         {electoralAreas.map((area, index) => (
-                            <option key={index} value={area}>{area}</option>
+                            <option key={index} value={area}>
+                                {area}
+                            </option>
                         ))}
+                        {/* {electoralAreas.map((area, index) => (
+                            <option key={index} value={area}>{area}</option>
+                        ))} */}
+
                     </select>
                 </div>
                 <button className="btn btn-primary" onClick={handleFetchData}>

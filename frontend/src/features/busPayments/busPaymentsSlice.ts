@@ -162,7 +162,7 @@ export const fetchBusPaymentByElectoralArea = createAsyncThunk('busPayments/fetc
 
     console.log('BASE_URL: ', BASE_URL)
 
-    const response = await axios.post(`${BASE_URL}/api/busPayments/${electoralArea}`);
+    const response = await axios.post(`${BASE_URL}/api/busPayments/electoralareapayments/${electoralArea}`);
 
     // Check if data found
     if (response.data.data.length > 0){
