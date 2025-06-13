@@ -3,7 +3,7 @@ import { Button, Form, Col, Row, Spinner, Card } from 'react-bootstrap';
 
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
-import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
+import { fetchPropertyClasses } from '../propertyPropertyClass/propertyClassSlice';
 import { fetchOfficers } from '../officer/officerSlice';
 import { createBusiness, fetchLastBussNo } from './businessSlice';
 import { useAppDispatch, useAppSelector } from '../../app/store';

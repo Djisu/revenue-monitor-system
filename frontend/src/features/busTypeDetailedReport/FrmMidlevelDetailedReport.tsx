@@ -55,7 +55,7 @@ const FrmMidlevelDetailedReport: React.FC = () => {
 
   useEffect(() => {
     if (Array.isArray(electoralAreaData)) {
-      setElectoralAreas(electoralAreaData.map((area) => area.electoral_area));
+      setElectoralAreas(electoralAreaData.map((area) => area.electroral_area));
     }
   }, [electoralAreaData]);
 

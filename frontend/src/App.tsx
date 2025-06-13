@@ -22,7 +22,7 @@ import FrmOperatorDef from './features/operatorDefinition/FrmOperatorDef';
 import FrmOperatorPermissions from './features/operatorPermission/FrmOperatorPermissions';
 import FrmBusinessType from './features/businessType/FrmBusinessType';
 import FrmChangeBussType from './features/businessType/FrmChangeBussType'
-//import FrmOfficerBudget from './features/officerBudget/FrmOfficerBudget';
+
 import FrmOfficerBudget from './features/officerBudget/FrmOfficerBudget';
 import FrmClientPayments1 from './features/busPayments/FrmClientPayments1';
 import FrmClientBalances from './features/busPayments/FrmClientBalances';
@@ -47,28 +47,30 @@ import FrmBusinessTypesReport from './features/businessType/FrmBusinessTypesRepo
 import FrmCollectorsBusinessesReport from './features/officer/FrmCollectorsBusinessesReport';
 
 
-import FrmPropertyClass from './features/propertyClass/FrmPropertyClass';
+import FrmPropertyClass from './features/propertyPropertyClass/FrmPropertyClass';
 
-// import FrmPropertyUse from './features/propertyUse/FrmPropertyUse';
-// import FrmPropertyType from './features/propertyType/FrmPropertyType';
-// import FrmPropertyEmployee from './features/propertyOfficer/FrmPropertyEmployee';
-// import FrmPropertyCollectorElectoralArea from './features/propertyCollectorElectoralArea/FrmPropertyCollectorElectoralArea';
-// import FrmProperty from './features/property/FrmProperty';
-// import FrmPropertyOfficerBudget from './features/propertyOfficerBudget/FrmPropertyOfficerBudget';
-// import FrmProducePropertyRates from './features/propertyRate/FrmProducePropertyRates';
+import FrmPropertyUse from './features/propertyUse/FrmPropertyUse';
+import FrmPropertyType from './features/propertyType/FrmPropertyType';
+import FrmPropertyEmployee from './features/propertyOfficer/FrmPropertyEmployee';
+import FrmPropertyCollectorElectoralArea from './features/propertyCollectorElectoralArea/FrmPropertyCollectorElectoralArea';
+import FrmProperty from './features/property/FrmProperty';
+import FrmPropertyOfficerBudget from './features/propertyOfficerBudget/FrmPropertyOfficerBudget';
+import FrmProducePropertyRates from './features/propertyRate/FrmProducePropertyRates';
 
 import FrmOfficerBudgetActual from './features/offBudgetAssessment/FrmOfficerBudgetActual';
 import FrmElectoralAreasPaymentsGraph from './features/busPayments/FrmElectoralAreasPaymentsGraph';
 
-// import FrmPropertyUpdate from './features/property/FrmPropertyUpdate';
-// import FrmPropertyRate from './features/propertyRate/FrmPropertyRate';
-// import FrmPropertyBillPayments from './features/propertyBalance/FrmPropertyBillPayments';
-// import FrmDailyPropertyPayments from './features/propertyBalance/FrmDailyPropertyPayments';//
-// import FrmPropertySavingsStatementX from './features/propertyBalance/FrmPropertySavingsStatementX';
+import FrmPropertyUpdate from './features/property/FrmPropertyUpdate';
+import FrmPropertyRate from './features/propertyRate/FrmPropertyRate';
+import FrmPropertyBillPayments from './features/propertyBalance/FrmPropertyBillPayments';
+import FrmDailyPropertyPayments from './features/propertyBalance/FrmDailyPropertyPaymentsReport';//
+import FrmPropertySavingsStatementX from './features/propertyBalance/FrmPropertySavingsStatementX';
+
 import checkAccess from './utilities/checkAccess';
 import NotFound from './components/layout/NotFound';
 import MainMenuWrapper from './components/MainMenuWrapper';
 //import OfficerAssessmentBarChart from './charts/OfficerAssessmentBarChart';
+import FrmBrowserWarning from './features/auth/FrmBrowserWarning'
 
 const App: React.FC = () => {
     const [isMainMenuVisible, setMainMenuVisible] = useState(true);
@@ -81,7 +83,8 @@ const App: React.FC = () => {
 
     return (
         <AuthProvider>
-            <BrowserRouter>               
+            <BrowserRouter>   
+                <FrmBrowserWarning /> {/* Conditionally render the browser warning */}            
                 <Routes>
                     <Route path="/" element={<FrmLogin />} />  
                     {/* Define the /main route */}
@@ -123,6 +126,21 @@ const App: React.FC = () => {
                     <Route path="/CompareBudgetActualReport" element={<ProtectedRoute element={<FrmOfficerBudgetActual />} />} />
                     <Route path="/ElectoralAreasPaymentsGraph" element={<ProtectedRoute element={<FrmElectoralAreasPaymentsGraph />} />} />
                     <Route path="/PropertyClass" element={<ProtectedRoute element={<FrmPropertyClass />} />} />
+
+                     {/* Routes for property forms */}
+                    <Route path="/PropertyUse" element={<ProtectedRoute element={<FrmPropertyUse />} />} />
+                    <Route path="/PropertyType" element={<ProtectedRoute element={<FrmPropertyType />} />} />
+                    <Route path="/PropertyEmployee" element={<ProtectedRoute element={<FrmPropertyEmployee />} />} />
+                    <Route path="/PropertyCollectorElectoralArea" element={<ProtectedRoute element={<FrmPropertyCollectorElectoralArea />} />} />
+                    <Route path="/Property" element={<ProtectedRoute element={<FrmProperty />} />} />
+                    <Route path="/PropertyOfficerBudget" element={<ProtectedRoute element={<FrmPropertyOfficerBudget />} />} />
+                    <Route path="/ProducePropertyRates" element={<ProtectedRoute element={<FrmProducePropertyRates />} />} />
+                    <Route path="/PropertyUpdate" element={<ProtectedRoute element={<FrmPropertyUpdate />} />} />
+                    <Route path="/PropertyRate" element={<ProtectedRoute element={<FrmPropertyRate />} />} />
+                    <Route path="/PropertyBillPayments" element={<ProtectedRoute element={<FrmPropertyBillPayments />} />} />
+                    <Route path="/PropertySavingsStatementX" element={<ProtectedRoute element={<FrmPropertySavingsStatementX />} />} />
+                    <Route path="/DailyPropertyPaymentsReport" element={<ProtectedRoute element={<FrmDailyPropertyPayments />} />} />
+
                     <Route path="*" element={<NotFound />} /> 
                 </Routes>
             </BrowserRouter>

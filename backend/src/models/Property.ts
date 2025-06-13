@@ -19,3 +19,4 @@ export interface Property {
     PropertytypeRate: number;
     PropertyclassRate: number;
 }
+

@@ -931,7 +931,10 @@ router.get('/:buss_no', async (req: Request, res: Response) => {
     }
 });
 
-router.post('/:electoralArea', async (req: Request, res: Response) => {
+router.post('/electoralareapayments/:electoralArea', async (req: Request, res: Response) => {
+
+    console.log('router.post(/electoralareapayments/:electoralArea')
+    
     let { electoralArea } = req.params;
 
     electoralArea = electoralArea.toString()
@@ -1632,6 +1635,7 @@ router.post('/billallbusinesses', async (req: Request, res: Response): Promise<v
     const thisYear = new Date().getFullYear();
 
     try {
+        // Quite destruction to clear all busscurrbalance records for this year
         //await client.query('DELETE FROM busscurrbalance WHERE fiscalyear = $1', [thisYear]);
 
         const result: QueryResult = await client.query('SELECT * FROM gradefees ORDER BY buss_type ASC, grade ASC');

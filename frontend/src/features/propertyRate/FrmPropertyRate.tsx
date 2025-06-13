@@ -8,7 +8,7 @@ import { fetchPropertyRates,
         deletePropertyRate, 
         PropertyRateData
 } from './propertyRateSlice';
-import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
+import { fetchPropertyClasses } from '../propertyPropertyClass/propertyClassSlice';
 
 // interface PropertyRateData {
 //   property_class: string;

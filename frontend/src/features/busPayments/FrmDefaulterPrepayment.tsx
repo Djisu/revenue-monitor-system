@@ -33,7 +33,7 @@ const DefaulterPrepaymentForm: React.FC = () => {
 
   useEffect(() => {
     if (electoralAreaData && Array.isArray(electoralAreaData)) {
-      setElectoralAreas(electoralAreaData.map((area) => area.electoral_area));
+      setElectoralAreas(electoralAreaData.map((area) => area.electroral_area));
     } else {
       console.error('Expected electoralAreaData to be an array but got:', electoralAreaData);
     }

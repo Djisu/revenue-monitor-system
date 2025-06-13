@@ -8,6 +8,8 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons'; // Import the trash
 
 interface PropertyClass {
   property_class: string;
+  description: string;
+  frequency: string;
   rate: number;
 }
 
@@ -19,6 +21,7 @@ const FrmPropertyClass: React.FC = () => {
   const dispatch = useAppDispatch();
 
   const propertyClasses = useAppSelector((state) => state.propertyClass.propertyClasses);
+
   console.log('propertyClasses:', propertyClasses);
   const [localPropertyClasses, setLocalPropertyClasses] = useState<PropertyClass[]>([]);
   const [addFlag, setAddFlag] = useState<string>('');
@@ -27,6 +30,8 @@ const FrmPropertyClass: React.FC = () => {
 
   const [propertyClass, setPropertyClass] = useState<PropertyClass>({
     property_class: '',
+    description: '',
+    frequency: '',
     rate: 0,
   });
  
@@ -38,6 +43,7 @@ useEffect(() => {
 
 useEffect(() => {
   if (Array.isArray(propertyClasses)) {
+      console.error('propertyClasses is AN ARRAY:', propertyClasses);
       setLocalPropertyClasses(propertyClasses);
   } else {
       console.error('propertyClasses is not an array:', propertyClasses);
@@ -45,15 +51,15 @@ useEffect(() => {
   }
 }, [propertyClasses]);
 
+const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = event.target;
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
+  setPropertyClass((prevPropertyClass) => ({
+    ...prevPropertyClass,
+    [name]: name === 'rate' ? parseFloat(value) : value.toString(),
+  }));
+};
 
-    setPropertyClass((prevPropertyClass) => ({
-      ...prevPropertyClass,
-      [name]: name === 'rate' ? parseFloat(value) : value,
-    }));
-  };
 
   const handleAdd = async () => {
     console.log('in handleAdd Property class:', propertyClass);
@@ -61,6 +67,12 @@ useEffect(() => {
       if (!propertyClass.property_class) {
         throw new Error('Enter the property class');
       }
+      if (!propertyClass.description) {
+        throw new Error('Enter the property class decription');
+      } 
+      if (!propertyClass.frequency) {
+        throw new Error('Enter a valid property class frequency');
+      }           
       if (!propertyClass.rate || isNaN(propertyClass.rate)) {
         throw new Error('Enter a valid property rate');
       }
@@ -69,24 +81,38 @@ useEffect(() => {
 
       const response = await dispatch(createPropertyClass(propertyClass)).unwrap();
 
-      if (createPropertyClass.fulfilled.match(response.payload.message)) {
-        setAddFlag(response.payload.message);
-        setPropertyClass({ property_class: '', rate: 0 });
+      if (response.success) {
+        setAddFlag(response.message || 'Record successfully added');
+        setPropertyClass({ property_class: '', description: '', frequency: '', rate: 0 });
   
         console.log(response);
   
         alert('Record successfully added'); // Assuming response is successful
+
+        console.log('about to fetch property classes')
   
         const result = await dispatch(fetchPropertyClasses()).unwrap() as FetchPropertyClassesResponse;
-        setLocalPropertyClasses(result.data);
+        console.log('After dispatch, property classes:', result.data);
+
+        if (result.data.length === 0) {
+            console.log('No property classes fetched');
+        } else {
+          console.log('Property classes fetched: ', result.data);
+            setLocalPropertyClasses(result.data);
+        }
+       
+        
       } else {
         throw new Error(response.error.message);
-      }
-
-    
-    } catch (error) {
+      }   
+    } catch (error: unknown) {
       console.error('Error adding property class:', error);
-      setAddFlag('Error in adding a record');
+      
+      if (error instanceof Error && error.message.includes('Property class record already exists')) {
+        setAddFlag('Property class record already exists');
+      } else {
+        setAddFlag('Error in adding a record');
+      }
     }
   };
 
@@ -102,7 +128,7 @@ useEffect(() => {
         const response = await dispatch(deletePropertyClass(propertyClass.property_class)).unwrap();
         setLocalPropertyClasses(localPropertyClasses.filter((pc) => pc.property_class !== propertyClass.property_class));
         setIsDeleting(false);
-        setPropertyClass({ property_class: '', rate: 0 });
+        setPropertyClass({ property_class: '', description: '', frequency: '', rate: 0 });
 
         console.log(response);
 
@@ -147,6 +173,29 @@ useEffect(() => {
                 placeholder="Enter Property Class"
               />
             </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Property Description:</Form.Label>
+              <Form.Control
+                type="text"
+                name="description"
+                value={propertyClass.description}
+                onChange={handleInputChange}
+                placeholder="Enter Property Class description"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Property Class Frequency:</Form.Label>
+              <Form.Control
+                type="text"
+                name="frequency"
+                value={propertyClass.frequency}
+                onChange={handleInputChange}
+                placeholder="Enter Property Class Frequency"
+              />
+            </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Property Rate:</Form.Label>
               <Form.Control
@@ -157,6 +206,7 @@ useEffect(() => {
                 placeholder="Enter Property Rate"
               />
             </Form.Group>
+
             <div className="d-flex justify-content-between">
               <Button variant="primary" onClick={handleAdd}>
                 Add New Record
@@ -179,14 +229,18 @@ useEffect(() => {
                 <thead>
                     <tr>
                         <th>PROPERTY CLASS</th>
+                        <th>DESCRIPTION</th>
+                        <th>FREQUENCY</th>
                         <th>RATE</th>
                         <th>ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {localPropertyClasses.map((pc) => (
-                        <tr key={pc.property_class}>
+                    {localPropertyClasses && localPropertyClasses.map((pc, index) => (
+                        <tr key={index}>
                             <td>{pc.property_class}</td>
+                            <td>{pc.description}</td>
+                            <td>{pc.frequency}</td>
                             <td>{pc.rate}</td>
                             <td>
                                 <button onClick={() => setPropertyClass(pc)} disabled={isDeleting}>

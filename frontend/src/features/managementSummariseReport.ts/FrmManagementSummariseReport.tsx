@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 //import { ChangeEvent } from 'react';
 import { useAppDispatch, useAppSelector } from '../../hooks';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,34 @@ import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { fetchBusTypeSummaryReports, BusTypeSummaryReport } from './BusTypeSummaryReportSlice';
 import { Bar } from 'react-chartjs-2';
 
+import {
+    BarElement,
+    CategoryScale,
+    LinearScale,
+    Tooltip,
+    Legend,
+} from 'chart.js';
+
+import { Chart as ChartJS } from 'chart.js';
+//import { Chart as ChartComponent } from 'react-chartjs-2';
+//import { MutableRefObject } from 'react';
+// import type { ChartJSOrUndefined } from 'react-chartjs-2';
+
+ import type { Chart } from 'chart.js';
+
+// This is what ChartJSOrUndefined<'bar', number[], string> resolves to:
+// type ChartJSOrUndefined = Chart<'bar', number[], string> | undefined;
+//type ChartJSOrUndefined = Chart<'bar', number[], string> | undefined;
+
+ChartJS.register(
+    BarElement,
+    CategoryScale,
+    LinearScale,
+    Tooltip,
+    Legend
+);
+
+
 interface BusinessTypeData {
     Business_Type: string;
     buss_type?: string;
@@ -15,6 +43,10 @@ interface BusinessTypeData {
 }
 
 const FrmManagementSummariseReport: React.FC = () => {
+    
+    const chartRef = useRef<Chart<'bar', number[], string> | null>(null);
+
+
     const [zone, setZone] = useState<string>('');
     const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
     const [bussType, setBussType] = useState<string>('');
@@ -25,6 +57,7 @@ const FrmManagementSummariseReport: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [managementReport, setManagementReport] = useState<BusTypeSummaryReport[]>([]);
     const [totalBalance, setTotalBalance] = useState<number>(0);
+    const [chartKey, setChartKey] = useState<number>(0); // Add this state
 
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
@@ -91,6 +124,7 @@ const FrmManagementSummariseReport: React.FC = () => {
             const answer = await dispatch(fetchBusTypeSummaryReports({ firstDate, lastDate, zone, bussType }));
             if (answer && answer.payload) {
                 setManagementReport(answer.payload);
+                setChartKey(prevKey => prevKey + 1); // Update the key to force a re-render
             }
         } catch (error: unknown) {
             if (error instanceof Error) {
@@ -116,20 +150,54 @@ const FrmManagementSummariseReport: React.FC = () => {
             {
                 label: 'Amount Due',
                 data: businessList.map((business) => business.amountdue),
+                barThickness: 20, // Adjust bar thickness as needed
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
             },
             {
                 label: 'Amount Paid',
                 data: businessList.map((business) => business.amountpaid),
+                barThickness: 20, // Adjust bar thickness as needed
                 backgroundColor: 'rgba(54, 162, 235, 0.5)',
             },
             {
                 label: 'Balance',
                 data: businessList.map((business) => business.balance),
+                barThickness: 20, // Adjust bar thickness as needed
                 backgroundColor: 'rgba(75, 192, 192, 0.5)',
             },
         ],
     };
+
+    //const maxYValue = Math.max(...chartData.datasets[0].data); // Assuming chartData.datasets[0].data contains the y values
+
+
+    useEffect(() => {
+        if (chartRef.current) {
+            chartRef.current.update(); // force re-render
+        }
+    }, [chartData]);
+        
+    useEffect(() => {
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+    }, [chartData]);
+     
+    useEffect(() => {
+        if (businessList.length > 0) {
+            window.requestAnimationFrame(() => {
+                window.dispatchEvent(new Event('resize'));
+            });
+        }
+    }, [chartData]);
+
+    useEffect(() => {
+        console.log('Chart data:', chartData);
+        console.log('Business List:', businessList);
+        if (chartRef.current) {
+            console.log('Chart instance:', chartRef.current);
+        }
+    }, [chartData]);
+    
+ 
 
     return (
         <div>
@@ -139,16 +207,42 @@ const FrmManagementSummariseReport: React.FC = () => {
                     <div className="text-center">
                         <Spinner style={{ width: '3rem', height: '3rem' }} />
                     </div>
+                    
                 ) : (
                     <div>
+                         <p style={{color: 'red', fontSize: 'bold'}}>Right Click Graph to Show & Print. Click Print Page. Click Cancel. </p>
                         <p>Total Balance: {totalBalance}</p>
                         <Form>
                             <Form.Group className="mb-3">
                                 <p className="text-center text-underline">Produce Daily Payments Report</p>
-                                {/* Render the Bar chart here */}
-                                <div className="mb-3">
-                                    <Bar data={chartData} />
-                                </div>
+                                {businessList.length > 0 && (
+                                    <div style={{ position: 'relative', height: '400px', width: '100%', border: '1px solid red' }}>
+                                        <Bar
+                                           ref={chartRef}
+                                            data={chartData}
+                                            options={{
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                scales: {
+                                                    y: {
+                                                        beginAtZero: true,
+                                                        max: Math.max(...chartData.datasets[0].data) * 1.1,
+                                                    },
+                                                    x: {
+                                                        type: 'category',
+                                                    },
+                                                },
+                                                plugins: {
+                                                    legend: { position: 'top' },
+                                                    tooltip: { mode: 'index', intersect: false },
+                                                },
+                                            }}
+                                            key={chartKey} // Use the chartKey as a key
+                                        />
+                                    </div>
+                                )}
+
+
                                 <Form.Label htmlFor="zone" className="font-weight-bold">
                                     Electoral Area:
                                 </Form.Label>

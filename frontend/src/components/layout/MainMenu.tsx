@@ -60,11 +60,11 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('ZO', 'PropertyRate')}>
                                 ZO_Setup Container/Kiosk Fees
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('SG', 'SetupGradeRates')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('SG', 'SetupGradeRates')}>
                                 SG_Setup Grade Rates
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('GF', 'SetupGradeFees')}>
-                                GF_Setup Grade Fees - Fee Fixing Data Entry
+                                GF_Setup Fee Fixing Table - Data Entry
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('EM', 'SetupOfficer')}>
                                 EM_Setup Collector
@@ -194,53 +194,53 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                         </NavDropdown>
 
                         {/* Hidden menu items are commented out for now */}
-                        {/* <NavDropdown title="Property Setup" id="basic-nav-dropdown">
-                            <NavDropdown.Item onClick={() => handleMenuClick('SP', 'SetupPropertyClass')}>
-                                SP_Fee Fixing Setup Property Class
+                        <NavDropdown title="Property Setup" id="basic-nav-dropdown">
+                            <NavDropdown.Item onClick={() => handleMenuClick('SP', 'PropertyClass')}>
+                                SP_Setup Property Class
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('SE', 'SetupTheUseofProperty')}>
-                                SE_Fee Fixing Setup The Use of Property
+                            <NavDropdown.Item onClick={() => handleMenuClick('SE', 'PropertyUse')}>
+                                SE_Setup The Use of Property
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('SE', 'FeeFixingSetupTypeofProperty')}>
-                                SE_Fee Fixing Setup Type of Property
+                            <NavDropdown.Item onClick={() => handleMenuClick('SE', 'PropertyType')}>
+                                SE_Setup Type of Property
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('SE', 'SetupPropertyRateOfficer')}>
-                                SE_Fee Fixing Setup Property Rate Officer
+                            <NavDropdown.Item onClick={() => handleMenuClick('SE', 'PropertyEmployee')}>
+                                SE_Setup Property Rate Officer
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('AE', 'AssignPropertyRateCollectorToElectoralArea')}>
-                                AE_Fee Fixing Assign Property Rate Collector To Electoral Area
+                            <NavDropdown.Item onClick={() => handleMenuClick('AE', 'PropertyCollectorElectoralArea')}>
+                                AE_Assign Property Rate Collector To Electoral Area
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('SE', 'SetupProperty')}>
-                                SE_Fee Fixing Setup Property
+                            <NavDropdown.Item onClick={() => handleMenuClick('SE', 'Property')}>
+                                SE_Setup Property
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'UpdateProperty')}>
-                                BN_Fee Fixing Update Property
+                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'PropertyUpdate')}>
+                                BN_Update Property
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'PropertyRateOfficerBudget')}>
+                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'PropertyOfficerBudget')}>
                                 BN_Setup Property Rate Officer Budget
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'PayPropertyBill')}>
+                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'PropertyBillPayments')}>
                                 BN_Pay Property Bill
                             </NavDropdown.Item>
-                        </NavDropdown> */}
+                        </NavDropdown>
 
-                        {/* <NavDropdown title="Property Rate Reports" id="basic-nav-dropdown">
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProducePropertyRateBills')}>
+                        <NavDropdown title="Property Rate Reports" id="basic-nav-dropdown">
+                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProducePropertyRates')}>
                                 BN_Produce Property Rate Bills
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProducePropertyClientStatement')}>
+                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'PropertySavingsStatementX')}>
                                 BN_Produce Property Client Statement
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('ME', 'PropertyRateMonitoringAndEvaluationReport')}>
-                                ME_ProduceProperty Rate Monitoring And Evaluation Report
+                                ME_Produce Property Rate Monitoring And Evaluation Report
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProduceDailyPropertyRatePaymentsReport')}>
+                            <NavDropdown.Item onClick={() => handleMenuClick('BN', 'DailyPropertyPaymentsReport')}>
                                 BN_Produce Daily Property Rate PaymentsReport
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProducePropertyRateVarianceAnalysisReport')}>
                                 BN_Produce a Snapshot of the Property Rate Financial Standing of the Assembly
                             </NavDropdown.Item>
-                        </NavDropdown> */}
+                        </NavDropdown>
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>
@@ -379,9 +379,9 @@ export default MainMenu;
 //         </div>
 //         <div>
 //             <h2>Property Rates Setup</h2>
-//             <li onClick={() => handleMenuClick('SP', 'SetupPropertyClass')}>SP_Fee Fixing Setup Property Class</li>
-//             <li onClick={() => handleMenuClick('SE', 'SetupTheUseofProperty')}>SE_Fee Fixing Setup The Use of Property</li>
-//             <li onClick={() => handleMenuClick('SE', 'FeeFixingSetupTypeofProperty')}>SE_Fee Fixing Setup Type of Property</li>
+//             <li onClick={() => handleMenuClick('SP', 'SetupPropertyClass')}>SP_Setup Property Class</li>
+//             <li onClick={() => handleMenuClick('SE', 'SetupTheUseofProperty')}>SE_Setup The Use of Property</li>
+//             <li onClick={() => handleMenuClick('SE', 'FeeFixingSetupTypeofProperty')}>SE_Setup Type of Property</li>
 //             <li onClick={() => handleMenuClick('SE', 'SetupPropertyRateOfficer')}>SE_Setup Property Rate Officer</li>
 //             <li onClick={() => handleMenuClick('AE', 'AssignPropertyRateCollectorToElectoralArea')}>AE_Assign Property Rate Collector To Electoral Area</li>
 //             <li onClick={() => handleMenuClick('SE', 'SetupProperty')}>SE_Setup Property</li>

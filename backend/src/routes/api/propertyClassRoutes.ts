@@ -78,11 +78,11 @@ const pool = new Pool(dbConfig);
 
 // end of experiment ///
 
-
-
 // PropertyClass data interface
 interface PropertyClassData {
     property_class: string;
+    description: string;
+    frequency: string;
     rate: number;
 }
 
@@ -92,7 +92,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
     console.log('Received propertyClassData:', propertyClassData);
 
-    const { property_class, rate } = propertyClassData;
+    const { property_class, description, frequency, rate } = propertyClassData;
 
     if (!property_class || rate == null) {
         res.status(400).json({ success: false, message: 'Property class and rate are required' });
@@ -102,7 +102,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
     const client = await pool.connect()
 
     try {
-        const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);
+        const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1 AND description = $2', [property_class, description]);
 
         if (result.rows.length > 0) {
             res.status(409).json({ message: 'Property class record already exists' });
@@ -111,20 +111,23 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
 
         // Insert the new property class data
         await client.query(
-            `INSERT INTO propertyclass (property_class, rate) 
-            VALUES ($1, $2)`,
-            [property_class, rate]
+            `INSERT INTO propertyclass (property_class,  description, frequency, rate) 
+            VALUES ($1, $2, $3, $4)`,
+            [property_class, description, frequency, rate]
         );
 
         res.status(201).json({ success: true, message: 'Property class record created successfully' });
     } catch (error: unknown) {
-        if (error instanceof Error){
+        if (error instanceof Error) {
             console.error('Error:', error);
-            res.status(500).json({ success: false, message: 'Error creating property class record', error: error.message });
-        }else{
-            res.status(500).json({success: false, message: 'Error creating property class record', error});
+            if (error.message.includes('duplicate key value violates unique constraint "unique_property_class_description"')) {
+                res.status(409).json({ success: false, message: 'Property class record already exists' });
+            } else {
+                res.status(500).json({ success: false, message: 'Error creating property class record', error: error.message });
+            }
+        } else {
+            res.status(500).json({ success: false, message: 'Error creating property class record', error: error });
         }
-        
     } finally {
         client.release();
     }
@@ -191,9 +194,9 @@ router.put('/:property_class', async (req: Request, res: Response): Promise<void
         // Update the property class data
         await client.query(
             `UPDATE propertyclass 
-            SET rate = $1 
+            SET description = $1, frequency = $2, rate = $1 
             WHERE property_class = $2`,
-            [propertyClassData.rate, property_class]
+            [propertyClassData.description, propertyClassData.frequency, propertyClassData.rate, property_class]
         );
 
         res.status(200).json({ success: true, message: 'Property class record updated successfully' });

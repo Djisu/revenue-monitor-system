@@ -6,7 +6,7 @@ import { fetchBusinesses, fetchBusinessById, updateBusiness } from './businessSl
 
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
-import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
+import { fetchPropertyClasses } from '../propertyPropertyClass/propertyClassSlice';
 import { fetchOfficers } from '../officer/officerSlice';
 //import {fetchGradeRates} from '../gradeRate/gradeRateSlice';
 // import {fetchPropertyRateByPropertyClassAndFiscalyear} from '../propertyRate/propertyRateSlice';

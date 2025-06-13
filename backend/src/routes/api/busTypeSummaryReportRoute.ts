@@ -280,12 +280,18 @@ router.get('/create/:firstDate/:lastDate/:zone/:bussType/:user', async (req: Req
                    [thisYear, row.electroral_area]
                 );
                 varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
+                if(recSumm.rows[0].totpayments === null){
+                    varPayment = 0;
+                }            
             } else {
                 console.log('specific business type');
                 const recSumm = await client.query('SELECT SUM(paidamount) AS totpayments FROM buspayments WHERE fiscal_year = $1 AND buss_type ILIKE $2 AND electroral_area ILIKE $3', 
                    [thisYear, bussType, row.electroral_area]
                 );
                 varPayment = recSumm.rows.length > 0 ? parseFloat(recSumm.rows[0].totpayments) : 0;
+                if(recSumm.rows[0].totpayments === null){
+                    varPayment = 0;
+                }    
             }
             console.log('varPayment: ', varPayment);
 

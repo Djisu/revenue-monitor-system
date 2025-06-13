@@ -112,8 +112,8 @@ const CollectorElectoralAreaForm = () => {
                     >
                         <option value="">Select Electoral Area</option>
                         {electoralAreas.map((electoralArea, index) => (
-                            <option key={index} value={electoralArea.electoral_area}>
-                                {electoralArea.electoral_area}
+                            <option key={index} value={electoralArea.electroral_area}>
+                                {electoralArea.electroral_area}
                             </option>
                         ))}
                     </select>

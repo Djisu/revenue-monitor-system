@@ -21,8 +21,10 @@
     "packageManager": "yarn@4.9.2",
     "dependencies": {
         "backend": "workspace:*",
+        "chart.js": "^4.4.9",
         "cors": "^2.8.5",
         "frontend": "workspace:*",
+        "react-chartjs-2": "^5.3.0",
         "react-router-dom": "^7.6.0",
         "typescript": "5.4.5",
         "vite": "^6.2.2"
