@@ -101,6 +101,7 @@ router.post('/create', async (req, res) => {
 });
 // Read all property class records
 router.get('/all', async (req, res) => {
+    console.log('Received request to read all property class records');
     const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM propertyclass');
@@ -114,9 +115,26 @@ router.get('/all', async (req, res) => {
         client.release();
     }
 });
+// Read all property class records
+router.get('/distinct', async (req, res) => {
+    console.log('Received request to read all distinct property class records');
+    const client = await pool.connect();
+    try {
+        const result = await client.query('SELECT DISTINCT property_class FROM propertyclass');
+        res.status(200).json({ success: true, data: result.rows });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error fetching property class records', error });
+    }
+    finally {
+        client.release();
+    }
+});
 // Read a single property class record by property_class
 router.get('/:property_class', async (req, res) => {
     const { property_class } = req.params;
+    console.log('Received request to read property class record with property_class:', property_class);
     const client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM propertyclass WHERE property_class = $1', [property_class]);

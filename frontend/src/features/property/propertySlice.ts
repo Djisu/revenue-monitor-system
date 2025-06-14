@@ -44,6 +44,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL ||
 // Async thunk to fetch all properties
 export const fetchProperties = createAsyncThunk('property/fetchProperties', async () => {
     console.log('fetchProperties called');
+    
     const response = await axios.get(`${BASE_URL}/api/property/fetchAll`);
 
     console.log('fetchProperties response: ', response.data.data);
@@ -57,7 +58,7 @@ export const fetchProperties = createAsyncThunk('property/fetchProperties', asyn
 // Async thunk to fetch a single property by house_no
 export const fetchPropertyByHouseNo = createAsyncThunk('property/fetchPropertyById', async (house_no: string) => {
     console.log('fetchPropertyByHouseNo called with house_no: ', house_no);
-    
+
     const response = await axios.get(`${BASE_URL}/api/property/${house_no}`);
 
     if (response.status === 200){
@@ -94,6 +95,7 @@ export const deleteProperty = createAsyncThunk('property/deleteProperty', async 
     const response = await axios.delete(`${BASE_URL}/api/property/${house_no}`);
     return response.data;
 });
+
 
 // Create the slice
 const propertySlice = createSlice({
