@@ -37,7 +37,7 @@ import FrmDefaulterPrepayment from './features/busPayments/FrmDefaulterPrepaymen
 import FrmDailyPayments from './features/busPayments/FrmDailyPayments';
 import FrmOfficerAssessment from './features/officerAssessment/FrmOfficerAssessment';
 import FrmMidlevelDetailedReport from './features/busTypeDetailedReport/FrmMidlevelDetailedReport';
-import FrmManagementSummariseReport from './features/managementSummariseReport.ts/FrmManagementSummariseReport';
+import FrmManagementSummariseReport from './features/managementSummariseReport/FrmManagementSummariseReport';
 import FrmVariance from './features/busPayments/FrmVariance';
 import FrmOfficerBudgetAssessment from './features/officerAssessment/FrmOfficerBudgetAssessment';
 import FrmMonthlyPerformance from './features/offBudgetAssessment/FrmMonthlyPerformance';
@@ -47,7 +47,7 @@ import FrmBusinessTypesReport from './features/businessType/FrmBusinessTypesRepo
 import FrmCollectorsBusinessesReport from './features/officer/FrmCollectorsBusinessesReport';
 
 
-import FrmPropertyClass from './features/propertyPropertyClass/FrmPropertyClass';
+import FrmPropertyClass from './features/propertyClass/FrmPropertyClass';
 
 import FrmPropertyUse from './features/propertyUse/FrmPropertyUse';
 import FrmPropertyType from './features/propertyType/FrmPropertyType';

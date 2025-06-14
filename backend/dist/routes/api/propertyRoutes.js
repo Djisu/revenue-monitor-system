@@ -63,7 +63,9 @@ const dbConfig = {
 const pool = new Pool(dbConfig);
 let client = null;
 // Create a new property record
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
+    console.log('router.post(/create');
+    //const propertyData: PropertyData = req.body;
     const propertyData = req.body;
     client = await pool.connect();
     try {
@@ -99,7 +101,7 @@ router.post('/', async (req, res) => {
             propertyData.PropertytypeRate,
             propertyData.PropertyclassRate,
         ]);
-        res.status(201).json({ message: 'Property record created successfully' });
+        res.status(201).json({ message: 'Property record created successfully', data: result.rows[0] });
     }
     catch (error) {
         console.error('Error:', error);
@@ -111,16 +113,20 @@ router.post('/', async (req, res) => {
     }
 });
 // Read all property records
-router.get('/', async (req, res) => {
+router.get('/fetchAll', async (req, res) => {
     // client = await pool.connect();
+    console.log('in router.get(/fetchAll)');
     client = await pool.connect();
     try {
         const result = await client.query('SELECT * FROM property');
-        res.json(result.rows);
+        if (result.rows.length == 0)
+            res.status(404).json({ message: 'No property records found', data: [] });
+        else
+            res.status(200).json({ message: 'Property records fetched successfully', data: result.rows });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching property records', error });
+        res.status(500).json({ message: 'Error fetching property records', error: error });
     }
     finally {
         client.release();

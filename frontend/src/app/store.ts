@@ -20,7 +20,7 @@ import  operatorDefinitionReducer from '../features/operatorDefinition/operatorD
 import  operatorPermissionReducer from '../features/operatorPermission/operatorPermissionSlice';
 import  paymentReportReducer from '../features/paymentReport/paymentReportSlice';
 //import  propertyBalanceReducer from '../features/propertyBalance/propertyBalanceSlice';
-import  propertyClassReducer from '../features/propertyPropertyClass/propertyClassSlice';
+import  propertyClassReducer from '../features/propertyClass/propertyClassSlice';
 // import  propertyCollectorElectoralarealReducer from '../features/propertyCollectorElectoralArea/propertyCollectorElectoralAreaSlice';
 // import  propertyOfficerAssessmentReducer from '../features/propertyOfficerAssessment/propertyOfficerAssessmentSlice';
 // import  propertyOfficerBudgetReducer from '../features/propertyOfficerBudget/propertyOfficerBudgetSlice';
@@ -38,7 +38,8 @@ import officerBudgetReducer from '../features/officerBudget/officerBudgetSlice';
 import { collectorElectoralAreaReducer } from '../features/collectorElectoralarea/collectorElectoralAreaSlice';
 import balanceReducer from '../features/balance/balanceSlice';
 import busTypedetailedReportReducer from '../features/busTypeDetailedReport/busTypeDetailedReportSlice'
-import reportsReducer from '../features/managementSummariseReport.ts/BusTypeSummaryReportSlice';
+import reportsReducer from '../features/managementSummariseReport/BusTypeSummaryReportSlice';
+import propertyReducer from '../features/property/propertySlice'
 
 
 const store = configureStore({
@@ -79,6 +80,7 @@ const store = configureStore({
         balance: balanceReducer,
         busTypedetailedReport: busTypedetailedReportReducer,
         reports: reportsReducer,
+        property: propertyReducer,
     },
 });
 

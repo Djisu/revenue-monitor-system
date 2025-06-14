@@ -21,33 +21,37 @@ export const initialState: PropertyTypeState = {
     error: null,
 };
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
+
+
 // Async thunk to fetch all property types
 export const fetchPropertyTypes = createAsyncThunk('propertyType/fetchPropertyTypes', async () => {
-    const response = await axios.get('/api/propertyType');
+    const response = await axios.get(`${BASE_URL}/api/propertyType`);
     return response.data;
 });
 
 // Async thunk to fetch a single property type by property_type
 export const fetchPropertyTypeById = createAsyncThunk('propertyType/fetchPropertyTypeById', async (property_type: string) => {
-    const response = await axios.get(`/api/propertyType/${property_type}`);
+    const response = await axios.get(`${BASE_URL}/api/propertyType/${property_type}`);
     return response.data;
 });
 
 // Async thunk to create a new property type
 export const createPropertyType = createAsyncThunk('propertyType/createPropertyType', async (propertyTypeData: PropertyTypeData) => {
-    const response = await axios.post('/api/propertyType', propertyTypeData);
+    const response = await axios.post(`${BASE_URL}/api/propertyType`, propertyTypeData);
     return response.data;
 });
 
 // Async thunk to update a property type
 export const updatePropertyType = createAsyncThunk('propertyType/updatePropertyType', async ({ property_type, propertyTypeData }: { property_type: string; propertyTypeData: PropertyTypeData }) => {
-    const response = await axios.put(`/api/propertyType/${property_type}`, propertyTypeData);
+    const response = await axios.put(`${BASE_URL}/api/propertyType/${property_type}`, propertyTypeData);
     return response.data;
 });
 
 // Async thunk to delete a property type
 export const deletePropertyType = createAsyncThunk('propertyType/deletePropertyType', async (property_type: string) => {
-    const response = await axios.delete(`/api/propertyType/${property_type}`);
+    const response = await axios.delete(`${BASE_URL}/api/propertyType/${property_type}`);
     return response.data;
 });
 

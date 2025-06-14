@@ -3,7 +3,7 @@ import { Button, Form, Col, Row, Spinner, Card } from 'react-bootstrap';
 
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
-import { fetchPropertyClasses } from '../propertyPropertyClass/propertyClassSlice';
+import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
 import { fetchOfficers } from '../officer/officerSlice';
 import { createBusiness, fetchLastBussNo } from './businessSlice';
 import { useAppDispatch, useAppSelector } from '../../app/store';
@@ -113,7 +113,7 @@ export const FrmBusiness: React.FC = () => {
 
     useEffect(() => {
         if (electoralAreaData && Array.isArray(electoralAreaData)) {
-            setElectoralAreas(electoralAreaData.map((area) => area.electoral_area));
+            setElectoralAreas(electoralAreaData.map((area) => area.electroral_area));
         }
     }, [electoralAreaData]);
 

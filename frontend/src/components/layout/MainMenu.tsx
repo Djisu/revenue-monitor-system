@@ -198,12 +198,12 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('SP', 'PropertyClass')}>
                                 SP_Setup Property Class
                             </NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleMenuClick('SE', 'PropertyUse')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('SE', 'PropertyUse')}>
                                 SE_Setup The Use of Property
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('SE', 'PropertyType')}>
                                 SE_Setup Type of Property
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                             <NavDropdown.Item onClick={() => handleMenuClick('SE', 'PropertyEmployee')}>
                                 SE_Setup Property Rate Officer
                             </NavDropdown.Item>
