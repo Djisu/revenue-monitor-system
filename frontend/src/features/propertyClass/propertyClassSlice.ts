@@ -29,7 +29,37 @@ const BASE_URL = import.meta.env.VITE_BASE_URL ||
 // Async thunk to fetch all property classes
 export const fetchPropertyClasses = createAsyncThunk('propertyClass/fetchPropertyClasses', async () => {
     try {
+        console.log('in fetchPropertyClasses')
+
         const response = await axios.get(`${BASE_URL}/api/propertyClass/all`);
+
+        console.log('fetchPropertyClasses response:', response);
+
+        if (response.status >= 200 && response.status < 300) {
+
+            console.log('fetchPropertyClasses response:', response.data.data);
+
+            return response.data.data; // This should be the structure you expect
+        } else {
+            throw new Error(`Error fetching property classes: ${response.statusText}`);
+        }
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            throw new Error(error.message);
+        } else {
+            throw new Error('Network error or other issue');
+        }
+    }
+});
+
+export const fetchPropertyClassesDistinct = createAsyncThunk('propertyClass/fetchPropertyClasses', async () => {
+    try {
+        console.log('in fetchPropertyClasses')
+        
+        const response = await axios.get(`${BASE_URL}/api/propertyClass/distinct`);
+
+        console.log('fetchPropertyClasses response:', response);
+
         if (response.status >= 200 && response.status < 300) {
 
             console.log('fetchPropertyClasses response:', response.data.data);

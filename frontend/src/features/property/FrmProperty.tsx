@@ -6,7 +6,7 @@ import { fetchProperties, createProperty, PropertyData } from './propertySlice';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 
 import { fetchOfficers } from '../officer/officerSlice';
-import {fetchPropertyClasses} from '../propertyClass/propertyClassSlice'
+import {fetchPropertyClassesDistinct} from '../propertyClass/propertyClassSlice'
 
 
 interface Property {
@@ -80,29 +80,39 @@ const FrmProperty: React.FC = () => {
     const propertyClassesState = useAppSelector((state) => state.propertyClass);
     const { loading, error, propertyClasses } = propertyClassesState;
 
+    if (loading){
+        <div>Loading...</div>
+    }
+
+    if (error){
+        <div>Error: {error}</div>
+    }
+
     useEffect(() => {
         // Fetch properties and dropdown options on form load
         fetchProperties();
         dispatch(fetchElectoralAreas());
-        fetchPropertyClasses();
         dispatch(fetchOfficers());
     }, []);
 
     useEffect(() => {
-        if (propertyClasses){
+        console.log('about to fetch property classes');
+        dispatch(fetchPropertyClassesDistinct()); // Dispatch the thunk to fetch data
+    }, [dispatch]); // Ensure this runs only once
+
+    useEffect(() => {
+        if (propertyClasses) {
+            console.log('propertyClasses:', propertyClasses);
             setPropertyClassesData(propertyClasses.map((propertyClass) => propertyClass.property_class));
         }
-    }, [propertyClasses]);
-    
-
+    }, [propertyClasses]); // This will re-run only when propertyClasses changes
 
     useEffect(() => {
         if (electoralAreaData && Array.isArray(electoralAreaData)) {
             setElectoralAreas(electoralAreaData.map((area) => area.electroral_area));
         }
     }, [electoralAreaData]);
-
-       
+     
     const handleElectoralAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setElectoralArea(e.target.value);
     };
@@ -404,8 +414,8 @@ const FrmProperty: React.FC = () => {
                             required
                         >
                             <option value="">Select Class of Property</option>
-                            {propertyClasses.map(option => (
-                                <option key={option.property_class} value={option.property_class}>{option.property_class}</option>
+                            {propertyClasses.map((option, index) => (
+                                <option key={index} value={option.property_class}>{option.property_class}</option>
                             ))}
                         </Form.Select>
                     </Form.Group>
