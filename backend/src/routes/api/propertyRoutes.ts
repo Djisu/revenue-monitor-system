@@ -109,7 +109,10 @@ interface PropertyData {
 
 
 // Create a new property record
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/create', async (req: Request, res: Response): Promise<void> => {
+    console.log('router.post(/create')
+    //const propertyData: PropertyData = req.body;
+
     const propertyData: PropertyData = req.body;
 
     client = await pool.connect();
@@ -153,7 +156,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
             ]
         );
 
-        res.status(201).json({ message: 'Property record created successfully' });
+        res.status(201).json({ message: 'Property record created successfully', data: result.rows[0] });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating property record', error });
@@ -164,19 +167,25 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Read all property records
-router.get('/', async (req: Request, res: Response) => {
+router.get('/fetchAll', async (req: Request, res: Response) => {
    // client = await pool.connect();
+   console.log('in router.get(/fetchAll)')
+
     client = await pool.connect();
 
     try {
         const result: QueryResult = await client.query('SELECT * FROM property');
-        res.json(result.rows);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching property records', error });
-    } finally {
-        client.release();
-    }
+
+        if (result.rows.length == 0)
+            res.status(404).json({ message: 'No property records found', data: [] });
+        else
+            res.status(200).json({ message: 'Property records fetched successfully', data: result.rows });
+        } catch (error) {   
+            console.error(error);
+            res.status(500).json({ message: 'Error fetching property records', error: error });
+        } finally {
+            client.release();
+        }    
 });
 
 // Read a single property record by house_no

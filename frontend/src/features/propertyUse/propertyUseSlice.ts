@@ -21,33 +21,37 @@ export const initialState: PropertyUseState = {
     error: null,
 };
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
+
+
 // Async thunk to fetch all property uses
 export const fetchPropertyUses = createAsyncThunk('propertyUse/fetchPropertyUses', async () => {
-    const response = await axios.get('/api/propertyUse');
+    const response = await axios.get(`${BASE_URL}/api/propertyUse`);
     return response.data;
 });
 
 // Async thunk to fetch a single property use by PropertyUse
 export const fetchPropertyUseById = createAsyncThunk('propertyUse/fetchPropertyUseById', async (PropertyUse: string) => {
-    const response = await axios.get(`/api/propertyUse/${PropertyUse}`);
+    const response = await axios.get(`${BASE_URL}/api/propertyUse/${PropertyUse}`);
     return response.data;
 });
 
 // Async thunk to create a new property use
 export const createPropertyUse = createAsyncThunk('propertyUse/createPropertyUse', async (propertyUseData: PropertyUseData) => {
-    const response = await axios.post('/api/propertyUse', propertyUseData);
+    const response = await axios.post(`${BASE_URL}/api/propertyUse`, propertyUseData);
     return response.data;
 });
 
 // Async thunk to update a property use
 export const updatePropertyUse = createAsyncThunk('propertyUse/updatePropertyUse', async ({ PropertyUse, propertyUseData }: { PropertyUse: string; propertyUseData: PropertyUseData }) => {
-    const response = await axios.put(`/api/propertyUse/${PropertyUse}`, propertyUseData);
+    const response = await axios.put(`${BASE_URL}/api/propertyUse/${PropertyUse}`, propertyUseData);
     return response.data;
 });
 
 // Async thunk to delete a property use
 export const deletePropertyUse = createAsyncThunk('propertyUse/deletePropertyUse', async (PropertyUse: string) => {
-    const response = await axios.delete(`/api/propertyUse/${PropertyUse}`);
+    const response = await axios.delete(`${BASE_URL}/api/propertyUse/${PropertyUse}`);
     return response.data;
 });
 

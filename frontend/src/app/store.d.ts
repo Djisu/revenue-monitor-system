@@ -12,7 +12,7 @@ declare const store: import("@reduxjs/toolkit").EnhancedStore<{
     gradeRate: import("../features/gradeRate/gradeRateSlice").GradeRateState;
     offBudgetAssessment: import("../features/offBudgetAssessment/offBudgetAssessmentSlice").OffBudgetAssessmentState;
     officerAssessment: import("../features/officerAssessment/officerAssessmentSlice").PaymentsState;
-    officerBudgetWeekly: import("../features/officerBudgetWeekly/officerBudgetWeeklySlice").OfficerBudgetWeeklyState;
+    //officerBudgetWeekly: import("../features/officerBudgetWeekly/officerBudgetWeeklySlice").OfficerBudgetWeeklyState;
     officer: import("../features/officer/officerSlice").OfficerState;
     operatorDefinition: import("../features/operatorDefinition/operatorDefinitionSlice").OperatorState;
     operatorPermission: import("../features/operatorPermission/operatorPermissionSlice").OperatorPermissionState;
@@ -34,7 +34,7 @@ declare const store: import("@reduxjs/toolkit").EnhancedStore<{
     collectorElectoralArea: import("../features/collectorElectoralarea/collectorElectoralAreaSlice").CollectorElectoralAreaState;
     balance: import("../features/balance/balanceSlice").BalanceState;
     busTypedetailedReport: import("../features/busTypeDetailedReport/busTypeDetailedReportSlice").ReportsState;
-    reports: import("../features/managementSummariseReport.ts/BusTypeSummaryReportSlice").ReportsState;
+    reports: import("../features/managementSummariseReport/BusTypeSummaryReportSlice").ReportsState;
 }, import("redux").UnknownAction, import("@reduxjs/toolkit").Tuple<[import("redux").StoreEnhancer<{
     dispatch: import("redux-thunk").ThunkDispatch<{
         accReceipt: import("../features/accReceipt/accReceiptSlice").AccReceiptState;
@@ -70,7 +70,7 @@ declare const store: import("@reduxjs/toolkit").EnhancedStore<{
         collectorElectoralArea: import("../features/collectorElectoralarea/collectorElectoralAreaSlice").CollectorElectoralAreaState;
         balance: import("../features/balance/balanceSlice").BalanceState;
         busTypedetailedReport: import("../features/busTypeDetailedReport/busTypeDetailedReportSlice").ReportsState;
-        reports: import("../features/managementSummariseReport.ts/BusTypeSummaryReportSlice").ReportsState;
+        reports: import("../features/managementSummariseReport/BusTypeSummaryReportSlice").ReportsState;
     }, undefined, import("redux").UnknownAction>;
 }>, import("redux").StoreEnhancer]>>;
 export type AppStore = typeof store;
@@ -111,7 +111,7 @@ export declare const useAppDispatch: () => import("redux-thunk").ThunkDispatch<{
     collectorElectoralArea: import("../features/collectorElectoralarea/collectorElectoralAreaSlice").CollectorElectoralAreaState;
     balance: import("../features/balance/balanceSlice").BalanceState;
     busTypedetailedReport: import("../features/busTypeDetailedReport/busTypeDetailedReportSlice").ReportsState;
-    reports: import("../features/managementSummariseReport.ts/BusTypeSummaryReportSlice").ReportsState;
+    reports: import("../features/managementSummariseReport/BusTypeSummaryReportSlice").ReportsState;
 }, undefined, import("redux").UnknownAction> & import("redux").Dispatch<import("redux").UnknownAction>;
 export declare const useAppSelector: TypedUseSelectorHook<RootState>;
 export default store;

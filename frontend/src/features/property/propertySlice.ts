@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Define the type for Property data
-interface PropertyData {
+export interface PropertyData {
     house_no: string;
     owner: string;
     tenant: string;
@@ -13,8 +13,6 @@ interface PropertyData {
     electroral_area: string;
     landmark: string;
     street_name: string;
-    lattitude: number;
-    longitude: number;
     code: string;
     elevation: number;
     rate: number;
@@ -23,10 +21,11 @@ interface PropertyData {
     PropertyUseRate: number;
     PropertytypeRate: number;
     PropertyclassRate: number;
+    gps_address?: string;
 }
 
 // Define the initial state for the slice
-interface PropertyState {
+export interface PropertyState {
     properties: PropertyData[];
     loading: boolean;
     error: string | null;
@@ -38,33 +37,61 @@ const initialState: PropertyState = {
     error: null,
 };
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
+
+
 // Async thunk to fetch all properties
 export const fetchProperties = createAsyncThunk('property/fetchProperties', async () => {
-    const response = await axios.get('/api/property');
-    return response.data;
+    console.log('fetchProperties called');
+    const response = await axios.get(`${BASE_URL}/api/property/fetchAll`);
+
+    console.log('fetchProperties response: ', response.data.data);
+
+    if (response.status === 200){
+        return response.data.data;
+    }
+    return [];
 });
 
 // Async thunk to fetch a single property by house_no
-export const fetchPropertyById = createAsyncThunk('property/fetchPropertyById', async (house_no: string) => {
-    const response = await axios.get(`/api/property/${house_no}`);
-    return response.data;
+export const fetchPropertyByHouseNo = createAsyncThunk('property/fetchPropertyById', async (house_no: string) => {
+    console.log('fetchPropertyByHouseNo called with house_no: ', house_no);
+    
+    const response = await axios.get(`${BASE_URL}/api/property/${house_no}`);
+
+    if (response.status === 200){
+        return response.data.data;
+    }
+    return null;
 });
 
 // Async thunk to create a new property
 export const createProperty = createAsyncThunk('property/createProperty', async (propertyData: PropertyData) => {
-    const response = await axios.post('/api/property', propertyData);
-    return response.data;
+    try {
+        const response = await axios.post(`${BASE_URL}/api/property/create`, propertyData);
+
+        if (response.status === 201) {
+            console.log('Property created successfully: ', response.data)
+            return response.data.data;
+        } 
+    } catch (error: unknown) {
+        if (error instanceof Error){
+            console.error(error.message);
+            return null;
+        }
+    }
 });
 
 // Async thunk to update a property
 export const updateProperty = createAsyncThunk('property/updateProperty', async ({ house_no, propertyData }: { house_no: string; propertyData: PropertyData }) => {
-    const response = await axios.put(`/api/property/${house_no}`, propertyData);
+    const response = await axios.put(`${BASE_URL}/api/property/${house_no}`, propertyData);
     return response.data;
 });
 
 // Async thunk to delete a property
 export const deleteProperty = createAsyncThunk('property/deleteProperty', async (house_no: string) => {
-    const response = await axios.delete(`/api/property/${house_no}`);
+    const response = await axios.delete(`${BASE_URL}/api/property/${house_no}`);
     return response.data;
 });
 
@@ -87,15 +114,16 @@ const propertySlice = createSlice({
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch properties';
             })
-            .addCase(fetchPropertyById.pending, (state) => {
+            .addCase(fetchPropertyByHouseNo.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchPropertyById.fulfilled, (state) => {
+            .addCase(fetchPropertyByHouseNo.fulfilled, (state, action) => {
                 state.loading = false;
                 // Optionally handle the fetched property data
+                state.properties = action.payload; // Add the new property
                 state.error = null;
             })
-            .addCase(fetchPropertyById.rejected, (state, action) => {
+            .addCase(fetchPropertyByHouseNo.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch property';
             })
@@ -104,7 +132,7 @@ const propertySlice = createSlice({
             })
             .addCase(createProperty.fulfilled, (state, action) => {
                 state.loading = false;
-                state.properties.push(action.payload); // Add the new property
+                state.properties = action.payload; // Add the new property
                 state.error = null;
             })
             .addCase(createProperty.rejected, (state, action) => {

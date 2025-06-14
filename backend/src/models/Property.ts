@@ -18,5 +18,6 @@ export interface Property {
     PropertyUseRate: number;
     PropertytypeRate: number;
     PropertyclassRate: number;
+    gps_address?: string;
 }
 

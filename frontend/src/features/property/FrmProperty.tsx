@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Table } from 'react-bootstrap';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../../app/store';
+import { fetchProperties, createProperty, PropertyData } from './propertySlice';
+import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
+
+import { fetchOfficers } from '../officer/officerSlice';
+import {fetchPropertyClasses} from '../propertyClass/propertyClassSlice'
+
 
 interface Property {
     house_no: string;
@@ -13,8 +19,7 @@ interface Property {
     electroral_area: string;
     landmark: string;
     street_name: string;
-    lattitude: string;
-    longitude: string;
+   
     code: string;
     elevation: string;
     rate: number;
@@ -23,12 +28,13 @@ interface Property {
     PropertyUseRate: number;
     PropertytypeRate: number;
     PropertyclassRate: number;
+    gps_address: string;
 }
 
-interface ComboBoxOption {
-    value: string;
-    label: string;
-}
+// interface ComboBoxOption {
+//     value: string;
+//     label: string;
+// }
 
 const FrmProperty: React.FC = () => {
     const [houseNo, setHouseNo] = useState<string>('');
@@ -37,103 +43,72 @@ const FrmProperty: React.FC = () => {
     const [propertyUse, setPropertyUse] = useState<string>('');
     const [propertyType, setPropertyType] = useState<string>('');
     const [propertyClass, setPropertyClass] = useState<string>('');
+    const [propertyClassesData, setPropertyClassesData] = useState<string[]>([]);
     const [electoralArea, setElectoralArea] = useState<string>('');
     const [landMark, setLandMark] = useState<string>('');
     const [streetName, setStreetName] = useState<string>('');
-    const [lattitude, setLattitude] = useState<string>('');
-    const [longitude, setLongitude] = useState<string>('');
+   
     const [code, setCode] = useState<string>('');
-    const [elevation, setElevation] = useState<string>('');
+    const [elevation, setElevation] = useState<number>(0);
     const [propertyRate, setPropertyRate] = useState<number>(0.0000);
-    const [propertyUseRate, setPropertyUseRate] = useState<number>(0.0000);
-    const [propertyTypeRate, setPropertyTypeRate] = useState<number>(0.0000);
-    const [propertyClassRate, setPropertyClassRate] = useState<number>(0.0000);
-    const [assessmentBy, setAssessmentBy] = useState<string>('');
+    const [propertyUseRate, setPropertyUseRate] = useState<number>(0);
+    const [propertyTypeRate, setPropertyTypeRate] = useState<number>(0);
+    const [propertyClassRate, setPropertyClassRate] = useState<number>(0);
+   
+    const [gpsAddress, setGpsAddress] = useState<string>('');
+    const [assessments, setAssessments] = useState<string[]>([]);
     const [properties, setProperties] = useState<Property[]>([]);
-    const [electoralAreaOptions, setElectoralAreaOptions] = useState<ComboBoxOption[]>([]);
-    const [propertyTypeOptions, setPropertyTypeOptions] = useState<ComboBoxOption[]>([]);
-    const [propertyClassOptions, setPropertyClassOptions] = useState<ComboBoxOption[]>([]);
-    const [assessmentByOptions, setAssessmentByOptions] = useState<ComboBoxOption[]>([]);
+    //const [electoralAreaOptions, setElectoralAreaOptions] = useState<ComboBoxOption[]>([]);
+    // const [propertyTypeOptions, setPropertyTypeOptions] = useState<ComboBoxOption[]>([]);
+    // const [propertyClassOptions, setPropertyClassOptions] = useState<ComboBoxOption[]>([]);
+   // const [assessmentByOptions, setAssessmentByOptions] = useState<ComboBoxOption[]>([]);
+    const [assessment, setAssessment] = useState('')
+
+    const electoralAreaData = useAppSelector((state) => state.electoralArea.electoralAreas);
+
+    const dispatch = useAppDispatch();
+    const propertiesState = useAppSelector((state) => state.property);
+
+    const [electoralAreas, setElectoralAreas] = useState<string[]>([]);
+
+    const officer = useAppSelector((state) => state.officer.officers);
+
+    useEffect(() => {
+        setAssessments(officer.map((officer) => `${officer.officer_name}`));
+    }, [officer]);
+
+    const propertyClassesState = useAppSelector((state) => state.propertyClass);
+    const { loading, error, propertyClasses } = propertyClassesState;
 
     useEffect(() => {
         // Fetch properties and dropdown options on form load
         fetchProperties();
-        fetchElectoralAreaOptions();
-        fetchPropertyTypeOptions();
-        fetchPropertyClassOptions();
-        fetchAssessmentByOptions();
+        dispatch(fetchElectoralAreas());
+        fetchPropertyClasses();
+        dispatch(fetchOfficers());
     }, []);
 
-    const fetchProperties = async () => {
-        try {
-            const response = await axios.get('/api/properties');
-            setProperties(response.data);
-        } catch (error) {
-            console.error("Error fetching properties", error);
-            alert("An error occurred while fetching properties");
+    useEffect(() => {
+        if (propertyClasses){
+            setPropertyClassesData(propertyClasses.map((propertyClass) => propertyClass.property_class));
         }
-    };
+    }, [propertyClasses]);
+    
 
-    const fetchElectoralAreaOptions = async () => {
-        try {
-            const response = await axios.get('/api/electoral-area-options');
-            setElectoralAreaOptions(response.data.map((area: any) => ({
-                value: area.electoral_area,
-                label: area.electoral_area
-            })));
-        } catch (error) {
-            console.error("Error fetching electoral area options", error);
-            alert("No electoral area entered yet");
+
+    useEffect(() => {
+        if (electoralAreaData && Array.isArray(electoralAreaData)) {
+            setElectoralAreas(electoralAreaData.map((area) => area.electroral_area));
         }
-    };
+    }, [electoralAreaData]);
 
-    const fetchPropertyTypeOptions = async () => {
-        try {
-            const response = await axios.get('/api/property-type-options');
-            setPropertyTypeOptions(response.data.map((type: any) => ({
-                value: type.property_type,
-                label: type.property_type
-            })));
-        } catch (error) {
-            console.error("Error fetching property type options", error);
-            alert("Error fetching property type options");
-        }
-    };
-
-    const fetchPropertyClassOptions = async () => {
-        try {
-            const response = await axios.get('/api/property-class-options');
-            setPropertyClassOptions(response.data.map((cls: any) => ({
-                value: cls.property_class,
-                label: cls.property_class
-            })));
-        } catch (error) {
-            console.error("Error fetching property class options", error);
-            alert("Error fetching property class options");
-        }
-    };
-
-    const fetchAssessmentByOptions = async () => {
-        try {
-            const response = await axios.get('/api/assessment-by-options');
-            setAssessmentByOptions(response.data.map((officer: any) => ({
-                value: `${officer.officer_no} ${officer.officer_name}`,
-                label: `${officer.officer_no} ${officer.officer_name}`
-            })));
-        } catch (error) {
-            console.error("Error fetching assessment by options", error);
-            alert("No officer entered yet");
-        }
-    };
-
+       
     const handleElectoralAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setElectoralArea(e.target.value);
-        fetchPropertyUseRate(e.target.value);
     };
 
     const handlePropertyTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setPropertyType(e.target.value);
-        fetchPropertyTypeRate(e.target.value);
     };
 
     const handlePropertyUseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -142,73 +117,10 @@ const FrmProperty: React.FC = () => {
 
     const handlePropertyClassChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setPropertyClass(e.target.value);
-        fetchPropertyClassRate(e.target.value);
     };
 
     const handleAssessmentByChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setAssessmentBy(e.target.value);
-    };
-
-    const fetchPropertyUseRate = async (electoralArea: string) => {
-        if (!electoralArea) {
-            return;
-        } 
-
-        try {
-            const response = await axios.get('/api/property-use-rate', {
-                params: { electoral_area: electoralArea }
-            });
-
-            if (response.data.length > 0) {
-                setPropertyUseRate(response.data[0].propertyrate);
-            } else {
-                alert("No rate found");
-            }
-        } catch (error) {
-            console.error("Error fetching property use rate", error);
-            alert("Error fetching property use rate");
-        }
-    };
-
-    const fetchPropertyTypeRate = async (propertyType: string) => {
-        if (!propertyType) {
-            return;
-        } 
-
-        try {
-            const response = await axios.get('/api/property-type-rate', {
-                params: { propertyType }
-            });
-
-            if (response.data.length > 0) {
-                setPropertyTypeRate(response.data[0].rate);
-            } else {
-                alert("No rate found");
-            }
-        } catch (error) {
-            console.error("Error fetching property type rate", error);
-            alert("Error fetching property type rate");
-        }
-    };
-
-    const fetchPropertyClassRate = async (propertyClass: string) => {
-        if (!propertyClass) {
-           return;
-        }
-        try {
-            const response = await axios.get('/api/property-class-rate', {
-                params: { propertyClass }
-            });
-
-            if (response.data.length > 0) {
-                setPropertyClassRate(response.data[0].rate);
-            } else {
-                alert("No rate found");
-            }
-        } catch (error) {
-            console.error("Error fetching property class rate", error);
-            alert("Error fetching property class rate");
-        }
+        setAssessment(e.target.value);
     };
 
     const handleAddClick = async () => {
@@ -248,14 +160,7 @@ const FrmProperty: React.FC = () => {
             alert("Kindly enter the street name");
             return;
         }
-        if (!lattitude) {
-            alert("Kindly enter the Lattitude");
-            return;
-        }
-        if (!longitude) {
-            alert("Kindly enter the Longitude");
-            return;
-        }
+      
         if (!code) {
             alert("Kindly enter the code");
             return;
@@ -268,13 +173,17 @@ const FrmProperty: React.FC = () => {
             alert("Kindly enter the property rate");
             return;
         }
-        if (!assessmentBy) {
+        if (!assessments) {
             alert("Kindly enter the officer in charge of the property");
+            return;
+        }
+        if (!gpsAddress) {
+            alert("Kindly enter the GPS address");
             return;
         }
 
         try {
-            const response = await axios.post('/api/add-property', {
+            const propertyData: PropertyData  = {
                 house_no: houseNo,
                 owner,
                 tenant,
@@ -284,19 +193,21 @@ const FrmProperty: React.FC = () => {
                 electroral_area: electoralArea,
                 landmark: landMark,
                 street_name: streetName,
-                lattitude,
-                longitude,
                 code,
                 elevation,
                 rate: propertyRate,
-                Assessmentby: assessmentBy,
+                Assessmentby: assessment,
                 balance: 0,
                 PropertyUseRate: propertyUseRate,
                 PropertytypeRate: propertyTypeRate,
-                PropertyclassRate: propertyClassRate
-            });
+                PropertyclassRate: propertyClassRate,
+                gps_address: gpsAddress
+            };
+        
+            // Dispatch the createProperty thunk with the propertyData
+            const response = dispatch(createProperty(propertyData));
 
-            if (response.data.success) {
+            if ((await response).payload) {
                 alert("Record successfully added");
                 // Clear input fields
                 setHouseNo('');
@@ -308,12 +219,13 @@ const FrmProperty: React.FC = () => {
                 setElectoralArea('');
                 setLandMark('');
                 setStreetName('');
-                setLattitude('');
-                setLongitude('');
+                setProperties((await response).payload)
+             
                 setCode('');
-                setElevation('');
+                setElevation(0);
                 setPropertyRate(0.0000);
-                setAssessmentBy('');
+                setAssessment('');
+                setGpsAddress('');
                 // Refresh the list of properties
                 fetchProperties();
             } else {
@@ -323,13 +235,6 @@ const FrmProperty: React.FC = () => {
             console.error("Error adding property", error);
             alert("Error in adding a record");
         }
-    };
-
-    const handleExitClick = () => {
-        // Hide the form and show main form (this can be handled via routing)
-        console.log("Exit button clicked");
-        // For example, you might navigate to another route here
-        // history.push('/main-form');
     };
 
     const handleRowClick = (property: Property) => {
@@ -342,14 +247,74 @@ const FrmProperty: React.FC = () => {
         setElectoralArea(property.electroral_area);
         setLandMark(property.landmark);
         setStreetName(property.street_name);
-        setLattitude(property.lattitude);
-        setLongitude(property.longitude);
+      
         setCode(property.code);
-        setElevation(property.elevation);
+        setElevation(parseInt(property.elevation, 10));
         setPropertyRate(property.rate);
-        setAssessmentBy(property.Assessmentby);
+        setAssessment(property.Assessmentby);
+        setGpsAddress(property.gps_address);
     };
 
+    const propertyTypeOptions = [
+        "Single Family Home",
+        "Condominium",
+        "Apartment",
+        "Townhouse",
+        "Villa",
+        "Office Building",
+        "Retail Store",
+        "Warehouse",
+        "Factory",
+        "Hotel",
+        "Restaurant",
+        "Mall",
+        "Industrial Building",
+        "Farm",
+        "Ranch",
+        "Resort",
+        "Medical Facility",
+        "Healthcare Center",
+        "Educational Institution",
+        "Religious Building",
+        "Government Building",
+        "Institutional Building",
+        "Mixed Use Building",
+        "Storage Facility"
+    ];
+
+    const propertyUseOptions = [
+        "Residential",
+        "Commercial",
+        "Industrial",
+        "Agricultural",
+        "Vacant",
+        "Mixed Use",
+        "Government",
+        "Institutional",
+        "Educational",
+        "Religious",
+        "Retail",
+        "Office",
+        "Warehouse",
+        "Storage",
+        "Manufacturing",
+        "Hospitality",
+        "Medical",
+        "Healthcare",
+        "Residential Condominium",
+        "Commercial Condominium",
+        "Industrial Condominium",
+        "Hotel",
+        "Apartment",
+        "Townhouse",
+        "Villa",
+        "Farm",
+        "Ranch",
+        "Resort",
+        "Retirement Community",
+        "Senior Living Facility"
+    ];
+    
     return (
         <Container fluid>
             <Row className="mb-3">
@@ -407,29 +372,29 @@ const FrmProperty: React.FC = () => {
                             required
                         >
                             <option value="">Select Use of Property</option>
-                            {propertyClassOptions.map(option => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
+                            {propertyUseOptions.map(option => (
+                                <option key={option} value={option}>{option}</option>
                             ))}
                         </Form.Select>
                     </Form.Group>
                 </Col>
             </Row>
             <Row className="mt-3">
-                <Col>
-                    <Form.Group controlId="formPropertyType">
-                        <Form.Label>Type of Property:</Form.Label>
-                        <Form.Select
-                            value={propertyType}
-                            onChange={handlePropertyTypeChange}
-                            required
-                        >
-                            <option value="">Select Type of Property</option>
-                            {propertyTypeOptions.map(option => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                        </Form.Select>
-                    </Form.Group>
-                </Col>
+            <Col>
+                <Form.Group controlId="formPropertyType">
+                    <Form.Label>Type of Property:</Form.Label>
+                    <Form.Select
+                        value={propertyType}
+                        onChange={handlePropertyTypeChange}
+                        required
+                    >
+                        <option value="">Select Type of Property</option>
+                        {propertyTypeOptions.map(option => (
+                            <option key={option} value={option}>{option}</option>
+                        ))}
+                    </Form.Select>
+                </Form.Group>
+            </Col>
                 <Col>
                     <Form.Group controlId="formPropertyClass">
                         <Form.Label>Class of Property:</Form.Label>
@@ -439,8 +404,8 @@ const FrmProperty: React.FC = () => {
                             required
                         >
                             <option value="">Select Class of Property</option>
-                            {propertyClassOptions.map(option => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
+                            {propertyClasses.map(option => (
+                                <option key={option.property_class} value={option.property_class}>{option.property_class}</option>
                             ))}
                         </Form.Select>
                     </Form.Group>
@@ -456,8 +421,8 @@ const FrmProperty: React.FC = () => {
                             required
                         >
                             <option value="">Select Electoral Area</option>
-                            {electoralAreaOptions.map(option => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
+                            {electoralAreas.map((area, index) => (
+                                <option key={index} value={area}>{area}</option>
                             ))}
                         </Form.Select>
                     </Form.Group>
@@ -466,13 +431,13 @@ const FrmProperty: React.FC = () => {
                     <Form.Group controlId="formAssessmentBy">
                         <Form.Label>Officer:</Form.Label>
                         <Form.Select
-                            value={assessmentBy}
+                            value={assessment}
                             onChange={handleAssessmentByChange}
                             required
                         >
                             <option value="">Select Officer</option>
-                            {assessmentByOptions.map(option => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
+                            {assessments.map((assessment, index) => (
+                                        <option key={index} value={assessment}>{assessment}</option>
                             ))}
                         </Form.Select>
                     </Form.Group>
@@ -502,30 +467,7 @@ const FrmProperty: React.FC = () => {
                     </Form.Group>
                 </Col>
             </Row>
-            <Row className="mt-3">
-                <Col>
-                    <Form.Group controlId="formLattitude">
-                        <Form.Label>Lattitude:</Form.Label>
-                        <Form.Control
-                            type="text"
-                            value={lattitude}
-                            onChange={(e) => setLattitude(e.target.value)}
-                            required
-                        />
-                    </Form.Group>
-                </Col>
-                <Col>
-                    <Form.Group controlId="formLongitude">
-                        <Form.Label>Longitude:</Form.Label>
-                        <Form.Control
-                            type="text"
-                            value={longitude}
-                            onChange={(e) => setLongitude(e.target.value)}
-                            required
-                        />
-                    </Form.Group>
-                </Col>
-            </Row>
+        
             <Row className="mt-3">
                 <Col>
                     <Form.Group controlId="formCode">
@@ -542,9 +484,9 @@ const FrmProperty: React.FC = () => {
                     <Form.Group controlId="formElevation">
                         <Form.Label>Elevation:</Form.Label>
                         <Form.Control
-                            type="text"
+                            type="number"
                             value={elevation}
-                            onChange={(e) => setElevation(e.target.value)}
+                            onChange={(e) => setElevation(parseInt(e.target.value, 10))}
                             required
                         />
                     </Form.Group>
@@ -601,6 +543,18 @@ const FrmProperty: React.FC = () => {
                         />
                     </Form.Group>
                 </Col>
+                <Col>
+                    <Form.Group controlId="formPropertyClassRate">
+                        <Form.Label>GPS Address:</Form.Label>
+                        <Form.Control
+                            type="text"
+                            step="0.0001"
+                            value={gpsAddress}
+                            onChange={(e) => setGpsAddress(e.target.value)}
+                            required
+                        />
+                    </Form.Group>
+                </Col>
             </Row>
             <Row className="mt-3">
                 <Col>
@@ -608,11 +562,7 @@ const FrmProperty: React.FC = () => {
                         Add New Record
                     </Button>
                 </Col>
-                <Col>
-                    <Button variant="danger" onClick={handleExitClick}>
-                        Exit to Main Menu
-                    </Button>
-                </Col>
+                
             </Row>
             <Row className="mt-3">
                 <Col>
