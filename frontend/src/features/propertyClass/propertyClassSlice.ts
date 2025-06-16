@@ -8,23 +8,52 @@ export interface PropertyClassData {
     description: string;
     frequency: string;
     rate: number;
+    assessed: string;
 }
 
 // Define the initial state for the slice
 export interface PropertyClassState {
     propertyClasses: PropertyClassData[];
+    propertyClassDescriptions: string[]; // new
     loading: boolean;
     error: string | null;
 }
 
 export const initialState: PropertyClassState = {
     propertyClasses: [],
+    propertyClassDescriptions: [], // new
     loading: false,
     error: null,
 };
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
 (import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
+
+// Async thunk to fetch all property descriptions
+export const fetchPropertyClassDescriptions = createAsyncThunk('propertyClass/fetchPropertyClassDescriptions', async () => {
+    try {
+        console.log('in fetchPropertyClassDescriptions')
+
+        const response = await axios.get(`${BASE_URL}/api/propertyClass/descriptions/all`);
+
+        console.log('propertyClassDescriptions response:', response);
+
+        if (response.status >= 200 && response.status < 300) {
+
+            console.log('propertyClassDescriptions response:', response.data.data);
+
+            return response.data.data; // This should be the structure you expect
+        } else {
+            throw new Error(`Error fetching property classes: ${response.statusText}`);
+        }
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            throw new Error(error.message);
+        } else {
+            throw new Error('Network error or other issue');
+        }
+    }
+});
 
 // Async thunk to fetch all property classes
 export const fetchPropertyClasses = createAsyncThunk('propertyClass/fetchPropertyClasses', async () => {
@@ -77,10 +106,43 @@ export const fetchPropertyClassesDistinct = createAsyncThunk('propertyClass/fetc
     }
 });
 
+// Async thunk to fetch by description
+export const fetchPropertyClassesByDescription = createAsyncThunk('property/fetchPropertyClassesByDescription', async (desc: string) => {
+    try {
+        console.log('fetchPropertyClasses called with description: ', desc);
+
+        const response = await axios.get(`${BASE_URL}/api/property/findpropertyclasses/${desc}`);
+
+        if (response.status === 200) {
+            return response.data.data;
+        }
+        return null;
+    } catch (error: unknown) {
+        console.error('Error fetching property classes:', error);
+        // You can also throw the error if you want the calling function to handle it
+        // throw error;
+        if (error instanceof Error){
+            console.error(error.message);
+        }
+        return null;
+    }
+});
+
 
 // Async thunk to fetch a single property class by property_class
 export const fetchPropertyClassById = createAsyncThunk('propertyClass/fetchPropertyClassById', async (property_class: string) => {
     const response = await axios.get(`${BASE_URL}/api/propertyClass/${property_class}`);
+
+     if (response.status >= 200 && response.status < 300) {
+        return await response.data; // This data will be available as `action.payload`
+    } else {
+        throw new Error(`Error fetching property class by id    : ${response.statusText}`);
+    }
+});
+
+// Async thunk to fetch a single property class by property_class
+export const fetchPropertyClassByAssessed = createAsyncThunk('propertyClass/fetchPropertyClassById', async (assessed: string) => {
+    const response = await axios.get(`${BASE_URL}/api/propertyClass/${assessed}`);
 
      if (response.status >= 200 && response.status < 300) {
         return await response.data; // This data will be available as `action.payload`
@@ -163,13 +225,28 @@ const propertyClassSlice = createSlice({
             })
             .addCase(fetchPropertyClassById.fulfilled, (state) => {
                 state.loading = false;
-                // Handle the fetched property class data if needed
+                // Handle the fetched property class data if needed //fetchPropertyClassDescriptions
                 state.error = null;
             })
             .addCase(fetchPropertyClassById.rejected, (state: PropertyClassState, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch property class';
             })
+
+
+            .addCase(fetchPropertyClassDescriptions.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchPropertyClassDescriptions.fulfilled, (state, action) => {
+                state.loading = false;
+                state.propertyClassDescriptions = action.payload.map((item: { description: string }) => item.description);
+                state.error = null;
+            })
+            .addCase(fetchPropertyClassDescriptions.rejected, (state: PropertyClassState, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to fetch property class';
+            })
+
             .addCase(createPropertyClass.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -191,6 +268,7 @@ const propertyClassSlice = createSlice({
                         description: action.payload.description,
                         frequency: action.payload.frequency,
                         rate: action.payload.rate !== undefined ? action.payload.rate : 0, // Provide a default rate value if necessary
+                        assessed: action.payload.assessed,
                     };
 
                     state.propertyClasses.push(newPropertyClass);

@@ -16,6 +16,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from 'fs';
+import { describe } from 'node:test';
 
 // Load the environment variables from the .env file
 dotenv.config();
@@ -94,16 +95,19 @@ interface PropertyData {
     electroral_area: string;
     landmark: string;
     street_name: string;
-    lattitude: number;
-    longitude: number;
-    code: string;
-    elevation: number;
+    code?: string;
+    elevation?: string;
     rate: number;
     Assessmentby: string;
-    balance: number;
-    PropertyUseRate: number;
-    PropertytypeRate: number;
-    PropertyclassRate: number;
+    balance?: number;
+    PropertyUseRate?: number;
+    PropertytypeRate?: number;
+    PropertyclassRate?: number;
+    gps_address?: string;
+    propertyclass_desc: string;
+    no_of_rooms?: number;
+    property_assessed: string
+    house_value?: number;
 }
 
 
@@ -128,11 +132,13 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
         // Insert the new property data
         const result: QueryResult = await client.query(
             `INSERT INTO property 
-            (house_no, owner, tenant, propertyuse, propertytype, propertyclass, 
-            electroral_area, landmark, street_name, lattitude, longitude, 
-            code, elevation, rate, Assessmentby, balance, 
-            PropertyUseRate, PropertytypeRate, PropertyclassRate) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+            (house_no, owner, tenant, propertyuse, 
+            propertytype, propertyclass,  electroral_area, landmark, 
+            street_name, code, elevation, rate, 
+            Assessmentby, balance, PropertyUseRate, PropertytypeRate, 
+            PropertyclassRate, propertyclass_desc, no_of_rooms, property_assessed, 
+            house_value) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
             [
                 propertyData.house_no,
                 propertyData.owner,
@@ -143,8 +149,6 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
                 propertyData.electroral_area,
                 propertyData.landmark,
                 propertyData.street_name,
-                propertyData.lattitude,
-                propertyData.longitude,
                 propertyData.code,
                 propertyData.elevation,
                 propertyData.rate,
@@ -153,6 +157,10 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
                 propertyData.PropertyUseRate,
                 propertyData.PropertytypeRate,
                 propertyData.PropertyclassRate,
+                propertyData.propertyclass_desc,
+                propertyData.no_of_rooms,
+                propertyData.property_assessed,
+                propertyData.house_value
             ]
         );
 
@@ -210,6 +218,8 @@ router.get('/:house_no', async (req: Request, res: Response) => {
     }
 });
 
+
+
 // Update a property record
 router.put('/:house_no', async (req: Request, res: Response): Promise<void> => {
     const { house_no } = req.params;
@@ -230,11 +240,12 @@ router.put('/:house_no', async (req: Request, res: Response): Promise<void> => {
             `UPDATE property 
             SET owner = $1, tenant = $2, propertyuse = $3, propertytype = $4, 
             propertyclass = $5, electroral_area = $6, landmark = $7, 
-            street_name = $8, lattitude = $9, longitude = $10, 
-            code = $11, elevation = $12, rate = $13, Assessmentby = $14, 
-            balance = $15, PropertyUseRate = $16, 
-            PropertytypeRate = $17, PropertyclassRate = $18 
-            WHERE house_no = $19`,
+            street_name = $8,  
+            code = $9, elevation = $10, rate = $11, Assessmentby = $12, 
+            balance = $13, PropertyUseRate = $14, 
+            PropertytypeRate = $15, PropertyclassRate = $16,
+            propertyclass_desc = $17, no_of_rooms = $18, property_assessed = $19, house_value = $20
+            WHERE house_no = $21`,
             [
                 propertyData.owner,
                 propertyData.tenant,
@@ -244,8 +255,6 @@ router.put('/:house_no', async (req: Request, res: Response): Promise<void> => {
                 propertyData.electroral_area,
                 propertyData.landmark,
                 propertyData.street_name,
-                propertyData.lattitude,
-                propertyData.longitude,
                 propertyData.code,
                 propertyData.elevation,
                 propertyData.rate,
@@ -254,6 +263,10 @@ router.put('/:house_no', async (req: Request, res: Response): Promise<void> => {
                 propertyData.PropertyUseRate,
                 propertyData.PropertytypeRate,
                 propertyData.PropertyclassRate,
+                propertyData.propertyclass_desc,
+                propertyData.no_of_rooms,
+                propertyData.property_assessed,
+                propertyData.house_value,
                 house_no
             ]
         );
