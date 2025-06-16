@@ -3,4 +3,5 @@ export interface PropertyClass {
     description: string;
     frequency: string;
     rate: number;
+    assessed: string;
 }

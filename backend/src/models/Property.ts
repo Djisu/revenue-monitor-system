@@ -8,16 +8,18 @@ export interface Property {
     electroral_area: string;
     landmark: string;
     street_name: string;
-    lattitude: number;
-    longitude: number;
-    code: string;
-    elevation: number;
+    code?: string;
+    elevation?: string;
     rate: number;
     Assessmentby: string;
-    balance: number;
-    PropertyUseRate: number;
-    PropertytypeRate: number;
-    PropertyclassRate: number;
+    balance?: number;
+    PropertyUseRate?: number;
+    PropertytypeRate?: number;
+    PropertyclassRate?: number;
     gps_address?: string;
+    propertyclass_desc: string;
+    no_of_rooms?: number;
+    property_assessed: string
+    house_value?: number;
 }
 

@@ -76,11 +76,13 @@ router.post('/create', async (req, res) => {
         }
         // Insert the new property data
         const result = await client.query(`INSERT INTO property 
-            (house_no, owner, tenant, propertyuse, propertytype, propertyclass, 
-            electroral_area, landmark, street_name, lattitude, longitude, 
-            code, elevation, rate, Assessmentby, balance, 
-            PropertyUseRate, PropertytypeRate, PropertyclassRate) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`, [
+            (house_no, owner, tenant, propertyuse, 
+            propertytype, propertyclass,  electroral_area, landmark, 
+            street_name, code, elevation, rate, 
+            Assessmentby, balance, PropertyUseRate, PropertytypeRate, 
+            PropertyclassRate, propertyclass_desc, no_of_rooms, property_assessed, 
+            house_value) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`, [
             propertyData.house_no,
             propertyData.owner,
             propertyData.tenant,
@@ -90,8 +92,6 @@ router.post('/create', async (req, res) => {
             propertyData.electroral_area,
             propertyData.landmark,
             propertyData.street_name,
-            propertyData.lattitude,
-            propertyData.longitude,
             propertyData.code,
             propertyData.elevation,
             propertyData.rate,
@@ -100,6 +100,10 @@ router.post('/create', async (req, res) => {
             propertyData.PropertyUseRate,
             propertyData.PropertytypeRate,
             propertyData.PropertyclassRate,
+            propertyData.propertyclass_desc,
+            propertyData.no_of_rooms,
+            propertyData.property_assessed,
+            propertyData.house_value
         ]);
         res.status(201).json({ message: 'Property record created successfully', data: result.rows[0] });
     }
@@ -168,11 +172,12 @@ router.put('/:house_no', async (req, res) => {
         const result = await client.query(`UPDATE property 
             SET owner = $1, tenant = $2, propertyuse = $3, propertytype = $4, 
             propertyclass = $5, electroral_area = $6, landmark = $7, 
-            street_name = $8, lattitude = $9, longitude = $10, 
-            code = $11, elevation = $12, rate = $13, Assessmentby = $14, 
-            balance = $15, PropertyUseRate = $16, 
-            PropertytypeRate = $17, PropertyclassRate = $18 
-            WHERE house_no = $19`, [
+            street_name = $8,  
+            code = $9, elevation = $10, rate = $11, Assessmentby = $12, 
+            balance = $13, PropertyUseRate = $14, 
+            PropertytypeRate = $15, PropertyclassRate = $16,
+            propertyclass_desc = $17, no_of_rooms = $18, property_assessed = $19, house_value = $20
+            WHERE house_no = $21`, [
             propertyData.owner,
             propertyData.tenant,
             propertyData.propertyuse,
@@ -181,8 +186,6 @@ router.put('/:house_no', async (req, res) => {
             propertyData.electroral_area,
             propertyData.landmark,
             propertyData.street_name,
-            propertyData.lattitude,
-            propertyData.longitude,
             propertyData.code,
             propertyData.elevation,
             propertyData.rate,
@@ -191,6 +194,10 @@ router.put('/:house_no', async (req, res) => {
             propertyData.PropertyUseRate,
             propertyData.PropertytypeRate,
             propertyData.PropertyclassRate,
+            propertyData.propertyclass_desc,
+            propertyData.no_of_rooms,
+            propertyData.property_assessed,
+            propertyData.house_value,
             house_no
         ]);
         res.status(200).json({ message: 'Property record updated successfully' });

@@ -6,12 +6,25 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons'; // Import the trash icon
 
+
+
+
 interface PropertyClass {
   property_class: string;
   description: string;
   frequency: string;
   rate: number;
+  assessed: string
 }
+
+type FormData = {
+  property_class: string;
+  description: string;
+  frequency: string;
+  rate: number;
+  assessed: string
+};
+
 
 interface FetchPropertyClassesResponse {
   data: PropertyClass[];
@@ -21,6 +34,7 @@ const FrmPropertyClass: React.FC = () => {
   const dispatch = useAppDispatch();
 
   const propertyClasses = useAppSelector((state) => state.propertyClass.propertyClasses);
+  //const selectorPropertyClasses = useAppSelector((state) => state.propertyClass.propertyClasses);
 
   console.log('propertyClasses:', propertyClasses);
   const [localPropertyClasses, setLocalPropertyClasses] = useState<PropertyClass[]>([]);
@@ -28,12 +42,23 @@ const FrmPropertyClass: React.FC = () => {
   const [delFlag, setDelFlag] = useState<string>('')
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [propertyClass, setPropertyClass] = useState<PropertyClass>({
+  // const [propertyClass, setPropertyClass] = useState<PropertyClass>({
+  //   property_class: '',
+  //   description: '',
+  //   frequency: '',
+  //   rate: 0,
+  //   assessed: ''
+  // }); 
+
+  const [formData, setFormData] = useState<FormData>({
     property_class: '',
     description: '',
     frequency: '',
     rate: 0,
+    assessed: ''
   });
+
+
  
 
 useEffect(() => {
@@ -51,39 +76,53 @@ useEffect(() => {
   }
 }, [propertyClasses]);
 
-const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  const { name, value } = event.target;
+// useEffect(() => {
+//   if (Array.isArray(selectorPropertyClasses)) {
+//     console.error('propertyClasses is AN ARRAY:', selectorPropertyClasses);
+//     setLocalPropertyClasses(selectorPropertyClasses);
+//   } else {
+//     console.error('propertyClasses is not an array:', selectorPropertyClasses);
+//     setLocalPropertyClasses([]);
+//   }
+// }, [selectorPropertyClasses]);
 
-  setPropertyClass((prevPropertyClass) => ({
-    ...prevPropertyClass,
-    [name]: name === 'rate' ? parseFloat(value) : value.toString(),
+type FormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+const handleChange = (e: React.ChangeEvent<FormControlElement>) => {
+  const { name, value } = e.target;
+  setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
   }));
 };
 
 
   const handleAdd = async () => {
-    console.log('in handleAdd Property class:', propertyClass);
+    console.log('in handleAdd Property class:', formData);
     try {
-      if (!propertyClass.property_class) {
+      if (!formData.property_class) {
         throw new Error('Enter the property class');
       }
-      if (!propertyClass.description) {
+      if (!formData.description) {
         throw new Error('Enter the property class decription');
       } 
-      if (!propertyClass.frequency) {
+      if (!formData.frequency) {
         throw new Error('Enter a valid property class frequency');
       }           
-      if (!propertyClass.rate || isNaN(propertyClass.rate)) {
+      if (!formData.rate || isNaN(formData.rate)) {
         throw new Error('Enter a valid property rate');
       }
+      if (!formData.assessed) {
+        throw new Error('Select the assessed/valued status of the property');
+      }   
 
-      console.log('Before dispatch, property class:', propertyClass);
+      console.log('Before dispatch, property class:', formData);
 
-      const response = await dispatch(createPropertyClass(propertyClass)).unwrap();
+      const response = await dispatch(createPropertyClass(formData)).unwrap();
 
       if (response.success) {
         setAddFlag(response.message || 'Record successfully added');
-        setPropertyClass({ property_class: '', description: '', frequency: '', rate: 0 });
+        setFormData({ property_class: '', description: '', frequency: '', rate: 0, assessed: '' });
   
         console.log(response);
   
@@ -117,18 +156,18 @@ const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   };
 
   const handleDelete = async () => {
-    console.log(`Deleting property class: ${propertyClass.property_class}`);
+    console.log(`Deleting property class: ${formData.property_class}`);
     setIsDeleting(true);
 
     try {
-        if (!propertyClass.property_class) {
+        if (!formData.property_class) {
             throw new Error('Enter the property class');
         }
 
-        const response = await dispatch(deletePropertyClass(propertyClass.property_class)).unwrap();
-        setLocalPropertyClasses(localPropertyClasses.filter((pc) => pc.property_class !== propertyClass.property_class));
+        const response = await dispatch(deletePropertyClass(formData.property_class)).unwrap();
+        setLocalPropertyClasses(localPropertyClasses.filter((pc) => pc.property_class !== formData.property_class));
         setIsDeleting(false);
-        setPropertyClass({ property_class: '', description: '', frequency: '', rate: 0 });
+        setFormData({ property_class: '', description: '', frequency: '', rate: 0, assessed: '' });
 
         console.log(response);
 
@@ -156,6 +195,11 @@ const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   //   }
   // };
 
+  const assessedOptions = [
+    "Assessed/ Valued Properties",
+    "Unassessed Properties - Flat Rate Categories",
+];
+
   return (
     <Container>
       <Row className="justify-content-center">
@@ -168,8 +212,8 @@ const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
               <Form.Control
                 type="text"
                 name="property_class"
-                value={propertyClass.property_class}
-                onChange={handleInputChange}
+                value={formData.property_class}
+                onChange={handleChange}
                 placeholder="Enter Property Class"
               />
             </Form.Group>
@@ -179,8 +223,8 @@ const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
               <Form.Control
                 type="text"
                 name="description"
-                value={propertyClass.description}
-                onChange={handleInputChange}
+                value={formData.description}
+                onChange={handleChange}
                 placeholder="Enter Property Class description"
               />
             </Form.Group>
@@ -190,8 +234,8 @@ const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
               <Form.Control
                 type="text"
                 name="frequency"
-                value={propertyClass.frequency}
-                onChange={handleInputChange}
+                value={formData.frequency}
+                onChange={handleChange}
                 placeholder="Enter Property Class Frequency"
               />
             </Form.Group>
@@ -201,11 +245,28 @@ const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
               <Form.Control
                 type="number"
                 name="rate"
-                value={propertyClass.rate.toString()}
-                onChange={handleInputChange}
+                value={formData.rate.toString()}
+                onChange={handleChange}
                 placeholder="Enter Property Rate"
               />
             </Form.Group>
+
+
+            <Form.Group className="mb-3">
+              <Form.Label>Is Property Assessed?:</Form.Label>
+              <Form.Select
+                name="assessed"
+                value={formData.assessed}
+                onChange={handleChange}
+              >
+                <option value="">Select Assessed Option</option>
+                {assessedOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+
+
 
             <div className="d-flex justify-content-between">
               <Button variant="primary" onClick={handleAdd}>
@@ -232,6 +293,7 @@ const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                         <th>DESCRIPTION</th>
                         <th>FREQUENCY</th>
                         <th>RATE</th>
+                        <th>ASSESSED</th>
                         <th>ACTIONS</th>
                     </tr>
                 </thead>
@@ -242,8 +304,9 @@ const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                             <td>{pc.description}</td>
                             <td>{pc.frequency}</td>
                             <td>{pc.rate}</td>
+                            <td>{pc.assessed}</td>
                             <td>
-                                <button onClick={() => setPropertyClass(pc)} disabled={isDeleting}>
+                                <button onClick={() => setFormData(pc)} disabled={isDeleting}>
                                     {isDeleting ? 'Deleting...' : <FontAwesomeIcon icon={faTrash} />}
                                 </button>
                             </td>

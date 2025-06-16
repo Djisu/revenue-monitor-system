@@ -64,7 +64,7 @@ const pool = new Pool(dbConfig);
 router.post('/create', async (req, res) => {
     const propertyClassData = req.body;
     console.log('Received propertyClassData:', propertyClassData);
-    const { property_class, description, frequency, rate } = propertyClassData;
+    const { property_class, description, frequency, rate, assessed } = propertyClassData;
     if (!property_class || rate == null) {
         res.status(400).json({ success: false, message: 'Property class and rate are required' });
         return;
@@ -77,8 +77,8 @@ router.post('/create', async (req, res) => {
             return;
         }
         // Insert the new property class data
-        await client.query(`INSERT INTO propertyclass (property_class,  description, frequency, rate) 
-            VALUES ($1, $2, $3, $4)`, [property_class, description, frequency, rate]);
+        await client.query(`INSERT INTO propertyclass (property_class,  description, frequency, rate, assessed) 
+            VALUES ($1, $2, $3, $4, $5)`, [property_class, description, frequency, rate, assessed]);
         res.status(201).json({ success: true, message: 'Property class record created successfully' });
     }
     catch (error) {
@@ -94,6 +94,23 @@ router.post('/create', async (req, res) => {
         else {
             res.status(500).json({ success: false, message: 'Error creating property class record', error: error });
         }
+    }
+    finally {
+        client.release();
+    }
+});
+// 
+// Read all property class records
+router.get('/descriptions/all', async (req, res) => {
+    console.log('Received request to read all property class records');
+    const client = await pool.connect();
+    try {
+        const result = await client.query('SELECT DISTINCT description FROM propertyclass');
+        res.status(200).json({ success: true, data: result.rows });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error fetching property class descriptionrecords', error });
     }
     finally {
         client.release();
@@ -158,6 +175,54 @@ router.get('/:property_class', async (req, res) => {
         client.release();
     }
 });
+// Read a single property record by house_no
+router.get('/findpropertyclasses/:desc', async (req, res) => {
+    const { desc } = req.params;
+    const client = await pool.connect();
+    try {
+        const result = await client.query('SELECT * FROM propertyclass WHERE description = $1', [desc]);
+        if (result.rows.length > 0) {
+            res.json({ message: 'Property class found', data: result.rows[0] }); // Return the first row
+        }
+        else {
+            res.status(404).json({ message: 'Property record not found', data: [] });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching property record', data: error });
+    }
+    finally {
+        client.release();
+    }
+});
+// Read a single property class record by assessed
+router.get('/:assessed', async (req, res) => {
+    const { assessed } = req.params;
+    console.log('Received request to read property class record with property_class:', assessed);
+    const client = await pool.connect();
+    try {
+        const result = await client.query('SELECT * FROM propertyclass WHERE assessed = $1', [assessed]);
+        if (result.rows.length > 0) {
+            res.status(200).json({ success: true, data: result.rows[0] });
+        }
+        else {
+            res.status(404).json({ success: false, message: 'Property class record not found' });
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error fetching property class record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error fetching property class record', error });
+        }
+    }
+    finally {
+        client.release();
+    }
+});
 // Update a property class record
 router.put('/:property_class', async (req, res) => {
     const { property_class } = req.params;
@@ -171,8 +236,8 @@ router.put('/:property_class', async (req, res) => {
         }
         // Update the property class data
         await client.query(`UPDATE propertyclass 
-            SET description = $1, frequency = $2, rate = $1 
-            WHERE property_class = $2`, [propertyClassData.description, propertyClassData.frequency, propertyClassData.rate, property_class]);
+            SET description = $1, frequency = $2, rate = $1, assessed = $3
+            WHERE property_class = $2`, [propertyClassData.description, propertyClassData.frequency, propertyClassData.assessed, property_class]);
         res.status(200).json({ success: true, message: 'Property class record updated successfully' });
     }
     catch (error) {

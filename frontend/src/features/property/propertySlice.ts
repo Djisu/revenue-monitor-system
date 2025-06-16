@@ -13,15 +13,44 @@ export interface PropertyData {
     electroral_area: string;
     landmark: string;
     street_name: string;
-    code: string;
-    elevation: number;
+    code?: string;
+    elevation?: string;
     rate: number;
     Assessmentby: string;
-    balance: number;
-    PropertyUseRate: number;
-    PropertytypeRate: number;
-    PropertyclassRate: number;
+    balance?: number;
+    PropertyUseRate?: number;
+    PropertytypeRate?: number;
+    PropertyclassRate?: number;
     gps_address?: string;
+    propertyclass_desc: string;
+    no_of_rooms?: number;
+    property_assessed: string
+    house_value?: number;
+}
+
+interface FormData {
+    house_no: string;
+    owner: string;
+    tenant: string;
+    propertyuse: string;
+    propertytype: string;
+    propertyclass: string;
+    electroral_area: string;
+    landmark: string;
+    street_name: string;
+    code?: string;
+    elevation?: number;
+    rate: number;
+    Assessmentby: string;
+    balance?: number;
+    PropertyUseRate?: number;
+    PropertytypeRate?: number;
+    PropertyclassRate?: number;
+    gps_address?: string;
+    propertyclass_desc: string;
+    no_of_rooms?: number;
+    property_assessed: string;
+    house_value?: number;
 }
 
 // Define the initial state for the slice
@@ -55,6 +84,9 @@ export const fetchProperties = createAsyncThunk('property/fetchProperties', asyn
     return [];
 });
 
+
+
+
 // Async thunk to fetch a single property by house_no
 export const fetchPropertyByHouseNo = createAsyncThunk('property/fetchPropertyById', async (house_no: string) => {
     console.log('fetchPropertyByHouseNo called with house_no: ', house_no);
@@ -68,9 +100,9 @@ export const fetchPropertyByHouseNo = createAsyncThunk('property/fetchPropertyBy
 });
 
 // Async thunk to create a new property
-export const createProperty = createAsyncThunk('property/createProperty', async (propertyData: PropertyData) => {
+export const createProperty = createAsyncThunk('property/createProperty', async (formData: FormData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/api/property/create`, propertyData);
+        const response = await axios.post(`${BASE_URL}/api/property/create`, formData);
 
         if (response.status === 201) {
             console.log('Property created successfully: ', response.data)
