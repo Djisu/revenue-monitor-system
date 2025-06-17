@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../app/store';
 import { fetchProperties, createProperty } from './propertySlice';
 import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchOfficers } from '../officer/officerSlice';
-import { fetchPropertyClassesDistinct, fetchPropertyClassesByDescription, fetchPropertyClassDescriptions } from '../propertyClass/propertyClassSlice';
+import { fetchPropertyClassesDistinct, fetchRate, fetchPropertyClassDescriptions } from '../propertyClass/propertyClassSlice';
 
 interface FormData {
     house_no: string;
@@ -30,6 +30,7 @@ interface FormData {
     no_of_rooms?: number;
     property_assessed: string;
     house_value?: number;
+    property_rate: number;
 }
 
 // Define the type for PropertyClass data
@@ -77,6 +78,7 @@ const FrmProperty: React.FC = () => {
         no_of_rooms: 0,
         property_assessed: '',
         house_value: 0,
+        property_rate: 0,
     });
 
     const electoralAreaData = useAppSelector((state) => state.electoralArea.electoralAreas);
@@ -184,10 +186,15 @@ const FrmProperty: React.FC = () => {
             alert("Kindly enter the GPS address");
             return;
         }
+        if (!formData.property_rate) {
+            alert("Kindly enter the property rate");
+            return;
+        }
 
         try {
             console.log('formData:', formData);
             console.log('about to dispatch createProperty thunk');
+
             // Dispatch the createProperty thunk with the propertyData
             const response = await dispatch(createProperty(formData));
             if (response.payload) {
@@ -215,6 +222,7 @@ const FrmProperty: React.FC = () => {
                     no_of_rooms: 0,
                     property_assessed: '',
                     house_value: 0,
+                    property_rate: 0,
                 });
 
                 // Refresh the list of properties
@@ -289,7 +297,7 @@ const FrmProperty: React.FC = () => {
     ];
 
     const assessedOptions = [
-        "Assessed/Valued Properties",
+        "Assessed Valued Properties",
         "Unassessed Properties - Flat Rate Categories"
     ];
 
@@ -302,7 +310,7 @@ const FrmProperty: React.FC = () => {
         let newValue: string | number = value;
 
         if (name === 'elevation' || name === 'rate' || name === 'balance' || name === 'PropertyUseRate' || 
-            name === 'PropertytypeRate' || name === 'PropertyclassRate' || name === 'no_of_rooms' || name === 'house_value') {
+            name === 'PropertytypeRate' || name === 'PropertyclassRate' || name === 'no_of_rooms' || name === 'house_value' || name === 'property_rate') {
             newValue = parseFloat(value);
         }
 
@@ -312,24 +320,87 @@ const FrmProperty: React.FC = () => {
         }));
     };
 
-    // Function to fetch property class details
-    const findPropertyClassDetails = async (desc: string) => {
-        try {
-            const response: PropertyClassData = await dispatch(fetchPropertyClassesByDescription(desc)).unwrap();
-            if (response) {
-                setFormData(prevData => ({
-                    ...prevData,
-                    PropertyclassRate: response.rate,
-                    propertyclass_desc: response.description,
-                    // Update other fields as needed
-                }));
-            } else {
-                console.warn("No property class details found for description:", desc);
+    const findRate = async (propertyAssessed: string, propertyClassDesc: string): Promise<number | null> => {
+        console.log('in findRate: ', propertyAssessed, propertyClassDesc)
+
+        
+
+        if (propertyAssessed && propertyClassDesc) {
+            try {
+                const rate = await dispatch(fetchRate({ propertyAssessed, propertyClassDesc })).unwrap();
+                console.log('rate:', rate.rate);
+                return rate.rate;
+            } catch (error) {
+                console.error('Error fetching rate:', error);
+                return null;
             }
-        } catch (error) {
-            console.error("Failed to fetch property class details", error);
+        } else {
+            alert("Please select the correct property assessed and property class description (Impose MMDAs)");
+            return 0;
         }
     };
+
+    const handleBlur = async () => {
+        console.log('in handleBlur');
+
+        if (formData.property_assessed && formData.propertyclass_desc) {
+            const rate = await findRate(formData.property_assessed, formData.propertyclass_desc);
+            console.log('rate:', rate);
+
+            if (rate !== null) {
+                setFormData((prevData) => ({
+                    ...prevData,
+                    rate: rate,
+                }));
+            } else {
+                setFormData((prevData) => ({
+                    ...prevData,
+                    rate: 0,
+                }));
+            }
+        } else {
+            alert("Please select the property assessed and property class description (Impose MMDAs)");
+        }
+    };
+
+    const calcPropertyRate = async () => {
+        console.log('in calcPropertyRate');  // 
+
+        if (formData.property_assessed == 'Assessed Valued Properties' && formData.house_value) {
+            const proprate = formData.rate * formData.house_value;
+            
+            console.log('proprate:', proprate);
+            if (formData.property_rate !== null) {
+                setFormData((prevData) => ({
+                    ...prevData,
+                     property_rate: proprate,
+                }));
+            } else {
+                setFormData((prevData) => ({
+                    ...prevData,
+                     property_rate: 0,
+                }));
+            }
+        } else if (formData.property_assessed == 'Unassessed Properties - Flat Rate Categories' && formData.no_of_rooms) {
+            const proprate = formData.rate * formData.no_of_rooms;
+            
+            console.log('proprate:', proprate);
+            if (formData.property_rate !== null) {
+                setFormData((prevData) => ({
+                    ...prevData,
+                     property_rate: proprate,
+                }));
+            } else {
+                setFormData((prevData) => ({
+                    ...prevData,
+                     property_rate: 0,
+                }));
+            }
+        } else {
+            alert("Please select the property assessed and property class description (Impose MMDAs)");
+        }
+    }
+
 
     return (
         <Container fluid style={{ backgroundColor: '#add8e6' }}>
@@ -340,7 +411,7 @@ const FrmProperty: React.FC = () => {
             </Row>
             <Row>
                 <Col>
-                    <h3 className="text-center text-danger">PROPERTY DATA ENTRY</h3>
+                    <h5 className="text-center text-danger">PROPERTY DATA ENTRY</h5>
                 </Col>
             </Row>
             <Row className="mt-3">
@@ -356,6 +427,19 @@ const FrmProperty: React.FC = () => {
                         />
                     </Form.Group>
                 </Col>
+                <Col>
+                    <Form.Group controlId="formGpsAddress">
+                        <Form.Label>GPS Address:</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="gps_address"
+                            value={formData.gps_address || ''}
+                            onChange={handleChange}
+                            required
+                        />
+                    </Form.Group>
+                </Col>
+
                 <Col>
                     <Form.Group controlId="formOwner">
                         <Form.Label>Owner:</Form.Label>
@@ -432,22 +516,7 @@ const FrmProperty: React.FC = () => {
                         </Form.Select>
                     </Form.Group>
                 </Col>
-                <Col>
-                    <Form.Group controlId="formPropertyDesc">
-                        <Form.Label>Class of Property Description:</Form.Label>
-                        <Form.Select                           
-                            name="propertyclass_desc"
-                            value={formData.propertyclass_desc}
-                            onChange={handleChange}
-                            required
-                        >
-                        <option value="">Select Property Class Description</option>
-                            {propertyClassDescriptions.map((desc, index) => (
-                                <option key={index} value={desc}>{desc}</option>
-                            ))}
-                        </Form.Select>
-                    </Form.Group>
-                </Col>
+               
             </Row>
             <Row className="mt-3">
                 <Col>
@@ -537,57 +606,6 @@ const FrmProperty: React.FC = () => {
             </Row>
             <Row className="mt-3">
                 <Col>
-                    <Form.Group controlId="formPropertyRate">
-                        <Form.Label>Property Rate:</Form.Label>
-                        <Form.Control
-                            type="number"
-                            step="0.0001"
-                            name="rate"
-                            value={formData.rate}
-                            onChange={handleChange}
-                            required
-                        />
-                    </Form.Group>
-                </Col>
-            </Row>
-            <Row className="mt-3">
-                <Col>
-                    <Form.Group controlId="formGpsAddress">
-                        <Form.Label>GPS Address:</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="gps_address"
-                            value={formData.gps_address || ''}
-                            onChange={handleChange}
-                            required
-                        />
-                    </Form.Group>
-                </Col>
-                <Col>
-                    <Form.Group controlId="formNoOfRooms">
-                        <Form.Label>Number Of Rooms:</Form.Label>
-                        <Form.Control
-                            type="number"
-                            name="no_of_rooms"
-                            value={formData.no_of_rooms || ''}
-                            onChange={handleChange}
-                            required
-                        />
-                    </Form.Group>
-                </Col>
-                <Col>
-                    <Form.Group controlId="formHouseValue">
-                        <Form.Label>Value of House:</Form.Label>
-                        <Form.Control
-                            type="number"
-                            name="house_value"
-                            value={formData.house_value || ''}
-                            onChange={handleChange}
-                            required
-                        />
-                    </Form.Group>
-                </Col>
-                <Col>
                     <Form.Group controlId="formPropertyAssessed">
                         <Form.Label>Property Assessed or Not Assessed Flat Rate:</Form.Label>
                         <Form.Select
@@ -603,6 +621,82 @@ const FrmProperty: React.FC = () => {
                         </Form.Select>
                     </Form.Group>
                 </Col>
+            </Row>
+
+            <Row className="mt-3">
+                <Col>
+                    <Form.Group controlId="formPropertyDesc">
+                        <Form.Label>Impose (MMDAs):</Form.Label>
+                        <Form.Select                           
+                            name="propertyclass_desc"
+                            value={formData.propertyclass_desc}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            required
+                        >
+                        <option value="">Select Impose (MMDAs)</option>
+                            {propertyClassDescriptions.map((desc, index) => (
+                                <option key={index} value={desc}>{desc}</option>
+                            ))}
+                        </Form.Select>
+                    </Form.Group>
+                </Col>
+            </Row>   
+
+            <Row className="mt-3">            
+                <Col>
+                    <Form.Group controlId="formNoOfRooms">
+                        <Form.Label>No: Of Rooms:</Form.Label>
+                        <Form.Control
+                            type="number"
+                            name="no_of_rooms"
+                            value={formData.no_of_rooms || ''}
+                            onChange={handleChange}
+                            onBlur={calcPropertyRate}
+                            required
+                        />
+                    </Form.Group>
+                </Col>
+                <Col>
+                    <Form.Group controlId="formHouseValue">
+                        <Form.Label>Value of House:</Form.Label>
+                        <Form.Control
+                            type="number"
+                            name="house_value"
+                            value={formData.house_value || ''}
+                            onChange={handleChange}
+                            onBlur={calcPropertyRate}
+                            required
+                        />
+                    </Form.Group>
+                </Col>
+
+                <Col>
+                    <Form.Group controlId="formRate">
+                        <Form.Label>Charges:</Form.Label>
+                        <Form.Control
+                            type="number"
+                            name="rate"
+                            value={formData.rate}
+                            onChange={handleChange}
+                            readOnly
+                        />
+                    </Form.Group>
+                </Col>
+
+                <Col>
+                    <Form.Group controlId="formPropertyRate">
+                        <Form.Label>Property Rate:</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="property_rate"
+                            value={formData.property_rate || 0}
+                            onChange={handleChange}
+                            required
+                        />
+                    </Form.Group>
+                </Col>
+               
             </Row>
             <Row className="mt-3">
                 <Col>

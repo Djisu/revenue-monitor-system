@@ -21,5 +21,6 @@ export interface Property {
     no_of_rooms?: number;
     property_assessed: string
     house_value?: number;
+    property_rate: number;
 }
 
