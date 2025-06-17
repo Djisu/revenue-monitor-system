@@ -26,6 +26,7 @@ export interface PropertyData {
     no_of_rooms?: number;
     property_assessed: string
     house_value?: number;
+    property_rate: number;
 }
 
 interface FormData {
@@ -51,6 +52,7 @@ interface FormData {
     no_of_rooms?: number;
     property_assessed: string;
     house_value?: number;
+    property_rate: number;
 }
 
 // Define the initial state for the slice
@@ -83,9 +85,6 @@ export const fetchProperties = createAsyncThunk('property/fetchProperties', asyn
     }
     return [];
 });
-
-
-
 
 // Async thunk to fetch a single property by house_no
 export const fetchPropertyByHouseNo = createAsyncThunk('property/fetchPropertyById', async (house_no: string) => {

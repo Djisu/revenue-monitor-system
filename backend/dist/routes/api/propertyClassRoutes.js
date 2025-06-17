@@ -175,14 +175,38 @@ router.get('/:property_class', async (req, res) => {
         client.release();
     }
 });
+// Find rate
+router.get('/findrate/:propertyAssessed/:propertyClassDesc', async (req, res) => {
+    const { propertyAssessed, propertyClassDesc } = req.params;
+    console.log('router.get(/findrate/:propertyAssessed/:propertyClassDesc):', propertyAssessed, 'and description:', propertyClassDesc);
+    const client = await pool.connect();
+    console.log('before QueryResult<any> = await client.query(SELECT rate FROM propertyclass WHERE description = $1 AND assessed = $2, [propertyClassDesc, propertyAssessed ]);');
+    try {
+        const result = await client.query('SELECT rate FROM propertyclass WHERE description = $1 AND assessed = $2', [propertyClassDesc, propertyAssessed]);
+        if (result.rows.length > 0) {
+            res.status(200).json({ success: true, message: 'Property class found', data: result.rows[0] }); // Return the first row
+        }
+        else {
+            res.status(404).json({ success: false, message: 'Property class not found', data: [] });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error fetching property class record', data: error });
+    }
+    finally {
+        client.release();
+    }
+});
 // Read a single property record by house_no
 router.get('/findpropertyclasses/:desc', async (req, res) => {
     const { desc } = req.params;
     const client = await pool.connect();
+    ``;
     try {
         const result = await client.query('SELECT * FROM propertyclass WHERE description = $1', [desc]);
         if (result.rows.length > 0) {
-            res.json({ message: 'Property class found', data: result.rows[0] }); // Return the first row
+            res.status(200).json({ message: 'Property class found', data: result.rows[0] }); // Return the first row
         }
         else {
             res.status(404).json({ message: 'Property record not found', data: [] });

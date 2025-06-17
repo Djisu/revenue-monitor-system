@@ -56,6 +56,33 @@ export const fetchPropertyClassDescriptions = createAsyncThunk('propertyClass/fe
 });
 
 // Async thunk to fetch all property classes
+export const fetchRate = createAsyncThunk('propertyClass/fetchRate', async (arg: { propertyAssessed: string, propertyClassDesc: string }) => {
+    const { propertyAssessed, propertyClassDesc } = arg;
+    try {
+        console.log('in fetchRate: ', propertyAssessed, propertyClassDesc);
+
+        const response = await axios.get(`${BASE_URL}/api/propertyClass/findrate/${propertyAssessed}/${propertyClassDesc}`);
+
+        console.log('fetchRate response:', response);
+
+        if (response.status >= 200 && response.status < 300) {
+            // handle successful response
+            return response.data.data; // or whatever you need to return
+        } else {
+            // handle other successful status codes if necessary
+            throw new Error(`Error fetching rate: ${response.statusText}`);
+        }
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            throw new Error(error.message);
+        } else {
+            throw new Error('Network error or other issue');
+        }
+    }
+});
+
+
+// Async thunk to fetch all property classes
 export const fetchPropertyClasses = createAsyncThunk('propertyClass/fetchPropertyClasses', async () => {
     try {
         console.log('in fetchPropertyClasses')
