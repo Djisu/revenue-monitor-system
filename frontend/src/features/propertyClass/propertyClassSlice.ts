@@ -81,6 +81,29 @@ export const fetchRate = createAsyncThunk('propertyClass/fetchRate', async (arg:
     }
 });
 
+// Async thunk to fetch by description
+export const fetchDescription = createAsyncThunk('property/fetchDescription', async (assessed: string) => {
+    try {
+        console.log('fetchDescription called with assessed: ', assessed);
+
+        const response = await axios.get(`${BASE_URL}/api/propertyClass/finddescription/${assessed}`);
+
+        console.log('fetchDescription response:', response.data.data)
+
+        if (response.status === 200) {
+            return response.data.data;
+        }
+        return null;
+    } catch (error: unknown) {
+        console.error('Error fetching property classes:', error);
+        // You can also throw the error if you want the calling function to handle it
+        // throw error;
+        if (error instanceof Error){
+            console.error(error.message);
+        }
+        return null;
+    }
+});
 
 // Async thunk to fetch all property classes
 export const fetchPropertyClasses = createAsyncThunk('propertyClass/fetchPropertyClasses', async () => {
