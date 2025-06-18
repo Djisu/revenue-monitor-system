@@ -64,10 +64,11 @@ const pool = new Pool(dbConfig);
 let client = null;
 // Create a new property record
 router.post('/create', async (req, res) => {
-    console.log('router.post(/create');
+    console.log('in router.post(/create');
     //const propertyData: PropertyData = req.body;
     const propertyData = req.body;
     client = await pool.connect();
+    console.log('about to SELECT * FROM property WHERE house_no = $1');
     try {
         const { rowCount } = await client.query('SELECT * FROM property WHERE house_no = $1', [propertyData.house_no]);
         if (rowCount > 0) {
@@ -105,6 +106,8 @@ router.post('/create', async (req, res) => {
             propertyData.property_assessed,
             propertyData.house_value
         ]);
+        console.log('after INSERT INTO property');
+        console.log('result.rows[0]: ', result.rows[0]);
         res.status(201).json({ message: 'Property record created successfully', data: result.rows[0] });
     }
     catch (error) {

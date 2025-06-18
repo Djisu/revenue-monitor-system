@@ -221,6 +221,33 @@ router.get('/findpropertyclasses/:desc', async (req, res) => {
     }
 });
 // Read a single property class record by assessed
+router.get('/finddescription/:assessed', async (req, res) => {
+    const { assessed } = req.params;
+    console.log('Received request to find description with assessed:', assessed);
+    const client = await pool.connect();
+    try {
+        const result = await client.query('SELECT description FROM propertyclass WHERE assessed = $1', [assessed]);
+        if (result.rows.length > 0) {
+            res.status(200).json({ success: true, data: result.rows.map(row => row.description) });
+        }
+        else {
+            res.status(404).json({ success: false, message: 'Property class record not found' });
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.error('Error:', error);
+            res.status(500).json({ success: false, message: 'Error fetching property class record', error: error.message });
+        }
+        else {
+            res.status(500).json({ success: false, message: 'Error fetching property class record', error });
+        }
+    }
+    finally {
+        client.release();
+    }
+});
+// Read a single property class record by assessed
 router.get('/:assessed', async (req, res) => {
     const { assessed } = req.params;
     console.log('Received request to read property class record with property_class:', assessed);

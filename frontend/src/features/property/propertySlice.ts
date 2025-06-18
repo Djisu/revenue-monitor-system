@@ -100,11 +100,15 @@ export const fetchPropertyByHouseNo = createAsyncThunk('property/fetchPropertyBy
 
 // Async thunk to create a new property
 export const createProperty = createAsyncThunk('property/createProperty', async (formData: FormData) => {
+    console.log('createProperty called with formData: ', formData);
+
     try {
         const response = await axios.post(`${BASE_URL}/api/property/create`, formData);
 
+        console.log('createProperty response: ', response.data);
+
         if (response.status === 201) {
-            console.log('Property created successfully: ', response.data)
+            console.log('Property created successfully: ', response.data.data)
             return response.data.data;
         } 
     } catch (error: unknown) {
