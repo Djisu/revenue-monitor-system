@@ -44,6 +44,20 @@ jobs:
         run: npm test
         working-directory: ./backend
 
+      # --- NEW STEP: Install ts-node and dependencies to run the update script ---
+      - name: Install ts-node and dependencies
+        run: npm install ts-node node-fetch dotenv @types/node-fetch
+        working-directory: ./backend
+
+      # --- NEW STEP: Run the update-render-env.ts script ---
+      - name: Update Render environment variables
+        env:
+          RENDER_API_KEY: ${{ secrets.NEW_RENDER_API_KEY }}
+          RENDER_SERVICE_ID: dep-d02cvdbuibrs73aom7m0  # Your Render backend service ID
+        run: npx ts-node update-render-env.ts
+        working-directory: ./backend
+
+      # --- EXISTING DEPLOY STEP ---
       - name: Deploy to Render
         env:
           RENDER_API_KEY: ${{ secrets.NEW_RENDER_API_KEY }}

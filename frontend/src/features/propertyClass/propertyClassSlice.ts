@@ -105,6 +105,7 @@ export const fetchDescription = createAsyncThunk('property/fetchDescription', as
     }
 });
 
+
 // Async thunk to fetch all property classes
 export const fetchPropertyClasses = createAsyncThunk('propertyClass/fetchPropertyClasses', async () => {
     try {

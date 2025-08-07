@@ -9,6 +9,7 @@
     "start": "nodemon dist/server.js --env PORT=4000",
     "dev": "nodemon dist/server.js --env BACKEND_PORT=4000 PORT=4000 --ext ts,js,json --exec ts-node",
     "test": "npx vitest run --watch",
+    "update-env": "ts-node backend/update-render-env.ts",
     "lint": "eslint 'src/**/*.{ts,js}'",
     "prepare": "husky",
     "postinstall": "npx puppeteer browsers install chrome"

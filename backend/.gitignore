@@ -4,6 +4,8 @@ node_modules/
 # Compiled output
 dist/
 build/
+.env.production
+.env*
 
 # Logs
 logs
