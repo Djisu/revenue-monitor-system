@@ -30,4 +30,6 @@ coverage/
 # IDEs
 .idea/
 /backend/dist/routes/api/permits/
+/backend/.env.production
+/backend/.env.development
 
