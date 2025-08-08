@@ -23,6 +23,7 @@
         "backend": "workspace:*",
         "chart.js": "^4.4.9",
         "cors": "^2.8.5",
+        "dotenv": "^17.2.1",
         "frontend": "workspace:*",
         "react-chartjs-2": "^5.3.0",
         "react-router-dom": "^7.6.0",
