@@ -33,3 +33,21 @@ coverage/
 .DS_Store
 .vscode/
 .idea/
+
+/backend/dist/routes/api/permits/
+/backend/.env.production
+/backend/.env.development
+
+# Ignore env files
+frontend/.env.production
+frontend/.env.development
+backend/.env.production
+backend/.env.development
+backend/src/.env.production
+backend/src/.env.development
+backend/dist/routes/.env.development
+
+backend/src/routes/.env.development
+backend/src/routes/.env.production
+
+
