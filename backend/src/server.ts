@@ -199,13 +199,17 @@ app.use((req, res, next) => {
 const frontendPath = path.resolve(__dirname, '../../frontend/dist');
 console.log('[BACKEND] Resolved frontendPath:', frontendPath);
 
-// Serve static files before routes
-// app.use(express.static(frontendPath));
+// Serve static files before routes, including correct Content-Type for manifest.json
 app.use(express.static(frontendPath, {
-  setHeaders: (res, path) => {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('manifest.json')) {
+      res.setHeader('Content-Type', 'application/json');
+    }
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
   },
 }));
+
+
 
 // Handle requests for the React app
 app.get('/', (req: Request, res: Response) => {
@@ -280,19 +284,7 @@ app.listen(port, async () => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.removeHeader('Cache-Control');
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
 
-  // Set the Pragma header to disable caching
-  res.header('Pragma', 'no-cache');
-
-  // Set the Expires header to a date in the past
-  res.header('Expires', 'Mon, 01 Jan 1990 00:00:00 GMT');
-
-  // Send the response
-  res.send('Hello World!');
-});
 
 console.log('[BACKEND] after app.listen');
 
