@@ -191,7 +191,7 @@ const FrmUpdateClient: React.FC = () => {
     //console.log('electoralAreaResponse:', electoralAreaResponse);
     useEffect(() => {
       if (Array.isArray(electoralAreaResponse)) {
-        setElectoralAreas(electoralAreaResponse.map((area: ElectoralArea) => area.electoral_area));
+        setElectoralAreas(electoralAreaResponse.map((area: any) => area.name || area.electoral_area));
       } else {
         console.error('Expected electoralArea to be an array but got:', electoralAreaResponse);
       }

@@ -59,8 +59,7 @@ export interface AddBudgetPayload {
 }
 
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // Async thunk to fetch officer budget data
 export const fetchOfficerBudget = createAsyncThunk(

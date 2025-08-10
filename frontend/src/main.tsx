@@ -8,7 +8,7 @@ import { Provider } from'react-redux'
 import store from './app/store'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitoring-backend.onrender.com');
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system-v6sq.onrender.com');
 
 console.log('BASE_URL:', BASE_URL);
 //declare let window: any;

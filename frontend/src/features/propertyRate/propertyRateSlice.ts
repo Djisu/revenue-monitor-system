@@ -36,8 +36,7 @@ export const initialState: PropertyRateState = {
 };
 
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // Helper function to get the token from local storage
 const getAuthToken = () => {

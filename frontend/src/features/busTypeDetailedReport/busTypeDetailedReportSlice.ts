@@ -51,8 +51,7 @@ export const initialState: ReportsState = {
 };
 
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 
 // Create async thunks for CRUD operations

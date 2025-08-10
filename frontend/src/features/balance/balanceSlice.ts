@@ -28,8 +28,7 @@ export const initialState: BalanceState = {
     data: null,
 };
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://typescript-church-new.onrender.com');
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // Create an async thunk for fetching balances
 export const fetchBalances = createAsyncThunk<Balance[], void>(
