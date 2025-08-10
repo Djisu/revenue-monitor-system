@@ -128,7 +128,7 @@ const dbConfig = {
 };
 
 //const port = process.env.PORT || 5000;
-const port = process.env.BACKEND_PORT || 4000;
+const port = process.env.BACKEND_PORT || 3000;
 
 console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
 
