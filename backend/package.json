@@ -5,7 +5,8 @@
   "main": "dist/server.js",
   "description": "A revenue monitoring system built with Node.js and MongoDB",
   "scripts": {
-    "build": "tsc && node -e \"require('fs-extra').copy('src/routes/.env.development', 'dist/routes/.env.development')\"",
+    "build": "tsc && node -e \"if (require('fs-extra').existsSync('src/routes/.env.development')) require('fs-extra').copy('src/routes/.env.development', 'dist/routes/.env.development')\"",
+    "watch": "tsc -w",
     "start": "nodemon dist/server.js --env PORT=4000",
     "dev": "nodemon dist/server.js --env BACKEND_PORT=4000 PORT=4000 --ext ts,js,json --exec ts-node",
     "test": "npx vitest run --watch",
