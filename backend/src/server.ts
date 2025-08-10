@@ -102,6 +102,7 @@ if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1);  // Trust first proxy (required for HTTPS)
 }
 
+// Display environment variables
 console.log('[BACKEND] host:', process.env.DB_HOST);
 console.log('[BACKEND] user:', process.env.DB_USER);
 console.log('[BACKEND] database:', process.env.DB_NAME);
