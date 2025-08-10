@@ -51,27 +51,25 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 const env = process.env.NODE_ENV || 'development';  // Defaults to 'development'
 console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
 
-// Construct the path to the appropriate .env file from the root directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-//const rootDir = path.resolve(__dirname, '..');
 
 const envPath = path.resolve(__dirname, `../.env.${env}`);
 
 console.log('[BACKEND] envPath:', envPath); // Debugging log
 
-// Check if the .env file exists
-if (!fs.existsSync(envPath)) {
-  console.error(`[BACKEND] .env file not found at ${envPath}. Please ensure the file exists.`);
-  process.exit(1); // Exit the process if the file is not found
+if (env === 'production') {
+  console.log('[BACKEND] Running in production mode — skipping dotenv file loading.');
+} else {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    console.log('[BACKEND] Loaded environment variables from', envPath);
+  } else {
+    console.warn(`[BACKEND] .env file not found at ${envPath}. Skipping dotenv config.`);
+  }
 }
 
-// Load the environment variables from the .env file
-dotenv.config({ path: envPath });
-
-console.log('[BACKEND] environment:', envPath);
-console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV); // Debugging log
+console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV);
 
 // Example usage of environment variables
 const DB_HOST = process.env.DB_HOST;
