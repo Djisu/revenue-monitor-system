@@ -65,7 +65,7 @@ console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV);
 const DB_HOST = process.env.DB_HOST;
 const DB_USER = process.env.DB_USER;
 const DB_NAME = process.env.DB_NAME;
-const DB_PORT = process.env.DB_PORT;
+const DB_PORT = Number(process.env.DB_PORT);
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const JWT_SECRET = process.env.JWT_SECRET;
 console.log('Initial NODE_ENV:', process.env.NODE_ENV);
@@ -76,12 +76,12 @@ console.log('DB_PORT:', DB_PORT);
 console.log('DB_PASSWORD:', DB_PASSWORD);
 console.log('JWT_SECRET:', JWT_SECRET);
 // SSL configuration
-let sslConfig;
+let sslConfig = false;
 if (process.env.NODE_ENV === 'production') {
-    sslConfig = { rejectUnauthorized: true }; // Important for Render.com
-}
-else {
-    sslConfig = false;
+    sslConfig = {
+        require: true,
+        rejectUnauthorized: false, // Let’s Render DBs work correctly
+    };
 }
 if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1); // Trust first proxy (required for HTTPS)
@@ -99,6 +99,7 @@ const pool = new Pool({
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'),
     ssl: sslConfig,
+    keepAlive: true, // prevents idle connection drops
 });
 // PostgreSQL connection configuration
 const dbConfig = {
@@ -110,7 +111,7 @@ const dbConfig = {
     ssl: sslConfig,
 };
 //const port = process.env.PORT || 5000;
-const port = process.env.BACKEND_PORT || 4000;
+const port = process.env.BACKEND_PORT || 3000;
 console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
 // Define allowed origins array
 // const allowedOrigins: string[] = [
@@ -236,16 +237,18 @@ app.get(/^(?!\/login).*$/, (req, res) => {
 app.listen(port, async () => {
     console.log(`[BACKEND] Server is running on port ${port}`);
     console.log(colors.green('[BACKEND] PostgreSQL connected'));
-    const client = await pool.connect();
-    // Test database connection
-    try {
-        const result = await client.query('SELECT NOW()');
-        console.log('[BACKEND] Database connection test successful:', result.rows);
-        client.release();
-    }
-    catch (err) {
-        console.error('[BACKEND] Database connection test failed:', err);
-    }
+    // const client = await pool.connect();
+    // // Test database connection
+    // try {
+    //     const result = await client.query('SELECT NOW()');
+    //     console.log('[BACKEND] Database connection test successful:', result.rows);
+    //     client.release();
+    // } catch (err) {
+    //     console.error('[BACKEND] Database connection test failed:', err);
+    // }
+});
+pool.on('error', (err, client) => {
+    console.error('[BACKEND] Unexpected error on idle client', err);
 });
 console.log('[BACKEND] after app.listen');
 // Handle process signals

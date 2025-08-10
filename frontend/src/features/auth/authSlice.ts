@@ -56,10 +56,7 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
     async (credentials, { rejectWithValue }) => {
         console.log('Sending login request:', { username: credentials.username, password: credentials.password });
 
-        // const sslConfig: AxiosRequestConfig['httpsAgent'] = import.meta.env.MODE === 'production' 
-        //     ? new https.Agent({ rejectUnauthorized: true })
-        //     : false; // httpsAgent: sslConfig,
-
+        console.log('Sending login )))))')
 
         try {
             const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/auth/login`, {
