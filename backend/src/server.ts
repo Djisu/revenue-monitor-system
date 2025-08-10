@@ -47,6 +47,7 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
+// latest solution for loading .env.development
 // Determine the environment (development or production)
 const env = process.env.NODE_ENV || 'development';  // Defaults to 'development'
 console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
