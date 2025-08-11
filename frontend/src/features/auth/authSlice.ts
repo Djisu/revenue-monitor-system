@@ -40,12 +40,15 @@ export interface LoginError {
     message: string;
 }
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+//const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = import.meta.env.VITE_BASE_URL || 
+(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
+
 
 console.log('BASE_URL: ', BASE_URL)
-console.log("VITE_BASE_URL = ", import.meta.env.VITE_BASE_URL);
+// console.log("VITE_BASE_URL = ", import.meta.env.VITE_BASE_URL);
 
-console.log('BASE_URL:', import.meta.env.VITE_BASE_URL);
+// console.log('BASE_URL:', import.meta.env.VITE_BASE_URL);
 console.log('MODE:', import.meta.env.MODE);
 
 
@@ -59,7 +62,7 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
         console.log('Sending login )))))')
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/auth/login`, {
+            const response = await axios.post(`${BASE_URL}/api/auth/login`, {
                 username: credentials.username, // Ensure this matches 'OperatorName'
                 password: credentials.password
             }, {               

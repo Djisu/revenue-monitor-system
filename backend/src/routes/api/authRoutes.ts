@@ -91,6 +91,7 @@ router.post('/audit-log', async (req: Request, res: Response) => {
 
 // const router = express.Router();
 
+// Login endpoint
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
     console.log('Login request received:', req.body); // Log incoming request data
 
