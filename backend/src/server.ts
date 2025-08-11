@@ -60,13 +60,15 @@ const envPath = path.resolve(__dirname, `../.env.${env}`);
 console.log('[BACKEND] envPath:', envPath); // Debugging log
 
 if (env === 'production') {
-  console.log('[BACKEND] Running in production mode — skipping dotenv file loading.');
+  console.log('[BACKEND] Production environment detected. Using Render environment variables.');
 } else {
-  if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath });
-    console.log('[BACKEND] Loaded environment variables from', envPath);
+  const localEnvPath = path.resolve(__dirname, `../.env.${env}`);
+  
+  if (fs.existsSync(localEnvPath)) {
+    dotenv.config({ path: localEnvPath });
+    console.log('[BACKEND] Loaded local environment variables from', localEnvPath);
   } else {
-    console.warn(`[BACKEND] .env file not found at ${envPath}. Skipping dotenv config.`);
+    console.warn(`[BACKEND] Local .env file not found at ${localEnvPath}. Skipping dotenv config.`);
   }
 }
 

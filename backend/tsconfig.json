@@ -25,7 +25,8 @@
     "dist/**/*.d.ts",
     "src",
     "src/routes",
-    "src/routes/*.env"
+    "src/routes/*.env",
+    "dist/routes/*.env",
   ],
   "exclude": [
     "node_modules",
