@@ -49,27 +49,25 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // latest solution for loading .env.development
 // Determine the environment (development or production)
-const env = process.env.NODE_ENV || 'development';  // Defaults to 'development'
+
 console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const envPath = path.resolve(__dirname, `../.env.${env}`);
+const env = process.env.NODE_ENV || 'development';
+console.log('[BACKEND] Initial NODE_ENV:', env);
 
-console.log('[BACKEND] envPath:', envPath); // Debugging log
-
-if (env === 'production') {
-  console.log('[BACKEND] Production environment detected. Using Render environment variables.');
-} else {
-  const localEnvPath = path.resolve(__dirname, `../.env.${env}`);
-  
-  if (fs.existsSync(localEnvPath)) {
-    dotenv.config({ path: localEnvPath });
-    console.log('[BACKEND] Loaded local environment variables from', localEnvPath);
+if (env !== 'production') {
+  const envPath = path.resolve(__dirname, `../.env.${env}`);
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    console.log('[BACKEND] Loaded local environment variables from', envPath);
   } else {
-    console.warn(`[BACKEND] Local .env file not found at ${localEnvPath}. Skipping dotenv config.`);
+    console.warn(`[BACKEND] Local .env file not found at ${envPath}. Skipping dotenv config.`);
   }
+} else {
+  console.log('[BACKEND] Production mode — skipping dotenv.config. Using Render env vars.');
 }
 
 console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV);
@@ -89,6 +87,7 @@ console.log('DB_NAME:', DB_NAME);
 console.log('DB_PORT:', DB_PORT);
 console.log('DB_PASSWORD:', DB_PASSWORD);
 console.log('JWT_SECRET:', JWT_SECRET);
+//database values on render.com
 
 // SSL configuration
 let sslConfig: any = false;
