@@ -6,7 +6,7 @@
   "description": "A revenue monitoring system built with Node.js and MongoDB",
   "scripts": {
     "build": "tsc",
-    "start": "node -r dotenv/config dist/server.js",
+    "start": "node dist/server.js",
     "dev": "tsnd --respawn --transpile-only src/server.ts",
     "test": "npx vitest run --watch",
     "update-env": "ts-node backend/update-render-env.ts",
