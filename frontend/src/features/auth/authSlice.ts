@@ -57,9 +57,12 @@ console.log('MODE:', import.meta.env.MODE);
 export const loginUser = createAsyncThunk<LoginResponse, { username: string; password: string }, { rejectValue: LoginError }>(
     'auth/loginUser',
     async (credentials, { rejectWithValue }) => {
+        console.log('in frontend: loginUser')
         console.log('Sending login request:', { username: credentials.username, password: credentials.password });
 
         console.log('Sending login )))))')
+
+        console.log('about to const response = await axios.post')
 
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/login`, {

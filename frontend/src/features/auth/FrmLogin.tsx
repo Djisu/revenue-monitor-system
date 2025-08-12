@@ -68,7 +68,7 @@ const FrmLogin: React.FC = () => {
                 </Button>
                 {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
                 <div className="mt-3 text-center" style={{ color: 'red' }}>
-                    (c) SoftPlus Solutions
+                    (c) SoftPlus Solutions New Systems
                 </div>
             </Form>
         </Container>

@@ -18,14 +18,14 @@ export default defineConfig({
     port: FORCE_PORT,
     strictPort: true,
     open: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
+    // proxy: {
+    //   '/api': {
+    //     target: 'http://localhost:3000',
+    //     changeOrigin: true,
+    //     secure: false,
+    //     rewrite: (path) => path.replace(/^\/api/, ''),
+    //   },
+    // },
   },
   build: {
     chunkSizeWarningLimit: 1500,
@@ -36,12 +36,7 @@ export default defineConfig({
     rollupOptions: {
       external: [],
     },
-    // ❌ REMOVE THIS ↓↓↓
-    // lib: {
-    //   entry: 'src/main.tsx',
-    //   fileName: 'main',
-    //   formats: ['es'],
-    // },
+    
   },
   resolve: {
     alias: {

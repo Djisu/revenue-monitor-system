@@ -36,39 +36,93 @@ import officerBudgetRoute from './routes/api/officerBudgetRoute.js';
 import CollectorElectoralAreaRoute from './routes/api/collectorElectoralarea.js';
 import bustypeDetailedReportRoute from './routes/api/bustypeDetailedReportRoute.js';
 import bustypeSummaryReportRoute from './routes/api/busTypeSummaryReportRoute.js';
+//import { loadEnv } from './utils/loadEnv.js';
 
 import pkg from 'pg';
 const { Pool } = pkg;
 
+//loadEnv();
+
 // Initialize the Express application
 const app = express();
+
+// // Define allowed origins array 'https://revenue-monitor-system.onrender.com', 'http://localhost:3000', // Local development
+const allowedOrigins: string[] = [
+  'https://revenue-monitor-system-v6sq.onrender.com',  
+  'http://localhost:5173', // Local development
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    console.log('[BACKEND] CORS Check - Origin:', origin);
+    if (!origin || allowedOrigins.includes(origin)) {
+      console.log('[BACKEND] CORS - Origin allowed');
+      callback(null, true);
+    } else {
+      console.log('[BACKEND] CORS - Origin blocked:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200,
+}));
+
+//app.options('*', cors()); // Handle preflight for all routes
+
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// latest solution for loading .env.development
-// Determine the environment (development or production)
-
-console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// console.log('[BACKEND] __filename:', __filename);
+// console.log('[BACKEND] __dirname:', __dirname);
+// console.log('[BACKEND] process.cwd():', process.cwd());
+
+// latest solution for loading .env.development
+// Determine the environment (development or production)
+dotenv.config()
+
+// console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
+
+
+
 const env = process.env.NODE_ENV || 'development';
-console.log('[BACKEND] Initial NODE_ENV:', env);
+
+const envPath = path.resolve(__dirname, `../../.env.${env}`);
+// console.log('[BACKEND] Looking for env file at:', envPath);
+// console.log('[BACKEND] File exists:', fs.existsSync(envPath))
 
 if (env !== 'production') {
-  const envPath = path.resolve(__dirname, `../.env.${env}`);
-  if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath });
-    console.log('[BACKEND] Loaded local environment variables from', envPath);
-  } else {
-    console.warn(`[BACKEND] Local .env file not found at ${envPath}. Skipping dotenv config.`);
+  // Try multiple possible locations for the env file
+  const possiblePaths = [
+    path.resolve(__dirname, `../.env.${env}`),
+    path.resolve(__dirname, `../../.env.${env}`),
+    path.resolve(process.cwd(), `.env.${env}`)
+  ];
+  
+  let envLoaded = false;
+  for (const envPath of possiblePaths) {
+    console.log('[BACKEND] Checking for env file at:', envPath);
+    if (fs.existsSync(envPath)) {
+      dotenv.config({ path: envPath });
+      console.log('[BACKEND] Loaded environment variables from:', envPath);
+      envLoaded = true;
+      break;
+    }
+  }
+  
+  if (!envLoaded) {
+    console.warn('[BACKEND] No environment file found. Using default/system environment variables.');
   }
 } else {
-  console.log('[BACKEND] Production mode — skipping dotenv.config. Using Render env vars.');
+  console.log('[BACKEND] Production mode — using system environment variables.');
 }
+
 
 console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV);
 
@@ -76,17 +130,17 @@ console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV);
 const DB_HOST = process.env.DB_HOST;
 const DB_USER = process.env.DB_USER;
 const DB_NAME = process.env.DB_NAME;
-const DB_PORT = Number(process.env.DB_PORT);
+const DB_PORT = process.env.DB_PORT;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const JWT_SECRET = process.env.JWT_SECRET;
 
-console.log('Initial NODE_ENV:', process.env.NODE_ENV);
-console.log('DB_HOST:', DB_HOST);
-console.log('DB_USER:', DB_USER);
-console.log('DB_NAME:', DB_NAME);
-console.log('DB_PORT:', DB_PORT);
-console.log('DB_PASSWORD:', DB_PASSWORD);
-console.log('JWT_SECRET:', JWT_SECRET);
+// console.log('Initial NODE_ENVxxxxx:', process.env.NODE_ENV);
+// console.log('DB_HOST:', DB_HOST);
+// console.log('DB_USER:', DB_USER);
+// console.log('DB_NAME:', DB_NAME);
+// console.log('DB_PORT:', DB_PORT);
+// console.log('DB_PASSWORD:', DB_PASSWORD);
+// console.log('JWT_SECRET:', JWT_SECRET);
 //database values on render.com
 
 // SSL configuration
@@ -105,10 +159,10 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Display environment variables
-console.log('[BACKEND] host:', process.env.DB_HOST);
-console.log('[BACKEND] user:', process.env.DB_USER);
-console.log('[BACKEND] database:', process.env.DB_NAME);
-console.log('[BACKEND] port:', process.env.DB_PORT);
+// console.log('[BACKEND] host:', process.env.DB_HOST);
+// console.log('[BACKEND] user:', process.env.DB_USER);
+// console.log('[BACKEND] database:', process.env.DB_NAME);
+// console.log('[BACKEND] port:', process.env.DB_PORT);
 
 // Create a connection pool
 const pool = new Pool({
@@ -136,68 +190,31 @@ const port = process.env.BACKEND_PORT || 3000;
 
 console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
 
-// Define allowed origins array
+// // Define allowed origins array
 // const allowedOrigins: string[] = [
 //   'https://revenue-monitor-system-v6sq.onrender.com', 
 //   'https://revenue-monitor-system.onrender.com',
 //   'http://localhost:5173', // Local development
+//   'http://localhost:3000', // Local development
 // ];
 
-const allowedOrigins: string[] = [
-  'https://revenue-monitor-system-v6sq.onrender.com', 
-  'https://revenue-monitor-system.onrender.com',
-  'http://localhost:5173', // Local development
-];
-
-// Define corsOptions with correct type
-// const corsOptions: CorsOptions = {
-//   origin: (origin: string | undefined, callback: (err: Error | null, origin?: boolean) => void) => {
-//     console.log('[BACKEND] Checking origin:', origin); // Debugging log
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     console.log('[BACKEND] CORS Check - Origin:', origin);
 //     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true); // Allow origin
+//       console.log('[BACKEND] CORS - Origin allowed');
+//       callback(null, true);
 //     } else {
-//       console.warn('[BACKEND] Blocked by CORS:', origin); // Log blocked origin
-//       callback(new Error('Not allowed by CORS')); // Reject with error
+//       console.log('[BACKEND] CORS - Origin blocked:', origin);
+//       callback(new Error('Not allowed by CORS'));
 //     }
 //   },
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific HTTP methods
-//   allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
-//   credentials: true, // Allow credentials such as cookies
-// };
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   credentials: true,
+//   optionsSuccessStatus: 200
+// }));
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  maxAge: 3600,
-}));
-
-app.use((req, res, next) => {
-  console.log('CORS Request:', req.method, req.url);
-  console.log('CORS Headers:', req.headers);
-  next();
-});
-
-app.use((req, res, next) => {
-  console.log('CORS Response:', res.statusCode);
-  console.log('CORS Headers:', res.getHeader('Content-Type')); // Get the Content-Type header
-  next();
-});
-
-// Apply CORS to all routes
-//app.use(cors(corsOptions));
-
-// Handle preflight requests for all routes
-// app.options('*', cors(corsOptions), (_req: Request, res: Response) => {
-//   res.sendStatus(200); // Respond to preflight request with 200 status
-// });
 
 // Serve static files from the React app first
 const frontendPath = path.resolve(__dirname, '../../frontend/dist');

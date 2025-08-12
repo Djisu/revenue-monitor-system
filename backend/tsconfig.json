@@ -15,6 +15,9 @@
     "types": ["node", "express", "vitest"],  // Explicitly include Node.js types
     "typeRoots": ["./node_modules/@types", "../node_modules/@types", "src/@types", "./types"]             // Custom types (optional, only if you have custom types in `src/@types`)
   },
+  "ts-node": {
+    "esm": true
+  },
   "include": [
     "src/**/*.ts",
     "src/types.d.ts",
@@ -27,6 +30,7 @@
     "src/routes",
     "src/routes/*.env",
     "dist/routes/*.env",
+    "dist/routes",
   ],
   "exclude": [
     "node_modules",
