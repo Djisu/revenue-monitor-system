@@ -204,7 +204,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('SE', 'PropertyType')}>
                                 SE_Setup Type of Property
                             </NavDropdown.Item> */}
-                            <NavDropdown.Item onClick={() => handleMenuClick('SE', 'PropertyEmployee')}>
+                            {/* <NavDropdown.Item onClick={() => handleMenuClick('SE', 'PropertyEmployee')}>
                                 SE_Setup Property Rate Officer
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('AE', 'PropertyCollectorElectoralArea')}>
@@ -221,10 +221,10 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             </NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'PropertyBillPayments')}>
                                 BN_Pay Property Bill
-                            </NavDropdown.Item>
+                            </NavDropdown.Item> */}
                         </NavDropdown>
 
-                        <NavDropdown title="Property Rate Reports" id="basic-nav-dropdown">
+                        {/* <NavDropdown title="Property Rate Reports" id="basic-nav-dropdown">
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProducePropertyRates')}>
                                 BN_Produce Property Rate Bills
                             </NavDropdown.Item>
@@ -240,7 +240,7 @@ const MainMenu: React.FC<MainMenuProps> = ({  checkAccess  }) => {
                             <NavDropdown.Item onClick={() => handleMenuClick('BN', 'ProducePropertyRateVarianceAnalysisReport')}>
                                 BN_Produce a Snapshot of the Property Rate Financial Standing of the Assembly
                             </NavDropdown.Item>
-                        </NavDropdown>
+                        </NavDropdown> */}
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>

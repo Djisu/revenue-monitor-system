@@ -6058,7 +6058,6 @@ __metadata:
     typescript-eslint: "npm:^8.31.1"
     victory: "npm:^37.3.6"
     vite: "npm:^6.2.2"
-    vitest: "npm:^3.1.2"
     yaml: "npm:^2.6.1"
   languageName: unknown
   linkType: soft
@@ -12735,7 +12734,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:^3.0.7, vitest@npm:^3.1.2":
+"vitest@npm:^3.0.7":
   version: 3.2.2
   resolution: "vitest@npm:3.2.2"
   dependencies:

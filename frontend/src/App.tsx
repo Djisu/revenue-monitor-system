@@ -49,22 +49,22 @@ import FrmCollectorsBusinessesReport from './features/officer/FrmCollectorsBusin
 
 import FrmPropertyClass from './features/propertyClass/FrmPropertyClass';
 
-import FrmPropertyUse from './features/propertyUse/FrmPropertyUse';
-import FrmPropertyType from './features/propertyType/FrmPropertyType';
-import FrmPropertyEmployee from './features/propertyOfficer/FrmPropertyEmployee';
-import FrmPropertyCollectorElectoralArea from './features/propertyCollectorElectoralArea/FrmPropertyCollectorElectoralArea';
-import FrmProperty from './features/property/FrmProperty';
-import FrmPropertyOfficerBudget from './features/propertyOfficerBudget/FrmPropertyOfficerBudget';
-import FrmProducePropertyRates from './features/propertyRate/FrmProducePropertyRates';
+// import FrmPropertyUse from './features/propertyUse/FrmPropertyUse';
+// import FrmPropertyType from './features/propertyType/FrmPropertyType';
+// import FrmPropertyEmployee from './features/propertyOfficer/FrmPropertyEmployee';
+// import FrmPropertyCollectorElectoralArea from './features/propertyCollectorElectoralArea/FrmPropertyCollectorElectoralArea';
+// import FrmProperty from './features/property/FrmProperty';
+// import FrmPropertyOfficerBudget from './features/propertyOfficerBudget/FrmPropertyOfficerBudget';
+// import FrmProducePropertyRates from './features/propertyRate/FrmProducePropertyRates';
 
 import FrmOfficerBudgetActual from './features/offBudgetAssessment/FrmOfficerBudgetActual';
 import FrmElectoralAreasPaymentsGraph from './features/busPayments/FrmElectoralAreasPaymentsGraph';
 
-import FrmPropertyUpdate from './features/property/FrmPropertyUpdate';
-import FrmPropertyRate from './features/propertyRate/FrmPropertyRate';
-import FrmPropertyBillPayments from './features/propertyBalance/FrmPropertyBillPayments';
-import FrmDailyPropertyPayments from './features/propertyBalance/FrmDailyPropertyPaymentsReport';//
-import FrmPropertySavingsStatementX from './features/propertyBalance/FrmPropertySavingsStatementX';
+// import FrmPropertyUpdate from './features/property/FrmPropertyUpdate';
+// import FrmPropertyRate from './features/propertyRate/FrmPropertyRate';
+// import FrmPropertyBillPayments from './features/propertyBalance/FrmPropertyBillPayments';
+// import FrmDailyPropertyPayments from './features/propertyBalance/FrmDailyPropertyPaymentsReport';//
+// import FrmPropertySavingsStatementX from './features/propertyBalance/FrmPropertySavingsStatementX';
 
 import checkAccess from './utilities/checkAccess';
 import NotFound from './components/layout/NotFound';
@@ -127,8 +127,8 @@ const App: React.FC = () => {
                     <Route path="/ElectoralAreasPaymentsGraph" element={<ProtectedRoute element={<FrmElectoralAreasPaymentsGraph />} />} />
                     <Route path="/PropertyClass" element={<ProtectedRoute element={<FrmPropertyClass />} />} />
 
-                     {/* Routes for property forms */}
-                    <Route path="/PropertyUse" element={<ProtectedRoute element={<FrmPropertyUse />} />} />
+                     Routes for property forms
+                    {/* <Route path="/PropertyUse" element={<ProtectedRoute element={<FrmPropertyUse />} />} />
                     <Route path="/PropertyType" element={<ProtectedRoute element={<FrmPropertyType />} />} />
                     <Route path="/PropertyEmployee" element={<ProtectedRoute element={<FrmPropertyEmployee />} />} />
                     <Route path="/PropertyCollectorElectoralArea" element={<ProtectedRoute element={<FrmPropertyCollectorElectoralArea />} />} />
@@ -139,7 +139,7 @@ const App: React.FC = () => {
                     <Route path="/PropertyRate" element={<ProtectedRoute element={<FrmPropertyRate />} />} />
                     <Route path="/PropertyBillPayments" element={<ProtectedRoute element={<FrmPropertyBillPayments />} />} />
                     <Route path="/PropertySavingsStatementX" element={<ProtectedRoute element={<FrmPropertySavingsStatementX />} />} />
-                    <Route path="/DailyPropertyPaymentsReport" element={<ProtectedRoute element={<FrmDailyPropertyPayments />} />} />
+                    <Route path="/DailyPropertyPaymentsReport" element={<ProtectedRoute element={<FrmDailyPropertyPayments />} />} /> */}
 
                     <Route path="*" element={<NotFound />} /> 
                 </Routes>

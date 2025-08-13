@@ -61,8 +61,7 @@
     "serve": "^14.2.0",
     "typescript": "5.4.5",
     "typescript-eslint": "^8.31.1",
-    "vite": "^6.2.2",
-    "vitest": "^3.1.2"
+    "vite": "^6.2.2"
   },
   "resolutions": {
     "negotiator": "^0.6.3"
