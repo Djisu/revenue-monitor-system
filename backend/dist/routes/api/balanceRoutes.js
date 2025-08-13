@@ -14,7 +14,7 @@ console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging l
 // Construct the path to the appropriate .env file from the root directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const permitDir = path.join(__dirname, 'permits');
+// const permitDir = path.join(__dirname, 'permits');
 //const rootDir = path.resolve(__dirname, '..');
 const envPath = path.resolve(__dirname, `../.env.${env}`);
 console.log('[BACKEND] envPath:', envPath); // Debugging log
@@ -42,13 +42,12 @@ console.log('DB_PORT:', DB_PORT);
 console.log('DB_PASSWORD:', DB_PASSWORD);
 console.log('JWT_SECRET:', JWT_SECRET);
 // SSL configuration
-let sslConfig;
-if (process.env.NODE_ENV === 'production') {
-    sslConfig = { rejectUnauthorized: true }; // Important for Render.com
-}
-else {
-    sslConfig = false;
-}
+// let sslConfig: false | { rejectUnauthorized: boolean };
+// if (process.env.NODE_ENV === 'production') { 
+//   sslConfig = { rejectUnauthorized: true }; // Important for Render.com
+// } else {
+//   sslConfig = false;
+// }
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',

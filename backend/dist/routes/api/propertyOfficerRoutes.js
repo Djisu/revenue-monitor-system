@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
+// import bcrypt from 'bcrypt';
 //import { createClient } from '../../db.js';
 const router = Router();
 // experiment ///
@@ -80,7 +81,7 @@ router.post('/create', async (req, res) => {
             propertyOfficerData.officer_name,
             propertyOfficerData.photo,
         ]);
-        res.status(201).json({ message: 'Property officer record created successfully' });
+        res.status(201).json({ message: 'Property officer record created successfully', data: insertResult });
     }
     catch (error) {
         console.error('Error:', error);
@@ -147,7 +148,7 @@ router.put('/update/:officer_no', async (req, res) => {
             return;
         }
         // Update the property officer data
-        const updateResult = await client.query(`UPDATE propertyofficer 
+        await client.query(`UPDATE propertyofficer 
             SET officer_name = $2, photo = $3 
             WHERE officer_no = $1`, [
             officer_no,
@@ -178,7 +179,7 @@ router.delete('/delete/:officer_no', async (req, res) => {
             return;
         }
         // Delete the property officer record
-        const deleteResult = await client.query('DELETE FROM propertyofficer WHERE officer_no = $1', [officer_no]);
+        await client.query('DELETE FROM propertyofficer WHERE officer_no = $1', [officer_no]);
         res.status(200).json({ message: 'Property officer record deleted successfully' });
     }
     catch (error) {

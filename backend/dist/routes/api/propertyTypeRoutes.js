@@ -2,6 +2,8 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
+// import type { QueryResult } from 'pg';  // Import QueryResult as a type
+// import bcrypt from 'bcrypt';
 //import { createClient } from '../../db.js';
 const router = Router();
 // experiment ///
@@ -60,7 +62,6 @@ const dbConfig = {
     ssl: sslConfig,
 };
 const pool = new Pool(dbConfig);
-let client = null;
 // Create a new property type record
 router.post('/', async (req, res) => {
     const propertyTypeData = req.body;
@@ -71,7 +72,7 @@ router.post('/', async (req, res) => {
             return;
         }
         // Insert the new property type data
-        const result = await pool.query(`INSERT INTO propertytype 
+        await pool.query(`INSERT INTO propertytype 
             (property_type, rate) 
             VALUES ($1, $2)`, [
             propertyTypeData.property_type,

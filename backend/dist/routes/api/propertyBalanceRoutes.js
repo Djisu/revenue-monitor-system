@@ -3,6 +3,8 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
+//import type { QueryResult } from 'pg';  // Import QueryResult as a type
+//import bcrypt from 'bcrypt';
 //import { createClient } from '../../db.js';
 const router = Router();
 // experiment ///
@@ -71,14 +73,17 @@ router.post('create/', async (req, res) => {
             return;
         }
         // Insert the new property balance data
-        const result = await pool.query(`INSERT INTO propertybalance 
-            (house_no, billamount, paidamount, balance) 
-            VALUES ($1, $2, $3, $4)`, [
-            propertyBalanceData.house_no,
-            propertyBalanceData.billamount,
-            propertyBalanceData.paidamount,
-            propertyBalanceData.balance,
-        ]);
+        // const result = await pool.query(
+        //     `INSERT INTO propertybalance 
+        //     (house_no, billamount, paidamount, balance) 
+        //     VALUES ($1, $2, $3, $4)`,
+        //     [
+        //         propertyBalanceData.house_no,
+        //         propertyBalanceData.billamount,
+        //         propertyBalanceData.paidamount,
+        //         propertyBalanceData.balance,
+        //     ]
+        // );
         res.status(201).json({ message: 'Property balance record created successfully' });
     }
     catch (error) {

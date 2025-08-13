@@ -1,3 +1,5 @@
+// backend/src/routes/api/propertyOfficerBudgetRoutes.ts
+// import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
@@ -128,7 +130,7 @@ router.put('/:officer_no/:fiscal_year', async (req, res) => {
     let client = null;
     try {
         client = await pool.connect();
-        const result = await client.query('SELECT * FROM propertyofficerbudget WHERE officer_no = $1 AND fiscal_year = $2', [propertyOfficerBudgetData.officer_no, propertyOfficerBudgetData.fiscal_year]);
+        const result = await client.query('SELECT * FROM propertyofficerbudget WHERE officer_no = $1 AND fiscal_year = $2', [propertyOfficerBudgetData.officer_no, fiscal_year]);
         if (result.rows.length > 0) {
             res.status(409).json({ message: 'Property officer budget record already exists' });
             return;

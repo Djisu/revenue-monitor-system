@@ -7,6 +7,7 @@ import { dirname } from 'path';
 import pkg from 'pg';
 import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js';
 import PDFDocument from 'pdfkit';
+//import { Stream } from 'stream';
 import { printPdf } from '../../utils/printHelper.js';
 //import AshmaLogo from '../../assets/Ashma-Logo-BIG.JPG';
 //import AshmaLogo from '../../assets/Ashma-Logo-BIG.JPG';
@@ -156,7 +157,7 @@ async function generatePermitContent(doc, data, totalPayable, varSerialNo, arrea
         // Create two columns for the permit information
         const leftColumnX = 100;
         const rightColumnX = 350;
-        const startY = doc.y + 20; // Add extra space after the line
+        // const startY = doc.y + 20; // Add extra space after the line
         // Save the current y position to use for both headers
         const headerY = doc.y;
         // Left column header
@@ -175,7 +176,7 @@ async function generatePermitContent(doc, data, totalPayable, varSerialNo, arrea
             .text(`Serial No: ${varSerialNo}`, leftColumnX, doc.y)
             .fillColor('black');
         // Save the Y position after the serial number for the right column
-        const firstItemY = doc.y;
+        // const firstItemY = doc.y;
         // Left column content
         doc.moveDown(0.8); // Add space after serial number
         const accountY = doc.y;
@@ -917,6 +918,7 @@ router.get('/:fiscalyear/:receiptno/:batchno', async (req, res) => {
         }
     }
     catch (error) {
+        console.log(error);
         res.status(500).json({ error: 'Server error' });
     }
     finally {

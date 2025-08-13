@@ -75,7 +75,7 @@ const __dirname = dirname(__filename);
 dotenv.config();
 // console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
 const env = process.env.NODE_ENV || 'development';
-const envPath = path.resolve(__dirname, `../../.env.${env}`);
+//const envPath = path.resolve(__dirname, `../../.env.${env}`);
 // console.log('[BACKEND] Looking for env file at:', envPath);
 // console.log('[BACKEND] File exists:', fs.existsSync(envPath))
 if (env !== 'production') {
@@ -103,22 +103,6 @@ else {
     console.log('[BACKEND] Production mode — using system environment variables.');
 }
 console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV);
-// Example usage of environment variables
-const DB_HOST = process.env.DB_HOST;
-const DB_USER = process.env.DB_USER;
-const DB_NAME = process.env.DB_NAME;
-const DB_PORT = process.env.DB_PORT;
-const DB_PASSWORD = process.env.DB_PASSWORD;
-const JWT_SECRET = process.env.JWT_SECRET;
-// console.log('Initial NODE_ENVxxxxx:', process.env.NODE_ENV);
-// console.log('DB_HOST:', DB_HOST);
-// console.log('DB_USER:', DB_USER);
-// console.log('DB_NAME:', DB_NAME);
-// console.log('DB_PORT:', DB_PORT);
-// console.log('DB_PASSWORD:', DB_PASSWORD);
-// console.log('JWT_SECRET:', JWT_SECRET);
-//database values on render.com
-// SSL configuration
 let sslConfig = false;
 if (process.env.NODE_ENV === 'production') {
     sslConfig = {
@@ -257,7 +241,7 @@ app.listen(port, async () => {
     //     console.error('[BACKEND] Database connection test failed:', err);
     // }
 });
-pool.on('error', (err, client) => {
+pool.on('error', (err) => {
     console.error('[BACKEND] Unexpected error on idle client', err);
 });
 console.log('[BACKEND] after app.listen');

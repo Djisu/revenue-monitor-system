@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
+// import bcrypt from 'bcrypt';
 //import { createClient } from '../../db.js';
 const router = Router();
 // experiment ///
@@ -80,7 +81,7 @@ router.post('/', async (req, res) => {
     }
     catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating property use record', error: error.message });
+        res.status(500).json({ message: 'Error creating property use record', error: 'Error creating property use record' });
     }
     finally {
         client.release();
