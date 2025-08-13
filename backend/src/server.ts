@@ -79,7 +79,7 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
+console.log('in server.ts about to check dirname')
 // console.log('[BACKEND] __filename:', __filename);
 // console.log('[BACKEND] __dirname:', __dirname);
 // console.log('[BACKEND] process.cwd():', process.cwd());
