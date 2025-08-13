@@ -93,7 +93,7 @@ dotenv.config()
 
 const env = process.env.NODE_ENV || 'development';
 
-const envPath = path.resolve(__dirname, `../../.env.${env}`);
+//const envPath = path.resolve(__dirname, `../../.env.${env}`);
 // console.log('[BACKEND] Looking for env file at:', envPath);
 // console.log('[BACKEND] File exists:', fs.existsSync(envPath))
 
@@ -127,12 +127,12 @@ if (env !== 'production') {
 console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV);
 
 // Example usage of environment variables
-const DB_HOST = process.env.DB_HOST;
-const DB_USER = process.env.DB_USER;
-const DB_NAME = process.env.DB_NAME;
-const DB_PORT = process.env.DB_PORT;
-const DB_PASSWORD = process.env.DB_PASSWORD;
-const JWT_SECRET = process.env.JWT_SECRET;
+// const DB_HOST = process.env.DB_HOST;
+// const DB_USER = process.env.DB_USER;
+// const DB_NAME = process.env.DB_NAME;
+// const DB_PORT = process.env.DB_PORT;
+// const DB_PASSWORD = process.env.DB_PASSWORD;
+// const JWT_SECRET = process.env.JWT_SECRET;
 
 // console.log('Initial NODE_ENVxxxxx:', process.env.NODE_ENV);
 // console.log('DB_HOST:', DB_HOST);
@@ -144,7 +144,8 @@ const JWT_SECRET = process.env.JWT_SECRET;
 //database values on render.com
 
 // SSL configuration
-let sslConfig: any = false;
+type SslConfig = boolean | { require: boolean; rejectUnauthorized: boolean };
+let sslConfig: SslConfig = false;
 
 if (process.env.NODE_ENV === 'production') {
   sslConfig = {
@@ -305,7 +306,7 @@ app.listen(port, async () => {
   // }
 });
 
-pool.on('error', (err, client) => {
+pool.on('error', (err) => {
   console.error('[BACKEND] Unexpected error on idle client', err);
 });
 

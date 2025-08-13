@@ -5,7 +5,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
-import bcrypt from 'bcrypt';
+// import bcrypt from 'bcrypt';
 //import { createClient } from '../../db.js';
 
 
@@ -114,9 +114,9 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         ]);
 
         res.status(201).json({ message: 'Property use record created successfully', data: result.rows[0] });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'Error creating property use record', error: error.message });
+        res.status(500).json({ message: 'Error creating property use record', error: 'Error creating property use record' });
     } finally {
        client.release();
     }

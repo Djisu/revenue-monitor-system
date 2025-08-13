@@ -34,18 +34,18 @@ interface FormData {
 }
 
 // Define the type for PropertyClass data
-interface PropertyClassData {
-    property_class: string;
-    description: string;
-    frequency: string;
-    rate: number;
-    assessed: string;
-}
+// interface PropertyClassData {
+//     property_class: string;
+//     description: string;
+//     frequency: string;
+//     rate: number;
+//     assessed: string;
+// }
 
-// Define the type for distinct property classes
-interface PropClassItem {
-    property_class: string;
-}
+// // Define the type for distinct property classes
+// interface PropClassItem {
+//     property_class: string;
+// }
 
 const FrmProperty: React.FC = () => {
     const [propertyClassesData, setPropertyClassesData] = useState<string[]>([]);
@@ -83,7 +83,7 @@ const FrmProperty: React.FC = () => {
         property_rate: 0,
     });
 
-
+    setProperties(properties)
 
     const dispatch = useAppDispatch();
 
@@ -91,7 +91,7 @@ const FrmProperty: React.FC = () => {
     const officer = useAppSelector((state) => state.officer.officers);
 
     const propertyClassesState = useAppSelector((state) => state.propertyClass);
-    const { loading, error, propertyClasses } = propertyClassesState;
+    const { propertyClasses } = propertyClassesState;
 
     //const propertyClassesDistinctState = useAppSelector((state) => state.propertyClass.propertyClasses);
 
@@ -133,7 +133,8 @@ const FrmProperty: React.FC = () => {
     useEffect(() => {
         if (propertyClasses) {
             console.log('propertyClasses:', propertyClasses);
-            setPropertyClassesData(propertyClasses.map((propertyClass) => propertyClass.property_class));
+            const propertyClassesData = propertyClasses.map((propertyClass) => propertyClass.property_class)
+            setPropertyClassesData(propertyClassesData);
         }
     }, [propertyClasses]); // This will re-run only when propertyClasses changes
 
@@ -796,6 +797,7 @@ const FrmProperty: React.FC = () => {
                         Go Back
                     </Link>
                 </Col>
+                {propertyClassesData}
             </Row>
         </Container>
     );

@@ -183,7 +183,7 @@ export async function generatePdf(data: ReceiptData): Promise<Buffer> {
   
     return new Promise<Buffer>((resolve, reject) => {
       const doc = new PDFDocument({ size: 'A4', margin: 40 });
-      const chunks: any[] = [];
+      const chunks: Buffer[] = [];
   
       doc.on('data', chunk => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -301,12 +301,12 @@ async function addRecord(txtBussNo: number | null, dtTransdate: Date, txtBalance
             WHERE buss_no = $1 AND fiscalyear = $2;
         `;
 
-        const prevResults = await client.query(findPreviousFiscalYearQuery, [txtBussNo, varPrevFiscalYear]);
-        let varBalanceBF: number = 0;
+        await client.query(findPreviousFiscalYearQuery, [txtBussNo, varPrevFiscalYear]);
+        // let varBalanceBF: number = 0;
 
-        if (prevResults.rows.length > 0) {
-            varBalanceBF = prevResults.rows[0].balancebf;
-        }
+        // if (prevResults.rows.length > 0) {
+        //     varBalanceBF = prevResults.rows[0].balancebf;
+        // }
 
         // Insert or update record in busscurrbalance
         const insertNewRecordQuery = `
@@ -1075,7 +1075,7 @@ export async function generatePdfPermit(data: PermitData): Promise<Buffer> {
 
       const doc = new PDFDocument({ size: 'A4', margin: 40 });
 
-      const chunks: any[] = [];
+      const chunks: Buffer[] = [];
   
       doc.on('data', chunk => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -1225,7 +1225,7 @@ async function generatePermitContent(doc: PDFDocument, data: PermitData,
         const leftColumnX = 100;
         const rightColumnX = 350;
        
-        const startY = doc.y + 20; // Add extra space after the line
+        //const startY = doc.y + 20; // Add extra space after the line
         
         // Save the current y position to use for both headers
         const headerY = doc.y;
@@ -1249,7 +1249,7 @@ async function generatePermitContent(doc: PDFDocument, data: PermitData,
            .fillColor('black');
 
         // Save the Y position after the serial number for the right column
-        const firstItemY = doc.y;
+       // const firstItemY = doc.y;
         
         // Left column content
         doc.moveDown(0.8); // Add space after serial number

@@ -9,7 +9,7 @@ import { QueryResult } from 'pg';
 import pkg from 'pg';
 import ensurePermitDirIsEmpty from '../../utils/ensurePermitDirIsEmpty.js'   
 import PDFDocument from 'pdfkit';
-import { Stream } from 'stream';
+//import { Stream } from 'stream';
 import { printPdf } from '../../utils/printHelper.js';
 //import AshmaLogo from '../../assets/Ashma-Logo-BIG.JPG';
 //import AshmaLogo from '../../assets/Ashma-Logo-BIG.JPG';
@@ -23,18 +23,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Define TextOptions interface for PDFDocument
-interface TextOptions {
-    align?: 'left' | 'center' | 'right' | 'justify';
-    width?: number;
-    height?: number;
-    ellipsis?: boolean | string;
-    continued?: boolean;
-    lineBreak?: boolean;
-    paragraphGap?: number;
-    indent?: number;
-    columns?: number;
-    columnGap?: number;
-  }
+// interface TextOptions {
+//     align?: 'left' | 'center' | 'right' | 'justify';
+//     width?: number;
+//     height?: number;
+//     ellipsis?: boolean | string;
+//     continued?: boolean;
+//     lineBreak?: boolean;
+//     paragraphGap?: number;
+//     indent?: number;
+//     columns?: number;
+//     columnGap?: number;
+//   }
 
 interface PermitData {
   buss_no: string;
@@ -249,7 +249,7 @@ async function generatePermitContent(doc: PDFDocument, data: PermitData,
         const leftColumnX = 100;
         const rightColumnX = 350;
        
-        const startY = doc.y + 20; // Add extra space after the line
+        // const startY = doc.y + 20; // Add extra space after the line
         
         // Save the current y position to use for both headers
         const headerY = doc.y;
@@ -273,7 +273,7 @@ async function generatePermitContent(doc: PDFDocument, data: PermitData,
            .fillColor('black');
 
         // Save the Y position after the serial number for the right column
-        const firstItemY = doc.y;
+        // const firstItemY = doc.y;
         
         // Left column content
         doc.moveDown(0.8); // Add space after serial number
@@ -463,7 +463,7 @@ async function generatePermitContent(doc: PDFDocument, data: PermitData,
 
       const doc = new PDFDocument({ size: 'A4', margin: 40 });
 
-      const chunks: any[] = [];
+      const chunks: Buffer[] = [];
   
       doc.on('data', chunk => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -483,7 +483,7 @@ async function generatePermitContent(doc: PDFDocument, data: PermitData,
       // Create document with portrait orientation
       const doc = new PDFDocument({ size: 'A4', margin: 40 });
 
-      const chunks: any[] = [];
+      const chunks: Buffer[] = [];
   
       doc.on('data', chunk => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -1195,6 +1195,7 @@ router.get('/:fiscalyear/:receiptno/:batchno', async (req: Request, res: Respons
             res.status(200).json({ message: 'Genuine receipt number' })
         }
     } catch (error: unknown) {
+        console.log(error)
         res.status(500).json({ error: 'Server error' })
     } finally {
         client.release()

@@ -244,10 +244,10 @@ router.get('/findrate/:propertyAssessed/:propertyClassDesc', async (req: Request
 router.get('/findpropertyclasses/:desc', async (req: Request, res: Response) => {
     const { desc } = req.params;
 
-    const client = await pool.connect();``
+    const client = await pool.connect();
 
     try {
-        const result: QueryResult<any> = await client.query('SELECT * FROM propertyclass WHERE description = $1', [desc]);
+        const result: QueryResult = await client.query('SELECT * FROM propertyclass WHERE description = $1', [desc]);
 
         if (result.rows.length > 0) {
             res.status(200).json({ message: 'Property class found', data: result.rows[0] }); // Return the first row

@@ -5,7 +5,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 //import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
-import bcrypt from 'bcrypt';
+//import bcrypt from 'bcrypt';
 //import { createClient } from '../../db.js';
 
 

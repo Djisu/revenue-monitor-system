@@ -1,5 +1,5 @@
 // backend/src/routes/api/propertyOfficerBudgetRoutes.ts
-import express from 'express';
+// import express from 'express';
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import pkg from 'pg';
@@ -188,7 +188,7 @@ router.put('/:officer_no/:fiscal_year', async (req: Request, res: Response): Pro
 
         const result: QueryResult = await client.query(
             'SELECT * FROM propertyofficerbudget WHERE officer_no = $1 AND fiscal_year = $2',
-            [propertyOfficerBudgetData.officer_no, propertyOfficerBudgetData.fiscal_year]
+            [propertyOfficerBudgetData.officer_no, fiscal_year]
         );
 
         if (result.rows.length > 0) {

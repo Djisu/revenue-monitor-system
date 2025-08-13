@@ -24,7 +24,7 @@ interface PropertyState {
     loading: boolean;
     error: string | null;
 }
-export declare const fetchProperties: import("@reduxjs/toolkit").AsyncThunk<any, void, {
+export declare const fetchProperties: import("@reduxjs/toolkit").AsyncThunk<PropertyData, void, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -34,7 +34,7 @@ export declare const fetchProperties: import("@reduxjs/toolkit").AsyncThunk<any,
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const fetchPropertyById: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const fetchPropertyById: import("@reduxjs/toolkit").AsyncThunk<PropertyData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -44,7 +44,7 @@ export declare const fetchPropertyById: import("@reduxjs/toolkit").AsyncThunk<an
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const createProperty: import("@reduxjs/toolkit").AsyncThunk<any, PropertyData, {
+export declare const createProperty: import("@reduxjs/toolkit").AsyncThunk<PropertyData, PropertyData, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;
@@ -54,7 +54,7 @@ export declare const createProperty: import("@reduxjs/toolkit").AsyncThunk<any, 
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const updateProperty: import("@reduxjs/toolkit").AsyncThunk<any, {
+export declare const updateProperty: import("@reduxjs/toolkit").AsyncThunk<PropertyData, {
     house_no: string;
     propertyData: PropertyData;
 }, {
@@ -67,7 +67,7 @@ export declare const updateProperty: import("@reduxjs/toolkit").AsyncThunk<any, 
     fulfilledMeta?: unknown;
     rejectedMeta?: unknown;
 }>;
-export declare const deleteProperty: import("@reduxjs/toolkit").AsyncThunk<any, string, {
+export declare const deleteProperty: import("@reduxjs/toolkit").AsyncThunk<PropertyData, string, {
     state?: unknown;
     dispatch?: import("redux-thunk").ThunkDispatch<unknown, unknown, import("redux").UnknownAction>;
     extra?: unknown;

@@ -19,7 +19,7 @@ export async function sendSmsViaInfobip(
   phoneNumber: string,
   message: string,
   sender: string
-): Promise<any> {
+): Promise<unknown> {
   try {
     console.log('Sending SMS via direct API call to Infobip');
     console.log('API key:', process.env.INFOBIP_API_KEY?.substring(0, 5) + '...');

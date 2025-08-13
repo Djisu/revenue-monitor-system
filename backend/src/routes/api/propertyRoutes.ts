@@ -5,7 +5,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
-import bcrypt from 'bcrypt';
+//import bcrypt from 'bcrypt';
 //import { createClient } from '../../db.js';
 
 
@@ -16,7 +16,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from 'fs';
-import { describe } from 'node:test';
+// import { describe } from 'node:test';
 
 // Load the environment variables from the .env file
 dotenv.config();
@@ -242,7 +242,7 @@ router.put('/:house_no', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Update the property data
-        const result: QueryResult = await client.query(
+        await client.query(
             `UPDATE property 
             SET owner = $1, tenant = $2, propertyuse = $3, propertytype = $4, 
             propertyclass = $5, electroral_area = $6, landmark = $7, 
@@ -303,7 +303,7 @@ router.delete('/:house_no', async (req: Request, res: Response) => {
         }
 
         // Delete the property record
-        const result: QueryResult = await client.query('DELETE FROM property WHERE house_no = $1', [house_no]);
+        await client.query('DELETE FROM property WHERE house_no = $1', [house_no]);
 
         res.status(200).json({ message: 'Property record deleted successfully' });
         return;

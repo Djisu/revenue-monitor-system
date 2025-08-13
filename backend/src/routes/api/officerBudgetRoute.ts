@@ -2,7 +2,7 @@
 import * as dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 
-import nodemailer, { SendMailOptions } from 'nodemailer';
+//import nodemailer, { SendMailOptions } from 'nodemailer';
 
 import pg from 'pg'
 const { Pool } = pg

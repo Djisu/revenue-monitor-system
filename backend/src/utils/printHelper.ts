@@ -27,8 +27,9 @@ export async function printPdf(pdfPath: string): Promise<void> {
                 
                 // Now try to print
                 await execPromise(`lp "${pdfPath}"`);
-            } catch (lpError: any) {
-                if (lpError.stderr && lpError.stderr.includes('Too many active jobs')) {
+            } catch (lpError: unknown) {
+                const error = lpError as { stderr?: string };
+                if (error.stderr && error.stderr.includes('Too many active jobs')) {
                     console.log('Print queue is full. Clearing all jobs and retrying...');
                     await execPromise('cancel -a');
                     // Retry printing after clearing the queue

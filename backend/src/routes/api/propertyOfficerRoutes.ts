@@ -5,7 +5,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import type { QueryResult } from 'pg';  // Import QueryResult as a type
 
-import bcrypt from 'bcrypt';
+// import bcrypt from 'bcrypt';
 //import { createClient } from '../../db.js';
 
 
@@ -114,7 +114,7 @@ router.post('/create', async (req: Request, res: Response): Promise<void> => {
             ]
         );
 
-        res.status(201).json({ message: 'Property officer record created successfully' });
+        res.status(201).json({ message: 'Property officer record created successfully', data: insertResult });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Error creating property officer record', error });
@@ -182,7 +182,7 @@ router.put('/update/:officer_no', async (req: Request, res: Response): Promise<v
         }
 
         // Update the property officer data
-        const updateResult: QueryResult = await client.query(
+        await client.query(
             `UPDATE propertyofficer 
             SET officer_name = $2, photo = $3 
             WHERE officer_no = $1`,
@@ -193,7 +193,7 @@ router.put('/update/:officer_no', async (req: Request, res: Response): Promise<v
             ]
         );
 
-        res.status(200).json({ message: 'Property officer record updated successfully' });
+        res.status(200).json({ message: 'Property officer record updated successfully'});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error updating property officer record', error });
@@ -219,7 +219,7 @@ router.delete('/delete/:officer_no', async (req: Request, res: Response) => {
         }
 
         // Delete the property officer record
-        const deleteResult: QueryResult = await client.query('DELETE FROM propertyofficer WHERE officer_no = $1', [officer_no]);
+        await client.query('DELETE FROM propertyofficer WHERE officer_no = $1', [officer_no]);
 
         res.status(200).json({ message: 'Property officer record deleted successfully' });
     } catch (error) {

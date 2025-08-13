@@ -8,12 +8,13 @@ import { fetchElectoralAreas } from '../electoralArea/electoralAreaSlice';
 import { fetchBusinessTypes } from '../businessType/businessTypeSlice';
 import { fetchPropertyClasses } from '../propertyClass/propertyClassSlice';
 import { fetchOfficers } from '../officer/officerSlice';
+import { ElectoralArea } from '../electoralArea/electoralAreaSlice';
 //import {fetchGradeRates} from '../gradeRate/gradeRateSlice';
 // import {fetchPropertyRateByPropertyClassAndFiscalyear} from '../propertyRate/propertyRateSlice';
 
-interface ElectoralArea {
-  electoral_area: string;
-}
+// interface ElectoralArea {
+//   electoral_area: string;
+// }
 
 // interface GradeRate {
 //   grade: string;
@@ -186,12 +187,16 @@ const FrmUpdateClient: React.FC = () => {
       console.error('Expected businesses to be an array but got:', businessesData);
     }
   }, [businessesData]);
+
+  // Get electoral areas from the Redux store
+  //const electoralAreaData = useAppSelector((state) => state.electoralArea.electoralAreas);
+  //console.log('electoralAreaData:', electoralAreaData);
      
     const electoralAreaResponse = useAppSelector((state) => state.electoralArea.electoralAreas);
     //console.log('electoralAreaResponse:', electoralAreaResponse);
     useEffect(() => {
       if (Array.isArray(electoralAreaResponse)) {
-        setElectoralAreas(electoralAreaResponse.map((area: any) => area.name || area.electoral_area));
+        setElectoralAreas(electoralAreaResponse.map((area: ElectoralArea) => area.electroral_area));
       } else {
         console.error('Expected electoralArea to be an array but got:', electoralAreaResponse);
       }
