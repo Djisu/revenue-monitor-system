@@ -94,7 +94,6 @@ dotenv.config()
 
 const env = process.env.NODE_ENV || 'development';
 
-//const envPath = path.resolve(__dirname, `../../.env.${env}`);
 // console.log('[BACKEND] Looking for env file at:', envPath);
 // console.log('[BACKEND] File exists:', fs.existsSync(envPath))
 

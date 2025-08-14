@@ -76,7 +76,6 @@ console.log('in server.ts about to check dirname');
 dotenv.config();
 // console.log('[BACKEND] Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
 const env = process.env.NODE_ENV || 'development';
-//const envPath = path.resolve(__dirname, `../../.env.${env}`);
 // console.log('[BACKEND] Looking for env file at:', envPath);
 // console.log('[BACKEND] File exists:', fs.existsSync(envPath))
 if (env !== 'production') {

@@ -199,7 +199,7 @@ const officerSlice = createSlice({
             .addCase(updateOfficer.fulfilled, (state, action) => {
                 state.loading = false;
                 if (action.payload.message === 'Officer record updated successfully') {
-                    const index = state.officers.findIndex(officer => officer.officer_no === action.meta.arg.officer_no);
+                    const index = state.officers.findIndex((officer: OfficerData) => officer.officer_no === action.meta.arg.officer_no);
                     if (index !== -1) {
                         state.officers[index] = action.meta.arg.officerData; // Update the officer data using the request data
                     }
@@ -217,7 +217,7 @@ const officerSlice = createSlice({
             })
             .addCase(deleteOfficer.fulfilled, (state, action) => {
                 state.loading = false;
-                state.officers = state.officers.filter(officer => officer.officer_no !== action.meta.arg);
+                state.officers = state.officers.filter((officer: OfficerData)=> officer.officer_no !== action.meta.arg);
                 state.error = null;
             })
             .addCase(deleteOfficer.rejected, (state, action) => {
