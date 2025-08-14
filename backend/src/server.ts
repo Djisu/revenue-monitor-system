@@ -50,7 +50,8 @@ const app = express();
 // // Define allowed origins array 'https://revenue-monitor-system.onrender.com', 'http://localhost:3000', // Local development
 const allowedOrigins: string[] = [
   'https://revenue-monitor-system-v6sq.onrender.com',  
-  'http://localhost:5173', // Local development
+  'http://localhost:5173', // dev frontend
+  'https://revenue-monitor-system.onrender.com' // ✅ backend's own domain (needed for SSR or internal API hits)
 ];
 
 app.use(cors({
@@ -186,8 +187,8 @@ const dbConfig = {
     ssl: sslConfig,
 };
 
-//const port = process.env.PORT || 5000;
-const port = process.env.BACKEND_PORT || 3000;
+//const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
 console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
 
@@ -246,6 +247,7 @@ app.get('/login', (req: Request, res: Response) => {
 app.use('/api/business', businessRoutes);
 app.use('/api/accReceipts', accReceiptRoutes);
 app.use('/api/auth', authRoutes);
+console.log('✅ Mounted /api/auth routes');
 app.use('/api/balance', balanceRoutes);
 app.use('/api/budgetAssess', budgetAssessRoutes);
 app.use('/api/bussCurrBalance', bussCurrBalanceRoutes);

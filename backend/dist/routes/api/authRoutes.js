@@ -1,5 +1,3 @@
-// backend/src/routes/api/loginRoutes.ts
-// backend/src/routes/api/loginRoutes.ts
 import { Router } from 'express';
 //import { sendResetEmailUser } from '../../utils/emailUser.js';
 import crypto from 'crypto';
@@ -20,7 +18,7 @@ console.log('Initial NODE_ENV:', process.env.NODE_ENV); // Debugging log
 // Construct the path to the appropriate .env file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const envPath = path.resolve(__dirname, '..', '.env.' + environment);
+const envPath = path.resolve(__dirname, '../../..', `.env.${environment}`);
 console.log('envPath:', envPath); // Debugging log
 // Check if the .env file exists
 if (!fs.existsSync(envPath)) {
