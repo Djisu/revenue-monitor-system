@@ -41,15 +41,18 @@ export interface LoginError {
 }
 
 //const BASE_URL = import.meta.env.VITE_BASE_URL;
-const BASE_URL = import.meta.env.VITE_BASE_URL || 
-(import.meta.env.MODE === 'development' ? 'http://localhost:3000' : 'https://revenue-monitor-system.onrender.com');
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+console.log('Running in:', import.meta.env.MODE);
+console.log('VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);
 
 
-console.log('BASE_URL: ', BASE_URL)
-// console.log("VITE_BASE_URL = ", import.meta.env.VITE_BASE_URL);
 
-// console.log('BASE_URL:', import.meta.env.VITE_BASE_URL);
-console.log('MODE:', import.meta.env.MODE);
+// console.log('BASE_URL: ', BASE_URL)
+// // console.log("VITE_BASE_URL = ", import.meta.env.VITE_BASE_URL);
+
+// // console.log('BASE_URL:', import.meta.env.VITE_BASE_URL);
+// console.log('MODE:', import.meta.env.MODE);
 
 
 
