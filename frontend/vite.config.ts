@@ -1,10 +1,11 @@
 // vite.config.ts
+// @ts-ignore
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import dotenv from 'dotenv';
 
-dotenv.config();
+
+
 
 const FORCE_PORT = 5173;
 
