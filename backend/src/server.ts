@@ -47,10 +47,12 @@ const { Pool } = pkg;
 // Initialize the Express application
 const app = express();
 
-// // Define allowed origins array 'https://revenue-monitor-system.onrender.com', 'http://localhost:3000', // Local development
+// // Define allowed origins array 'http://localhost:3000', // Local development
 const allowedOrigins: string[] = [
+  'https://revenue-monitor-system.onrender.com', 
   'https://revenue-monitor-system-v6sq.onrender.com',  
   'http://localhost:5173', // dev frontend
+  'http://localhost:3000', // Local development
 ];
 
 app.use(cors({
