@@ -55,12 +55,23 @@ const allowedOrigins: string[] = [
   'http://localhost:3000', // Local development
 ];
 
-app.use(cors({
-  origin: allowedOrigins,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
-  credentials: true // Allow credentials such as cookies
-}));
+//import express, { Router, Request, Response, NextFunction } from 'express';
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.set({
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "*",
+      "Access-Control-Allow-Headers": "'Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token'",
+  });
+
+  next();
+});
+
+// app.use(cors({
+//   origin: allowedOrigins,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
+//   allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+//   credentials: true // Allow credentials such as cookies
+// }));
 
 // app.use(cors({
 //   origin: (origin, callback) => {
