@@ -55,27 +55,54 @@ const allowedOrigins: string[] = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    console.log('[BACKEND] CORS Check - Origin:', origin);
-
-    if (!origin) {
-      // Requests like curl or server-to-server: allow without CORS headers or specify a safe origin
-      callback(null, true);  // enables CORS for this request (Access-Control-Allow-Origin header)
-      return;
-    }
-
-    if (allowedOrigins.includes(origin)) {
-      console.log('[BACKEND] CORS - Origin allowed');
-      callback(null, origin);
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
     } else {
-      console.log('[BACKEND] CORS - Origin blocked:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200,
+  maxAge: 3600,
 }));
+
+app.use((req, res, next) => {
+  console.log('CORS Request:', req.method, req.url);
+  console.log('CORS Headers:', req.headers);
+  next();
+});
+
+app.use((req, res, next) => {
+  console.log('CORS Response:', res.statusCode);
+  console.log('CORS Headers:', res.getHeader('Content-Type')); // Get the Content-Type header
+  next();
+});
+
+
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     console.log('[BACKEND] CORS Check - Origin:', origin);
+
+//     if (!origin) {
+//       // Requests like curl or server-to-server: allow without CORS headers or specify a safe origin
+//       callback(null, true);  // enables CORS for this request (Access-Control-Allow-Origin header)
+//       return;
+//     }
+
+//     if (allowedOrigins.includes(origin)) {
+//       console.log('[BACKEND] CORS - Origin allowed');
+//       callback(null, origin);
+//     } else {
+//       console.log('[BACKEND] CORS - Origin blocked:', origin);
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   credentials: true,
+//   optionsSuccessStatus: 200,
+// }));
 
 app.use((req, res, next) => {
   res.on('finish', () => {
