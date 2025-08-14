@@ -45,29 +45,34 @@ const allowedOrigins = [
     'http://localhost:5173', // dev frontend
 ];
 app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        }
-        else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    maxAge: 3600,
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+    credentials: true // Allow credentials such as cookies
 }));
-app.use((req, res, next) => {
-    console.log('CORS Request:', req.method, req.url);
-    console.log('CORS Headers:', req.headers);
-    next();
-});
-app.use((req, res, next) => {
-    console.log('CORS Response:', res.statusCode);
-    console.log('CORS Headers:', res.getHeader('Content-Type')); // Get the Content-Type header
-    next();
-});
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   credentials: true,
+//   maxAge: 3600,
+// }));
+// app.use((req, res, next) => {
+//   console.log('CORS Request:', req.method, req.url);
+//   console.log('CORS Headers:', req.headers);
+//   next();
+// });
+// app.use((req, res, next) => {
+//   console.log('CORS Response:', res.statusCode);
+//   console.log('CORS Headers:', res.getHeader('Content-Type')); // Get the Content-Type header
+//   next();
+// });
 // app.use(cors({
 //   origin: (origin, callback) => {
 //     console.log('[BACKEND] CORS Check - Origin:', origin);
