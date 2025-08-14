@@ -12,7 +12,7 @@
     "sourceMap": true,                     // Generate source maps for debugging
     "skipLibCheck": true,                  // Skip type checking of declaration files
     "forceConsistentCasingInFileNames": true, // Enforces consistent casing of file names
-    "types": ["node", "express", "vitest"],  // Explicitly include Node.js types
+    "types": ["node", "vitest"],  // Explicitly include Node.js types
     "typeRoots": ["./node_modules/@types", "../node_modules/@types", "src/@types", "./types"]             // Custom types (optional, only if you have custom types in `src/@types`)
   },
   "ts-node": {
