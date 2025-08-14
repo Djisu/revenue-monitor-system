@@ -43,7 +43,6 @@ const app = express();
 const allowedOrigins = [
     'https://revenue-monitor-system-v6sq.onrender.com',
     'http://localhost:5173', // dev frontend
-    'https://revenue-monitor-system.onrender.com' // ✅ backend's own domain (needed for SSR or internal API hits)
 ];
 app.use(cors({
     origin: (origin, callback) => {
@@ -141,48 +140,25 @@ const dbConfig = {
 //const port = process.env.PORT || 3000;
 const port = process.env.PORT || 3000;
 console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
-// // Define allowed origins array
-// const allowedOrigins: string[] = [
-//   'https://revenue-monitor-system-v6sq.onrender.com', 
-//   'https://revenue-monitor-system.onrender.com',
-//   'http://localhost:5173', // Local development
-//   'http://localhost:3000', // Local development
-// ];
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     console.log('[BACKEND] CORS Check - Origin:', origin);
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       console.log('[BACKEND] CORS - Origin allowed');
-//       callback(null, true);
-//     } else {
-//       console.log('[BACKEND] CORS - Origin blocked:', origin);
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-//   credentials: true,
-//   optionsSuccessStatus: 200
-// }));
 // Serve static files from the React app first
 const frontendPath = path.resolve(__dirname, '../../frontend/dist');
 console.log('[BACKEND] Resolved frontendPath:', frontendPath);
 // Serve static files before routes, including correct Content-Type for manifest.json
-app.use(express.static(frontendPath, {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('manifest.json')) {
-            res.setHeader('Content-Type', 'application/json');
-        }
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-    },
-}));
+// app.use(express.static(frontendPath, {
+//   setHeaders: (res, filePath) => {
+//     if (filePath.endsWith('manifest.json')) {
+//       res.setHeader('Content-Type', 'application/json');
+//     }
+//     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+//   },
+// }));
 // Handle requests for the React app
-app.get('/', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-});
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-});
+// app.get('/', (req: Request, res: Response) => {
+//     res.sendFile(path.join(frontendPath, 'index.html'));
+// });
+// app.get('/login', (req: Request, res: Response) => {
+//     res.sendFile(path.join(frontendPath, 'index.html'));
+// });
 // Define your API routes after static files
 app.use('/api/business', businessRoutes);
 app.use('/api/accReceipts', accReceiptRoutes);
@@ -226,9 +202,9 @@ app.use((error, req, res, next) => {
     next();
 });
 // Catch-all route for frontend app
-app.get(/^(?!\/login).*$/, (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-});
+// app.get(/^(?!\/login).*$/, (req: Request, res: Response) => {
+//   res.sendFile(path.join(frontendPath, 'index.html'));
+// });
 // Start the server
 app.listen(port, async () => {
     console.log(`[BACKEND] Server is running on port ${port}`);
