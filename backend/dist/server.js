@@ -47,7 +47,12 @@ const allowedOrigins = [
 app.use(cors({
     origin: (origin, callback) => {
         console.log('[BACKEND] CORS Check - Origin:', origin);
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin) {
+            // Requests like curl or server-to-server: allow without CORS headers or specify a safe origin
+            callback(null, true); // enables CORS for this request (Access-Control-Allow-Origin header)
+            return;
+        }
+        if (allowedOrigins.includes(origin)) {
             console.log('[BACKEND] CORS - Origin allowed');
             callback(null, origin);
         }
@@ -61,7 +66,12 @@ app.use(cors({
     credentials: true,
     optionsSuccessStatus: 200,
 }));
-//app.options('*', cors()); // Handle preflight for all routes
+app.use((req, res, next) => {
+    res.on('finish', () => {
+        console.log(`[BACKEND] Response Headers for ${req.method} ${req.originalUrl}:`, res.getHeaders());
+    });
+    next();
+});
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -113,11 +123,6 @@ if (process.env.NODE_ENV === 'production') {
 if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1); // Trust first proxy (required for HTTPS)
 }
-// Display environment variables
-// console.log('[BACKEND] host:', process.env.DB_HOST);
-// console.log('[BACKEND] user:', process.env.DB_USER);
-// console.log('[BACKEND] database:', process.env.DB_NAME);
-// console.log('[BACKEND] port:', process.env.DB_PORT);
 // Create a connection pool
 const pool = new Pool({
     host: process.env.DB_HOST,
@@ -143,22 +148,6 @@ console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
 // Serve static files from the React app first
 const frontendPath = path.resolve(__dirname, '../../frontend/dist');
 console.log('[BACKEND] Resolved frontendPath:', frontendPath);
-// Serve static files before routes, including correct Content-Type for manifest.json
-// app.use(express.static(frontendPath, {
-//   setHeaders: (res, filePath) => {
-//     if (filePath.endsWith('manifest.json')) {
-//       res.setHeader('Content-Type', 'application/json');
-//     }
-//     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-//   },
-// }));
-// Handle requests for the React app
-// app.get('/', (req: Request, res: Response) => {
-//     res.sendFile(path.join(frontendPath, 'index.html'));
-// });
-// app.get('/login', (req: Request, res: Response) => {
-//     res.sendFile(path.join(frontendPath, 'index.html'));
-// });
 // Define your API routes after static files
 app.use('/api/business', businessRoutes);
 app.use('/api/accReceipts', accReceiptRoutes);

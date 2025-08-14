@@ -46,16 +46,6 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 console.log('Running in:', import.meta.env.MODE);
 console.log('VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);
 
-
-
-// console.log('BASE_URL: ', BASE_URL)
-// // console.log("VITE_BASE_URL = ", import.meta.env.VITE_BASE_URL);
-
-// // console.log('BASE_URL:', import.meta.env.VITE_BASE_URL);
-// console.log('MODE:', import.meta.env.MODE);
-
-
-
 // Define the async thunk for login
 export const loginUser = createAsyncThunk<LoginResponse, { username: string; password: string }, { rejectValue: LoginError }>(
     'auth/loginUser',
