@@ -473,7 +473,7 @@ const busPaymentsSlice = createSlice({
             })
             .addCase(updateBusPayment.fulfilled, (state, action) => {
                 state.loading = false;
-                const index = state.busPayments.findIndex(busPayment => busPayment.buss_no === action.payload.buss_no);
+                const index = state.busPayments.findIndex((busPayment: BusPaymentsData) => busPayment.buss_no === action.payload.buss_no);
                 if (index !== -1) {
                     state.busPayments[index] = action.payload; // Update the existing BusPayments record
                 }
@@ -489,7 +489,7 @@ const busPaymentsSlice = createSlice({
             .addCase(deleteBusPayment.fulfilled, (state, action) => {
                 state.loading = false;
                 // Remove the deleted BusPayments record from the state   
-                state.busPayments = state.busPayments.filter(busPayment => busPayment.buss_no !== action.meta.arg);
+                state.busPayments = state.busPayments.filter((busPayment: BusPaymentsData)=> busPayment.buss_no !== action.meta.arg);
                 state.error = null;
             })
             .addCase(deleteBusPayment.rejected, (state, action) => {

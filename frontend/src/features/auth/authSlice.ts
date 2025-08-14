@@ -64,6 +64,10 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
 
         console.log('about to const response = await axios.post')
 
+        console.log('credentials.username: ', credentials.username);
+        console.log('credentials.password: ', credentials.password);
+
+
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/login`, {
                 username: credentials.username, // Ensure this matches 'OperatorName'
@@ -77,7 +81,7 @@ export const loginUser = createAsyncThunk<LoginResponse, { username: string; pas
             // Check if the response contains a token
             if (!response.data.token) {
                 // Handle invalid credentials based on the backend response
-                return rejectWithValue({ message: response.data.message || 'Invalid credentials' });
+                 return rejectWithValue({ message: response.data.message || 'Invalid credentials' })
             }
 
             localStorage.setItem('token', response.data.token);

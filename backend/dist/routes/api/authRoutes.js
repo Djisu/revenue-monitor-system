@@ -65,10 +65,15 @@ router.post('/audit-log', async (req, res) => {
 router.post('/login', async (req, res) => {
     console.log('Login request received:', req.body); // Log incoming request data
     const { username, password } = req.body;
+    console.log('Received password:', `"${password}"`);
     console.log(' config.jwtSecret: ', config.jwtSecret);
+    if (!config.jwtSecret) {
+        res.status(401).json({ message: 'No jwt sectre found' });
+        return;
+    }
     // Validate inputs
     if (!username || !password) {
-        res.status(400).json({ json: '', user: [], message: 'Username and password cannot be blank!' });
+        res.status(401).json({ message: 'Invalid login parameters' });
         return;
     }
     const client = await pool.connect();
@@ -82,8 +87,15 @@ router.post('/login', async (req, res) => {
             res.json({ json: '', user: [], message: 'Invalid login parameters' });
             return;
         }
+        console.log('Password from request:', password);
+        console.log('Hashed password from DB:', operators[0].password);
+        if (!operators[0].password) {
+            res.status(500).json({ json: '', user: [], message: 'Invalid login parameters' });
+            return;
+        }
         // Compare the plain-text password with the hashed password
         const isPasswordMatch = await bcrypt.compare(password, operators[0].password);
+        console.log('Password match result:', isPasswordMatch);
         if (!isPasswordMatch) {
             res.json({ json: '', user: [], message: 'Invalid login parameters' });
             return;
@@ -107,6 +119,10 @@ router.post('/login', async (req, res) => {
         };
         // Generate JWT token
         const token = jwt.sign({ user }, config.jwtSecret, { expiresIn: '1h' });
+        if (!token) {
+            res.status(500).json({ json: '', user: [], message: 'Error during login' });
+            return;
+        }
         // Send back response
         res.json({ token, user });
     }
