@@ -195,6 +195,7 @@ if (env !== 'production') {
 
 
 console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV);
+const isProd = process.env.NODE_ENV === 'production';
 
 // SSL configuration
 type SslConfig = boolean | { require: boolean; rejectUnauthorized: boolean };
@@ -214,14 +215,24 @@ if (process.env.NODE_ENV === 'production') {
 
 
 // Create a connection pool
+// const pool = new Pool({
+//   host: process.env.DB_HOST,
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASSWORD,
+//   database: process.env.DB_NAME,
+//   port: parseInt(process.env.DB_PORT || '5432'),
+//   ssl: sslConfig,
+//   keepAlive: true, // prevents idle connection drops
+// });
+
 const pool = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: sslConfig,
-  keepAlive: true, // prevents idle connection drops
+  ssl: isProd ? { rejectUnauthorized: false } : false,
+  keepAlive: true,
 });
 
 // PostgreSQL connection configuration
