@@ -56,22 +56,36 @@ console.log('NODE_ENV after dotenv.config:', process.env.NODE_ENV); // Debugging
 
 //dotenv.config();
 
-let sslConfig: false | { rejectUnauthorized: boolean };
+// let sslConfig: false | { rejectUnauthorized: boolean };
 
-if (process.env.NODE_ENV === 'production') { 
-  sslConfig = { rejectUnauthorized: true }; // Important for Render.com
-} else {
-  sslConfig = false;
-}
+// if (process.env.NODE_ENV === 'production') { 
+//   sslConfig = { rejectUnauthorized: true }; // Important for Render.com
+// } else {
+//   sslConfig = false;    
+// postgres://avnadmin:AVNS_qelbfa0qmovc8aI8-wT@pg-e3fb2c3-pfleischer2002-d5e5.l.aivencloud.com:21780/defaultdb?sslmode=require
+// }
+
 
 const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'revmonitor',
-    port: parseInt(process.env.DB_PORT || '5432'), // Default PostgreSQL port
-    ssl: sslConfig,
-});
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false, // or your ssl config
+    },
+  });
+  
+
+
+
+// const pool = new Pool({
+//     host: process.env.DB_HOST,
+//     user: process.env.DB_USER,
+//     password: process.env.DB_PASSWORD,
+//     database: process.env.DB_NAME,
+//     port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
+//     ssl: {
+//       rejectUnauthorized: false,
+//     },
+//   });
 
 const config = {
     jwtSecret: process.env.JWT_SECRET,

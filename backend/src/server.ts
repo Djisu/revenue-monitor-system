@@ -151,7 +151,7 @@ if (process.env.NODE_ENV === 'production') {
 // });
 
 const ssl = {
-  rejectUnauthorized: true,
+  rejectUnauthorized: false,
   ca: fs.readFileSync(path.join(__dirname, 'certs/prod-ca-2021.crt')).toString(),
 };
 
@@ -160,8 +160,10 @@ const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: Number(process.env.DB_PORT),
-  ssl,
+  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 // PostgreSQL connection configuration
