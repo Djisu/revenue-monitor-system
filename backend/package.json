@@ -4,7 +4,7 @@
   "type": "module",
   "main": "dist/server.js",
   "description": "A revenue monitoring system built with Node.js and MongoDB",
-  "scripts": {  
+  "scripts": {
     "build": "tsc && cp -R ./certs ./dist/certs",
     "start": "node dist/server.js",
     "dev": "cross-env BACKEND_PORT=3000 PORT=3000 nodemon --watch src --ext ts --exec \"tsx src/server.ts\"",

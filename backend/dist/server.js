@@ -57,73 +57,10 @@ const corsOptions = {
     credentials: true, // VERY IMPORTANT
 };
 app.use(cors(corsOptions));
-//app.use(cors({ origin: 'https://revenue-monitor-system-v6sq.onrender.com' }));
-// app.use(function (req: Request, res: Response, next: NextFunction) {
-//   //Enabling CORS
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
-//     next();
-//   });
-//import express, { Router, Request, Response, NextFunction } from 'express';
-// app.use((req: Request, res: Response, next: NextFunction) => {
-//   res.set({
-//       "Access-Control-Allow-Origin": "*",
-//       "Access-Control-Allow-Methods": "*",
-//       "Access-Control-Allow-Headers": "'Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token'",
-//   });
-//   next();
-// });
-// app.use(cors({
-//   origin: allowedOrigins,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
-//   allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
-//   credentials: true // Allow credentials such as cookies
-// }));
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-//   credentials: true,
-//   maxAge: 3600,
-// }));
-// app.use((req, res, next) => {
-//   console.log('CORS Request:', req.method, req.url);
-//   console.log('CORS Headers:', req.headers);
-//   next();
-// });
-// app.use((req, res, next) => {
-//   console.log('CORS Response:', res.statusCode);
-//   console.log('CORS Headers:', res.getHeader('Content-Type')); // Get the Content-Type header
-//   next();
-// });
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     console.log('[BACKEND] CORS Check - Origin:', origin);
-//     if (!origin) {
-//       // Requests like curl or server-to-server: allow without CORS headers or specify a safe origin
-//       callback(null, true);  // enables CORS for this request (Access-Control-Allow-Origin header)
-//       return;
-//     }
-//     if (allowedOrigins.includes(origin)) {
-//       console.log('[BACKEND] CORS - Origin allowed');
-//       callback(null, origin);
-//     } else {
-//       console.log('[BACKEND] CORS - Origin blocked:', origin);
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-//   credentials: true,
-//   optionsSuccessStatus: 200,
-// }));
+app.options('*', cors({
+    origin: allowedOrigins,
+    credentials: true,
+}));
 app.use((req, res, next) => {
     res.on('finish', () => {
         console.log(`[BACKEND] Response Headers for ${req.method} ${req.originalUrl}:`, res.getHeaders());
@@ -188,7 +125,7 @@ if (process.env.NODE_ENV === 'production') {
 //const sslCertPath = path.resolve(__dirname, '../config/ca.pem');
 const ssl = {
     rejectUnauthorized: true,
-    ca: fs.readFileSync(path.join(__dirname, '../certs/ca.pem')).toString(),
+    ca: fs.readFileSync(path.join(__dirname, 'certs/ca.pem')).toString(),
 };
 const pool = new Pool({
     host: process.env.DB_HOST,
@@ -199,17 +136,17 @@ const pool = new Pool({
     ssl,
 });
 // PostgreSQL connection configuration
-const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: parseInt(process.env.DB_PORT || '5432'),
-    ssl,
-};
+// const dbConfig = {
+//     host: process.env.DB_HOST,
+//     user: process.env.DB_USER,
+//     password: process.env.DB_PASSWORD,
+//     database: process.env.DB_NAME,
+//     port: parseInt(process.env.DB_PORT || '5432'),
+//     ssl,
+// };
 //const port = process.env.PORT || 3000;
 const PORT = process.env.PORT || 3000;
-console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
+console.log(colors.green('[BACKEND] PostgreSQL configuration:'), pool);
 // Serve static files from the React app first
 const frontendPath = path.resolve(__dirname, '../../frontend/dist');
 console.log('[BACKEND] Resolved frontendPath:', frontendPath);
