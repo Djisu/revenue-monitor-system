@@ -258,7 +258,7 @@ const dbConfig = {
 };
 
 //const port = process.env.PORT || 3000;
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
 
@@ -316,8 +316,8 @@ app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
 // });
 
 // Start the server
-app.listen(port, async () => {
-      console.log(`[BACKEND] Server is running on port ${port}`);
+app.listen(PORT, async () => {
+      console.log(`[BACKEND] Server is running on port ${PORT}`);
       console.log(colors.green('[BACKEND] PostgreSQL connected'));
 
       console.log('Connecting to DB...');

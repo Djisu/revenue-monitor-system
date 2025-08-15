@@ -211,7 +211,7 @@ const dbConfig = {
     ssl: sslConfig,
 };
 //const port = process.env.PORT || 3000;
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 console.log(colors.green('[BACKEND] PostgreSQL configuration:'), dbConfig);
 // Serve static files from the React app first
 const frontendPath = path.resolve(__dirname, '../../frontend/dist');
@@ -263,8 +263,8 @@ app.use((error, req, res, next) => {
 //   res.sendFile(path.join(frontendPath, 'index.html'));
 // });
 // Start the server
-app.listen(port, async () => {
-    console.log(`[BACKEND] Server is running on port ${port}`);
+app.listen(PORT, async () => {
+    console.log(`[BACKEND] Server is running on port ${PORT}`);
     console.log(colors.green('[BACKEND] PostgreSQL connected'));
     console.log('Connecting to DB...');
     const client = await pool.connect(); // this is likely where it hangs
