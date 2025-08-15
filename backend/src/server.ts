@@ -49,13 +49,25 @@ const app = express();
 
 // // Define allowed origins array 'http://localhost:3000', // Local development
 const allowedOrigins: string[] = [
-  'https://revenue-monitor-system.onrender.com', 
   'https://revenue-monitor-system-v6sq.onrender.com',  
-  'http://localhost:5173', // dev frontend
   'http://localhost:3000', // Local development
 ];
 
-app.use(cors({ origin: 'https://revenue-monitor-system-v6sq.onrender.com' }));
+// CORS options
+const corsOptions = {
+  origin: function (origin: any, callback: any) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // VERY IMPORTANT
+};
+
+app.use(cors(corsOptions));
+
+//app.use(cors({ origin: 'https://revenue-monitor-system-v6sq.onrender.com' }));
 
 // app.use(function (req: Request, res: Response, next: NextFunction) {
 //   //Enabling CORS
@@ -83,19 +95,19 @@ app.use(cors({ origin: 'https://revenue-monitor-system-v6sq.onrender.com' }));
 //   credentials: true // Allow credentials such as cookies
 // }));
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  maxAge: 3600,
-}));
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   credentials: true,
+//   maxAge: 3600,
+// }));
 
 // app.use((req, res, next) => {
 //   console.log('CORS Request:', req.method, req.url);

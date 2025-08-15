@@ -53,12 +53,6 @@ const router = Router();
 router.post('/audit-log', async (req, res) => {
     res.status(200).json({ message: 'Audit log endpoint hit' });
 });
-// import express, { Request, Response } from 'express';
-// import bcrypt from 'bcrypt';
-// import jwt from 'jsonwebtoken';
-// import { pool } from './db'; // Assuming you have a pool instance for DB connections
-// import config from './config'; // Assuming you have config for JWT secret
-// const router = express.Router();
 // Login endpoint
 router.post('/login', async (req, res) => {
     console.log('Login request received:', req.body); // Log incoming request data
