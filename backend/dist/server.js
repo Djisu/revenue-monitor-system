@@ -185,17 +185,18 @@ if (process.env.NODE_ENV === 'production') {
 //   ssl: sslConfig,
 //   keepAlive: true, // prevents idle connection drops
 // });
-const sslCertPath = path.resolve(__dirname, '../config/ca.pem');
+//const sslCertPath = path.resolve(__dirname, '../config/ca.pem');
+const ssl = {
+    rejectUnauthorized: true,
+    ca: fs.readFileSync(path.join(__dirname, '../certs/ca.pem')).toString(),
+};
 const pool = new Pool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    port: parseInt(process.env.DB_PORT || '5432'),
-    ssl: {
-        rejectUnauthorized: true,
-        ca: Buffer.from(process.env.CA_CERT_BASE64 || '', 'base64').toString('utf-8'),
-    },
+    port: Number(process.env.DB_PORT),
+    ssl,
 });
 // PostgreSQL connection configuration
 const dbConfig = {
@@ -204,10 +205,7 @@ const dbConfig = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'),
-    ssl: {
-        rejectUnauthorized: true,
-        ca: Buffer.from(process.env.CA_CERT_BASE64 || '', 'base64').toString('utf-8'),
-    },
+    ssl,
 };
 //const port = process.env.PORT || 3000;
 const PORT = process.env.PORT || 3000;

@@ -4,8 +4,8 @@
   "type": "module",
   "main": "dist/server.js",
   "description": "A revenue monitoring system built with Node.js and MongoDB",
-  "scripts": {
-    "build": "tsc",
+  "scripts": {  
+    "build": "tsc && cp config/ca.pem dist/config/ca.pem",
     "start": "node dist/server.js",
     "dev": "cross-env BACKEND_PORT=3000 PORT=3000 nodemon --watch src --ext ts --exec \"tsx src/server.ts\"",
     "test": "npx vitest run --watch",
