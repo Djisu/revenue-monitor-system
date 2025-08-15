@@ -150,11 +150,9 @@ if (process.env.NODE_ENV === 'production') {
 //   keepAlive: true, // prevents idle connection drops
 // });
 
-//const sslCertPath = path.resolve(__dirname, '../config/ca.pem');
-
 const ssl = {
   rejectUnauthorized: true,
-  ca: fs.readFileSync(path.join(__dirname, 'certs/ca.pem')).toString(),
+  ca: fs.readFileSync(path.join(__dirname, 'certs/prod-ca-2021.crt')).toString(),
 };
 
 const pool = new Pool({
