@@ -172,13 +172,6 @@ else {
 }
 console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV);
 const isProd = process.env.NODE_ENV === 'production';
-let sslConfig = false;
-if (process.env.NODE_ENV === 'production') {
-    sslConfig = {
-        require: true,
-        rejectUnauthorized: false, // Accept self-signed certs (like Render DB)
-    };
-}
 if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1); // Trust first proxy (required for HTTPS)
 }
@@ -192,14 +185,17 @@ if (process.env.NODE_ENV === 'production') {
 //   ssl: sslConfig,
 //   keepAlive: true, // prevents idle connection drops
 // });
+const sslCertPath = path.resolve(__dirname, '../config/ca.pem');
 const pool = new Pool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'),
-    ssl: isProd ? { rejectUnauthorized: false } : false,
-    keepAlive: true,
+    ssl: {
+        rejectUnauthorized: true,
+        ca: Buffer.from(process.env.CA_CERT_BASE64 || '', 'base64').toString('utf-8'),
+    },
 });
 // PostgreSQL connection configuration
 const dbConfig = {
@@ -208,7 +204,10 @@ const dbConfig = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'),
-    ssl: sslConfig,
+    ssl: {
+        rejectUnauthorized: true,
+        ca: Buffer.from(process.env.CA_CERT_BASE64 || '', 'base64').toString('utf-8'),
+    },
 };
 //const port = process.env.PORT || 3000;
 const PORT = process.env.PORT || 3000;
@@ -258,6 +257,16 @@ app.use((error, req, res, next) => {
     }
     next();
 });
+// For testing only
+app.get('/api/test-env', (req, res) => {
+    const caEnvExists = !!process.env.CA_CERT_BASE64;
+    const sample = process.env.CA_CERT_BASE64?.substring(0, 30); // Show only first 30 chars
+    res.json({
+        CA_CERT_BASE64_exists: caEnvExists,
+        sample_start: sample || 'Not set',
+    });
+});
+console.log('[BACKEND] CA_CERT_BASE64 is set:', !!process.env.CA_CERT_BASE64);
 // Catch-all route for frontend app
 // app.get(/^(?!\/login).*$/, (req: Request, res: Response) => {
 //   res.sendFile(path.join(frontendPath, 'index.html'));
