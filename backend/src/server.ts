@@ -317,20 +317,29 @@ app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
 
 // Start the server
 app.listen(port, async () => {
-  console.log(`[BACKEND] Server is running on port ${port}`);
-  console.log(colors.green('[BACKEND] PostgreSQL connected'));
+      console.log(`[BACKEND] Server is running on port ${port}`);
+      console.log(colors.green('[BACKEND] PostgreSQL connected'));
 
-  // const client = await pool.connect();
+      console.log('Connecting to DB...');
+      const client = await pool.connect(); // this is likely where it hangs
+      console.log('DB connected!');
 
-  // // Test database connection
-  // try {
-  //     const result = await client.query('SELECT NOW()');
-  //     console.log('[BACKEND] Database connection test successful:', result.rows);
-  //     client.release();
-  // } catch (err) {
-  //     console.error('[BACKEND] Database connection test failed:', err);
-  // }
+
+      // const client = await pool.connect();
+
+    // Test database connection
+    try {
+        const result = await client.query('SELECT NOW()');
+        console.log('[BACKEND] Database connection test successful:', result.rows);
+        client.release();
+    } catch (err) {
+        console.error('[BACKEND] Database connection test failed:', err);
+    }
 });
+
+setTimeout(() => {
+  console.warn('⚠️ Request is taking too long!');
+}, 5000);
 
 pool.on('error', (err) => {
   console.error('[BACKEND] Unexpected error on idle client', err);
