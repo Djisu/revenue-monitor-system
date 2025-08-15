@@ -53,6 +53,9 @@ const router = Router();
 router.post('/audit-log', async (req, res) => {
     res.status(200).json({ message: 'Audit log endpoint hit' });
 });
+router.get('/ping', (req, res) => {
+    res.status(200).json({ message: 'Auth route is alive!' });
+});
 // Login endpoint
 router.post('/login', async (req, res) => {
     console.log('Login request received:', req.body); // Log incoming request data
