@@ -47,13 +47,13 @@ const allowedOrigins = [
     'http://localhost:3000', // Local development
 ];
 app.use(cors({ origin: 'https://revenue-monitor-system-v6sq.onrender.com' }));
-// app.use(function (req: Request, res: Response, next: NextFunction) {
-//   //Enabling CORS
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
-//     next();
-//   });
+app.use(function (req, res, next) {
+    //Enabling CORS
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
+    next();
+});
 //import express, { Router, Request, Response, NextFunction } from 'express';
 // app.use((req: Request, res: Response, next: NextFunction) => {
 //   res.set({
@@ -164,7 +164,7 @@ let sslConfig = false;
 if (process.env.NODE_ENV === 'production') {
     sslConfig = {
         require: true,
-        rejectUnauthorized: false, // Let’s Render DBs work correctly
+        rejectUnauthorized: false, // Accept self-signed certs (like Render DB)
     };
 }
 if (process.env.NODE_ENV === 'production') {
