@@ -57,13 +57,13 @@ const allowedOrigins: string[] = [
 
 app.use(cors({ origin: 'https://revenue-monitor-system-v6sq.onrender.com' }));
 
-app.use(function (req: Request, res: Response, next: NextFunction) {
-  //Enabling CORS
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
-    next();
-  });
+// app.use(function (req: Request, res: Response, next: NextFunction) {
+//   //Enabling CORS
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
+//     next();
+//   });
 
 //import express, { Router, Request, Response, NextFunction } from 'express';
 // app.use((req: Request, res: Response, next: NextFunction) => {
@@ -83,19 +83,19 @@ app.use(function (req: Request, res: Response, next: NextFunction) {
 //   credentials: true // Allow credentials such as cookies
 // }));
 
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-//   credentials: true,
-//   maxAge: 3600,
-// }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 3600,
+}));
 
 // app.use((req, res, next) => {
 //   console.log('CORS Request:', req.method, req.url);
