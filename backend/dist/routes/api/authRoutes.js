@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 //import { HttpError } from 'http-errors';
 import fs from 'fs'; // Import the fs module to check file existence
+import { parse } from 'pg-connection-string';
 const { Pool } = pkg;
 dotenv.config();
 // Determine the environment (development or production)
@@ -37,12 +38,21 @@ console.log('NODE_ENV after dotenv.config:', process.env.NODE_ENV); // Debugging
 //   sslConfig = false;    
 // postgres://avnadmin:AVNS_qelbfa0qmovc8aI8-wT@pg-e3fb2c3-pfleischer2002-d5e5.l.aivencloud.com:21780/defaultdb?sslmode=require
 // }
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+// Ensure DATABASE_URL is defined
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+    throw new Error('DATABASE_URL is not defined');
+}
+// Parse DATABASE_URL into PoolConfig
+const parsedConfig = parse(connectionString);
+const configDB = {
+    ...parsedConfig,
     ssl: {
-        rejectUnauthorized: false, // or your ssl config
-    },
-});
+        rejectUnauthorized: false
+    }
+};
+// Create the pool
+const pool = new Pool(configDB);
 // const pool = new Pool({
 //     host: process.env.DB_HOST,
 //     user: process.env.DB_USER,
