@@ -27,34 +27,21 @@ if (!fs.existsSync(envPath)) {
 dotenv.config({ path: envPath });
 console.log('[BACKEND] environment:', env);
 console.log('[BACKEND] NODE_ENV after dotenv.config:', process.env.NODE_ENV); // Debugging log
-// Example usage of environment variables
-const DB_HOST = process.env.DB_HOST;
-const DB_USER = process.env.DB_USER;
-const DB_NAME = process.env.DB_NAME;
-const DB_PORT = process.env.DB_PORT;
-const DB_PASSWORD = process.env.DB_PASSWORD;
-const JWT_SECRET = process.env.JWT_SECRET;
-console.log('Initial NODE_ENV:', process.env.NODE_ENV);
-console.log('DB_HOST:', DB_HOST);
-console.log('DB_USER:', DB_USER);
-console.log('DB_NAME:', DB_NAME);
-console.log('DB_PORT:', DB_PORT);
-console.log('DB_PASSWORD:', DB_PASSWORD);
-console.log('JWT_SECRET:', JWT_SECRET);
-// SSL configuration
-// let sslConfig: false | { rejectUnauthorized: boolean };
-// if (process.env.NODE_ENV === 'production') { 
-//   sslConfig = { rejectUnauthorized: true }; // Important for Render.com
-// } else {
-//   sslConfig = false;
-// }
-const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'revmonitor',
+// Connection using database url
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+    throw new Error('DATABASE_URL is not defined');
+}
+import { parse } from 'pg-connection-string';
+const parsedConfig = parse(connectionString);
+const configDB = {
+    ...parsedConfig,
+    ssl: {
+        rejectUnauthorized: false
+    }
 };
-const pool = new Pool(dbConfig);
+// Create the pool
+const pool = new Pool(configDB);
 // Create a new balance record
 router.post('/', async (req, res) => {
     const balanceData = req.body;

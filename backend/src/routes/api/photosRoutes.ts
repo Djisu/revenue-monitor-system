@@ -37,14 +37,28 @@ if (!fs.existsSync(uploadDir)) {
 
 const router: Router = express.Router();
 
-// PostgreSQL connection configuration
-const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'revmonitor',
-    port: 5432,
-});
+// Connection using database url
+const connectionString: string | undefined = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL is not defined');
+}
+
+import { parse } from 'pg-connection-string';
+import { PoolConfig } from 'pg';
+
+const parsedConfig = parse(connectionString) as Partial<PoolConfig>;
+const configDB: PoolConfig = {
+  ...parsedConfig,
+  ssl: {
+    rejectUnauthorized: false
+  }
+};
+
+// Create the pool
+const pool = new Pool(configDB);
+// end of connection ///
+
 
 // Set up multer storage
 const storage: StorageEngine = diskStorage({
